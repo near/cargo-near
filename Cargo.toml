@@ -1,0 +1,26 @@
+[package]
+name = "cargo-near"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/near/cargo-near"
+description = """
+Cargo extension for building Rust smart contracts on NEAR.
+"""
+
+[dependencies]
+anyhow = "1.0"
+cargo_metadata = "0.14"
+clap = { version = "3.2", features = ["derive", "env"] }
+colored = "2.0"
+env_logger = "0.9"
+near-sdk = { git = "https://github.com/near/near-sdk-rs.git", branch = "daniyar/abi-macro", features = ["abi"] }
+log = "0.4"
+prettyplease = "0.1"
+tempfile = "3.3"
+toml = "0.5"
+serde_json = "1.0"
+symbolic-debuginfo = "8.8"
+syn = "1.0"
+quote = "1.0"
