@@ -6,6 +6,20 @@ use std::process::Command;
 
 use crate::cargo::manifest::CargoManifestPath;
 
+const fn dylib_extension() -> &'static str {
+    #[cfg(target_os = "linux")]
+    return "so";
+
+    #[cfg(target_os = "macos")]
+    return "dylib";
+
+    #[cfg(target_os = "windows")]
+    return "dll";
+
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    compile_error!("Unsupported platform");
+}
+
 /// Invokes `cargo` with the subcommand `command`, the supplied `args` and set `env` variables.
 ///
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.
@@ -73,7 +87,7 @@ fn build_cargo_project(manifest_path: &CargoManifestPath) -> anyhow::Result<Vec<
 pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow::Result<PathBuf> {
     let messages = build_cargo_project(manifest_path)?;
     // We find the last compiler artifact message which should contain information about the
-    // resulting .so file
+    // resulting dylib file
     let compile_artifact = messages
         .iter()
         .filter_map(|m| match m {
@@ -87,22 +101,29 @@ pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow
                  Please check that your project contains a NEAR smart contract."
             )
         })?;
-    // The project could have generated many auxiliary files, we are only interested in .so files
-    let so_files = compile_artifact
+    // The project could have generated many auxiliary files, we are only interested in
+    // dylib files with a specific (platform-dependent) extension
+    let dylib_files = compile_artifact
         .filenames
         .iter()
         .cloned()
-        .filter(|f| f.as_str().ends_with(".so"))
+        .filter(|f| {
+            f.extension()
+                .map(|e| e == dylib_extension())
+                .unwrap_or(false)
+        })
         .collect::<Vec<_>>();
-    match so_files.as_slice() {
+    match dylib_files.as_slice() {
         [] => Err(anyhow::anyhow!(
-            "Compilation resulted in no '.so' target files. \
-                 Please check that your project contains a NEAR smart contract."
+            "Compilation resulted in no '.{}' target files. \
+                 Please check that your project contains a NEAR smart contract.",
+            dylib_extension()
         )),
         [file] => Ok(file.to_owned().into_std_path_buf()),
         _ => Err(anyhow::anyhow!(
-            "Compilation resulted in more than one '.so' target file: {:?}",
-            so_files
+            "Compilation resulted in more than one '.{}' target file: {:?}",
+            dylib_extension(),
+            dylib_files
         )),
     }
 }
