@@ -15,34 +15,31 @@ pub(crate) struct AbiResult {
 }
 
 pub(crate) fn execute(manifest_path: &CargoManifestPath) -> anyhow::Result<AbiResult> {
-    let tmp_dir = tempfile::Builder::new()
-        .prefix("cargo-contract_")
-        .tempdir()?;
+    let crate_metadata = CrateMetadata::collect(manifest_path)?;
+    let near_abi_gen_dir = &crate_metadata
+        .target_directory
+        .join(crate_metadata.root_package.name.clone() + "-near-abi-gen");
+    fs::create_dir_all(near_abi_gen_dir)?;
     log::debug!(
         "Using temp Cargo workspace at '{}'",
-        tmp_dir.path().display()
+        near_abi_gen_dir.display()
     );
 
-    let crate_metadata = CrateMetadata::collect(manifest_path)?;
     let dylib_path = util::compile_dylib_project(manifest_path)?;
 
     let cargo_toml = generation::generate_toml(manifest_path)?;
-    fs::write(tmp_dir.path().join("Cargo.toml"), cargo_toml)?;
+    fs::write(near_abi_gen_dir.join("Cargo.toml"), cargo_toml)?;
 
     let build_rs = generation::generate_build_rs(&dylib_path)?;
-    fs::write(tmp_dir.path().join("build.rs"), build_rs)?;
+    fs::write(near_abi_gen_dir.join("build.rs"), build_rs)?;
 
     let main_rs = generation::generate_main_rs(&dylib_path)?;
-    fs::write(tmp_dir.path().join("main.rs"), main_rs)?;
+    fs::write(near_abi_gen_dir.join("main.rs"), main_rs)?;
 
-    let target_dir_arg = format!(
-        "--target-dir={}",
-        crate_metadata.target_directory.to_string_lossy()
-    );
     let stdout = util::invoke_cargo(
         "run",
-        &["--package", "near-abi-gen", "--release", &target_dir_arg],
-        Some(tmp_dir.path()),
+        &["--package", "near-abi-gen", "--release"],
+        Some(near_abi_gen_dir),
         vec![(
             "LD_LIBRARY_PATH",
             &dylib_path.parent().unwrap().to_string_lossy(),
