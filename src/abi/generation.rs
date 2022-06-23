@@ -38,7 +38,7 @@ pub(crate) fn generate_toml(manifest_path: &CargoManifestPath) -> anyhow::Result
         let path = near_sdk_path
             .as_str()
             .expect("NEAR SDK path should be a string");
-        let path = PathBuf::from(path);
+        let path = manifest_path.directory()?.join(PathBuf::from(path));
         *near_sdk_path = value::Value::String(path.canonicalize()?.to_string_lossy().into());
     }
 
