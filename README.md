@@ -10,3 +10,8 @@ To generate ABI for a contract (while standing in the directory containing contr
 ```
 cargo near abi
 ```
+
+Or explicitly specify path to the Cargo manifest:
+```
+cargo near abi --manifest-path path/to/Cargo.toml
+```
