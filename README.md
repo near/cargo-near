@@ -6,7 +6,7 @@ To install:
 cargo install --path .
 ```
 
-To generate ABI for a contract (while standing in the directory containing contract's Cargo.toml):
+To generate ABI for a contract (while in the directory containing contract's Cargo.toml):
 ```
 cargo near abi
 ```
