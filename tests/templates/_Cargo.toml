@@ -1,0 +1,23 @@
+[package]
+name = "integration-test"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "9ab6df8ed35e67c247299059d8277c2170a0a91b", features = ["abi"] }
+serde = { version = "1", features = ["derive"] }
+schemars = "0.8"
+
+[profile.release]
+codegen-units = 1
+# Tell `rustc` to optimize for small code size.
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+
+[workspace]
+members = []
