@@ -25,6 +25,6 @@ syn = "1.0"
 quote = "1.0"
 
 [dev-dependencies]
+function_name = "0.3"
 proc-macro2 = "1.0"
 schemars = "0.8"
-tempfile = "3.3"

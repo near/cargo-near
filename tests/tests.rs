@@ -1,36 +1,44 @@
 use cargo_near::{AbiCommand, NearCommand};
+use function_name::named;
 use near_sdk::__private::{AbiFunction, AbiParameter, AbiRoot, AbiSerializationType, AbiType};
-use proc_macro2::TokenStream;
-use quote::quote;
 use schemars::gen::SchemaGenerator;
-use std::fs;
+use std::{fs, path::PathBuf};
 
-fn generate_abi(code: TokenStream) -> anyhow::Result<AbiRoot> {
-    let tmp_dir = tempfile::tempdir()?;
-    let tmp_dir_path = tmp_dir.path();
-    let src_dir_path = tmp_dir_path.join("src");
-    fs::create_dir_all(&src_dir_path)?;
+macro_rules! generate_abi {
+    ($($code:tt)*) => {{
+        let manifest_dir: PathBuf = env!("CARGO_MANIFEST_DIR").into();
+        let workspace_dir = manifest_dir.join("target").join("_abi-integration-tests");
+        let crate_dir = workspace_dir.join(function_name!());
+        let src_dir = crate_dir.join("src");
+        fs::create_dir_all(&src_dir)?;
 
-    let cargo_toml = include_str!("templates/_Cargo.toml");
-    let cargo_path = tmp_dir_path.join("Cargo.toml");
-    fs::write(&cargo_path, cargo_toml)?;
+        let cargo_toml = include_str!("templates/_Cargo_workspace.toml");
+        fs::write(&workspace_dir.join("Cargo.toml"), cargo_toml)?;
 
-    let lib_rs_file = syn::parse_file(&code.to_string()).unwrap();
-    let lib_rs = prettyplease::unparse(&lib_rs_file);
-    let lib_rs_path = src_dir_path.join("lib.rs");
-    fs::write(lib_rs_path, lib_rs)?;
+        let cargo_toml = include_str!("templates/_Cargo.toml");
+        let cargo_toml = cargo_toml.replace("::name::", function_name!());
+        let cargo_path = crate_dir.join("Cargo.toml");
+        fs::write(&cargo_path, cargo_toml)?;
 
-    cargo_near::exec(NearCommand::Abi(AbiCommand {
-        manifest_path: Some(cargo_path),
-    }))?;
+        let lib_rs_file = syn::parse_file(&quote::quote! { $($code)* }.to_string()).unwrap();
+        let lib_rs = prettyplease::unparse(&lib_rs_file);
+        let lib_rs_path = src_dir.join("lib.rs");
+        fs::write(lib_rs_path, lib_rs)?;
 
-    let abi_root = serde_json::from_slice(&fs::read(tmp_dir_path.join("target/near/abi.json"))?)?;
-    Ok(abi_root)
+        cargo_near::exec(NearCommand::Abi(AbiCommand {
+            manifest_path: Some(cargo_path),
+        }))?;
+
+        let abi_root: AbiRoot =
+            serde_json::from_slice(&fs::read(workspace_dir.join("target").join("near").join(function_name!()).join("abi.json"))?)?;
+        abi_root
+    }};
 }
 
 #[test]
-fn test_simple_function() -> anyhow::Result<()> {
-    let code = quote! {
+#[named]
+fn test_view_function() -> anyhow::Result<()> {
+    let abi_root = generate_abi! {
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
         use near_sdk::near_bindgen;
 
@@ -45,7 +53,6 @@ fn test_simple_function() -> anyhow::Result<()> {
             }
         }
     };
-    let abi_root = generate_abi(code)?;
 
     assert_eq!(abi_root.abi.functions.len(), 1);
     let function = &abi_root.abi.functions[0];
@@ -78,6 +85,92 @@ fn test_simple_function() -> anyhow::Result<()> {
             })
         }
     );
+
+    Ok(())
+}
+
+#[test]
+#[named]
+fn test_call_function() -> anyhow::Result<()> {
+    let abi_root = generate_abi! {
+        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::near_bindgen;
+
+        #[near_bindgen]
+        #[derive(Default, BorshDeserialize, BorshSerialize)]
+        pub struct Contract {
+            state: u32
+        }
+
+        #[near_bindgen]
+        impl Contract {
+            pub fn add(&mut self, a: u32, b: u32) {
+                self.state = a + b;
+            }
+        }
+    };
+
+    assert_eq!(abi_root.abi.functions.len(), 1);
+    let function = &abi_root.abi.functions[0];
+    assert!(!function.is_view);
+
+    Ok(())
+}
+
+#[test]
+#[named]
+fn test_payable_function() -> anyhow::Result<()> {
+    let abi_root = generate_abi! {
+        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::near_bindgen;
+
+        #[near_bindgen]
+        #[derive(Default, BorshDeserialize, BorshSerialize)]
+        pub struct Contract {
+            state: u32
+        }
+
+        #[near_bindgen]
+        impl Contract {
+            #[payable]
+            pub fn add(&mut self, a: u32, b: u32) {
+                self.state = a + b;
+            }
+        }
+    };
+
+    assert_eq!(abi_root.abi.functions.len(), 1);
+    let function = &abi_root.abi.functions[0];
+    assert!(function.is_payable);
+
+    Ok(())
+}
+
+#[test]
+#[named]
+fn test_private_function() -> anyhow::Result<()> {
+    let abi_root = generate_abi! {
+        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::near_bindgen;
+
+        #[near_bindgen]
+        #[derive(Default, BorshDeserialize, BorshSerialize)]
+        pub struct Contract {
+            state: u32
+        }
+
+        #[near_bindgen]
+        impl Contract {
+            #[private]
+            pub fn add(&mut self, a: u32, b: u32) {
+                self.state = a + b;
+            }
+        }
+    };
+
+    assert_eq!(abi_root.abi.functions.len(), 1);
+    let function = &abi_root.abi.functions[0];
+    assert!(function.is_private);
 
     Ok(())
 }
