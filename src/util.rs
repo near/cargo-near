@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::Message;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
@@ -18,6 +19,26 @@ const fn dylib_extension() -> &'static str {
 
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
     compile_error!("Unsupported platform");
+}
+
+fn print_cargo_errors(output: Vec<u8>) {
+    let reader = std::io::BufReader::new(output.as_slice());
+    let messages = Message::parse_stream(reader)
+        .map(|m| m.unwrap())
+        .collect::<Vec<_>>();
+    messages
+        .into_iter()
+        .filter_map(|m| match m {
+            cargo_metadata::Message::CompilerMessage(message)
+                if message.message.level == DiagnosticLevel::Error =>
+            {
+                message.message.rendered
+            }
+            _ => None,
+        })
+        .for_each(|m| {
+            println!("{}", m);
+        });
 }
 
 /// Invokes `cargo` with the subcommand `command`, the supplied `args` and set `env` variables.
@@ -63,6 +84,7 @@ where
     if output.status.success() {
         Ok(output.stdout)
     } else {
+        print_cargo_errors(output.stdout);
         anyhow::bail!(
             "`{:?}` failed with exit code: {:?}",
             cmd,
