@@ -17,7 +17,7 @@ pub(crate) fn generate_toml(manifest_path: &CargoManifestPath) -> anyhow::Result
         .ok_or_else(|| anyhow::anyhow!("near-sdk dependency should be a table"))?
         .clone();
 
-    let cargo_toml = include_str!("../../templates/_Cargo.toml");
+    let cargo_toml = include_str!("../templates/_Cargo.toml");
     let mut cargo_toml: toml::value::Table = toml::from_str(cargo_toml)?;
     let deps = cargo_toml
         .get_mut("dependencies")
