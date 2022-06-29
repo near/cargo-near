@@ -7,7 +7,7 @@ use std::{fs, path::PathBuf};
 macro_rules! generate_abi {
     ($($code:tt)*) => {{
         let manifest_dir: PathBuf = env!("CARGO_MANIFEST_DIR").into();
-        let workspace_dir = manifest_dir.join("target").join("_abi-integration-tests");
+        let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
         let src_dir = crate_dir.join("src");
         fs::create_dir_all(&src_dir)?;
