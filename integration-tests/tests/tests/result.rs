@@ -42,6 +42,7 @@ fn test_result_type() -> anyhow::Result<()> {
 }
 
 // FIXME: test does not work because handle_result type is not unwrapped from `Result<_, _>`.
+// See https://github.com/near/near-sdk-rs/pull/858
 #[test]
 #[named]
 #[ignore]

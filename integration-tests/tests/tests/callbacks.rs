@@ -71,6 +71,7 @@ fn test_callbacks_result() -> anyhow::Result<()> {
 }
 
 // FIXME: test does not work because callback_vec type is not unwrapped from `Vec<_>`.
+// See https://github.com/near/near-sdk-rs/pull/863
 #[test]
 #[named]
 #[ignore]
@@ -108,6 +109,7 @@ fn test_callbacks_vec() -> anyhow::Result<()> {
 }
 
 // FIXME: test does not work because callback_vec type is not unwrapped from `Vec<_>`.
+// See https://github.com/near/near-sdk-rs/pull/863
 #[test]
 #[named]
 #[ignore]
