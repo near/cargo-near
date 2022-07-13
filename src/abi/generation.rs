@@ -122,7 +122,7 @@ pub(crate) fn generate_main_rs(dylib_path: &Path) -> anyhow::Result<String> {
     let near_abi_function_invocations = near_abi_symbols.iter().map(|s| {
         let name = format_ident!("{}", s);
         quote! {
-            #name()
+            unsafe { #name() }
         }
     });
 
@@ -132,7 +132,7 @@ pub(crate) fn generate_main_rs(dylib_path: &Path) -> anyhow::Result<String> {
         }
 
         fn main() -> Result<(), std::io::Error> {
-            let root_abis = unsafe { vec![#(#near_abi_function_invocations),*] };
+            let root_abis = vec![#(#near_abi_function_invocations),*];
             let combined_root_abi = near_sdk::__private::AbiRoot::combine(root_abis);
             let contents = serde_json::to_string_pretty(&combined_root_abi)?;
             print!("{}", contents);
