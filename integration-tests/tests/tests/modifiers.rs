@@ -14,6 +14,9 @@ fn test_view_function() -> anyhow::Result<()> {
     assert_eq!(abi_root.abi.functions.len(), 1);
     let function = &abi_root.abi.functions[0];
     assert!(function.is_view);
+    assert!(!function.is_init);
+    assert!(!function.is_payable);
+    assert!(!function.is_private);
 
     Ok(())
 }
@@ -36,22 +39,6 @@ fn test_call_function() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_non_init_function() -> anyhow::Result<()> {
-    let abi_root = generate_abi_fn! {
-        pub fn add(&self, a: u32, b: u32) -> u32 {
-            a + b
-        }
-    };
-
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
-    assert!(!function.is_init);
-
-    Ok(())
-}
-
-#[test]
-#[named]
 fn test_init_function() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn! {
         #[init]
@@ -63,22 +50,7 @@ fn test_init_function() -> anyhow::Result<()> {
     assert_eq!(abi_root.abi.functions.len(), 1);
     let function = &abi_root.abi.functions[0];
     assert!(function.is_init);
-
-    Ok(())
-}
-
-#[test]
-#[named]
-fn test_non_payable_function() -> anyhow::Result<()> {
-    let abi_root = generate_abi_fn! {
-        pub fn add(&mut self, a: u32, b: u32) -> u32 {
-            a + b
-        }
-    };
-
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
-    assert!(!function.is_payable);
+    assert!(function.result.is_none());
 
     Ok(())
 }
@@ -96,22 +68,6 @@ fn test_payable_function() -> anyhow::Result<()> {
     assert_eq!(abi_root.abi.functions.len(), 1);
     let function = &abi_root.abi.functions[0];
     assert!(function.is_payable);
-
-    Ok(())
-}
-
-#[test]
-#[named]
-fn test_public_function() -> anyhow::Result<()> {
-    let abi_root = generate_abi_fn! {
-        pub fn add(&self, a: u32, b: u32) -> u32 {
-            a + b
-        }
-    };
-
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
-    assert!(!function.is_private);
 
     Ok(())
 }
