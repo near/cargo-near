@@ -1,6 +1,5 @@
 use cargo::manifest::CargoManifestPath;
 use clap::{AppSettings, Args, Parser, Subcommand};
-use colored::Colorize;
 use std::path::PathBuf;
 
 mod abi;
@@ -9,20 +8,20 @@ mod util;
 
 #[derive(Debug, Parser)]
 #[clap(bin_name = "cargo")]
-pub(crate) enum Opts {
+pub enum Opts {
     #[clap(name = "near")]
     #[clap(setting = AppSettings::DeriveDisplayOrder)]
     Near(NearArgs),
 }
 
 #[derive(Debug, Args)]
-pub(crate) struct NearArgs {
+pub struct NearArgs {
     #[clap(subcommand)]
-    cmd: Command,
+    pub cmd: NearCommand,
 }
 
 #[derive(Debug, Subcommand)]
-enum Command {
+pub enum NearCommand {
     /// Generates ABI for the contract
     #[clap(name = "abi")]
     Abi(AbiCommand),
@@ -33,29 +32,12 @@ enum Command {
 pub struct AbiCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str))]
-    manifest_path: Option<PathBuf>,
+    pub manifest_path: Option<PathBuf>,
 }
 
-fn main() {
-    env_logger::init();
-
-    let Opts::Near(args) = Opts::parse();
-    match exec(args.cmd) {
-        Ok(()) => {}
-        Err(err) => {
-            eprintln!(
-                "{} {}",
-                "ERROR:".bright_red().bold(),
-                format!("{:?}", err).bright_red()
-            );
-            std::process::exit(1);
-        }
-    }
-}
-
-fn exec(cmd: Command) -> anyhow::Result<()> {
+pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
     match &cmd {
-        Command::Abi(abi) => {
+        NearCommand::Abi(abi) => {
             let manifest_path = abi
                 .manifest_path
                 .clone()
