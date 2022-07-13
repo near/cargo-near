@@ -70,11 +70,8 @@ fn test_callbacks_result() -> anyhow::Result<()> {
     Ok(())
 }
 
-// FIXME: test does not work because callback_vec type is not unwrapped from `Vec<_>`.
-// See https://github.com/near/near-sdk-rs/pull/863
 #[test]
 #[named]
-#[ignore]
 fn test_callbacks_vec() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn! {
         pub fn foo(
@@ -108,11 +105,8 @@ fn test_callbacks_vec() -> anyhow::Result<()> {
     Ok(())
 }
 
-// FIXME: test does not work because callback_vec type is not unwrapped from `Vec<_>`.
-// See https://github.com/near/near-sdk-rs/pull/863
 #[test]
 #[named]
-#[ignore]
 fn test_callbacks_mixed_with_params() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn! {
         pub fn foo(

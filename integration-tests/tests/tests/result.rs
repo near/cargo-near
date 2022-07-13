@@ -41,11 +41,8 @@ fn test_result_type() -> anyhow::Result<()> {
     Ok(())
 }
 
-// FIXME: test does not work because handle_result type is not unwrapped from `Result<_, _>`.
-// See https://github.com/near/near-sdk-rs/pull/858
 #[test]
 #[named]
-#[ignore]
 fn test_result_handle_result() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn! {
         #[handle_result]

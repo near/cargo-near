@@ -8,7 +8,7 @@ publish = false
 anyhow = "1.0"
 cargo-near = { path = "../cargo-near" }
 function_name = "0.3"
-near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "9ab6df8ed35e67c247299059d8277c2170a0a91b", features = ["abi"] }
+near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "11f60860fd6c34e9d27f37bb1ff9930c2aaa42e3", features = ["abi"] }
 prettyplease = "0.1"
 proc-macro2 = "1.0"
 schemars = "0.8"
