@@ -23,11 +23,8 @@ const fn dylib_extension() -> &'static str {
 
 fn print_cargo_errors(output: Vec<u8>) {
     let reader = std::io::BufReader::new(output.as_slice());
-    let messages = Message::parse_stream(reader)
+    Message::parse_stream(reader)
         .map(|m| m.unwrap())
-        .collect::<Vec<_>>();
-    messages
-        .into_iter()
         .filter_map(|m| match m {
             cargo_metadata::Message::CompilerMessage(message)
                 if message.message.level == DiagnosticLevel::Error =>
