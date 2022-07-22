@@ -38,7 +38,7 @@ pub(crate) fn execute(manifest_path: &CargoManifestPath) -> anyhow::Result<AbiRe
 
     let stdout = util::invoke_cargo(
         "run",
-        &["--package", "near-abi-gen", "--release"],
+        &["--package", "near-abi-gen"],
         Some(near_abi_gen_dir),
         vec![(
             "LD_LIBRARY_PATH",

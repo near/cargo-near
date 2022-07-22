@@ -93,9 +93,13 @@ where
 fn build_cargo_project(manifest_path: &CargoManifestPath) -> anyhow::Result<Vec<Message>> {
     let output = invoke_cargo(
         "build",
-        &["--release", "--message-format=json"],
+        &["--message-format=json"],
         manifest_path.directory().ok(),
-        vec![],
+        vec![
+            ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
+            ("CARGO_PROFILE_DEV_DEBUG", "0"),
+            ("CARGO_PROFILE_DEV_LTO", "off"),
+        ],
     )?;
 
     let reader = std::io::BufReader::new(output.as_slice());
