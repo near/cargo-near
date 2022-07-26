@@ -26,7 +26,6 @@ pub(crate) fn generate_toml(manifest_path: &CargoManifestPath) -> anyhow::Result
         .expect("[dependencies] is a table specified in the template");
 
     // Make near-sdk dependency not use default features to save on compilation time, but ensure `abi` is enabled
-    near_sdk.remove("default-features");
     near_sdk.remove("optional");
     near_sdk.insert("default-features".to_string(), value::Value::Boolean(false));
     near_sdk.insert(
