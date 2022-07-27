@@ -17,6 +17,15 @@ pub(crate) fn generate_toml(manifest_path: &CargoManifestPath) -> anyhow::Result
         .ok_or_else(|| anyhow::anyhow!("near-sdk dependency should be a table"))?
         .clone();
 
+    if !near_sdk
+        .get("features")
+        .and_then(|features| features.as_array())
+        .map(|features| features.contains(&value::Value::String("abi".to_string())))
+        .unwrap_or(false)
+    {
+        anyhow::bail!("Unable to generate ABI: NEAR SDK \"abi\" feature is not enabled")
+    }
+
     let cargo_toml = include_str!("../../templates/_Cargo.toml");
     let mut cargo_toml: toml::value::Table = toml::from_str(cargo_toml)?;
     let deps = cargo_toml
