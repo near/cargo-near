@@ -21,7 +21,6 @@ jobs:
         with:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v1
       - name: Run tests
         run: cargo test --verbose
 
@@ -37,7 +36,6 @@ jobs:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
       - name: Check Formatting
         run: cargo fmt -- --check
       - name: Check Clippy
@@ -54,7 +52,6 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-      - uses: Swatinem/rust-cache@v1
       - name: Install Audit
         run: cargo install cargo-audit
       - name: Run Audit
