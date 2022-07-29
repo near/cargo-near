@@ -1,0 +1,64 @@
+name: Cargo NEAR Checks And Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.platform }}
+    name: "${{ matrix.platform }} ${{ matrix.toolchain }}"
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+        toolchain: [stable, 1.56.0]
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+      - name: "Install ${{ matrix.toolchain }} toolchain"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+      - uses: Swatinem/rust-cache@v1
+      - name: Run tests
+        run: cargo test --verbose
+
+  lint:
+    name: Clippy and fmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with: 
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v1
+      - name: Check Formatting
+        run: cargo fmt -- --check
+      - name: Check Clippy
+        run: cargo clippy --tests -- -Dclippy::all
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+      - name: Install Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v1
+      - name: Install Audit
+        run: cargo install cargo-audit
+      - name: Run Audit
+        uses: actions-rs/cargo@v1
+        with:
+          command: audit
+          args: --ignore RUSTSEC-2020-0071
