@@ -1,17 +1,18 @@
 #[macro_export]
 macro_rules! generate_abi {
-    (with Cargo $cargo_path:expr; $($code:tt)*) => {{
+    (with Cargo $cargo_path:expr, and vars $cargo_vars:expr; $($code:tt)*) => {{
         let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
         let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
         let src_dir = crate_dir.join("src");
         fs::create_dir_all(&src_dir)?;
 
-        let cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/_Cargo_workspace.toml"));
-        fs::write(&workspace_dir.join("Cargo.toml"), cargo_toml)?;
-
-        let cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $cargo_path));
-        let cargo_toml = cargo_toml.replace("::name::", function_name!());
+        let mut cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $cargo_path)).to_string();
+        let mut vars: std::collections::HashMap<&str, &str> = $cargo_vars;
+        vars.insert("name", function_name!());
+        for (k, v) in vars {
+            cargo_toml = cargo_toml.replace(&format!("::{}::", k), v);
+        }
         let cargo_path = crate_dir.join("Cargo.toml");
         fs::write(&cargo_path, cargo_toml)?;
 
@@ -25,9 +26,12 @@ macro_rules! generate_abi {
         }))?;
 
         let abi_root: near_sdk::__private::AbiRoot =
-            serde_json::from_slice(&fs::read(workspace_dir.join("target").join("near").join(function_name!()).join("abi.json"))?)?;
+            serde_json::from_slice(&fs::read(workspace_dir.join(function_name!()).join("target").join("near").join("abi.json"))?)?;
         abi_root
     }};
+    (with Cargo $cargo_path:expr; $($code:tt)*) => {
+        $crate::generate_abi! { with Cargo $cargo_path, and vars std::collections::HashMap::new(); $($code)* }
+    };
     ($($code:tt)*) => {
         $crate::generate_abi! { with Cargo "/templates/_Cargo.toml"; $($code)* }
     }
@@ -36,9 +40,9 @@ macro_rules! generate_abi {
 /// Generate ABI for one function
 #[macro_export]
 macro_rules! generate_abi_fn {
-    (with Cargo $cargo_path:expr; $($code:tt)*) => {{
+    (with Cargo $cargo_path:expr, and vars $cargo_vars:expr; $($code:tt)*) => {{
         $crate::generate_abi! {
-            with Cargo $cargo_path;
+            with Cargo $cargo_path, and vars $cargo_vars;
             use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
             use near_sdk::near_bindgen;
 
@@ -52,6 +56,9 @@ macro_rules! generate_abi_fn {
             }
         }
     }};
+    (with Cargo $cargo_path:expr; $($code:tt)*) => {
+        $crate::generate_abi_fn! { with Cargo $cargo_path, and vars std::collections::HashMap::new(); $($code)* }
+    };
     ($($code:tt)*) => {
         $crate::generate_abi_fn! { with Cargo "/templates/_Cargo.toml"; $($code)* }
     }

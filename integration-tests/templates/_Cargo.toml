@@ -7,6 +7,17 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "11f60860fd6c34e9d27f37bb1ff9930c2aaa42e3", features = ["abi"] }
+near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "83df045aded3e1b14c372ebc36a53ca71cfb4f07", features = ["abi"] }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
+
+[workspace]
+members = []
+
+[profile.release]
+codegen-units = 1
+# Tell `rustc` to optimize for small code size.
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
