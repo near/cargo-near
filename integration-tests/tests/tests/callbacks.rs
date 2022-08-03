@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_sdk::__private::{AbiParameter, AbiSerializationType, AbiType};
+use near_sdk::__private::{AbiParameter, AbiType};
 use schemars::gen::SchemaGenerator;
 use std::fs;
 
@@ -19,16 +19,14 @@ fn test_callbacks_unwrapped() -> anyhow::Result<()> {
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.callbacks[0],
-        AbiType {
+        AbiType::Json {
             type_schema: bool_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
     assert_eq!(
         function.callbacks[1],
-        AbiType {
+        AbiType::Json {
             type_schema: u32_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
 
@@ -54,16 +52,14 @@ fn test_callbacks_result() -> anyhow::Result<()> {
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.callbacks[0],
-        AbiType {
+        AbiType::Json {
             type_schema: string_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
     assert_eq!(
         function.callbacks[1],
-        AbiType {
+        AbiType::Json {
             type_schema: u32_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
 
@@ -89,16 +85,14 @@ fn test_callbacks_vec() -> anyhow::Result<()> {
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.callbacks[0],
-        AbiType {
+        AbiType::Json {
             type_schema: bool_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
     assert_eq!(
         function.callbacks_vec,
-        Some(AbiType {
+        Some(AbiType::Json {
             type_schema: u32_schema,
-            serialization_type: AbiSerializationType::Json
         })
     );
 
@@ -132,37 +126,36 @@ fn test_callbacks_mixed_with_params() -> anyhow::Result<()> {
         function.params[0],
         AbiParameter {
             name: "b".to_string(),
-            type_schema: u32_schema,
-            serialization_type: AbiSerializationType::Json,
+            typ: AbiType::Json {
+                type_schema: u32_schema,
+            }
         }
     );
     assert_eq!(
         function.params[1],
         AbiParameter {
             name: "d".to_string(),
-            type_schema: i32_schema,
-            serialization_type: AbiSerializationType::Json,
+            typ: AbiType::Json {
+                type_schema: i32_schema,
+            }
         }
     );
     assert_eq!(
         function.callbacks[0],
-        AbiType {
+        AbiType::Json {
             type_schema: bool_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
     assert_eq!(
         function.callbacks[1],
-        AbiType {
+        AbiType::Json {
             type_schema: string_schema,
-            serialization_type: AbiSerializationType::Json
         }
     );
     assert_eq!(
         function.callbacks_vec,
-        Some(AbiType {
+        Some(AbiType::Json {
             type_schema: u8_schema,
-            serialization_type: AbiSerializationType::Json
         })
     );
 

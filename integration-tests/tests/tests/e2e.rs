@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_sdk::__private::{AbiFunction, AbiParameter, AbiSerializationType, AbiType};
+use near_sdk::__private::{AbiFunction, AbiParameter, AbiType};
 use schemars::gen::SchemaGenerator;
 use std::fs;
 
@@ -27,20 +27,21 @@ fn test_simple_function() -> anyhow::Result<()> {
             params: vec![
                 AbiParameter {
                     name: "a".to_string(),
-                    type_schema: u32_schema.clone(),
-                    serialization_type: AbiSerializationType::Json
+                    typ: AbiType::Json {
+                        type_schema: u32_schema.clone(),
+                    }
                 },
                 AbiParameter {
                     name: "b".to_string(),
-                    type_schema: u32_schema.clone(),
-                    serialization_type: AbiSerializationType::Json
+                    typ: AbiType::Json {
+                        type_schema: u32_schema.clone(),
+                    }
                 }
             ],
             callbacks: vec![],
             callbacks_vec: None,
-            result: Some(AbiType {
+            result: Some(AbiType::Json {
                 type_schema: u32_schema,
-                serialization_type: AbiSerializationType::Json,
             })
         }
     );

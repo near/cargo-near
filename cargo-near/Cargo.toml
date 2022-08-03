@@ -15,7 +15,7 @@ cargo_metadata = "0.14"
 clap = { version = "3.2", features = ["derive", "env"] }
 colored = "2.0"
 env_logger = "0.9"
-near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "83df045aded3e1b14c372ebc36a53ca71cfb4f07", features = ["abi"] }
+near-sdk = { version = "4.1.0-pre.0", features = ["abi"] }
 log = "0.4"
 prettyplease = "0.1"
 toml = "0.5"
