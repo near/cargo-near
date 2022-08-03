@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_sdk::__private::{AbiSerializationType, AbiType};
+use near_sdk::__private::AbiType;
 use schemars::gen::SchemaGenerator;
 use std::fs;
 
@@ -32,9 +32,8 @@ fn test_result_type() -> anyhow::Result<()> {
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.result,
-        Some(AbiType {
+        Some(AbiType::Json {
             type_schema: u32_schema,
-            serialization_type: AbiSerializationType::Json
         })
     );
 
@@ -56,9 +55,8 @@ fn test_result_handle_result() -> anyhow::Result<()> {
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.result,
-        Some(AbiType {
+        Some(AbiType::Json {
             type_schema: u32_schema,
-            serialization_type: AbiSerializationType::Json
         })
     );
 

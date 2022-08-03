@@ -1,7 +1,22 @@
 use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
 use function_name::named;
+use near_sdk::__private::{AbiParameter, AbiType};
 use schemars::schema::Schema;
 use std::fs;
+
+trait AsJsonSchema {
+    fn json_schema(&self) -> anyhow::Result<&Schema>;
+}
+
+impl AsJsonSchema for AbiParameter {
+    fn json_schema(&self) -> anyhow::Result<&Schema> {
+        if let AbiType::Json { type_schema } = &self.typ {
+            Ok(type_schema)
+        } else {
+            anyhow::bail!("Expected JSON serialization type, but got {:?}", self)
+        }
+    }
+}
 
 #[test]
 #[named]
@@ -66,12 +81,12 @@ fn test_schema_numeric_primitives_signed() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, i8_schema);
-    assert_eq!(function.params[1].type_schema, i16_schema);
-    assert_eq!(function.params[2].type_schema, i32_schema);
-    assert_eq!(function.params[3].type_schema, i64_schema);
-    assert_eq!(function.params[4].type_schema, i128_schema);
-    assert_eq!(function.params[5].type_schema, isize_schema);
+    assert_eq!(function.params[0].json_schema()?, &i8_schema);
+    assert_eq!(function.params[1].json_schema()?, &i16_schema);
+    assert_eq!(function.params[2].json_schema()?, &i32_schema);
+    assert_eq!(function.params[3].json_schema()?, &i64_schema);
+    assert_eq!(function.params[4].json_schema()?, &i128_schema);
+    assert_eq!(function.params[5].json_schema()?, &isize_schema);
 
     Ok(())
 }
@@ -145,12 +160,12 @@ fn test_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, u8_schema);
-    assert_eq!(function.params[1].type_schema, u16_schema);
-    assert_eq!(function.params[2].type_schema, u32_schema);
-    assert_eq!(function.params[3].type_schema, u64_schema);
-    assert_eq!(function.params[4].type_schema, u128_schema);
-    assert_eq!(function.params[5].type_schema, usize_schema);
+    assert_eq!(function.params[0].json_schema()?, &u8_schema);
+    assert_eq!(function.params[1].json_schema()?, &u16_schema);
+    assert_eq!(function.params[2].json_schema()?, &u32_schema);
+    assert_eq!(function.params[3].json_schema()?, &u64_schema);
+    assert_eq!(function.params[4].json_schema()?, &u128_schema);
+    assert_eq!(function.params[5].json_schema()?, &usize_schema);
 
     Ok(())
 }
@@ -186,8 +201,8 @@ fn test_schema_numeric_primitives_float() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, f32_schema);
-    assert_eq!(function.params[1].type_schema, f64_schema);
+    assert_eq!(function.params[0].json_schema()?, &f32_schema);
+    assert_eq!(function.params[1].json_schema()?, &f64_schema);
 
     Ok(())
 }
@@ -209,9 +224,9 @@ fn test_schema_string() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, string_schema);
-    assert_eq!(function.params[1].type_schema, string_schema);
-    assert_eq!(function.params[2].type_schema, string_schema);
+    assert_eq!(function.params[0].json_schema()?, &string_schema);
+    assert_eq!(function.params[1].json_schema()?, &string_schema);
+    assert_eq!(function.params[2].json_schema()?, &string_schema);
 
     Ok(())
 }
@@ -249,9 +264,9 @@ fn test_schema_other_primitives() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, char_schema);
-    assert_eq!(function.params[1].type_schema, bool_schema);
-    assert_eq!(function.params[2].type_schema, unit_schema);
+    assert_eq!(function.params[0].json_schema()?, &char_schema);
+    assert_eq!(function.params[1].json_schema()?, &bool_schema);
+    assert_eq!(function.params[2].json_schema()?, &unit_schema);
 
     Ok(())
 }
@@ -317,9 +332,9 @@ fn test_schema_tuples() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, tuple1_schema);
-    assert_eq!(function.params[1].type_schema, tuple2_schema);
-    assert_eq!(function.params[2].type_schema, tuple3_schema);
+    assert_eq!(function.params[0].json_schema()?, &tuple1_schema);
+    assert_eq!(function.params[1].json_schema()?, &tuple2_schema);
+    assert_eq!(function.params[2].json_schema()?, &tuple3_schema);
 
     Ok(())
 }
@@ -368,9 +383,9 @@ fn test_schema_arrays() -> anyhow::Result<()> {
         }
         "#,
     )?;
-    assert_eq!(function.params[0].type_schema, array8_schema);
-    assert_eq!(function.params[1].type_schema, array16_schema);
-    assert_eq!(function.params[2].type_schema, array_unlim_schema);
+    assert_eq!(function.params[0].json_schema()?, &array8_schema);
+    assert_eq!(function.params[1].json_schema()?, &array16_schema);
+    assert_eq!(function.params[2].json_schema()?, &array_unlim_schema);
 
     Ok(())
 }
@@ -420,8 +435,8 @@ fn test_schema_struct() -> anyhow::Result<()> {
         }
         "##,
     )?;
-    assert_eq!(function.params[0].type_schema, pair_def_schema);
-    assert_eq!(function.params[1].type_schema, pair_named_def_schema);
+    assert_eq!(function.params[0].json_schema()?, &pair_def_schema);
+    assert_eq!(function.params[1].json_schema()?, &pair_named_def_schema);
 
     // Structs with unnamed parameters are serialized as arrays, hence they are represented as
     // arrays in JSON Schema.
@@ -526,8 +541,8 @@ fn test_schema_enum() -> anyhow::Result<()> {
         }
         "##,
     )?;
-    assert_eq!(function.params[0].type_schema, ip_addr_kind_def_schema);
-    assert_eq!(function.params[1].type_schema, ip_addr_def_schema);
+    assert_eq!(function.params[0].json_schema()?, &ip_addr_kind_def_schema);
+    assert_eq!(function.params[1].json_schema()?, &ip_addr_def_schema);
 
     let ip_addr_kind_schema: Schema = serde_json::from_str(
         r#"
@@ -656,8 +671,8 @@ fn test_schema_complex() -> anyhow::Result<()> {
         }
         "##,
     )?;
-    assert_eq!(function.params[0].type_schema, ip_addr_kind_def_schema);
-    assert_eq!(function.params[1].type_schema, ip_addr_def_schema);
+    assert_eq!(function.params[0].json_schema()?, &ip_addr_kind_def_schema);
+    assert_eq!(function.params[1].json_schema()?, &ip_addr_def_schema);
 
     let ip_addr_kind_schema: Schema = serde_json::from_str(
         r#"

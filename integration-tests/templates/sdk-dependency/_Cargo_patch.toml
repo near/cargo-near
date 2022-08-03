@@ -7,12 +7,12 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = { version = "4.0.0", features = ["abi"] }
+near-sdk = { version = "4.1.0-pre.0", features = ["abi"] }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [patch.crates-io]
-near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "83df045aded3e1b14c372ebc36a53ca71cfb4f07" }
+near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "1a0344fcd300d700601984deeeb84a7993c59f84" }
 
 [workspace]
 members = []
