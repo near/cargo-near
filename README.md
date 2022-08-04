@@ -3,7 +3,7 @@ Cargo extension for building Rust smart contracts on NEAR
 
 To install:
 ```
-cargo install --path .
+cargo install --path cargo-near
 ```
 
 To generate ABI for a contract (while in the directory containing contract's Cargo.toml):
