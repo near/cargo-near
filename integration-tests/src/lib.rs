@@ -23,6 +23,7 @@ macro_rules! generate_abi {
 
         cargo_near::exec(cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
             manifest_path: Some(cargo_path),
+            doc: false,
         }))?;
 
         let abi_root: near_sdk::__private::AbiRoot =
