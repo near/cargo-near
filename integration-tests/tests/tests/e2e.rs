@@ -20,6 +20,7 @@ fn test_simple_function() -> anyhow::Result<()> {
         function,
         &AbiFunction {
             name: "add".to_string(),
+            doc: None,
             is_view: true,
             is_init: false,
             is_payable: false,
