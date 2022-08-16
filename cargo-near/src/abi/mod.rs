@@ -1,8 +1,8 @@
-use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::util;
-use near_sdk::__private::{AbiMetadata, AbiRoot};
 use std::collections::HashMap;
 use std::{fs, path::PathBuf};
+
+use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util;
 
 mod generation;
 
@@ -46,19 +46,23 @@ pub(crate) fn execute(manifest_path: &CargoManifestPath) -> anyhow::Result<AbiRe
         )],
     )?;
 
-    let mut near_abi: AbiRoot = serde_json::from_slice(&stdout)?;
-    let metadata = extract_metadata(&crate_metadata);
-    near_abi.metadata = metadata;
-    let near_abi_json = serde_json::to_string_pretty(&near_abi)?;
+    let contract_abi = near_abi::AbiRoot::new(
+        extract_metadata(&crate_metadata),
+        near_abi::VersionedAbiEntry::combine(
+            serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
+        )?,
+    );
+
+    let near_abi_json = serde_json::to_string_pretty(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
     fs::write(&out_path_abi, near_abi_json)?;
 
     Ok(AbiResult { path: out_path_abi })
 }
 
-fn extract_metadata(crate_metadata: &CrateMetadata) -> AbiMetadata {
+fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
     let package = &crate_metadata.root_package;
-    AbiMetadata {
+    near_abi::AbiMetadata {
         name: Some(package.name.clone()),
         version: Some(package.version.to_string()),
         authors: package.authors.clone(),
