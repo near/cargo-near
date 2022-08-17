@@ -6,8 +6,28 @@ on:
   pull_request:
 
 jobs:
+  tests:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+        toolchain: [stable, 1.56.0]
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+
+      - name: "Install ${{ matrix.toolchain }} toolchain"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Run tests
+        run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
+
   integration-test:
-    name: "tests (batch #${{ matrix.batch }}) (${{ matrix.platform }}, ${{ matrix.toolchain }}"
+    name: "tests batch #${{ matrix.batch }} (${{ matrix.platform }}, ${{ matrix.toolchain }})"
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
@@ -33,26 +53,6 @@ jobs:
           share=$((`wc -l < tests` / 5))
           units=$(tail -n +$(((share*(${{ matrix.batch }}-1))+1)) tests | head -n +$share | tr '\n' ' ')
           cargo test --verbose --package cargo-near-integration-tests -- $units
-
-  tests:
-    runs-on: ${{ matrix.platform }}
-    strategy:
-      matrix:
-        platform: [ubuntu-latest, macos-latest]
-        toolchain: [stable, 1.56.0]
-
-    steps:
-      - name: Checkout Sources
-        uses: actions/checkout@v2
-
-      - name: "Install ${{ matrix.toolchain }} toolchain"
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.toolchain }}
-
-      - name: Run tests
-        run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
 
   fmt:
     runs-on: ubuntu-latest
