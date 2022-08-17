@@ -1,4 +1,4 @@
-name: tests
+name: CI
 
 on:
   push:
@@ -23,6 +23,7 @@ jobs:
           echo "::set-output name=tests::[$INTEGRATION_TESTS]"
       
   integration-test:
+    name: "${{ matrix.test }} (${{ matrix.platform }}, ${{ matrix.toolchain }}"
     runs-on: ${{ matrix.platform }}
     needs: test-prep
     strategy:
@@ -44,7 +45,7 @@ jobs:
       - name: Run tests
         run: cargo test --verbose --package cargo-near-integration-tests -- ${{ matrix.test }}
 
-  non-integration-test:
+  tests:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
@@ -64,46 +65,35 @@ jobs:
       - name: Run tests
         run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
 
-  lint:
-    name: Clippy and fmt
+  fmt:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
-
       - name: Check Formatting
         run: cargo fmt -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
 
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
 
   audit:
-    name: Audit
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
 
-      - name: Install Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-
-      - name: Install Audit
+      - name: Install Audit Tool
         run: cargo install cargo-audit
 
-      - name: Run Audit
-        uses: actions-rs/cargo@v1
-        with:
-          command: audit
-          args: --ignore RUSTSEC-2020-0071
+      - name: Run Audit Tool
+        run: cargo audit --ignore RUSTSEC-2020-0071
