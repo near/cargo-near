@@ -6,54 +6,104 @@ on:
   pull_request:
 
 jobs:
-  test:
+  test-prep:
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.get-tests.outputs.tests }}
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+
+      - name: Get all tests
+        id: get-tests
+        run: |
+          INTEGRATION_TESTS=$(
+            cargo test -p cargo-near-integration-tests -- --list --format terse \
+              | grep ': test$' | sed 's/\(.*\): .*$/\1,/'
+          )
+          echo "::set-output name=tests::[$INTEGRATION_TESTS]"
+      
+  integration-test:
     runs-on: ${{ matrix.platform }}
-    name: "${{ matrix.platform }} ${{ matrix.toolchain }}"
+    needs: test-prep
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest]
         toolchain: [stable, 1.56.0]
+        test: ${{ fromJson(needs.test-prep.outputs.tests) }}
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+
       - name: "Install ${{ matrix.toolchain }} toolchain"
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
+
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --verbose --package cargo-near-integration-tests -- ${{ matrix.test }}
+
+  non-integration-test:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+        toolchain: [stable, 1.56.0]
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+
+      - name: "Install ${{ matrix.toolchain }} toolchain"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Run tests
+        run: cargo test --verbose --exclude cargo-near-integration-tests
 
   lint:
     name: Clippy and fmt
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
-        with: 
+        with:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
+
       - name: Check Formatting
         run: cargo fmt -- --check
+
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
 
   audit:
     name: Audit
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+
       - name: Install Toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
+
       - name: Install Audit
         run: cargo install cargo-audit
+
       - name: Run Audit
         uses: actions-rs/cargo@v1
         with:
