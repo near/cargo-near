@@ -6,40 +6,14 @@ on:
   pull_request:
 
 jobs:
-  test-prep:
-    runs-on: ubuntu-latest
-    outputs:
-      test-batches: ${{ steps.get-tests.outputs.test-batches }}
-
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v2
-
-      - name: Get all tests
-        id: get-tests
-        run: |
-          cargo test --package cargo-near-integration-tests -- --list --format terse \
-            | grep ': test$' | sed 's/\(.*\): .*$/\1/' \
-            > tests
-          total=$((`wc -l < tests`));share=$((total / 5))
-          TEST_BATCHES="$(
-            c=0; i=0; until [ $c -gt $total ]; do
-              tests=$(tail -n +$c tests | head -n +$share | sed 's/$/ /g' | tr -d '\n')
-              : $((i+=1,c+=share))
-              echo "{\"batch\":$i,\"units\":\"$tests\"},"
-            done
-          )"
-          echo "::set-output name=test-batches::[$TEST_BATCHES]"
-
   integration-test:
-    name: "tests (batch #${{ matrix.test.batch }}) (${{ matrix.platform }}, ${{ matrix.toolchain }}"
+    name: "tests (batch #${{ matrix.batch }}) (${{ matrix.platform }}, ${{ matrix.toolchain }}"
     runs-on: ${{ matrix.platform }}
-    needs: test-prep
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest]
         toolchain: [stable, 1.56.0]
-        test: ${{ fromJson(needs.test-prep.outputs.test-batches) }}
+        batch: [1, 2, 3, 4, 5]
 
     steps:
       - name: Checkout Sources
@@ -52,7 +26,13 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - name: Run tests
-        run: cargo test --verbose --package cargo-near-integration-tests -- ${{ matrix.test.units }}
+        run: |
+          cargo test --package cargo-near-integration-tests -- --list --format terse \
+              | grep ': test$' | sed 's/\(.*\): .*$/\1/' \
+              > tests
+          share=$((`wc -l < tests` / 5))
+          units=$(tail -n +$(((share*(${{ matrix.batch }}-1))+1)) tests | head -n +$share | tr '\n' ' ')
+          cargo test --verbose --package cargo-near-integration-tests -- $units
 
   tests:
     runs-on: ${{ matrix.platform }}
