@@ -1,4 +1,4 @@
-name: Cargo NEAR Checks And Tests
+name: CI
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         id: get-tests
         run: |
           INTEGRATION_TESTS=$(
-            cargo test -p cargo-near-integration-tests -- --list --format terse \
+            cargo test --package cargo-near-integration-tests -- --list --format terse \
               | grep ': test$' | sed 's/\(.*\): .*$/\1,/'
           )
           echo "::set-output name=tests::[$INTEGRATION_TESTS]"
