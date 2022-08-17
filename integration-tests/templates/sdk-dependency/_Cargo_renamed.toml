@@ -7,9 +7,14 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near = { version = "4.1.0-pre.1", package = "near-sdk", features = ["abi"] }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
+
+[dependencies.near]
+package = "near-sdk"
+git = "https://github.com/near/near-sdk-rs.git"
+branch = "miraclx/extract-lib-abi"
+features = ["abi"]
 
 [workspace]
 members = []

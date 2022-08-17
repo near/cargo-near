@@ -25,7 +25,7 @@ macro_rules! generate_abi {
             manifest_path: Some(cargo_path),
         }))?;
 
-        let abi_root: near_sdk::__private::AbiRoot =
+        let abi_root: near_abi::AbiRoot =
             serde_json::from_slice(&fs::read(workspace_dir.join(function_name!()).join("target").join("near").join("abi.json"))?)?;
         abi_root
     }};

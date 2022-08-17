@@ -10,11 +10,15 @@ crate-type = ["cdylib"]
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
-[target.'cfg(windows)'.dependencies]
-near-sdk = { version = "4.1.0-pre.1", features = ["abi"] }
+[target.'cfg(windows)'.dependencies.near-sdk]
+git = "https://github.com/near/near-sdk-rs.git"
+branch = "miraclx/extract-lib-abi"
+features = ["abi"]
 
-[target.'cfg(unix)'.dependencies]
-near-sdk = { version = "4.1.0-pre.1", features = ["abi"] }
+[target.'cfg(unix)'.dependencies.near-sdk]
+git = "https://github.com/near/near-sdk-rs.git"
+branch = "miraclx/extract-lib-abi"
+features = ["abi"]
 
 [workspace]
 members = []

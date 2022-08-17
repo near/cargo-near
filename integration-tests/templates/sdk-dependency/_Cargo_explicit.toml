@@ -11,7 +11,8 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [dependencies.near-sdk]
-version = "4.1.0-pre.1"
+git = "https://github.com/near/near-sdk-rs.git"
+branch = "miraclx/extract-lib-abi"
 features = ["abi"]
 
 [workspace]
