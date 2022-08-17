@@ -17,7 +17,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: cargo-near-cache
+          shared-key: cargo-near-cache-ubuntu
 
       - name: Get all tests
         id: get-tests
@@ -56,8 +56,14 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - uses: Swatinem/rust-cache@v2
+        if: ${{ matrix.platform }} == "ubuntu-latest"
         with:
-          shared-key: cargo-near-cache
+          shared-key: cargo-near-cache-ubuntu
+
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ matrix.platform }} == "macos-latest"
+        with:
+          shared-key: cargo-near-cache-macos
 
       - name: Run tests
         run: cargo test --verbose --package cargo-near-integration-tests -- ${{ matrix.test.units }}
@@ -80,8 +86,14 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - uses: Swatinem/rust-cache@v2
+        if: ${{ matrix.platform }} == "ubuntu-latest"
         with:
-          shared-key: cargo-near-cache
+          shared-key: cargo-near-cache-ubuntu
+
+      - uses: Swatinem/rust-cache@v2
+        if: ${{ matrix.platform }} == "macos-latest"
+        with:
+          shared-key: cargo-near-cache-macos
 
       - name: Run tests
         run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
