@@ -10,26 +10,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
-    runs-on: ${{ matrix.platform }}
-    strategy:
-      matrix:
-        platform: [macos-latest, ubuntu-latest]
-        toolchain: [stable, 1.56.0]
+  # tests:
+  #   runs-on: ${{ matrix.platform }}
+  #   strategy:
+  #     matrix:
+  #       platform: [macos-latest, ubuntu-latest]
+  #       toolchain: [stable, 1.56.0]
 
-    steps:
-      - name: Checkout Sources
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout Sources
+  #       uses: actions/checkout@v2
 
-      - name: "Install ${{ matrix.toolchain }} toolchain"
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.toolchain }}
+  #     - name: "Install ${{ matrix.toolchain }} toolchain"
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: ${{ matrix.toolchain }}
 
-      - name: Run tests
-        run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
-
+  #     - name: Run tests
+  #       run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
   integration-test:
     name: "test batch #${{ matrix.batch }} (${{ matrix.platform }}, ${{ matrix.toolchain }})"
     runs-on: ${{ matrix.platform }}
