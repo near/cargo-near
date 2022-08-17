@@ -15,8 +15,6 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v2
 
-      - uses: Swatinem/rust-cache@v2
-
       - name: Get all tests
         id: get-tests
         run: |
@@ -53,8 +51,6 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
 
-      - uses: Swatinem/rust-cache@v2
-
       - name: Run tests
         run: cargo test --verbose --package cargo-near-integration-tests -- ${{ matrix.test.units }}
 
@@ -75,8 +71,6 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
 
-      - uses: Swatinem/rust-cache@v2
-
       - name: Run tests
         run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
 
@@ -96,8 +90,6 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-
-      - uses: Swatinem/rust-cache@v2
 
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
