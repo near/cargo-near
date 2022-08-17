@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest]
+        platform: [macos-latest, ubuntu-latest]
         toolchain: [stable, 1.56.0]
 
     steps:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest]
+        platform: [macos-latest, ubuntu-latest]
         toolchain: [stable, 1.56.0]
         batch: [1, 2, 3, 4, 5]
 
@@ -48,8 +48,8 @@ jobs:
       - name: Run tests
         run: |
           cargo test --package cargo-near-integration-tests -- --list --format terse \
-              | grep ': test$' | sed 's/\(.*\): .*$/\1/' \
-              > tests
+            | grep ': test$' | sed 's/\(.*\): .*$/\1/' \
+            > tests
           share=$((`wc -l < tests` / 5))
           units=$(tail -n +$(((share*(${{ matrix.batch }}-1))+1)) tests | head -n +$share | tr '\n' ' ')
           cmd="cargo test --verbose --package cargo-near-integration-tests -- $units"
