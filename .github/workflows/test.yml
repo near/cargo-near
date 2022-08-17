@@ -19,7 +19,7 @@ jobs:
         id: get-tests
         run: |
           cargo test --package cargo-near-integration-tests -- --list --format terse > tests
-          INTEGRATION_TESTS=$( (grep ': test$' | sed 's/\(.*\): .*$/\1,/') < tests )
+          INTEGRATION_TESTS="$( (grep ': test$' | sed 's/\(.*\): .*$/"\1",/' | tr -d '\n') < tests )"
           echo "::set-output name=tests::[$INTEGRATION_TESTS]"
       
   integration-test:
@@ -62,7 +62,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - name: Run tests
-        run: cargo test --verbose --exclude cargo-near-integration-tests
+        run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
 
   lint:
     name: Clippy and fmt
