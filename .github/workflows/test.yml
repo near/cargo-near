@@ -33,7 +33,7 @@ jobs:
       matrix:
         platform: [macos-latest, ubuntu-latest]
         toolchain: [stable, 1.56.0]
-        batch: [1, 2, 3, 4, 5]
+        batch: [1, 2, 3]
 
     steps:
       - name: Checkout Sources
@@ -50,7 +50,7 @@ jobs:
           cargo test --package cargo-near-integration-tests -- --list --format terse \
             | grep ': test$' | sed 's/\(.*\): .*$/\1/' \
             > tests
-          share=$((`wc -l < tests` / 5))
+          share=$((`wc -l < tests` / 3))
           units=$(tail -n +$(((share*(${{ matrix.batch }}-1))+1)) tests | head -n +$share | tr '\n' ' ')
           cmd="cargo test --verbose --package cargo-near-integration-tests -- $units"
           echo " \$ $cmd"
