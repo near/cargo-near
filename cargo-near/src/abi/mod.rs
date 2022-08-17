@@ -1,5 +1,6 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
+use near_sdk::__private::schemars::schema::{Schema, SchemaObject};
 use near_sdk::__private::{AbiMetadata, AbiRoot};
 use std::collections::HashMap;
 use std::{fs, path::PathBuf};
@@ -14,7 +15,10 @@ pub(crate) struct AbiResult {
     pub path: PathBuf,
 }
 
-pub(crate) fn execute(manifest_path: &CargoManifestPath) -> anyhow::Result<AbiResult> {
+pub(crate) fn execute(
+    manifest_path: &CargoManifestPath,
+    generate_docs: bool,
+) -> anyhow::Result<AbiResult> {
     let crate_metadata = CrateMetadata::collect(manifest_path)?;
     let near_abi_gen_dir = &crate_metadata
         .target_directory
@@ -49,6 +53,9 @@ pub(crate) fn execute(manifest_path: &CargoManifestPath) -> anyhow::Result<AbiRe
     let mut near_abi: AbiRoot = serde_json::from_slice(&stdout)?;
     let metadata = extract_metadata(&crate_metadata);
     near_abi.metadata = metadata;
+    if !generate_docs {
+        strip_docs(&mut near_abi);
+    }
     let near_abi_json = serde_json::to_string_pretty(&near_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
     fs::write(&out_path_abi, near_abi_json)?;
@@ -63,5 +70,20 @@ fn extract_metadata(crate_metadata: &CrateMetadata) -> AbiMetadata {
         version: Some(package.version.to_string()),
         authors: package.authors.clone(),
         other: HashMap::new(),
+    }
+}
+
+fn strip_docs(abi_root: &mut AbiRoot) {
+    for function in &mut abi_root.abi.functions {
+        function.doc = None;
+    }
+    for schema in &mut abi_root.abi.root_schema.definitions.values_mut() {
+        if let Schema::Object(SchemaObject {
+            metadata: Some(metadata),
+            ..
+        }) = schema
+        {
+            metadata.description = None;
+        }
     }
 }
