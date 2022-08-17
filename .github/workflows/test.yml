@@ -27,7 +27,7 @@ jobs:
         run: cargo test --verbose --workspace --exclude cargo-near-integration-tests
 
   integration-test:
-    name: "tests batch #${{ matrix.batch }} (${{ matrix.platform }}, ${{ matrix.toolchain }})"
+    name: "test batch #${{ matrix.batch }} (${{ matrix.platform }}, ${{ matrix.toolchain }})"
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
@@ -52,9 +52,11 @@ jobs:
               > tests
           share=$((`wc -l < tests` / 5))
           units=$(tail -n +$(((share*(${{ matrix.batch }}-1))+1)) tests | head -n +$share | tr '\n' ' ')
-          cargo test --verbose --package cargo-near-integration-tests -- $units
+          cmd="cargo test --verbose --package cargo-near-integration-tests -- $units"
+          echo " \$ $cmd"
+          eval $cmd
 
-  fmt:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -63,13 +65,6 @@ jobs:
 
       - name: Check Formatting
         run: cargo fmt -- --check
-
-  clippy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Sources
-        uses: actions/checkout@v2
 
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
