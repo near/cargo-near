@@ -1,4 +1,4 @@
-name: CI
+name: tests
 
 on:
   push:
@@ -18,10 +18,8 @@ jobs:
       - name: Get all tests
         id: get-tests
         run: |
-          INTEGRATION_TESTS=$(
-            cargo test --package cargo-near-integration-tests -- --list --format terse \
-              | grep ': test$' | sed 's/\(.*\): .*$/\1,/'
-          )
+          cargo test --package cargo-near-integration-tests -- --list --format terse > tests
+          INTEGRATION_TESTS=$( (grep ': test$' | sed 's/\(.*\): .*$/\1,/') < tests )
           echo "::set-output name=tests::[$INTEGRATION_TESTS]"
       
   integration-test:
