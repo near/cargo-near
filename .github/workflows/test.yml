@@ -6,6 +6,30 @@ on:
   pull_request:
 
 jobs:
+  msrv-check:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+
+      - name: Get MSRV
+        run: |
+          RUST_MSRV="$(cat cargo-near/Cargo.toml | sed -n 's/rust-version\s*=\s*"\(.*\)"/\1/p')"
+          echo "RUST_MSRV=$RUST_MSRV" >> $GITHUB_ENV
+
+      - name: "Install ${{ env.RUST_MSRV }} toolchain (MSRV)"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ env.RUST_MSRV }}
+
+      - name: Cargo check
+        run: cargo check -p cargo-near
+
   tests:
     runs-on: ${{ matrix.platform }}
     strategy:
