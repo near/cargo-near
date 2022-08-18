@@ -1,4 +1,4 @@
-name: Cargo NEAR Checks And Tests
+name: CI
 
 on:
   push:
@@ -6,56 +6,41 @@ on:
   pull_request:
 
 jobs:
-  test:
+  tests:
     runs-on: ${{ matrix.platform }}
-    name: "${{ matrix.platform }} ${{ matrix.toolchain }}"
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest]
-        toolchain: [stable, 1.56.0]
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-      - name: "Install ${{ matrix.toolchain }} toolchain"
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.toolchain }}
+
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --workspace --verbose
 
   lint:
-    name: Clippy and fmt
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with: 
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
+
       - name: Check Formatting
         run: cargo fmt -- --check
+
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
 
   audit:
-    name: Audit
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-      - name: Install Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - name: Install Audit
+
+      - name: Install Audit Tool
         run: cargo install cargo-audit
-      - name: Run Audit
-        uses: actions-rs/cargo@v1
-        with:
-          command: audit
-          args: --ignore RUSTSEC-2020-0071
+
+      - name: Run Audit Tool
+        run: cargo audit --ignore RUSTSEC-2020-0071
