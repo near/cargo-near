@@ -125,7 +125,7 @@ pub(crate) fn generate_main_rs(dylib_path: &Path) -> anyhow::Result<String> {
     let near_abi_function_defs = near_abi_symbols.iter().map(|s| {
         let name = format_ident!("{}", s);
         quote! {
-            fn #name() -> near_sdk::__private::VersionedAbiEntry;
+            fn #name() -> near_sdk::__private::ChunkedAbiEntry;
         }
     });
     let near_abi_function_invocations = near_abi_symbols.iter().map(|s| {

@@ -7,7 +7,7 @@ use std::process::Command;
 
 use crate::cargo::manifest::CargoManifestPath;
 
-const fn dylib_extension() -> &'static str {
+pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
     return "so";
 
@@ -50,7 +50,7 @@ pub(crate) fn invoke_cargo<I, S, P>(
     env: Vec<(&str, &str)>,
 ) -> Result<Vec<u8>>
 where
-    I: IntoIterator<Item = S> + std::fmt::Debug,
+    I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
     P: AsRef<Path>,
 {
@@ -90,25 +90,27 @@ where
     }
 }
 
-fn build_cargo_project(manifest_path: &CargoManifestPath) -> anyhow::Result<Vec<Message>> {
-    let output = invoke_cargo(
-        "build",
-        &["--message-format=json"],
-        manifest_path.directory().ok(),
-        vec![
-            ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
-            ("CARGO_PROFILE_DEV_DEBUG", "0"),
-            ("CARGO_PROFILE_DEV_LTO", "off"),
-        ],
-    )?;
-
-    let reader = std::io::BufReader::new(output.as_slice());
-    Ok(Message::parse_stream(reader).map(|m| m.unwrap()).collect())
+pub struct CompilationArtifact {
+    pub path: PathBuf,
+    pub fresh: bool,
 }
 
-/// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated dynamic lib.
-pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow::Result<PathBuf> {
-    let messages = build_cargo_project(manifest_path)?;
+/// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated artifact.
+pub(crate) fn compile_project(
+    manifest_path: &CargoManifestPath,
+    args: &[&str],
+    env: Vec<(&str, &str)>,
+    artifact_extension: &str,
+) -> anyhow::Result<CompilationArtifact> {
+    let stdout = invoke_cargo(
+        "build",
+        [&["--message-format=json"], args].concat(),
+        manifest_path.directory().ok(),
+        env,
+    )?;
+    let reader = std::io::BufReader::new(&*stdout);
+    let messages: Vec<_> = Message::parse_stream(reader).collect::<Result<_, _>>()?;
+
     // We find the last compiler artifact message which should contain information about the
     // resulting dylib file
     let compile_artifact = messages
@@ -132,7 +134,7 @@ pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow
         .cloned()
         .filter(|f| {
             f.extension()
-                .map(|e| e == dylib_extension())
+                .map(|e| e == artifact_extension)
                 .unwrap_or(false)
         })
         .collect::<Vec<_>>();
@@ -140,12 +142,15 @@ pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow
         [] => Err(anyhow::anyhow!(
             "Compilation resulted in no '.{}' target files. \
                  Please check that your project contains a NEAR smart contract.",
-            dylib_extension()
+            artifact_extension
         )),
-        [file] => Ok(file.to_owned().into_std_path_buf()),
+        [file] => Ok(CompilationArtifact {
+            path: file.to_owned().into_std_path_buf(),
+            fresh: !compile_artifact.fresh,
+        }),
         _ => Err(anyhow::anyhow!(
             "Compilation resulted in more than one '.{}' target file: {:?}",
-            dylib_extension(),
+            artifact_extension,
             dylib_files
         )),
     }
