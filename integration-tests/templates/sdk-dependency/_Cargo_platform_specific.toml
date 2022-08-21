@@ -12,12 +12,12 @@ schemars = "0.8"
 
 [target.'cfg(windows)'.dependencies.near-sdk]
 git = "https://github.com/near/near-sdk-rs.git"
-branch = "miraclx/extract-lib-abi"
+branch = "miraclx/abi-embed"
 features = ["abi"]
 
 [target.'cfg(unix)'.dependencies.near-sdk]
 git = "https://github.com/near/near-sdk-rs.git"
-branch = "miraclx/extract-lib-abi"
+branch = "miraclx/abi-embed"
 features = ["abi"]
 
 [workspace]

@@ -13,7 +13,7 @@ schemars = "0.8"
 [dependencies.near]
 package = "near-sdk"
 git = "https://github.com/near/near-sdk-rs.git"
-branch = "miraclx/extract-lib-abi"
+branch = "miraclx/abi-embed"
 features = ["abi"]
 
 [workspace]
