@@ -65,7 +65,7 @@ pub(crate) fn write_to_file(crate_metadata: &CrateMetadata) -> anyhow::Result<Ab
 
     let source_hash = combined_entries.source_hash;
 
-    let contract_abi = near_abi::AbiRoot::new(extract_metadata(&crate_metadata), combined_entries);
+    let contract_abi = near_abi::AbiRoot::new(extract_metadata(crate_metadata), combined_entries);
 
     let near_abi_json = serde_json::to_string(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);

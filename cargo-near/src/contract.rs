@@ -1,5 +1,6 @@
 use std::env;
 use std::ffi::OsStr;
+use std::fmt::Write;
 use std::fs;
 use std::io::BufRead;
 use std::process::Command;
@@ -42,9 +43,9 @@ where
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
-    if let None = invoke_rustup(&["target", "list", "--installed"])?
+    if !invoke_rustup(&["target", "list", "--installed"])?
         .lines()
-        .find(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
+        .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
     {
         anyhow::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
     }
@@ -71,7 +72,7 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
         getrandom::getrandom(&mut ack_secret).context("failed to generate ack secret")?;
         let mut ack_secret_hex = String::new();
         for b in ack_secret.iter() {
-            ack_secret_hex.push_str(&format!("{:02x}", b));
+            write!(ack_secret_hex, "{:02x}", b).unwrap();
         }
 
         let wasm_artifact = util::compile_project(
@@ -101,7 +102,7 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
     };
 
     let mut out_path = wasm_artifact.path;
-    if let Some(out_dir) = args.out_dir.map(|o| o.canonicalize().ok()).flatten() {
+    if let Some(out_dir) = args.out_dir.and_then(|o| o.canonicalize().ok()) {
         if out_dir != out_path.parent().unwrap() {
             let new_out_path = out_dir.join(out_path.file_name().unwrap());
             std::fs::copy(&out_path, &new_out_path)?;
