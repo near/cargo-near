@@ -1,4 +1,3 @@
-use std::ffi::OsString;
 use std::path::PathBuf;
 
 use clap::{AppSettings, Args, Parser, Subcommand};
@@ -14,9 +13,6 @@ pub enum Opts {
     #[clap(name = "near")]
     #[clap(setting = AppSettings::DeriveDisplayOrder)]
     Near(NearArgs),
-    /// Rustc wrapper
-    #[clap(name = "rustc", hidden = true, external_subcommand)]
-    Rustc(Vec<OsString>),
 }
 
 #[derive(Debug, Args)]

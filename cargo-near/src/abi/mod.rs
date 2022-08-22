@@ -11,8 +11,9 @@ mod generation;
 
 const ABI_FILE: &str = "abi.json";
 
+/// ABI generation result.
 pub(crate) struct AbiResult {
-    pub source_hash: u64,
+    /// Path to the resulting ABI file.
     pub path: PathBuf,
 }
 
@@ -28,7 +29,7 @@ pub(crate) fn write_to_file(crate_metadata: &CrateMetadata) -> anyhow::Result<Ab
 
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
-        &[],
+        &["--features", "near-sdk/__abi-generate"],
         vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
@@ -37,8 +38,7 @@ pub(crate) fn write_to_file(crate_metadata: &CrateMetadata) -> anyhow::Result<Ab
         util::dylib_extension(),
     )?;
 
-    // todo! re-use cargo-near for extracting data from the dylib
-    // todo! instead of a temp project
+    // todo! experiment with reusing cargo-near for extracting data from the dylib
     if dylib_artifact.fresh {
         let cargo_toml = generation::generate_toml(&crate_metadata.manifest_path)?;
         fs::write(near_abi_gen_dir.join("Cargo.toml"), cargo_toml)?;
@@ -63,18 +63,13 @@ pub(crate) fn write_to_file(crate_metadata: &CrateMetadata) -> anyhow::Result<Ab
     let combined_entries =
         near_abi::ChunkedAbiEntry::combine(serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter())?;
 
-    let source_hash = combined_entries.source_hash;
-
     let contract_abi = near_abi::AbiRoot::new(extract_metadata(crate_metadata), combined_entries);
 
     let near_abi_json = serde_json::to_string(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
     fs::write(&out_path_abi, near_abi_json)?;
 
-    Ok(AbiResult {
-        source_hash,
-        path: out_path_abi,
-    })
+    Ok(AbiResult { path: out_path_abi })
 }
 
 fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
@@ -92,7 +87,7 @@ pub(crate) fn dump_to_file(args: AbiCommand) -> anyhow::Result<()> {
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
-    let AbiResult { path, .. } = write_to_file(&crate_metadata)?;
+    let AbiResult { path } = write_to_file(&crate_metadata)?;
 
     println!("ABI successfully generated at {}", path.display());
 

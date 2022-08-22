@@ -1,7 +1,5 @@
 use std::env;
 use std::ffi::OsStr;
-use std::fmt::Write;
-use std::fs;
 use std::io::BufRead;
 use std::process::Command;
 
@@ -61,42 +59,20 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
 
     let wasm_artifact = if args.embed_abi {
         let abi::AbiResult {
-            source_hash,
             path: abi_file_path,
         } = abi::write_to_file(&crate_metadata)?;
 
         // todo! add compression.
         // todo! test differences between snappy and zstd
 
-        let mut ack_secret = [0; 8];
-        getrandom::getrandom(&mut ack_secret).context("failed to generate ack secret")?;
-        let mut ack_secret_hex = String::new();
-        for b in ack_secret.iter() {
-            write!(ack_secret_hex, "{:02x}", b).unwrap();
-        }
+        cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
 
-        let wasm_artifact = util::compile_project(
+        util::compile_project(
             &crate_metadata.manifest_path,
             &cargo_args,
-            vec![
-                ("RUSTC_WRAPPER", &std::env::args().next().unwrap()),
-                ("CARGO_NEAR_ABI_SOURCE_HASH", &format!("{:x}", source_hash)),
-                ("CARGO_NEAR_ABI_PATH", abi_file_path.to_str().unwrap()),
-                ("CARGO_NEAR_ABI_ACK", &ack_secret_hex),
-            ],
+            vec![("CARGO_NEAR_ABI_PATH", abi_file_path.to_str().unwrap())],
             "wasm",
-        )?;
-
-        if wasm_artifact.fresh {
-            let ack_path = abi_file_path.with_extension("ack");
-            let file = fs::read_to_string(&ack_path)?;
-            if ack_secret_hex != file {
-                anyhow::bail!("cargo-near was unable to embed the ABI");
-            }
-            fs::remove_file(ack_path)?;
-        }
-
-        wasm_artifact
+        )?
     } else {
         util::compile_project(&crate_metadata.manifest_path, &cargo_args, vec![], "wasm")?
     };
@@ -110,6 +86,7 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
         }
     }
 
+    // todo! if we embedded, check that the binary exports the __contract_abi symbol
     println!("Contract successfully built at {}", out_path.display());
 
     Ok(())
