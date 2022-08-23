@@ -92,12 +92,10 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
         function.doc = None;
     }
     for schema in &mut abi_root.abi.root_schema.definitions.values_mut() {
-        if let near_abi::__private::schemars::schema::Schema::Object(
-            near_abi::__private::schemars::schema::SchemaObject {
-                metadata: Some(metadata),
-                ..
-            },
-        ) = schema
+        if let schemars::schema::Schema::Object(schemars::schema::SchemaObject {
+            metadata: Some(metadata),
+            ..
+        }) = schema
         {
             metadata.description = None;
         }
