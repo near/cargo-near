@@ -1,9 +1,7 @@
+use borsh::schema::{BorshSchemaContainer, Definition, Fields};
 use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
 use function_name::named;
-use near_sdk::{
-    __private::{AbiParameter, AbiType},
-    borsh::schema::{BorshSchemaContainer, Definition, Fields},
-};
+use near_abi::{AbiParameter, AbiType};
 use std::{collections::HashMap, fs};
 
 trait AsBorshSchema {
