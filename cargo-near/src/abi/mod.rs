@@ -46,12 +46,10 @@ pub(crate) fn execute(manifest_path: &CargoManifestPath) -> anyhow::Result<AbiRe
         )],
     )?;
 
-    let contract_abi = near_abi::AbiRoot::new(
-        extract_metadata(&crate_metadata),
-        near_abi::VersionedAbiEntry::combine(
-            serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
-        )?,
-    );
+    let contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
+        serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
+    )?
+    .into_abi_root(extract_metadata(&crate_metadata));
 
     let near_abi_json = serde_json::to_string_pretty(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);

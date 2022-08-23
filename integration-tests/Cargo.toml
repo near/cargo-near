@@ -20,4 +20,3 @@ quote = "1.0"
 [dependencies.near-abi]
 git = "https://github.com/near/near-abi-rs"
 branch = "miraclx/init"
-features = ["versioned-entries"]
