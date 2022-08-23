@@ -12,7 +12,7 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [patch.crates-io]
-near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "1d0f9b339294a4c3ac1a2905667dd60e9242940a" }
+near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "52c61585e3b56fcc46aa411f4183b5e3b3d22f58" }
 
 [workspace]
 members = []

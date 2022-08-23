@@ -6,9 +6,9 @@ publish = false
 
 [dev-dependencies]
 anyhow = "1.0"
+borsh = "0.9"
 cargo-near = { path = "../cargo-near" }
 function_name = "0.3"
-near-sdk = { version = "4.1.0-pre.1", features = ["abi"] }
 git2 = "0.14"
 prettyplease = "0.1"
 proc-macro2 = "1.0"
