@@ -26,7 +26,7 @@ pub enum NearCommand {
     /// Generates ABI for the contract
     #[clap(name = "abi")]
     Abi(AbiCommand),
-    /// Build contract and embed ABI
+    /// Build a NEAR contract and optionally embed ABI
     #[clap(name = "build")]
     Build(BuildCommand),
 }
@@ -35,7 +35,7 @@ pub enum NearCommand {
 #[clap(setting = AppSettings::DeriveDisplayOrder)]
 pub struct AbiCommand {
     /// Include rustdocs in the ABI file
-    #[clap(long, takes_value = false)]
+    #[clap(long)]
     pub doc: bool,
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
@@ -48,12 +48,12 @@ pub struct BuildCommand {
     /// Build contract in release mode, with optimizations
     #[clap(short, long)]
     pub release: bool,
-    /// Include rustdocs in the ABI file
-    #[clap(long, takes_value = false)]
-    pub doc: bool,
     /// Embed the ABI in the contract binary
     #[clap(long)]
     pub embed_abi: bool,
+    /// Include rustdocs in the embedded ABI
+    #[clap(long, requires = "embed-abi")]
+    pub doc: bool,
     /// Copy final artifacts to the this directory
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub out_dir: Option<PathBuf>,
