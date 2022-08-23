@@ -1,4 +1,4 @@
-name: Cargo NEAR Checks And Tests
+name: CI
 
 on:
   push:
@@ -6,56 +6,65 @@ on:
   pull_request:
 
 jobs:
-  test:
+  msrv-check:
     runs-on: ${{ matrix.platform }}
-    name: "${{ matrix.platform }} ${{ matrix.toolchain }}"
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest]
-        toolchain: [stable, 1.56.0]
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-      - name: "Install ${{ matrix.toolchain }} toolchain"
+
+      - name: Get MSRV
+        run: |
+          RUST_MSRV="$(cat cargo-near/Cargo.toml | sed -n 's/rust-version *= *"\(.*\)"/\1/p')"
+          echo "RUST_MSRV=$RUST_MSRV" >> $GITHUB_ENV
+
+      - name: "Install ${{ env.RUST_MSRV }} toolchain (MSRV)"
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.toolchain }}
-      - name: Run tests
-        run: cargo test --verbose
+          toolchain: ${{ env.RUST_MSRV }}
 
-  lint:
-    name: Clippy and fmt
-    runs-on: ubuntu-latest
+      - name: Cargo check
+        run: cargo check -p cargo-near
+
+  tests:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with: 
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
+
+      - name: Run tests
+        run: cargo test --workspace --verbose
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+
       - name: Check Formatting
         run: cargo fmt -- --check
+
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
 
   audit:
-    name: Audit
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
-      - name: Install Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - name: Install Audit
+
+      - name: Install Audit Tool
         run: cargo install cargo-audit
-      - name: Run Audit
-        uses: actions-rs/cargo@v1
-        with:
-          command: audit
-          args: --ignore RUSTSEC-2020-0071
+
+      - name: Run Audit Tool
+        run: cargo audit --ignore RUSTSEC-2020-0071

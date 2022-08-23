@@ -33,6 +33,9 @@ pub struct AbiCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str))]
     pub manifest_path: Option<PathBuf>,
+    /// Include rustdocs in the ABI file
+    #[clap(long, takes_value = false)]
+    pub doc: bool,
 }
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
@@ -44,7 +47,7 @@ pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
                 .unwrap_or_else(|| "Cargo.toml".into());
             let manifest_path = CargoManifestPath::try_from(manifest_path)?;
 
-            let result = abi::execute(&manifest_path)?;
+            let result = abi::execute(&manifest_path, abi.doc)?;
             println!("ABI successfully generated at {}", result.path.display());
             Ok(())
         }
