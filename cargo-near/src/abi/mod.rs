@@ -17,7 +17,10 @@ pub(crate) struct AbiResult {
     pub path: PathBuf,
 }
 
-pub(crate) fn write_to_file(crate_metadata: &CrateMetadata) -> anyhow::Result<AbiResult> {
+pub(crate) fn write_to_file(
+    crate_metadata: &CrateMetadata,
+    generate_docs: bool,
+) -> anyhow::Result<AbiResult> {
     let near_abi_gen_dir = &crate_metadata
         .target_directory
         .join(crate_metadata.root_package.name.clone() + "-near-abi-gen");
@@ -60,12 +63,14 @@ pub(crate) fn write_to_file(crate_metadata: &CrateMetadata) -> anyhow::Result<Ab
         )],
     )?;
 
-    let combined_entries =
-        near_abi::ChunkedAbiEntry::combine(serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter())?;
-
-    let contract_abi = near_abi::AbiRoot::new(extract_metadata(crate_metadata), combined_entries);
-
-    let near_abi_json = serde_json::to_string(&contract_abi)?;
+    let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
+        serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
+    )?
+    .into_abi_root(extract_metadata(&crate_metadata));
+    if !generate_docs {
+        strip_docs(&mut contract_abi);
+    }
+    let near_abi_json = serde_json::to_string_pretty(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
     fs::write(&out_path_abi, near_abi_json)?;
 
@@ -82,12 +87,29 @@ fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
     }
 }
 
+fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
+    for function in &mut abi_root.abi.functions {
+        function.doc = None;
+    }
+    for schema in &mut abi_root.abi.root_schema.definitions.values_mut() {
+        if let near_abi::__private::schemars::schema::Schema::Object(
+            near_abi::__private::schemars::schema::SchemaObject {
+                metadata: Some(metadata),
+                ..
+            },
+        ) = schema
+        {
+            metadata.description = None;
+        }
+    }
+}
+
 pub(crate) fn dump_to_file(args: AbiCommand) -> anyhow::Result<()> {
     let crate_metadata = CrateMetadata::collect(CargoManifestPath::try_from(
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
-    let AbiResult { path } = write_to_file(&crate_metadata)?;
+    let AbiResult { path } = write_to_file(&crate_metadata, args.doc)?;
 
     println!("ABI successfully generated at {}", path.display());
 

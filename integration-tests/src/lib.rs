@@ -23,6 +23,7 @@ macro_rules! generate_abi {
 
         cargo_near::exec(cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
             manifest_path: Some(cargo_path),
+            doc: false,
         }))?;
 
         let abi_root: near_abi::AbiRoot =
@@ -43,7 +44,7 @@ macro_rules! generate_abi_fn {
     (with Cargo $cargo_path:expr, and vars $cargo_vars:expr; $($code:tt)*) => {{
         $crate::generate_abi! {
             with Cargo $cargo_path, and vars $cargo_vars;
-            use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+            use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize, BorshSchema};
             use near_sdk::near_bindgen;
 
             #[near_bindgen]

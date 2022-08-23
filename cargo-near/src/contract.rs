@@ -60,7 +60,7 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
     let wasm_artifact = if args.embed_abi {
         let abi::AbiResult {
             path: abi_file_path,
-        } = abi::write_to_file(&crate_metadata)?;
+        } = abi::write_to_file(&crate_metadata, args.doc)?;
 
         // todo! add compression.
         // todo! test differences between snappy and zstd
