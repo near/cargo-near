@@ -66,7 +66,7 @@ pub(crate) fn write_to_file(
     let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
         serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
     )?
-    .into_abi_root(extract_metadata(&crate_metadata));
+    .into_abi_root(extract_metadata(crate_metadata));
     if !generate_docs {
         strip_docs(&mut contract_abi);
     }
