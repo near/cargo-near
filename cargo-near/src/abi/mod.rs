@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-use std::{fs, path::PathBuf};
-
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
+use std::collections::HashMap;
+use std::{fs, path::PathBuf};
 
 mod generation;
 
