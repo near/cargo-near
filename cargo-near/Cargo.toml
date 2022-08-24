@@ -25,7 +25,10 @@ syn = "1.0"
 quote = "1.0"
 schemars = "0.8"
 
-near-abi = { git = "https://github.com/near/near-abi-rs", features = ["__chunked-entries"] }
+[dependencies.near-abi]
+git = "https://github.com/near/near-abi-rs"
+rev = "4844ef4ff3e5cf3c3a8aa6565c3195a2339a345f"
+features = ["__chunked-entries"]
 
 [dev-dependencies]
 function_name = "0.3"
