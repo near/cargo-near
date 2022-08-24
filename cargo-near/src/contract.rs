@@ -1,47 +1,11 @@
-use std::env;
-use std::ffi::OsStr;
-use std::io::BufRead;
-use std::process::Command;
-
-use anyhow::Context;
-
-use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-
 use super::{abi, util, BuildCommand};
-
-fn invoke_rustup<I, S>(args: I) -> anyhow::Result<Vec<u8>>
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
-{
-    let rustup = env::var("RUSTUP").unwrap_or_else(|_| "rustup".to_string());
-
-    let mut cmd = Command::new(rustup);
-    cmd.args(args);
-
-    log::info!("Invoking rustup: {:?}", cmd);
-
-    let child = cmd
-        .stdout(std::process::Stdio::piped())
-        .spawn()
-        .context(format!("Error executing `{:?}`", cmd))?;
-
-    let output = child.wait_with_output()?;
-    if output.status.success() {
-        Ok(output.stdout)
-    } else {
-        anyhow::bail!(
-            "`{:?}` failed with exit code: {:?}",
-            cmd,
-            output.status.code()
-        );
-    }
-}
+use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
-    if !invoke_rustup(&["target", "list", "--installed"])?
+    if !util::invoke_rustup(&["target", "list", "--installed"])?
         .lines()
         .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
     {

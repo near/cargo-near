@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::Message;
+use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -82,6 +83,35 @@ where
         Ok(output.stdout)
     } else {
         print_cargo_errors(output.stdout);
+        anyhow::bail!(
+            "`{:?}` failed with exit code: {:?}",
+            cmd,
+            output.status.code()
+        );
+    }
+}
+
+pub(crate) fn invoke_rustup<I, S>(args: I) -> anyhow::Result<Vec<u8>>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
+    let rustup = env::var("RUSTUP").unwrap_or_else(|_| "rustup".to_string());
+
+    let mut cmd = Command::new(rustup);
+    cmd.args(args);
+
+    log::info!("Invoking rustup: {:?}", cmd);
+
+    let child = cmd
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .context(format!("Error executing `{:?}`", cmd))?;
+
+    let output = child.wait_with_output()?;
+    if output.status.success() {
+        Ok(output.stdout)
+    } else {
         anyhow::bail!(
             "`{:?}` failed with exit code: {:?}",
             cmd,
