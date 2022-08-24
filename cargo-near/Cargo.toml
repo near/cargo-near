@@ -25,10 +25,7 @@ syn = "1.0"
 quote = "1.0"
 schemars = "0.8"
 
-[dependencies.near-abi]
-git = "https://github.com/near/near-abi-rs"
-branch = "miraclx/init"
-features = ["__chunked-entries"]
+near-abi = { git = "https://github.com/near/near-abi-rs", features = ["__chunked-entries"] }
 
 [dev-dependencies]
 function_name = "0.3"

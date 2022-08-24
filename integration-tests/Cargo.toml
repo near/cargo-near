@@ -18,6 +18,4 @@ syn = "1.0"
 tempfile = "3.3"
 quote = "1.0"
 
-[dependencies.near-abi]
-git = "https://github.com/near/near-abi-rs"
-branch = "miraclx/init"
+near-abi = { git = "https://github.com/near/near-abi-rs" }
