@@ -1,9 +1,8 @@
+use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-
-use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::util;
 
 use super::AbiCommand;
 
