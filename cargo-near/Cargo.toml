@@ -24,11 +24,7 @@ symbolic-debuginfo = "8.8"
 syn = "1.0"
 quote = "1.0"
 schemars = "0.8"
-
-[dependencies.near-abi]
-git = "https://github.com/near/near-abi-rs"
-rev = "983346e8ce2a8304645a92ba7735f9a6eacceda7"
-features = ["__chunked-entries"]
+near-abi = { version = "0.1.0-pre.0", features = ["__chunked-entries"] }
 
 [dev-dependencies]
 function_name = "0.3"

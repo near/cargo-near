@@ -12,7 +12,7 @@ schemars = "0.8"
 
 [dependencies.near-sdk]
 git = "https://github.com/near/near-sdk-rs.git"
-rev = "5054d1180f6a1e2358f96498c0cb4c89c0a2c3cd"
+rev = "97a0d01cafe1cd7dceb2774f5840052e577edf40"
 
 [workspace]
 members = []

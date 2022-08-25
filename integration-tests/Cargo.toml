@@ -17,7 +17,4 @@ serde_json = "1.0"
 syn = "1.0"
 tempfile = "3.3"
 quote = "1.0"
-
-[dependencies.near-abi]
-git = "https://github.com/near/near-abi-rs"
-rev = "983346e8ce2a8304645a92ba7735f9a6eacceda7"
+near-abi = "0.1.0-pre.0"
