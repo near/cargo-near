@@ -73,10 +73,10 @@ fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
 }
 
 fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
-    for function in &mut abi_root.abi.functions {
+    for function in &mut abi_root.body.functions {
         function.doc = None;
     }
-    for schema in &mut abi_root.abi.root_schema.definitions.values_mut() {
+    for schema in &mut abi_root.body.root_schema.definitions.values_mut() {
         if let schemars::schema::Schema::Object(schemars::schema::SchemaObject {
             metadata: Some(metadata),
             ..
