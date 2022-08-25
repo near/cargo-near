@@ -32,7 +32,8 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     let mut abi_path = None;
     if !args.no_abi {
-        let AbiResult { path } = abi::write_to_file(&crate_metadata, args.doc)?;
+        let AbiResult { path } =
+            abi::write_to_file(&crate_metadata, args.doc, args.format, args.compression)?;
         abi_path.replace(util::copy(&path, &out_dir)?);
     }
 

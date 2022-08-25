@@ -1,5 +1,5 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{util, AbiCommand};
+use crate::{util, AbiCommand, AbiCompression, AbiFormat};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
@@ -13,6 +13,8 @@ pub(crate) struct AbiResult {
 pub(crate) fn write_to_file(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
+    format: AbiFormat,
+    compression: AbiCompression,
 ) -> anyhow::Result<AbiResult> {
     fs::create_dir_all(&crate_metadata.target_directory)?;
 
@@ -53,13 +55,32 @@ pub(crate) fn write_to_file(
     if !generate_docs {
         strip_docs(&mut contract_abi);
     }
-    let near_abi_json = serde_json::to_string(&contract_abi)?;
-    let out_path_abi = crate_metadata
-        .target_directory
-        .join(crate_metadata.root_package.name.replace('-', "_") + "_abi.json");
-    fs::write(&out_path_abi, near_abi_json)?;
+    let near_abi_serialized = match format {
+        AbiFormat::Json => serde_json::to_vec_pretty(&contract_abi)?,
+        AbiFormat::JsonMin => serde_json::to_vec(&contract_abi)?,
+    };
+    let near_abi_compressed = match compression {
+        AbiCompression::NoOp => near_abi_serialized,
+        AbiCompression::Zstd => zstd::encode_all(near_abi_serialized.as_slice(), 0)?,
+    };
+
+    let out_path_abi = crate_metadata.target_directory.join(format!(
+        "{}_abi.{}",
+        crate_metadata.root_package.name.replace('-', "_"),
+        abi_file_extension(format, compression)
+    ));
+    fs::write(&out_path_abi, near_abi_compressed)?;
 
     Ok(AbiResult { path: out_path_abi })
+}
+
+fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
+    match compression {
+        AbiCompression::NoOp => match format {
+            AbiFormat::Json | AbiFormat::JsonMin => "json",
+        },
+        AbiCompression::Zstd => "bin",
+    }
 }
 
 fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
@@ -98,7 +119,8 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
             .unwrap_or_else(|| crate_metadata.target_directory.clone()),
     )?;
 
-    let AbiResult { path } = write_to_file(&crate_metadata, args.doc)?;
+    let AbiResult { path } =
+        write_to_file(&crate_metadata, args.doc, args.format, args.compression)?;
 
     let abi_path = util::copy(&path, &out_dir)?;
 
