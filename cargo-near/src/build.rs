@@ -1,5 +1,5 @@
-use super::{abi, util, BuildCommand};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::{abi, util, BuildCommand};
 use std::fs;
 use std::io::BufRead;
 

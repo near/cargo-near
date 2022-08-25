@@ -1,3 +1,4 @@
+use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
 use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::Message;
@@ -5,8 +6,6 @@ use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-
-use crate::cargo::manifest::CargoManifestPath;
 
 pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]

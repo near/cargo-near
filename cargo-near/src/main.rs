@@ -1,7 +1,6 @@
+use cargo_near::Opts;
 use clap::Parser;
 use colored::Colorize;
-
-use cargo_near::Opts;
 
 fn main() {
     env_logger::init();
