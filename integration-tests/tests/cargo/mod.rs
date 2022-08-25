@@ -19,7 +19,7 @@ fn clone_git_repo(version: &str) -> anyhow::Result<TempDir> {
 #[test]
 #[named]
 fn test_dependency_local_path() -> anyhow::Result<()> {
-    let near_sdk_dir = clone_git_repo("3e55eacd8eb48c6a26a8fd086d456084e82f4415")?;
+    let near_sdk_dir = clone_git_repo("b75d88d1f2f7e1526c5312cd3e72ac5c04a0f994")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", features = ["abi"] }
@@ -30,8 +30,8 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -40,7 +40,7 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
 #[test]
 #[named]
 fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
-    let near_sdk_dir = clone_git_repo("3e55eacd8eb48c6a26a8fd086d456084e82f4415")?;
+    let near_sdk_dir = clone_git_repo("b75d88d1f2f7e1526c5312cd3e72ac5c04a0f994")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", version = "4.1.0-pre.1", features = ["abi"] }
@@ -51,8 +51,8 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -70,8 +70,8 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -87,8 +87,8 @@ fn test_dependency_no_default_features() -> anyhow::Result<()> {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -104,8 +104,8 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -127,8 +127,8 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -156,8 +156,8 @@ fn test_dependency_renamed() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
@@ -172,15 +172,15 @@ fn test_dependency_patch() -> anyhow::Result<()> {
     // near-sdk = { version = "4.1.0-pre.1", features = ["abi"] }
     //
     // [patch.crates-io]
-    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "3e55eacd8eb48c6a26a8fd086d456084e82f4415" }
+    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "b75d88d1f2f7e1526c5312cd3e72ac5c04a0f994" }
     let abi_root = generate_abi_fn! {
         with Cargo "/templates/sdk-dependency/_Cargo_patch.toml";
 
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
 
     Ok(())
