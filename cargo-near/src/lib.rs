@@ -2,15 +2,20 @@ use clap::{AppSettings, Args, Parser, Subcommand};
 use std::path::PathBuf;
 
 mod abi;
+mod build;
 mod cargo;
-mod contract;
 mod util;
 
 #[derive(Debug, Parser)]
-#[clap(version, about, bin_name = "cargo")]
+#[clap(bin_name = "cargo", version, author, about)]
 pub enum Opts {
-    #[clap(name = "near")]
-    #[clap(setting = AppSettings::DeriveDisplayOrder)]
+    #[clap(
+        name = "near",
+        version,
+        author,
+        about,
+        setting = AppSettings::DeriveDisplayOrder,
+    )]
     Near(NearArgs),
 }
 
@@ -63,7 +68,7 @@ pub struct BuildCommand {
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
     match cmd {
-        NearCommand::Abi(args) => abi::dump_to_file(args),
-        NearCommand::Build(args) => contract::build(args),
+        NearCommand::Abi(args) => abi::run(args),
+        NearCommand::Build(args) => build::run(args),
     }
 }

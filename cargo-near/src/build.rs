@@ -5,7 +5,7 @@ use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
+pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     if !util::invoke_rustup(&["target", "list", "--installed"])?
         .lines()
         .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))

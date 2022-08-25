@@ -68,7 +68,7 @@ pub(crate) fn write_to_file(
     if !generate_docs {
         strip_docs(&mut contract_abi);
     }
-    let near_abi_json = serde_json::to_string_pretty(&contract_abi)?;
+    let near_abi_json = serde_json::to_string(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
     fs::write(&out_path_abi, near_abi_json)?;
 
@@ -100,7 +100,7 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
     }
 }
 
-pub(crate) fn dump_to_file(args: AbiCommand) -> anyhow::Result<()> {
+pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     let crate_metadata = CrateMetadata::collect(CargoManifestPath::try_from(
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
