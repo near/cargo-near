@@ -1,5 +1,6 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{abi, util, BuildCommand};
+use anyhow::Context;
 use std::fs;
 use std::io::BufRead;
 
@@ -17,17 +18,14 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
-    let out_dir = args.out_dir.map_or_else(
-        || Ok(crate_metadata.target_directory.clone()),
-        |out_dir| {
-            out_dir.canonicalize().map_err(|err| match err.kind() {
-                std::io::ErrorKind::NotFound => {
-                    anyhow::anyhow!("output directory `{}` does not exist", out_dir.display())
-                }
-                _ => err.into(),
-            })
-        },
-    )?;
+    let out_dir = args
+        .out_dir
+        .unwrap_or(crate_metadata.target_directory.clone());
+    fs::create_dir_all(&out_dir)
+        .with_context(|| format!("failed to create directory `{}`", out_dir.display()))?;
+    let out_dir = out_dir
+        .canonicalize()
+        .with_context(|| format!("failed to access output directory `{}`", out_dir.display()))?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -58,14 +56,19 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         )?
     };
 
-    fs::create_dir_all(&out_dir)?;
     let mut out_path = wasm_artifact.path;
     if out_path
         .parent()
         .map_or(false, |out_path| out_dir != out_path)
     {
         let new_out_path = out_dir.join(out_path.file_name().unwrap());
-        std::fs::copy(&out_path, &new_out_path)?;
+        std::fs::copy(&out_path, &new_out_path).with_context(|| {
+            format!(
+                "failed to copy `{}` to `{}`",
+                out_path.display(),
+                new_out_path.display(),
+            )
+        })?;
         out_path = new_out_path;
     }
 
