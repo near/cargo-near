@@ -16,6 +16,18 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
+    let out_dir = args
+        .out_dir
+        .map(|out_dir| {
+            out_dir.canonicalize().map_err(|err| match err.kind() {
+                std::io::ErrorKind::NotFound => {
+                    anyhow::anyhow!("output directory `{}` does not exist", out_dir.display())
+                }
+                _ => err.into(),
+            })
+        })
+        .transpose()?;
+
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     if args.release {
         cargo_args.push("--release");
@@ -42,7 +54,7 @@ pub(crate) fn build(args: BuildCommand) -> anyhow::Result<()> {
     };
 
     let mut out_path = wasm_artifact.path;
-    if let Some(out_dir) = args.out_dir.and_then(|o| o.canonicalize().ok()) {
+    if let Some(out_dir) = out_dir {
         if out_dir != out_path.parent().unwrap() {
             let new_out_path = out_dir.join(out_path.file_name().unwrap());
             std::fs::copy(&out_path, &new_out_path)?;
