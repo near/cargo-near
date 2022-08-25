@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/near/cargo-near"
 description = """
-Cargo extension for building Rust smart contracts on NEAR.
+Cargo extension for building Rust smart contracts on NEAR
 """
 
 [dependencies]
