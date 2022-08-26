@@ -58,6 +58,9 @@ pub struct BuildCommand {
     /// Include rustdocs in the embedded ABI
     #[clap(long, requires = "embed-abi")]
     pub doc: bool,
+    /// Do not generate ABI for the contract
+    #[clap(long, conflicts_with_all = &["doc", "embed-abi"])]
+    pub no_abi: bool,
     /// Copy final artifacts to the this directory
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub out_dir: Option<PathBuf>,
