@@ -19,11 +19,17 @@ pub(crate) fn write_to_file(
     let original_cargo_toml: toml::value::Table =
         toml::from_slice(&fs::read(&crate_metadata.manifest_path.path)?)?;
 
-    if !original_cargo_toml["dependencies"]["near-sdk"]["features"]
-        .as_array()
-        .map_or(false, |features| {
-            features.contains(&toml::Value::String("abi".to_string()))
-        })
+    if !original_cargo_toml
+        .get("dependencies")
+        .ok_or_else(|| anyhow::anyhow!("[dependencies] section not found"))?
+        .get("near-sdk")
+        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency not found"))?
+        .as_table()
+        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency should be a table"))?
+        .get("features")
+        .and_then(|features| features.as_array())
+        .map(|features| features.contains(&toml::Value::String("abi".to_string())))
+        .unwrap_or(false)
     {
         anyhow::bail!("Unable to generate ABI: NEAR SDK \"abi\" feature is not enabled")
     }
