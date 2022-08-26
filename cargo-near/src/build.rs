@@ -20,7 +20,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     let out_dir = args
         .out_dir
-        .unwrap_or(crate_metadata.target_directory.clone());
+        .unwrap_or_else(|| crate_metadata.target_directory.clone());
     fs::create_dir_all(&out_dir)
         .with_context(|| format!("failed to create directory `{}`", out_dir.display()))?;
     let out_dir = out_dir
