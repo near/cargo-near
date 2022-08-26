@@ -11,10 +11,10 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [target.'cfg(windows)'.dependencies]
-near-sdk = { version = "4.1.0-pre.1", features = ["abi"] }
+near-sdk = { version = "4.1.0-pre.2", features = ["abi"] }
 
 [target.'cfg(unix)'.dependencies]
-near-sdk = { version = "4.1.0-pre.1", features = ["abi"] }
+near-sdk = { version = "4.1.0-pre.2", features = ["abi"] }
 
 [workspace]
 members = []

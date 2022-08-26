@@ -11,8 +11,8 @@ fn test_view_function() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert!(function.is_view);
     assert!(!function.is_init);
     assert!(!function.is_payable);
@@ -30,8 +30,8 @@ fn test_call_function() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert!(!function.is_view);
 
     Ok(())
@@ -47,8 +47,8 @@ fn test_init_function() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert!(function.is_init);
     assert!(function.result.is_none());
 
@@ -65,8 +65,8 @@ fn test_payable_function() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert!(function.is_payable);
 
     Ok(())
@@ -82,8 +82,8 @@ fn test_private_function() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert!(function.is_private);
 
     Ok(())

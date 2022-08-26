@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_sdk::__private::AbiType;
+use near_abi::AbiType;
 use schemars::gen::SchemaGenerator;
 use std::fs;
 
@@ -11,8 +11,8 @@ fn test_result_default() -> anyhow::Result<()> {
         pub fn foo(&self) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert!(function.result.is_none());
 
     Ok(())
@@ -27,8 +27,8 @@ fn test_result_type() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.result,
@@ -50,8 +50,8 @@ fn test_result_handle_result() -> anyhow::Result<()> {
         }
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.result,

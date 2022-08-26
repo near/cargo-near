@@ -1,7 +1,5 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
-use near_sdk::__private::schemars::schema::{Schema, SchemaObject};
-use near_sdk::__private::{AbiMetadata, AbiRoot};
 use std::collections::HashMap;
 use std::{fs, path::PathBuf};
 
@@ -50,22 +48,23 @@ pub(crate) fn execute(
         )],
     )?;
 
-    let mut near_abi: AbiRoot = serde_json::from_slice(&stdout)?;
-    let metadata = extract_metadata(&crate_metadata);
-    near_abi.metadata = metadata;
+    let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
+        serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
+    )?
+    .into_abi_root(extract_metadata(&crate_metadata));
     if !generate_docs {
-        strip_docs(&mut near_abi);
+        strip_docs(&mut contract_abi);
     }
-    let near_abi_json = serde_json::to_string_pretty(&near_abi)?;
+    let near_abi_json = serde_json::to_string_pretty(&contract_abi)?;
     let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
     fs::write(&out_path_abi, near_abi_json)?;
 
     Ok(AbiResult { path: out_path_abi })
 }
 
-fn extract_metadata(crate_metadata: &CrateMetadata) -> AbiMetadata {
+fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
     let package = &crate_metadata.root_package;
-    AbiMetadata {
+    near_abi::AbiMetadata {
         name: Some(package.name.clone()),
         version: Some(package.version.to_string()),
         authors: package.authors.clone(),
@@ -73,12 +72,12 @@ fn extract_metadata(crate_metadata: &CrateMetadata) -> AbiMetadata {
     }
 }
 
-fn strip_docs(abi_root: &mut AbiRoot) {
-    for function in &mut abi_root.abi.functions {
+fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
+    for function in &mut abi_root.body.functions {
         function.doc = None;
     }
-    for schema in &mut abi_root.abi.root_schema.definitions.values_mut() {
-        if let Schema::Object(SchemaObject {
+    for schema in &mut abi_root.body.root_schema.definitions.values_mut() {
+        if let schemars::schema::Schema::Object(schemars::schema::SchemaObject {
             metadata: Some(metadata),
             ..
         }) = schema

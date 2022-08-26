@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_sdk::__private::{AbiParameter, AbiType};
+use near_abi::{AbiParameter, AbiType};
 use schemars::gen::SchemaGenerator;
 use std::fs;
 
@@ -11,8 +11,8 @@ fn test_callbacks_unwrapped() -> anyhow::Result<()> {
         pub fn foo(&self, #[callback_unwrap] a: bool, #[callback_unwrap] b: u32) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
@@ -44,8 +44,8 @@ fn test_callbacks_result() -> anyhow::Result<()> {
         ) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let string_schema = SchemaGenerator::default().subschema_for::<String>();
@@ -77,8 +77,8 @@ fn test_callbacks_vec() -> anyhow::Result<()> {
         ) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 0);
     assert_eq!(function.callbacks.len(), 1);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
@@ -113,8 +113,8 @@ fn test_callbacks_mixed_with_params() -> anyhow::Result<()> {
         ) {}
     };
 
-    assert_eq!(abi_root.abi.functions.len(), 1);
-    let function = &abi_root.abi.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
     assert_eq!(function.params.len(), 2);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
