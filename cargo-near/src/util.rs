@@ -240,7 +240,7 @@ pub(crate) fn extract_abi_entries(
         for symbol in near_abi_symbols {
             let entry: libloading::Symbol<fn() -> near_abi::__private::ChunkedAbiEntry> =
                 lib.get(symbol.as_bytes())?;
-            entries.push(entry());
+            entries.push(entry().clone());
         }
     }
     Ok(entries)
