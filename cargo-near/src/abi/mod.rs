@@ -1,6 +1,5 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{util, AbiCommand};
-use anyhow::Context;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
@@ -105,15 +104,17 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
-    let out_dir = args
-        .out_dir
-        .unwrap_or_else(|| crate_metadata.target_directory.clone());
-    fs::create_dir_all(&out_dir)
-        .with_context(|| format!("failed to create directory `{}`", out_dir.display()))?;
+    let out_dir = util::force_canonicalize_dir(
+        &args
+            .out_dir
+            .unwrap_or_else(|| crate_metadata.target_directory.clone()),
+    )?;
 
     let AbiResult { path } = write_to_file(&crate_metadata, args.doc)?;
 
-    println!("ABI successfully generated at {}", path.display());
+    let abi_path = util::copy(&path, &out_dir)?;
+
+    println!("ABI successfully generated at {}", abi_path.display());
 
     Ok(())
 }

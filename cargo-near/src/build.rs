@@ -1,7 +1,6 @@
+use crate::abi::AbiResult;
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{abi, util, BuildCommand};
-use anyhow::Context;
-use std::fs;
 use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
@@ -18,14 +17,11 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
-    let out_dir = args
-        .out_dir
-        .unwrap_or_else(|| crate_metadata.target_directory.clone());
-    fs::create_dir_all(&out_dir)
-        .with_context(|| format!("failed to create directory `{}`", out_dir.display()))?;
-    let out_dir = out_dir
-        .canonicalize()
-        .with_context(|| format!("failed to access output directory `{}`", out_dir.display()))?;
+    let out_dir = util::force_canonicalize_dir(
+        &args
+            .out_dir
+            .unwrap_or_else(|| crate_metadata.target_directory.clone()),
+    )?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -33,16 +29,15 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         cargo_args.push("--release");
     }
 
-    let abi = (!args.no_abi)
-        .then(|| abi::write_to_file(&crate_metadata, args.doc))
-        .transpose()?;
+    let mut abi_path = None;
+    if !args.no_abi {
+        let AbiResult { path } = abi::write_to_file(&crate_metadata, args.doc)?;
+        abi_path.replace(util::copy(&path, &out_dir)?);
+    }
 
-    let wasm_artifact = if args.embed_abi {
+    let mut wasm_artifact = if let Some(ref abi_path) = abi_path {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
-        build_env.push((
-            "CARGO_NEAR_ABI_PATH",
-            abi.as_ref().unwrap().path.to_str().unwrap(),
-        ));
+        build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.to_str().unwrap()));
 
         util::compile_project(
             &crate_metadata.manifest_path,
@@ -59,24 +54,14 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         )?
     };
 
-    let mut out_path = wasm_artifact.path;
-    if out_path
-        .parent()
-        .map_or(false, |out_path| out_dir != out_path)
-    {
-        let new_out_path = out_dir.join(out_path.file_name().unwrap());
-        std::fs::copy(&out_path, &new_out_path).with_context(|| {
-            format!(
-                "failed to copy `{}` to `{}`",
-                out_path.display(),
-                new_out_path.display(),
-            )
-        })?;
-        out_path = new_out_path;
-    }
+    wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
-    println!("Contract successfully built at {}", out_path.display());
+    println!("Contract Successfully Built!");
+    println!("   - Binary: {}", wasm_artifact.path.display());
+    if let Some(abi_path) = abi_path {
+        println!("   -    ABI: {}", abi_path.display());
+    }
 
     Ok(())
 }
