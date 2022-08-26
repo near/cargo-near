@@ -12,7 +12,7 @@ schemars = "0.8"
 
 [dependencies.near-sdk]
 git = "https://github.com/near/near-sdk-rs.git"
-rev = "1f9a7b23b943b6c8ee4d1db2c2427a2b5f0716bb"
+rev = "03bab8db6145e038626c4b15b34b0bd8a33fba44"
 features = ["abi"]
 
 [workspace]
