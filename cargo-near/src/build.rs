@@ -33,11 +33,11 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         cargo_args.push("--release");
     }
 
-    let wasm_artifact = if args.embed_abi {
-        let abi::AbiResult {
-            path: abi_file_path,
-        } = abi::write_to_file(&crate_metadata, args.doc)?;
+    let abi::AbiResult {
+        path: abi_file_path,
+    } = abi::write_to_file(&crate_metadata, args.doc)?;
 
+    let wasm_artifact = if args.embed_abi {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_file_path.to_str().unwrap()));
 
