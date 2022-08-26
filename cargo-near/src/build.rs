@@ -1,6 +1,7 @@
 use crate::abi::AbiResult;
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{abi, util, BuildCommand};
+use colored::Colorize;
 use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
@@ -57,10 +58,21 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
-    println!("Contract Successfully Built!");
-    println!("   - Binary: {}", wasm_artifact.path.display());
+    println!("{}", "Contract Successfully Built!".green().bold());
+    println!(
+        "   - Binary: {}",
+        wasm_artifact
+            .path
+            .display()
+            .to_string()
+            .bright_yellow()
+            .bold()
+    );
     if let Some(abi_path) = abi_path {
-        println!("   -    ABI: {}", abi_path.display());
+        println!(
+            "   -    ABI: {}",
+            abi_path.display().to_string().yellow().bold()
+        );
     }
 
     Ok(())
