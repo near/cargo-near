@@ -187,6 +187,31 @@ pub(crate) fn compile_project(
     }
 }
 
+/// Create the directory if it doesn't exist, and return the absolute path to it.
+pub(crate) fn force_canonicalize_dir(dir: &Path) -> anyhow::Result<PathBuf> {
+    fs::create_dir_all(&dir)
+        .with_context(|| format!("failed to create directory `{}`", dir.display()))?;
+    dir.canonicalize()
+        .with_context(|| format!("failed to access output directory `{}`", dir.display()))
+}
+
+/// Copy a file to a destination.
+///
+/// Does nothing if the destination is the same as the source to avoid truncating the file.
+pub(crate) fn copy(from: &Path, to: &Path) -> anyhow::Result<PathBuf> {
+    let out_path = to.join(from.file_name().unwrap());
+    if from.parent().unwrap() != to {
+        fs::copy(&from, &out_path).with_context(|| {
+            format!(
+                "failed to copy `{}` to `{}`",
+                from.display(),
+                out_path.display(),
+            )
+        })?;
+    }
+    Ok(out_path)
+}
+
 pub(crate) fn extract_abi_entries(
     dylib_path: &Path,
 ) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {

@@ -84,9 +84,17 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
 
+    let out_dir = util::force_canonicalize_dir(
+        &args
+            .out_dir
+            .unwrap_or_else(|| crate_metadata.target_directory.clone()),
+    )?;
+
     let AbiResult { path } = write_to_file(&crate_metadata, args.doc)?;
 
-    println!("ABI successfully generated at {}", path.display());
+    let abi_path = util::copy(&path, &out_dir)?;
+
+    println!("ABI successfully generated at {}", abi_path.display());
 
     Ok(())
 }

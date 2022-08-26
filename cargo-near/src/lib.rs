@@ -41,6 +41,9 @@ pub struct AbiCommand {
     /// Include rustdocs in the ABI file
     #[clap(long)]
     pub doc: bool,
+    /// Copy final artifacts to the this directory
+    #[clap(long, parse(from_os_str), value_name = "PATH")]
+    pub out_dir: Option<PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub manifest_path: Option<PathBuf>,
