@@ -2,8 +2,10 @@ use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
 use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::Message;
+use std::collections::HashSet;
 use std::env;
 use std::ffi::OsStr;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -183,4 +185,38 @@ pub(crate) fn compile_project(
             dylib_files
         )),
     }
+}
+
+pub(crate) fn extract_abi_entries(
+    dylib_path: &Path,
+) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
+    let dylib_file_contents = fs::read(&dylib_path)?;
+    let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
+    log::debug!(
+        "A dylib was built at {:?} with format {} for architecture {}",
+        &dylib_path,
+        &object.file_format(),
+        &object.arch()
+    );
+    let near_abi_symbols = object
+        .symbols()
+        .flat_map(|sym| sym.name)
+        .filter(|sym_name| sym_name.starts_with("__near_abi_"))
+        .map(|sym_name| sym_name.to_string())
+        .collect::<HashSet<_>>();
+    if near_abi_symbols.is_empty() {
+        anyhow::bail!("No NEAR ABI symbols found in the dylib");
+    }
+    log::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
+
+    let mut entries = vec![];
+    unsafe {
+        let lib = libloading::Library::new(dylib_path)?;
+        for symbol in near_abi_symbols {
+            let entry: libloading::Symbol<fn() -> near_abi::__private::ChunkedAbiEntry> =
+                lib.get(symbol.as_bytes())?;
+            entries.push(entry());
+        }
+    }
+    Ok(entries)
 }

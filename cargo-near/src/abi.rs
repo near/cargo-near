@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
-mod generation;
-
 const ABI_FILE: &str = "abi.json";
 
 /// ABI generation result.
@@ -18,14 +16,17 @@ pub(crate) fn write_to_file(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
 ) -> anyhow::Result<AbiResult> {
-    let near_abi_gen_dir = &crate_metadata
-        .target_directory
-        .join(crate_metadata.root_package.name.clone() + "-near-abi-gen");
-    fs::create_dir_all(near_abi_gen_dir)?;
-    log::debug!(
-        "Using temp Cargo workspace at '{}'",
-        near_abi_gen_dir.display()
-    );
+    let original_cargo_toml: toml::value::Table =
+        toml::from_slice(&fs::read(&crate_metadata.manifest_path.path)?)?;
+
+    if !original_cargo_toml["dependencies"]["near-sdk"]["features"]
+        .as_array()
+        .map_or(false, |features| {
+            features.contains(&toml::Value::String("abi".to_string()))
+        })
+    {
+        anyhow::bail!("Unable to generate ABI: NEAR SDK \"abi\" feature is not enabled")
+    }
 
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
@@ -38,32 +39,11 @@ pub(crate) fn write_to_file(
         util::dylib_extension(),
     )?;
 
-    // todo! experiment with reusing cargo-near for extracting data from the dylib
-    if dylib_artifact.fresh {
-        let cargo_toml = generation::generate_toml(&crate_metadata.manifest_path)?;
-        fs::write(near_abi_gen_dir.join("Cargo.toml"), cargo_toml)?;
+    let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
 
-        let build_rs = generation::generate_build_rs(&dylib_artifact.path)?;
-        fs::write(near_abi_gen_dir.join("build.rs"), build_rs)?;
+    let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
+        .into_abi_root(extract_metadata(crate_metadata));
 
-        let main_rs = generation::generate_main_rs(&dylib_artifact.path)?;
-        fs::write(near_abi_gen_dir.join("main.rs"), main_rs)?;
-    }
-
-    let stdout = util::invoke_cargo(
-        "run",
-        &["--package", "near-abi-gen"],
-        Some(near_abi_gen_dir),
-        vec![(
-            "LD_LIBRARY_PATH",
-            &dylib_artifact.path.parent().unwrap().to_string_lossy(),
-        )],
-    )?;
-
-    let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
-        serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
-    )?
-    .into_abi_root(extract_metadata(crate_metadata));
     if !generate_docs {
         strip_docs(&mut contract_abi);
     }
