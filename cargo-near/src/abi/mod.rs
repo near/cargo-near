@@ -42,10 +42,13 @@ pub(crate) fn execute(
         "run",
         &["--package", "near-abi-gen"],
         Some(near_abi_gen_dir),
-        vec![(
-            "LD_LIBRARY_PATH",
-            &dylib_path.parent().unwrap().to_string_lossy(),
-        )],
+        vec![
+            (
+                "LD_LIBRARY_PATH",
+                &dylib_path.parent().unwrap().to_string_lossy(),
+            ),
+            ("CARGO_TARGET_DIR", "target"),
+        ],
     )?;
 
     let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
