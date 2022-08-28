@@ -22,7 +22,9 @@ impl CrateMetadata {
 
         let absolute_manifest_dir = manifest_path.directory()?;
         let absolute_workspace_root = metadata.workspace_root.canonicalize()?;
-        if absolute_manifest_dir != absolute_workspace_root {
+        if std::env::var("CARGO_NEAR_FORCE_WORKSPACE").map_or(false, |v| v == "1")
+            || absolute_manifest_dir != absolute_workspace_root
+        {
             // If the contract is a package in a workspace, we use the package name
             // as the name of the sub-folder where we put the `.contract` bundle.
             target_directory = target_directory.join(package_name);

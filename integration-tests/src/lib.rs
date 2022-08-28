@@ -21,6 +21,9 @@ macro_rules! generate_abi {
         let lib_rs_path = src_dir.join("lib.rs");
         fs::write(lib_rs_path, lib_rs)?;
 
+        std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
+        std::env::set_var("CARGO_NEAR_FORCE_WORKSPACE", "1");
+
         cargo_near::exec(cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
             manifest_path: Some(cargo_path),
             doc: false,
@@ -28,7 +31,7 @@ macro_rules! generate_abi {
         }))?;
 
         let abi_root: near_abi::AbiRoot =
-            serde_json::from_slice(&fs::read(workspace_dir.join(function_name!()).join("target").join("near").join("abi.json"))?)?;
+        serde_json::from_slice(&fs::read(workspace_dir.join("target").join("near").join(function_name!()).join("abi.json"))?)?;
         abi_root
     }};
     (with Cargo $cargo_path:expr; $($code:tt)*) => {
