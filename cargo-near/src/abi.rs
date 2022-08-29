@@ -79,7 +79,7 @@ fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'stati
         AbiCompression::NoOp => match format {
             AbiFormat::Json | AbiFormat::JsonMin => "json",
         },
-        AbiCompression::Zstd => "bin",
+        AbiCompression::Zstd => "zst",
     }
 }
 
