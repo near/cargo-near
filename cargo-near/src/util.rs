@@ -199,7 +199,7 @@ pub(crate) fn force_canonicalize_dir(dir: &Path) -> anyhow::Result<PathBuf> {
 /// Does nothing if the destination is the same as the source to avoid truncating the file.
 pub(crate) fn copy(from: &Path, to: &Path) -> anyhow::Result<PathBuf> {
     let out_path = to.join(from.file_name().unwrap());
-    if from.parent().unwrap() != to {
+    if from != out_path {
         fs::copy(&from, &out_path).with_context(|| {
             format!(
                 "failed to copy `{}` to `{}`",

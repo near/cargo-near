@@ -36,24 +36,17 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         abi_path.replace(util::copy(&path, &out_dir)?);
     }
 
-    let mut wasm_artifact = if let Some(ref abi_path) = abi_path {
+    if let (true, Some(abi_path)) = (args.embed_abi, &abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.to_str().unwrap()));
+    }
 
-        util::compile_project(
-            &crate_metadata.manifest_path,
-            &cargo_args,
-            build_env,
-            "wasm",
-        )?
-    } else {
-        util::compile_project(
-            &crate_metadata.manifest_path,
-            &cargo_args,
-            build_env,
-            "wasm",
-        )?
-    };
+    let mut wasm_artifact = util::compile_project(
+        &crate_metadata.manifest_path,
+        &cargo_args,
+        build_env,
+        "wasm",
+    )?;
 
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
