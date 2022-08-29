@@ -82,7 +82,10 @@ pub(crate) fn write_to_file(
     };
     let near_abi_compressed = match compression {
         AbiCompression::NoOp => near_abi_serialized,
-        AbiCompression::Zstd => zstd::encode_all(near_abi_serialized.as_slice(), 0)?,
+        AbiCompression::Zstd => zstd::encode_all(
+            near_abi_serialized.as_slice(),
+            *zstd::compression_level_range().end(),
+        )?,
     };
 
     let out_path_abi = crate_metadata.target_directory.join(format!(
