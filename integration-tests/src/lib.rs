@@ -21,6 +21,8 @@ macro_rules! generate_abi {
         let lib_rs_path = src_dir.join("lib.rs");
         fs::write(lib_rs_path, lib_rs)?;
 
+        std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
+
         cargo_near::exec(cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
             manifest_path: Some(cargo_path),
             doc: false,
