@@ -1,16 +1,21 @@
-use cargo::manifest::CargoManifestPath;
 use clap::{AppSettings, Args, Parser, Subcommand};
 use std::path::PathBuf;
 
 mod abi;
+mod build;
 mod cargo;
 mod util;
 
 #[derive(Debug, Parser)]
-#[clap(bin_name = "cargo")]
+#[clap(bin_name = "cargo", version, author, about)]
 pub enum Opts {
-    #[clap(name = "near")]
-    #[clap(setting = AppSettings::DeriveDisplayOrder)]
+    #[clap(
+        name = "near",
+        version,
+        author,
+        about,
+        setting = AppSettings::DeriveDisplayOrder,
+    )]
     Near(NearArgs),
 }
 
@@ -25,31 +30,51 @@ pub enum NearCommand {
     /// Generates ABI for the contract
     #[clap(name = "abi")]
     Abi(AbiCommand),
+    /// Build a NEAR contract and optionally embed ABI
+    #[clap(name = "build")]
+    Build(BuildCommand),
 }
 
 #[derive(Debug, clap::Args)]
-#[clap(name = "abi")]
+#[clap(setting = AppSettings::DeriveDisplayOrder)]
 pub struct AbiCommand {
-    /// Path to the `Cargo.toml` of the contract to build
-    #[clap(long, parse(from_os_str))]
-    pub manifest_path: Option<PathBuf>,
     /// Include rustdocs in the ABI file
-    #[clap(long, takes_value = false)]
+    #[clap(long)]
     pub doc: bool,
+    /// Copy final artifacts to the this directory
+    #[clap(long, parse(from_os_str), value_name = "PATH")]
+    pub out_dir: Option<PathBuf>,
+    /// Path to the `Cargo.toml` of the contract to build
+    #[clap(long, parse(from_os_str), value_name = "PATH")]
+    pub manifest_path: Option<PathBuf>,
+}
+
+#[derive(Debug, clap::Args)]
+#[clap(setting = AppSettings::DeriveDisplayOrder)]
+pub struct BuildCommand {
+    /// Build contract in release mode, with optimizations
+    #[clap(short, long)]
+    pub release: bool,
+    /// Embed the ABI in the contract binary
+    #[clap(long)]
+    pub embed_abi: bool,
+    /// Include rustdocs in the embedded ABI
+    #[clap(long, requires = "embed-abi")]
+    pub doc: bool,
+    /// Do not generate ABI for the contract
+    #[clap(long, conflicts_with_all = &["doc", "embed-abi"])]
+    pub no_abi: bool,
+    /// Copy final artifacts to the this directory
+    #[clap(long, parse(from_os_str), value_name = "PATH")]
+    pub out_dir: Option<PathBuf>,
+    /// Path to the `Cargo.toml` of the contract to build
+    #[clap(long, parse(from_os_str), value_name = "PATH")]
+    pub manifest_path: Option<PathBuf>,
 }
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
-    match &cmd {
-        NearCommand::Abi(abi) => {
-            let manifest_path = abi
-                .manifest_path
-                .clone()
-                .unwrap_or_else(|| "Cargo.toml".into());
-            let manifest_path = CargoManifestPath::try_from(manifest_path)?;
-
-            let result = abi::execute(&manifest_path, abi.doc)?;
-            println!("ABI successfully generated at {}", result.path.display());
-            Ok(())
-        }
+    match cmd {
+        NearCommand::Abi(args) => abi::run(args),
+        NearCommand::Build(args) => build::run(args),
     }
 }

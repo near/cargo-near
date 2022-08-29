@@ -1,13 +1,14 @@
+use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
 use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::Message;
+use std::env;
 use std::ffi::OsStr;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use crate::cargo::manifest::CargoManifestPath;
-
-const fn dylib_extension() -> &'static str {
+pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
     return "so";
 
@@ -50,7 +51,7 @@ pub(crate) fn invoke_cargo<I, S, P>(
     env: Vec<(&str, &str)>,
 ) -> Result<Vec<u8>>
 where
-    I: IntoIterator<Item = S> + std::fmt::Debug,
+    I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
     P: AsRef<Path>,
 {
@@ -90,25 +91,56 @@ where
     }
 }
 
-fn build_cargo_project(manifest_path: &CargoManifestPath) -> anyhow::Result<Vec<Message>> {
-    let output = invoke_cargo(
-        "build",
-        &["--message-format=json"],
-        manifest_path.directory().ok(),
-        vec![
-            ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
-            ("CARGO_PROFILE_DEV_DEBUG", "0"),
-            ("CARGO_PROFILE_DEV_LTO", "off"),
-        ],
-    )?;
+pub(crate) fn invoke_rustup<I, S>(args: I) -> anyhow::Result<Vec<u8>>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
+    let rustup = env::var("RUSTUP").unwrap_or_else(|_| "rustup".to_string());
 
-    let reader = std::io::BufReader::new(output.as_slice());
-    Ok(Message::parse_stream(reader).map(|m| m.unwrap()).collect())
+    let mut cmd = Command::new(rustup);
+    cmd.args(args);
+
+    log::info!("Invoking rustup: {:?}", cmd);
+
+    let child = cmd
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .context(format!("Error executing `{:?}`", cmd))?;
+
+    let output = child.wait_with_output()?;
+    if output.status.success() {
+        Ok(output.stdout)
+    } else {
+        anyhow::bail!(
+            "`{:?}` failed with exit code: {:?}",
+            cmd,
+            output.status.code()
+        );
+    }
 }
 
-/// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated dynamic lib.
-pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow::Result<PathBuf> {
-    let messages = build_cargo_project(manifest_path)?;
+pub struct CompilationArtifact {
+    pub path: PathBuf,
+    pub fresh: bool,
+}
+
+/// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated artifact.
+pub(crate) fn compile_project(
+    manifest_path: &CargoManifestPath,
+    args: &[&str],
+    env: Vec<(&str, &str)>,
+    artifact_extension: &str,
+) -> anyhow::Result<CompilationArtifact> {
+    let stdout = invoke_cargo(
+        "build",
+        [&["--message-format=json"], args].concat(),
+        manifest_path.directory().ok(),
+        env,
+    )?;
+    let reader = std::io::BufReader::new(&*stdout);
+    let messages: Vec<_> = Message::parse_stream(reader).collect::<Result<_, _>>()?;
+
     // We find the last compiler artifact message which should contain information about the
     // resulting dylib file
     let compile_artifact = messages
@@ -132,7 +164,7 @@ pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow
         .cloned()
         .filter(|f| {
             f.extension()
-                .map(|e| e == dylib_extension())
+                .map(|e| e == artifact_extension)
                 .unwrap_or(false)
         })
         .collect::<Vec<_>>();
@@ -140,13 +172,41 @@ pub(crate) fn compile_dylib_project(manifest_path: &CargoManifestPath) -> anyhow
         [] => Err(anyhow::anyhow!(
             "Compilation resulted in no '.{}' target files. \
                  Please check that your project contains a NEAR smart contract.",
-            dylib_extension()
+            artifact_extension
         )),
-        [file] => Ok(file.to_owned().into_std_path_buf()),
+        [file] => Ok(CompilationArtifact {
+            path: file.to_owned().into_std_path_buf(),
+            fresh: !compile_artifact.fresh,
+        }),
         _ => Err(anyhow::anyhow!(
             "Compilation resulted in more than one '.{}' target file: {:?}",
-            dylib_extension(),
+            artifact_extension,
             dylib_files
         )),
     }
+}
+
+/// Create the directory if it doesn't exist, and return the absolute path to it.
+pub(crate) fn force_canonicalize_dir(dir: &Path) -> anyhow::Result<PathBuf> {
+    fs::create_dir_all(&dir)
+        .with_context(|| format!("failed to create directory `{}`", dir.display()))?;
+    dir.canonicalize()
+        .with_context(|| format!("failed to access output directory `{}`", dir.display()))
+}
+
+/// Copy a file to a destination.
+///
+/// Does nothing if the destination is the same as the source to avoid truncating the file.
+pub(crate) fn copy(from: &Path, to: &Path) -> anyhow::Result<PathBuf> {
+    let out_path = to.join(from.file_name().unwrap());
+    if from != out_path {
+        fs::copy(&from, &out_path).with_context(|| {
+            format!(
+                "failed to copy `{}` to `{}`",
+                from.display(),
+                out_path.display(),
+            )
+        })?;
+    }
+    Ok(out_path)
 }

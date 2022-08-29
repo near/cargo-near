@@ -24,12 +24,21 @@ impl TryFrom<PathBuf> for CargoManifestPath {
     fn try_from(manifest_path: PathBuf) -> Result<Self, Self::Error> {
         if let Some(file_name) = manifest_path.file_name() {
             if file_name != MANIFEST_FILE_NAME {
-                anyhow::bail!("Manifest file must be a Cargo.toml")
+                anyhow::bail!("the manifest-path must be a path to a Cargo.toml file")
             }
         }
-        let canonical_manifest_path = manifest_path.canonicalize().map_err(|err| {
-            anyhow::anyhow!("Failed to canonicalize {:?}: {:?}", manifest_path, err)
-        })?;
+        let canonical_manifest_path =
+            manifest_path
+                .canonicalize()
+                .map_err(|err| match err.kind() {
+                    std::io::ErrorKind::NotFound => {
+                        anyhow::anyhow!(
+                            "manifest path `{}` does not exist",
+                            manifest_path.display()
+                        )
+                    }
+                    _ => err.into(),
+                })?;
         Ok(CargoManifestPath {
             path: canonical_manifest_path,
         })
