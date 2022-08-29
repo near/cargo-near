@@ -27,8 +27,7 @@ macro_rules! generate_abi {
             manifest_path: Some(cargo_path),
             doc: false,
             out_dir: None,
-            format: cargo_near::AbiFormat::Json,
-            compression: cargo_near::AbiCompression::NoOp
+            no_pretty: false
         }))?;
 
         let abi_root: near_abi::AbiRoot =
