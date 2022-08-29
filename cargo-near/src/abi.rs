@@ -1,5 +1,6 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{util, AbiCommand, AbiCompression, AbiFormat};
+use crate::{util, AbiCommand};
+use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
@@ -10,12 +11,22 @@ pub(crate) struct AbiResult {
     pub path: PathBuf,
 }
 
-pub(crate) fn write_to_file(
+#[derive(Clone, Debug)]
+pub(crate) enum AbiFormat {
+    Json,
+    JsonMin,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum AbiCompression {
+    NoOp,
+    Zstd,
+}
+
+pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
-    format: AbiFormat,
-    compression: AbiCompression,
-) -> anyhow::Result<AbiResult> {
+) -> anyhow::Result<AbiRoot> {
     fs::create_dir_all(&crate_metadata.target_directory)?;
 
     let original_cargo_toml: toml::value::Table =
@@ -55,6 +66,16 @@ pub(crate) fn write_to_file(
     if !generate_docs {
         strip_docs(&mut contract_abi);
     }
+
+    Ok(contract_abi)
+}
+
+pub(crate) fn write_to_file(
+    contract_abi: &AbiRoot,
+    crate_metadata: &CrateMetadata,
+    format: AbiFormat,
+    compression: AbiCompression,
+) -> anyhow::Result<AbiResult> {
     let near_abi_serialized = match format {
         AbiFormat::Json => serde_json::to_vec_pretty(&contract_abi)?,
         AbiFormat::JsonMin => serde_json::to_vec(&contract_abi)?,
@@ -119,8 +140,14 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
             .unwrap_or_else(|| crate_metadata.target_directory.clone()),
     )?;
 
+    let format = if args.no_pretty {
+        AbiFormat::JsonMin
+    } else {
+        AbiFormat::Json
+    };
+    let contract_abi = generate_abi(&crate_metadata, args.doc)?;
     let AbiResult { path } =
-        write_to_file(&crate_metadata, args.doc, args.format, args.compression)?;
+        write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
     let abi_path = util::copy(&path, &out_dir)?;
 

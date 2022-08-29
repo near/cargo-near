@@ -1,4 +1,4 @@
-use clap::{AppSettings, Args, Parser, Subcommand, ValueEnum};
+use clap::{AppSettings, Args, Parser, Subcommand};
 use std::path::PathBuf;
 
 mod abi;
@@ -47,12 +47,9 @@ pub struct AbiCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub manifest_path: Option<PathBuf>,
-    /// Serialization format to use
-    #[clap(long, value_enum, default_value = "json")]
-    pub format: AbiFormat,
-    /// Compression algorithm to use
-    #[clap(long, value_enum, default_value = "no-op")]
-    pub compression: AbiCompression,
+    /// Do not prettify ABI (will generate minified JSON)
+    #[clap(long)]
+    pub no_pretty: bool,
 }
 
 #[derive(Debug, clap::Args)]
@@ -76,24 +73,6 @@ pub struct BuildCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub manifest_path: Option<PathBuf>,
-    /// Serialization format to use
-    #[clap(long, value_enum, default_value = "json-min")]
-    pub format: AbiFormat,
-    /// Compression algorithm to use
-    #[clap(long, value_enum, default_value = "zstd")]
-    pub compression: AbiCompression,
-}
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum AbiFormat {
-    Json,
-    JsonMin,
-}
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum AbiCompression {
-    NoOp,
-    Zstd,
 }
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
