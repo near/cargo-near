@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
-const ABI_FILE: &str = "abi.json";
-
 /// ABI generation result.
 pub(crate) struct AbiResult {
     /// Path to the resulting ABI file.
@@ -56,7 +54,9 @@ pub(crate) fn write_to_file(
         strip_docs(&mut contract_abi);
     }
     let near_abi_json = serde_json::to_string(&contract_abi)?;
-    let out_path_abi = crate_metadata.target_directory.join(ABI_FILE);
+    let out_path_abi = crate_metadata
+        .target_directory
+        .join(crate_metadata.root_package.name.replace('-', "_") + "_abi.json");
     fs::write(&out_path_abi, near_abi_json)?;
 
     Ok(AbiResult { path: out_path_abi })

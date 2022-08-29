@@ -28,7 +28,7 @@ macro_rules! generate_abi {
         }))?;
 
         let abi_root: near_abi::AbiRoot =
-            serde_json::from_slice(&fs::read(workspace_dir.join(function_name!()).join("target").join("near").join("abi.json"))?)?;
+        serde_json::from_slice(&fs::read(workspace_dir.join("target").join("near").join(format!("{}_abi.json", function_name!())))?)?;
         abi_root
     }};
     (with Cargo $cargo_path:expr; $($code:tt)*) => {
