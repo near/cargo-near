@@ -1,4 +1,4 @@
-use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
+use cargo_near_integration_tests::{generate_abi_fn_with, generate_abi_with};
 use function_name::named;
 use git2::build::CheckoutBuilder;
 use git2::Repository;
@@ -23,10 +23,10 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", features = ["abi"] }
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_local_path.toml",
-        and vars HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_local_path.toml";
+        Env: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
@@ -44,10 +44,10 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", version = "4.1.0-pre.2", features = ["abi"] }
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_local_path_with_version.toml",
-        and vars HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_local_path_with_version.toml";
+        Env: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
@@ -64,9 +64,9 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
     // [dependencies.near-sdk]
     // version = "4.1.0-pre.2"
     // features = ["abi"]
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_explicit.toml";
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_explicit.toml";
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
@@ -81,9 +81,9 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
 #[named]
 fn test_dependency_no_default_features() -> anyhow::Result<()> {
     // near-sdk = { version = "4.1.0-pre.2", default-features = false, features = ["abi"] }
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_no_default_features.toml";
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_no_default_features.toml";
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
@@ -98,9 +98,9 @@ fn test_dependency_no_default_features() -> anyhow::Result<()> {
 #[named]
 fn test_dependency_multiple_features() -> anyhow::Result<()> {
     // near-sdk = { version = "4.1.0-pre.2", features = ["abi", "unstable"] }
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_multiple_features.toml";
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_multiple_features.toml";
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
@@ -121,9 +121,9 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
     //
     // [target.'cfg(unix)'.dependencies]
     // near-sdk = { version = "4.1.0-pre.2", features = ["abi"] }
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_platform_specific.toml";
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_platform_specific.toml";
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
@@ -140,9 +140,9 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
 #[named]
 fn test_dependency_renamed() -> anyhow::Result<()> {
     // near = { version = "4.1.0-pre.2", package = "near-sdk", features = ["abi"] }
-    let abi_root = generate_abi! {
-        with Cargo "/templates/sdk-dependency/_Cargo_renamed.toml";
-
+    let abi_root = generate_abi_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_renamed.toml";
+        Code:
         use near::borsh::{self, BorshDeserialize, BorshSerialize};
         use near::near_bindgen;
 
@@ -173,9 +173,9 @@ fn test_dependency_patch() -> anyhow::Result<()> {
     //
     // [patch.crates-io]
     // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "dbaf9697fa09aaa0dde730af1c42ec632d5716a7" }
-    let abi_root = generate_abi_fn! {
-        with Cargo "/templates/sdk-dependency/_Cargo_patch.toml";
-
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_patch.toml";
+        Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
