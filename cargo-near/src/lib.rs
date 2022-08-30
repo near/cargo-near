@@ -47,9 +47,9 @@ pub struct AbiCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub manifest_path: Option<PathBuf>,
-    /// Do not prettify ABI (will generate minified JSON)
+    /// Generate compact (minified) JSON
     #[clap(long)]
-    pub no_pretty: bool,
+    pub compact_abi: bool,
 }
 
 #[derive(Debug, clap::Args)]

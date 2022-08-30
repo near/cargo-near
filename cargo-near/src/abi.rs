@@ -143,7 +143,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
             .unwrap_or_else(|| crate_metadata.target_directory.clone()),
     )?;
 
-    let format = if args.no_pretty {
+    let format = if args.compact_abi {
         AbiFormat::JsonMin
     } else {
         AbiFormat::Json
