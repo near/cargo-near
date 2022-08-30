@@ -27,7 +27,7 @@ macro_rules! generate_abi {
             manifest_path: Some(cargo_path),
             doc: false,
             out_dir: None,
-            no_pretty: false
+            compact_abi: false
         }))?;
 
         let abi_root: near_abi::AbiRoot =
