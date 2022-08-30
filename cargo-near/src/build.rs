@@ -69,8 +69,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
     println!("{}", "Contract Successfully Built!".green().bold());
-    let mut messages = Vec::new();
-    messages.push((
+    let mut messages = vec![(
         "Binary",
         wasm_artifact
             .path
@@ -78,7 +77,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
             .to_string()
             .bright_yellow()
             .bold(),
-    ));
+    )];
     if let Some(abi_path) = pretty_abi_path {
         messages.push(("ABI", abi_path.display().to_string().yellow().bold()));
     }
