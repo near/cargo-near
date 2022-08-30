@@ -11,10 +11,7 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [dependencies.near]
-package = "near-sdk"
-git = "https://github.com/near/near-sdk-rs.git"
-rev = "dbaf9697fa09aaa0dde730af1c42ec632d5716a7"
-features = ["abi"]
+near = { version = "4.1.0-pre.3", package = "near-sdk", features = ["abi"] }
 
 [workspace]
 members = []
