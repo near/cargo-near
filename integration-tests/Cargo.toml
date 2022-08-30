@@ -11,6 +11,7 @@ cargo-near = { path = "../cargo-near" }
 clap = "3.2"
 function_name = "0.3"
 git2 = "0.14"
+minifier = "0.2.2"
 prettyplease = "0.1"
 proc-macro2 = "1.0"
 schemars = "0.8"

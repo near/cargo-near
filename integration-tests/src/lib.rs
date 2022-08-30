@@ -33,7 +33,8 @@ macro_rules! generate_abi_with {
         });
         $(
             let mut args = vec!["cargo", "near", "abi"];
-            args.append(&mut $cli_opts.split(" ").collect());
+            let opts = $cli_opts;
+            args.append(&mut opts.split(" ").collect());
             let cargo_near::Opts::Near(mut args) = clap::Parser::parse_from(args);
             match &mut args.cmd {
                 cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = Some(cargo_path),
