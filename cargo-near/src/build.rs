@@ -1,4 +1,4 @@
-use crate::abi::AbiResult;
+use crate::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{abi, util, BuildCommand};
 use colored::Colorize;
@@ -30,13 +30,30 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         cargo_args.push("--release");
     }
 
-    let mut abi_path = None;
+    let mut pretty_abi_path = None;
+    let mut min_abi_path = None;
     if !args.no_abi {
-        let AbiResult { path } = abi::write_to_file(&crate_metadata, args.doc)?;
-        abi_path.replace(util::copy(&path, &out_dir)?);
+        let contract_abi = abi::generate_abi(&crate_metadata, args.doc)?;
+        let AbiResult { path } = abi::write_to_file(
+            &contract_abi,
+            &crate_metadata,
+            AbiFormat::Json,
+            AbiCompression::NoOp,
+        )?;
+        pretty_abi_path.replace(util::copy(&path, &out_dir)?);
+
+        if args.embed_abi {
+            let AbiResult { path } = abi::write_to_file(
+                &contract_abi,
+                &crate_metadata,
+                AbiFormat::JsonMin,
+                AbiCompression::Zstd,
+            )?;
+            min_abi_path.replace(util::copy(&path, &out_dir)?);
+        }
     }
 
-    if let (true, Some(abi_path)) = (args.embed_abi, &abi_path) {
+    if let (true, Some(abi_path)) = (args.embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.to_str().unwrap()));
     }
@@ -52,20 +69,28 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
     println!("{}", "Contract Successfully Built!".green().bold());
-    println!(
-        "   - Binary: {}",
+    let mut messages = vec![(
+        "Binary",
         wasm_artifact
             .path
             .display()
             .to_string()
             .bright_yellow()
-            .bold()
-    );
-    if let Some(abi_path) = abi_path {
-        println!(
-            "   -    ABI: {}",
-            abi_path.display().to_string().yellow().bold()
-        );
+            .bold(),
+    )];
+    if let Some(abi_path) = pretty_abi_path {
+        messages.push(("ABI", abi_path.display().to_string().yellow().bold()));
+    }
+    if let Some(abi_path) = min_abi_path {
+        messages.push((
+            "Embedded ABI",
+            abi_path.display().to_string().yellow().bold(),
+        ));
+    }
+
+    let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();
+    for (header, message) in messages {
+        println!("  - {:>width$}: {}", header, message, width = max_width);
     }
 
     Ok(())

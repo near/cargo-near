@@ -1,5 +1,6 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{util, AbiCommand};
+use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
@@ -10,10 +11,22 @@ pub(crate) struct AbiResult {
     pub path: PathBuf,
 }
 
-pub(crate) fn write_to_file(
+#[derive(Clone, Debug)]
+pub(crate) enum AbiFormat {
+    Json,
+    JsonMin,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum AbiCompression {
+    NoOp,
+    Zstd,
+}
+
+pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
-) -> anyhow::Result<AbiResult> {
+) -> anyhow::Result<AbiRoot> {
     fs::create_dir_all(&crate_metadata.target_directory)?;
 
     let original_cargo_toml: toml::value::Table =
@@ -53,13 +66,45 @@ pub(crate) fn write_to_file(
     if !generate_docs {
         strip_docs(&mut contract_abi);
     }
-    let near_abi_json = serde_json::to_string(&contract_abi)?;
-    let out_path_abi = crate_metadata
-        .target_directory
-        .join(crate_metadata.root_package.name.replace('-', "_") + "_abi.json");
-    fs::write(&out_path_abi, near_abi_json)?;
+
+    Ok(contract_abi)
+}
+
+pub(crate) fn write_to_file(
+    contract_abi: &AbiRoot,
+    crate_metadata: &CrateMetadata,
+    format: AbiFormat,
+    compression: AbiCompression,
+) -> anyhow::Result<AbiResult> {
+    let near_abi_serialized = match format {
+        AbiFormat::Json => serde_json::to_vec_pretty(&contract_abi)?,
+        AbiFormat::JsonMin => serde_json::to_vec(&contract_abi)?,
+    };
+    let near_abi_compressed = match compression {
+        AbiCompression::NoOp => near_abi_serialized,
+        AbiCompression::Zstd => zstd::encode_all(
+            near_abi_serialized.as_slice(),
+            *zstd::compression_level_range().end(),
+        )?,
+    };
+
+    let out_path_abi = crate_metadata.target_directory.join(format!(
+        "{}_abi.{}",
+        crate_metadata.root_package.name.replace('-', "_"),
+        abi_file_extension(format, compression)
+    ));
+    fs::write(&out_path_abi, near_abi_compressed)?;
 
     Ok(AbiResult { path: out_path_abi })
+}
+
+fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
+    match compression {
+        AbiCompression::NoOp => match format {
+            AbiFormat::Json | AbiFormat::JsonMin => "json",
+        },
+        AbiCompression::Zstd => "zst",
+    }
 }
 
 fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
@@ -98,7 +143,14 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
             .unwrap_or_else(|| crate_metadata.target_directory.clone()),
     )?;
 
-    let AbiResult { path } = write_to_file(&crate_metadata, args.doc)?;
+    let format = if args.compact_abi {
+        AbiFormat::JsonMin
+    } else {
+        AbiFormat::Json
+    };
+    let contract_abi = generate_abi(&crate_metadata, args.doc)?;
+    let AbiResult { path } =
+        write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
     let abi_path = util::copy(&path, &out_dir)?;
 

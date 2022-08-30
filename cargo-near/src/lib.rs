@@ -47,6 +47,9 @@ pub struct AbiCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub manifest_path: Option<PathBuf>,
+    /// Generate compact (minified) JSON
+    #[clap(long)]
+    pub compact_abi: bool,
 }
 
 #[derive(Debug, clap::Args)]
