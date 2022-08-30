@@ -1,4 +1,4 @@
-use cargo_near_integration_tests::generate_abi_fn;
+use cargo_near_integration_tests::generate_abi_fn_with;
 use function_name::named;
 use std::fs;
 
@@ -6,8 +6,9 @@ use std::fs;
 #[named]
 fn test_abi_feature_not_enabled() -> anyhow::Result<()> {
     fn run_test() -> anyhow::Result<()> {
-        generate_abi_fn! {
-            with Cargo "/templates/_Cargo_no_abi_feature.toml";
+        generate_abi_fn_with! {
+            Cargo: "/templates/_Cargo_no_abi_feature.toml";
+            Code:
             pub fn foo(&self, #[callback_unwrap] a: bool, #[callback_unwrap] b: u32) {}
         };
         Ok(())
