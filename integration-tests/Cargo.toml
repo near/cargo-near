@@ -8,6 +8,7 @@ publish = false
 anyhow = "1.0"
 borsh = "0.9"
 cargo-near = { path = "../cargo-near" }
+clap = "3.2"
 function_name = "0.3"
 git2 = "0.14"
 prettyplease = "0.1"

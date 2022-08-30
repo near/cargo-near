@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! generate_abi_with {
-    ($(Cargo: $cargo_path:expr;)? $(Env: $cargo_vars:expr;)? Code: $($code:tt)*) => {{
+    ($(Cargo: $cargo_path:expr;)? $(Env: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
         let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
@@ -25,12 +25,23 @@ macro_rules! generate_abi_with {
 
         std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
 
-        cargo_near::exec(cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
-            manifest_path: Some(cargo_path),
+        let mut command = cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
+            manifest_path: Some(cargo_path.clone()),
             doc: false,
             out_dir: None,
             compact_abi: false
-        }))?;
+        });
+        $(
+            let mut args = vec!["cargo", "near", "abi"];
+            args.append(&mut $cli_opts.split(" ").collect());
+            let cargo_near::Opts::Near(mut args) = clap::Parser::parse_from(args);
+            match &mut args.cmd {
+                cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = Some(cargo_path),
+                cargo_near::NearCommand::Build(cmd) => cmd.manifest_path = Some(cargo_path),
+            }
+            command = args.cmd;
+        )?;
+        cargo_near::exec(command)?;
 
         let abi_root: near_abi::AbiRoot =
         serde_json::from_slice(&fs::read(workspace_dir.join("target").join("near").join(format!("{}_abi.json", function_name!())))?)?;
@@ -51,9 +62,9 @@ macro_rules! generate_abi {
 /// Generate ABI for one function
 #[macro_export]
 macro_rules! generate_abi_fn_with {
-    ($(Cargo: $cargo_path:expr;)? $(Env: $cargo_vars:expr;)? Code: $($code:tt)*) => {{
+    ($(Cargo: $cargo_path:expr;)? $(Env: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         $crate::generate_abi_with! {
-            $(Cargo: $cargo_path;)? $(Env: $cargo_vars;)?
+            $(Cargo: $cargo_path;)? $(Env: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
             use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize, BorshSchema};
             use near_sdk::near_bindgen;
