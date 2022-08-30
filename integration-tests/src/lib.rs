@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! generate_abi_with {
-    ($(Cargo: $cargo_path:expr;)? $(Env: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
+    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
         let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
@@ -63,9 +63,9 @@ macro_rules! generate_abi {
 /// Generate ABI for one function
 #[macro_export]
 macro_rules! generate_abi_fn_with {
-    ($(Cargo: $cargo_path:expr;)? $(Env: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
+    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         $crate::generate_abi_with! {
-            $(Cargo: $cargo_path;)? $(Env: $cargo_vars;)? $(Opts: $cli_opts;)?
+            $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
             use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize, BorshSchema};
             use near_sdk::near_bindgen;
