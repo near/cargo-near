@@ -69,26 +69,29 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
     println!("{}", "Contract Successfully Built!".green().bold());
-    println!(
-        "   -       Binary: {}",
+    let mut messages = Vec::new();
+    messages.push((
+        "Binary",
         wasm_artifact
             .path
             .display()
             .to_string()
             .bright_yellow()
-            .bold()
-    );
+            .bold(),
+    ));
     if let Some(abi_path) = pretty_abi_path {
-        println!(
-            "   -          ABI: {}",
-            abi_path.display().to_string().yellow().bold()
-        );
+        messages.push(("ABI", abi_path.display().to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {
-        println!(
-            "   - Embedded ABI: {}",
-            abi_path.display().to_string().yellow().bold()
-        );
+        messages.push((
+            "Embedded ABI",
+            abi_path.display().to_string().yellow().bold(),
+        ));
+    }
+
+    let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();
+    for (header, message) in messages {
+        println!("  - {:>width$}: {}", header, message, width = max_width);
     }
 
     Ok(())
