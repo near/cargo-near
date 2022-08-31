@@ -58,6 +58,19 @@ pub(crate) fn generate_abi(
         }
     }
 
+    if !crate_metadata
+        .root_package
+        .dependencies
+        .iter()
+        .find(|dep| dep.name == "near-sdk")
+        .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?
+        .features
+        .iter()
+        .any(|feature| feature == "abi")
+    {
+        anyhow::bail!("`near-sdk` dependency must have the `abi` feature enabled")
+    }
+
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
         &["--features", "near-sdk/__abi-generate"],
