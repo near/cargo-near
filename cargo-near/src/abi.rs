@@ -4,6 +4,7 @@ use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
@@ -32,19 +33,32 @@ pub(crate) fn generate_abi(
     let original_cargo_toml: toml::value::Table =
         toml::from_slice(&fs::read(&crate_metadata.manifest_path.path)?)?;
 
-    if !original_cargo_toml
+    let near_sdk_dep = original_cargo_toml
         .get("dependencies")
-        .ok_or_else(|| anyhow::anyhow!("[dependencies] section not found"))?
-        .get("near-sdk")
-        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency not found"))?
-        .as_table()
-        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency should be a table"))?
-        .get("features")
-        .and_then(|features| features.as_array())
-        .map(|features| features.contains(&toml::Value::String("abi".to_string())))
-        .unwrap_or(false)
-    {
-        anyhow::bail!("Unable to generate ABI: NEAR SDK \"abi\" feature is not enabled")
+        .and_then(|deps| deps.get("near-sdk"))
+        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency not found"))?;
+    if let Some(version) = near_sdk_dep.as_str() {
+        let version = semver::Version::from_str(version)
+            .map_err(|_| anyhow::anyhow!("near-sdk version is not a valid semver version"))?;
+        if version.major > 4 || version.major == 4 && version.minor >= 1 {
+            anyhow::bail!("near-sdk \"abi\" feature is not enabled")
+        } else {
+            anyhow::bail!("Unsupported near-sdk version. Expected 4.1.* or higher")
+        }
+    } else if let Some(table) = near_sdk_dep.as_table() {
+        if !table
+            .get("features")
+            .and_then(|features| features.as_array())
+            .map(|features| features.contains(&toml::Value::String("abi".to_string())))
+            .unwrap_or(false)
+        {
+            anyhow::bail!("near-sdk \"abi\" feature is not enabled")
+        }
+    } else {
+        anyhow::bail!(
+            "Unsupported way to declare a near-sdk dependency. \
+            Expected `near-sdk = {{ version = \"<version>\", features = [\"abi\"] }}`"
+        )
     }
 
     let dylib_artifact = util::compile_project(
