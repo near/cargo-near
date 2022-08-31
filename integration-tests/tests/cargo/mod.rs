@@ -110,8 +110,6 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: Not sure if this even makes sense in the context of NEAR SDK, but in theory could add support for this
-#[ignore]
 #[test]
 #[named]
 fn test_dependency_platform_specific() -> anyhow::Result<()> {
@@ -168,7 +166,7 @@ fn test_dependency_renamed() -> anyhow::Result<()> {
 #[named]
 fn test_dependency_patch() -> anyhow::Result<()> {
     // [dependencies]
-    // near-sdk = { version = "4.1.0-pre.3", features = ["abi"] }
+    // near-sdk = "4.0.0"
     //
     // [patch.crates-io]
     // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "792d5eb26d26a0878dbf59e304afa4e19540c317" }

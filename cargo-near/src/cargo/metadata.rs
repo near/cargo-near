@@ -51,7 +51,7 @@ fn get_cargo_metadata(
     let metadata = cmd
         .manifest_path(&manifest_path.path)
         .exec()
-        .context("Error invoking `cargo metadata`")?;
+        .context("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
     let root_package_id = metadata
         .resolve
         .as_ref()
