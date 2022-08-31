@@ -27,24 +27,36 @@ pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
 ) -> anyhow::Result<AbiRoot> {
-    fs::create_dir_all(&crate_metadata.target_directory)?;
+    let root_node = crate_metadata
+        .raw_metadata
+        .resolve
+        .as_ref()
+        .map(|dep_graph| {
+            dep_graph
+            .nodes
+            .iter()
+            .find(|node| node.id == crate_metadata.root_package.id)
+        }).flatten()
+        .ok_or_else(|| anyhow::anyhow!("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed"))?;
 
-    let original_cargo_toml: toml::value::Table =
-        toml::from_slice(&fs::read(&crate_metadata.manifest_path.path)?)?;
+    let near_sdk_dep = root_node
+        .deps
+        .iter()
+        .find(|dep| dep.name == "near_sdk")
+        .map(|near_sdk| {
+            crate_metadata
+                .raw_metadata
+                .packages
+                .iter()
+                .find(|pkg| pkg.id == near_sdk.pkg)
+        })
+        .flatten()
+        .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?;
 
-    if !original_cargo_toml
-        .get("dependencies")
-        .ok_or_else(|| anyhow::anyhow!("[dependencies] section not found"))?
-        .get("near-sdk")
-        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency not found"))?
-        .as_table()
-        .ok_or_else(|| anyhow::anyhow!("near-sdk dependency should be a table"))?
-        .get("features")
-        .and_then(|features| features.as_array())
-        .map(|features| features.contains(&toml::Value::String("abi".to_string())))
-        .unwrap_or(false)
-    {
-        anyhow::bail!("Unable to generate ABI: NEAR SDK \"abi\" feature is not enabled")
+    for required_feature in ["__abi-generate", "__abi-embed"] {
+        if !near_sdk_dep.features.contains_key(required_feature) {
+            anyhow::bail!("unsupported `near-sdk` version. expected 4.1.* or higher");
+        }
     }
 
     let dylib_artifact = util::compile_project(
@@ -87,6 +99,8 @@ pub(crate) fn write_to_file(
             *zstd::compression_level_range().end(),
         )?,
     };
+
+    fs::create_dir_all(&crate_metadata.target_directory)?;
 
     let out_path_abi = crate_metadata.target_directory.join(format!(
         "{}_abi.{}",

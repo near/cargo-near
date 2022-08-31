@@ -9,6 +9,7 @@ pub(crate) struct CrateMetadata {
     pub root_package: Package,
     pub target_directory: PathBuf,
     pub manifest_path: CargoManifestPath,
+    pub raw_metadata: cargo_metadata::Metadata,
 }
 
 impl CrateMetadata {
@@ -32,6 +33,7 @@ impl CrateMetadata {
             root_package,
             target_directory: target_directory.into(),
             manifest_path,
+            raw_metadata: metadata,
         };
         Ok(crate_metadata)
     }
