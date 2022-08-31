@@ -2,7 +2,6 @@ use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
 use function_name::named;
 use near_abi::{AbiParameter, AbiType};
 use schemars::schema::Schema;
-use std::fs;
 
 trait AsJsonSchema {
     fn json_schema(&self) -> anyhow::Result<&Schema>;

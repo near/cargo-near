@@ -4,7 +4,7 @@ use std::fs;
 
 #[test]
 #[named]
-fn test_opt_doc() -> anyhow::Result<()> {
+fn test_abi_opt_doc() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn_with! {
         Opts: "--doc";
         Code:
@@ -23,7 +23,7 @@ fn test_opt_doc() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_opt_compact_abi() -> anyhow::Result<()> {
+fn test_abi_opt_compact_abi() -> anyhow::Result<()> {
     generate_abi_fn_with! {
         Opts: "--compact-abi";
         Code:
@@ -52,7 +52,7 @@ fn test_opt_compact_abi() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_opt_out_dir() -> anyhow::Result<()> {
+fn test_abi_opt_out_dir() -> anyhow::Result<()> {
     let out_dir = tempfile::tempdir()?;
     let abi_root = generate_abi_fn_with! {
         Opts: format!("--out-dir {}", out_dir.path().display());

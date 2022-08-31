@@ -62,7 +62,7 @@ pub struct BuildCommand {
     #[clap(long)]
     pub embed_abi: bool,
     /// Include rustdocs in the embedded ABI
-    #[clap(long, requires = "embed-abi")]
+    #[clap(long)]
     pub doc: bool,
     /// Do not generate ABI for the contract
     #[clap(long, conflicts_with_all = &["doc", "embed-abi"])]
