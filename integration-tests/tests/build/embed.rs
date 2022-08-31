@@ -19,7 +19,7 @@ async fn test_build_embed_abi() -> anyhow::Result<()> {
     let function = &abi_root.body.functions[0];
     assert_eq!(function.name, "add");
 
-    let (add, actual_abi) = futures::join!(
+    let (add, actual_abi) = tokio::join!(
         util::test_add(&build_result.wasm),
         util::fetch_contract_abi(&build_result.wasm)
     );
