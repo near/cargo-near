@@ -4,12 +4,16 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[dependencies]
+near-abi = "0.1.0-pre.0"
+
 [dev-dependencies]
 anyhow = "1.0"
 borsh = "0.9"
 cargo-near = { path = "../cargo-near" }
 clap = "3.2"
 function_name = "0.3"
+futures = "0.3"
 git2 = "0.14"
 minifier = "0.2.2"
 prettyplease = "0.1"
@@ -18,5 +22,7 @@ schemars = "0.8"
 serde_json = "1.0"
 syn = "1.0"
 tempfile = "3.3"
+tokio = "1.0"
 quote = "1.0"
-near-abi = "0.1.0-pre.0"
+workspaces = "0.4.1"
+zstd = "0.11"
