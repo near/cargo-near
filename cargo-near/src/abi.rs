@@ -31,26 +31,25 @@ pub(crate) fn generate_abi(
         .raw_metadata
         .resolve
         .as_ref()
-        .map(|dep_graph| {
+        .and_then(|dep_graph| {
             dep_graph
             .nodes
             .iter()
             .find(|node| node.id == crate_metadata.root_package.id)
-        }).flatten()
+        })
         .ok_or_else(|| anyhow::anyhow!("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed"))?;
 
     let near_sdk_dep = root_node
         .deps
         .iter()
         .find(|dep| dep.name == "near_sdk")
-        .map(|near_sdk| {
+        .and_then(|near_sdk| {
             crate_metadata
                 .raw_metadata
                 .packages
                 .iter()
                 .find(|pkg| pkg.id == near_sdk.pkg)
         })
-        .flatten()
         .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?;
 
     for required_feature in ["__abi-generate", "__abi-embed"] {
