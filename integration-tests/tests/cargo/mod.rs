@@ -21,7 +21,7 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
     let near_sdk_dir = clone_git_repo("792d5eb26d26a0878dbf59e304afa4e19540c317")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
-    // near-sdk = { path = "::path::", features = ["abi"] }
+    // near-sdk = { path = "::path::" }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_local_path.toml";
         Vars: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
@@ -42,7 +42,7 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
     let near_sdk_dir = clone_git_repo("792d5eb26d26a0878dbf59e304afa4e19540c317")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
-    // near-sdk = { path = "::path::", version = "4.1.0-pre.3", features = ["abi"] }
+    // near-sdk = { path = "::path::", version = "4.1.0-pre.3" }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_local_path_with_version.toml";
         Vars: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
@@ -62,7 +62,6 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
 fn test_dependency_explicit() -> anyhow::Result<()> {
     // [dependencies.near-sdk]
     // version = "4.1.0-pre.3"
-    // features = ["abi"]
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_explicit.toml";
         Code:
@@ -79,7 +78,7 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
 #[test]
 #[named]
 fn test_dependency_no_default_features() -> anyhow::Result<()> {
-    // near-sdk = { version = "4.1.0-pre.3", default-features = false, features = ["abi"] }
+    // near-sdk = { version = "4.1.0-pre.3", default-features = false }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_no_default_features.toml";
         Code:
@@ -96,7 +95,7 @@ fn test_dependency_no_default_features() -> anyhow::Result<()> {
 #[test]
 #[named]
 fn test_dependency_multiple_features() -> anyhow::Result<()> {
-    // near-sdk = { version = "4.1.0-pre.3", features = ["abi", "unstable"] }
+    // near-sdk = { version = "4.1.0-pre.3", features = ["unstable"] }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_multiple_features.toml";
         Code:
@@ -114,10 +113,10 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
 #[named]
 fn test_dependency_platform_specific() -> anyhow::Result<()> {
     // [target.'cfg(windows)'.dependencies]
-    // near-sdk = { version = "4.1.0-pre.3", features = ["abi"] }
+    // near-sdk = "4.1.0-pre.3"
     //
     // [target.'cfg(unix)'.dependencies]
-    // near-sdk = { version = "4.1.0-pre.3", features = ["abi"] }
+    // near-sdk = "4.1.0-pre.3"
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_platform_specific.toml";
         Code:
@@ -136,7 +135,7 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
 #[test]
 #[named]
 fn test_dependency_renamed() -> anyhow::Result<()> {
-    // near = { version = "4.1.0-pre.3", package = "near-sdk", features = ["abi"] }
+    // near = { version = "4.1.0-pre.3", package = "near-sdk" }
     let abi_root = generate_abi_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_renamed.toml";
         Code:

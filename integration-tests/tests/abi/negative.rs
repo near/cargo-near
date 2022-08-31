@@ -3,46 +3,6 @@ use function_name::named;
 
 #[test]
 #[named]
-fn test_abi_feature_not_enabled() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
-        generate_abi_fn_with! {
-            Cargo: "/templates/negative/_Cargo_no_abi_feature.toml";
-            Code:
-            pub fn foo(&self, a: u32, b: u32) {}
-        };
-        Ok(())
-    }
-
-    assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "`near-sdk` dependency must have the `abi` feature enabled"
-    );
-
-    Ok(())
-}
-
-#[test]
-#[named]
-fn test_abi_not_a_table() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
-        generate_abi_fn_with! {
-            Cargo: "/templates/negative/_Cargo_not_a_table.toml";
-            Code:
-            pub fn foo(&self, a: u32, b: u32) {}
-        };
-        Ok(())
-    }
-
-    assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "`near-sdk` dependency must have the `abi` feature enabled"
-    );
-
-    Ok(())
-}
-
-#[test]
-#[named]
 fn test_abi_old_sdk() -> anyhow::Result<()> {
     fn run_test() -> anyhow::Result<()> {
         generate_abi_fn_with! {
