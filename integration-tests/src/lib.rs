@@ -5,7 +5,7 @@ macro_rules! invoke_cargo_near {
         let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
         let src_dir = crate_dir.join("src");
-        fs::create_dir_all(&src_dir)?;
+        std::fs::create_dir_all(&src_dir)?;
 
         let mut cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/_Cargo.toml")).to_string();
         $(cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $cargo_path)).to_string())?;
@@ -16,12 +16,12 @@ macro_rules! invoke_cargo_near {
             cargo_toml = cargo_toml.replace(&format!("::{}::", k), v);
         }
         let cargo_path = crate_dir.join("Cargo.toml");
-        fs::write(&cargo_path, cargo_toml)?;
+        std::fs::write(&cargo_path, cargo_toml)?;
 
         let lib_rs_file = syn::parse_file(&quote::quote! { $($code)* }.to_string()).unwrap();
         let lib_rs = prettyplease::unparse(&lib_rs_file);
         let lib_rs_path = src_dir.join("lib.rs");
-        fs::write(lib_rs_path, lib_rs)?;
+        std::fs::write(lib_rs_path, lib_rs)?;
 
         std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
 
@@ -49,7 +49,7 @@ macro_rules! generate_abi_with {
         };
 
         let abi_root: near_abi::AbiRoot =
-            serde_json::from_slice(&fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
+            serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
         abi_root
     }};
 }

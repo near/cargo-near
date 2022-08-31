@@ -3,7 +3,6 @@ use function_name::named;
 use git2::build::CheckoutBuilder;
 use git2::Repository;
 use std::collections::HashMap;
-use std::fs;
 use tempfile::TempDir;
 
 fn clone_git_repo(version: &str) -> anyhow::Result<TempDir> {

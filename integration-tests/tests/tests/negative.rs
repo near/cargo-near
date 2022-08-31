@@ -1,6 +1,5 @@
 use cargo_near_integration_tests::generate_abi_fn_with;
 use function_name::named;
-use std::fs;
 
 #[test]
 #[named]
