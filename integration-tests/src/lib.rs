@@ -1,6 +1,6 @@
 #[macro_export]
-macro_rules! generate_abi_with {
-    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
+macro_rules! invoke_cargo_near {
+    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? Opts: $cli_opts:expr; Code: $($code:tt)*) => {{
         let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
         let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
@@ -25,27 +25,31 @@ macro_rules! generate_abi_with {
 
         std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
 
-        let mut command = cargo_near::NearCommand::Abi(cargo_near::AbiCommand {
-            manifest_path: Some(cargo_path.clone()),
-            doc: false,
-            out_dir: None,
-            compact_abi: false
-        });
-        $(
-            let mut args = vec!["cargo", "near", "abi"];
-            let opts = $cli_opts;
-            args.append(&mut opts.split(" ").collect());
-            let cargo_near::Opts::Near(mut args) = clap::Parser::parse_from(args);
-            match &mut args.cmd {
-                cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = Some(cargo_path),
-                cargo_near::NearCommand::Build(cmd) => cmd.manifest_path = Some(cargo_path),
-            }
-            command = args.cmd;
-        )?;
-        cargo_near::exec(command)?;
+        let cargo_near::Opts::Near(mut args) = clap::Parser::parse_from($cli_opts.split(" "));
+        match &mut args.cmd {
+            cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = Some(cargo_path),
+            cargo_near::NearCommand::Build(cmd) => cmd.manifest_path = Some(cargo_path),
+        }
+        cargo_near::exec(args.cmd)?;
+
+        workspace_dir.join("target").join("near")
+    }};
+}
+
+#[macro_export]
+macro_rules! generate_abi_with {
+    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
+        let opts = "cargo near abi";
+        $(let opts = format!("cargo near abi {}", $cli_opts);)?;
+        let result_dir = $crate::invoke_cargo_near! {
+            $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
+            Opts: opts;
+            Code:
+            $($code)*
+        };
 
         let abi_root: near_abi::AbiRoot =
-        serde_json::from_slice(&fs::read(workspace_dir.join("target").join("near").join(format!("{}_abi.json", function_name!())))?)?;
+            serde_json::from_slice(&fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
         abi_root
     }};
 }
