@@ -7,15 +7,10 @@ mod cargo;
 mod util;
 
 #[derive(Debug, Parser)]
-#[clap(bin_name = "cargo", version, author, about)]
+#[clap(bin_name = "cargo", version, about)]
 pub enum Opts {
-    #[clap(
-        name = "near",
-        version,
-        author,
-        about,
-        setting = AppSettings::DeriveDisplayOrder,
-    )]
+    #[clap(name = "near", version, about)]
+    #[clap(setting = AppSettings::DeriveDisplayOrder)]
     Near(NearArgs),
 }
 
