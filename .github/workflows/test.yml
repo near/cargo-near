@@ -40,6 +40,9 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@v2
 
+      - name: Install `wasm32-unknown-unknown`
+        run: rustup target add wasm32-unknown-unknown
+
       - name: Run tests
         run: cargo test --workspace --verbose
 

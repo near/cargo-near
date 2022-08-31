@@ -2,7 +2,6 @@ use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
 use near_abi::AbiType;
 use schemars::gen::SchemaGenerator;
-use std::fs;
 
 #[test]
 #[named]
