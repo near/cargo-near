@@ -7,15 +7,10 @@ mod cargo;
 mod util;
 
 #[derive(Debug, Parser)]
-#[clap(bin_name = "cargo", version, author, about)]
+#[clap(bin_name = "cargo", version, about)]
 pub enum Opts {
-    #[clap(
-        name = "near",
-        version,
-        author,
-        about,
-        setting = AppSettings::DeriveDisplayOrder,
-    )]
+    #[clap(name = "near", version, about)]
+    #[clap(setting = AppSettings::DeriveDisplayOrder)]
     Near(NearArgs),
 }
 
@@ -27,12 +22,12 @@ pub struct NearArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum NearCommand {
-    /// Generates ABI for the contract
-    #[clap(name = "abi")]
-    Abi(AbiCommand),
     /// Build a NEAR contract and optionally embed ABI
     #[clap(name = "build")]
     Build(BuildCommand),
+    /// Generates ABI for the contract
+    #[clap(name = "abi")]
+    Abi(AbiCommand),
 }
 
 #[derive(Debug, clap::Args)]
@@ -41,15 +36,15 @@ pub struct AbiCommand {
     /// Include rustdocs in the ABI file
     #[clap(long)]
     pub doc: bool,
+    /// Generate compact (minified) JSON
+    #[clap(long)]
+    pub compact_abi: bool,
     /// Copy final artifacts to the this directory
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub out_dir: Option<PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_os_str), value_name = "PATH")]
     pub manifest_path: Option<PathBuf>,
-    /// Generate compact (minified) JSON
-    #[clap(long)]
-    pub compact_abi: bool,
 }
 
 #[derive(Debug, clap::Args)]
