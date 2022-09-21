@@ -473,15 +473,18 @@ name = "cargo-near"
 version = "0.2.0"
 dependencies = [
  "anyhow",
+ "bs58",
  "cargo_metadata",
  "clap",
  "colored",
  "env_logger",
  "libloading",
  "log",
- "near-abi",
+ "near-abi 0.2.0",
+ "rustc_version",
  "schemars",
  "serde_json",
+ "sha2 0.10.3",
  "symbolic-debuginfo",
  "zstd",
 ]
@@ -497,7 +500,7 @@ dependencies = [
  "function_name",
  "git2",
  "minifier",
- "near-abi",
+ "near-abi 0.1.0-pre.0",
  "prettyplease",
  "proc-macro2",
  "quote",
@@ -1612,6 +1615,18 @@ name = "near-abi"
 version = "0.1.0-pre.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d5281adc3a63d798b0e35683dee66095cbb94e431960ec859d5a8397b093f39"
+dependencies = [
+ "borsh",
+ "schemars",
+ "semver",
+ "serde",
+]
+
+[[package]]
+name = "near-abi"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85f9816032a8688b52e2e0e51e1a5513e7e05310eb2eebe1d913fcf82be1e1d7"
 dependencies = [
  "borsh",
  "schemars",

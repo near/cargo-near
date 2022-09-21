@@ -139,6 +139,8 @@ fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
         name: Some(package.name.clone()),
         version: Some(package.version.to_string()),
         authors: package.authors.clone(),
+        build: None,
+        wasm_hash: None,
         other: HashMap::new(),
     }
 }

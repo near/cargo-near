@@ -2,6 +2,8 @@ use crate::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{abi, util, BuildCommand};
 use colored::Colorize;
+use near_abi::BuildInfo;
+use sha2::{Digest, Sha256};
 use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
@@ -30,18 +32,10 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         cargo_args.push("--release");
     }
 
-    let mut pretty_abi_path = None;
+    let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let contract_abi = abi::generate_abi(&crate_metadata, args.doc)?;
-        let AbiResult { path } = abi::write_to_file(
-            &contract_abi,
-            &crate_metadata,
-            AbiFormat::Json,
-            AbiCompression::NoOp,
-        )?;
-        pretty_abi_path.replace(util::copy(&path, &out_dir)?);
-
+        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc)?;
         if args.embed_abi {
             let AbiResult { path } = abi::write_to_file(
                 &contract_abi,
@@ -51,6 +45,12 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
             )?;
             min_abi_path.replace(util::copy(&path, &out_dir)?);
         }
+        contract_abi.metadata.build = Some(BuildInfo {
+            compiler: format!("rustc {}", rustc_version::version()?),
+            builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
+            image: None,
+        });
+        abi = Some(contract_abi);
     }
 
     if let (true, Some(abi_path)) = (args.embed_abi, &min_abi_path) {
@@ -78,8 +78,17 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
             .bright_yellow()
             .bold(),
     )];
-    if let Some(abi_path) = pretty_abi_path {
-        messages.push(("ABI", abi_path.display().to_string().yellow().bold()));
+    if let Some(mut abi) = abi {
+        let mut hasher = Sha256::new();
+        hasher.update(std::fs::read(&wasm_artifact.path)?);
+        let hash = hasher.finalize();
+        let hash = bs58::encode(hash).into_string();
+        abi.metadata.wasm_hash = Some(hash);
+
+        let AbiResult { path } =
+            abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
+        let pretty_abi_path = util::copy(&path, &out_dir)?;
+        messages.push(("ABI", pretty_abi_path.display().to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {
         messages.push((
