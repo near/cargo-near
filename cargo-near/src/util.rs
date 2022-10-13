@@ -36,7 +36,7 @@ fn print_cargo_errors(output: Vec<u8>) {
             _ => None,
         })
         .for_each(|m| {
-            println!("{}", m);
+            eprintln!("{}", m);
         });
 }
 

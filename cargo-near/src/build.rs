@@ -68,7 +68,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
-    println!("{}", "Contract Successfully Built!".green().bold());
+    eprintln!("{}", "Contract Successfully Built!".green().bold());
     let mut messages = vec![(
         "Binary",
         wasm_artifact
@@ -90,7 +90,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();
     for (header, message) in messages {
-        println!("  - {:>width$}: {}", header, message, width = max_width);
+        eprintln!("  - {:>width$}: {}", header, message, width = max_width);
     }
 
     Ok(())

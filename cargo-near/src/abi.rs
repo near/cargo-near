@@ -180,7 +180,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
 
     let abi_path = util::copy(&path, &out_dir)?;
 
-    println!("ABI successfully generated at `{}`", abi_path.display());
+    eprintln!("ABI successfully generated at `{}`", abi_path.display());
 
     Ok(())
 }
