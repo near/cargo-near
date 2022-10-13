@@ -47,7 +47,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         pretty_abi_path.replace(util::copy(&path, &out_dir)?);
 
         if args.embed_abi {
-            step_printer.print_step("Compressing ABI for embedding");
+            step_printer.print_step("Compressing ABI to be embedded");
             let AbiResult { path } = abi::write_to_file(
                 &contract_abi,
                 &crate_metadata,
@@ -56,7 +56,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
             )?;
             min_abi_path.replace(util::copy(&path, &out_dir)?);
         } else {
-            step_printer.print_step("Skip embedding");
+            step_printer.print_step("Skipped embedding");
         }
     }
 
