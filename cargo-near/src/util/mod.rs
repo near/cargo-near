@@ -9,6 +9,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+mod step_printer;
+pub use step_printer::StepPrinter;
+
 pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
     return "so";

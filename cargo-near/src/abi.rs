@@ -1,5 +1,7 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util::StepPrinter;
 use crate::{util, AbiCommand};
+use colored::Colorize;
 use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
@@ -26,6 +28,7 @@ pub(crate) enum AbiCompression {
 pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
+    step_printer: &mut StepPrinter,
 ) -> anyhow::Result<AbiRoot> {
     let root_node = crate_metadata
         .raw_metadata
@@ -71,6 +74,7 @@ pub(crate) fn generate_abi(
         anyhow::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
 
+    step_printer.print_step("Generating ABI");
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
         &["--features", "near-sdk/__abi-generate"],
@@ -82,6 +86,7 @@ pub(crate) fn generate_abi(
         util::dylib_extension(),
     )?;
 
+    step_printer.print_step("Parsing ABI");
     let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
 
     let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
@@ -159,6 +164,8 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
+    let mut step_printer = StepPrinter::new(4);
+    step_printer.print_step("Collecting cargo project metadata");
     let crate_metadata = CrateMetadata::collect(CargoManifestPath::try_from(
         args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
     )?)?;
@@ -174,13 +181,17 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.doc)?;
+    let contract_abi = generate_abi(&crate_metadata, args.doc, &mut step_printer)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
     let abi_path = util::copy(&path, &out_dir)?;
 
-    eprintln!("ABI successfully generated at `{}`", abi_path.display());
+    step_printer.print_step("ABI Successfully generated!");
+    eprintln!(
+        "  - ABI: {}",
+        abi_path.display().to_string().yellow().bold()
+    );
 
     Ok(())
 }
