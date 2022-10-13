@@ -78,7 +78,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
-    step_printer.print_step(&format!("{}", "Contract Successfully Built!"));
+    step_printer.print_step("Contract Successfully Built!");
     let mut messages = vec![(
         "Binary",
         wasm_artifact
