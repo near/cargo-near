@@ -65,7 +65,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.to_str().unwrap()));
     }
-    util::print_step("Building Contract");
+    util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
         &crate_metadata.manifest_path,
         &cargo_args,
