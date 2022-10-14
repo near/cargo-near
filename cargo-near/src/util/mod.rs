@@ -1,11 +1,11 @@
 use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
 use cargo_metadata::diagnostic::DiagnosticLevel;
-use cargo_metadata::Message;
+use cargo_metadata::{Artifact, Message};
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fs;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, thread};
@@ -27,23 +27,6 @@ pub(crate) const fn dylib_extension() -> &'static str {
     compile_error!("Unsupported platform");
 }
 
-fn print_cargo_errors(output: Vec<u8>) {
-    let reader = std::io::BufReader::new(output.as_slice());
-    Message::parse_stream(reader)
-        .map(|m| m.unwrap())
-        .filter_map(|m| match m {
-            cargo_metadata::Message::CompilerMessage(message)
-                if message.message.level == DiagnosticLevel::Error =>
-            {
-                message.message.rendered
-            }
-            _ => None,
-        })
-        .for_each(|m| {
-            eprintln!("{}", m);
-        });
-}
-
 /// Invokes `cargo` with the subcommand `command`, the supplied `args` and set `env` variables.
 ///
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.
@@ -54,7 +37,7 @@ pub(crate) fn invoke_cargo<I, S, P>(
     args: I,
     working_dir: Option<P>,
     env: Vec<(&str, &str)>,
-) -> Result<Vec<u8>>
+) -> Result<Vec<Artifact>>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
@@ -85,7 +68,7 @@ where
         .stderr(std::process::Stdio::piped())
         .spawn()
         .context(format!("Error executing `{:?}`", cmd))?;
-    let mut child_stdout = child
+    let child_stdout = child
         .stdout
         .take()
         .context("could not attach to child stdout")?;
@@ -96,11 +79,29 @@ where
 
     // stdout and stderr have to be processed concurrently to not block the process from progressing
     let thread_stdout = thread::spawn(move || {
-        let mut result = Vec::new();
-        child_stdout
-            .read_to_end(&mut result)
-            .expect("failed to read cargo stdout");
-        result
+        let mut artifacts = vec![];
+        let stdout_reader = std::io::BufReader::new(child_stdout);
+        Message::parse_stream(stdout_reader)
+            .map(|m| m.unwrap())
+            .filter_map(|m| match m {
+                Message::CompilerArtifact(artifact) => {
+                    artifacts.push(artifact);
+                    None
+                }
+                Message::CompilerMessage(message)
+                    if message.message.level == DiagnosticLevel::Error =>
+                {
+                    message.message.rendered
+                }
+                _ => None,
+            })
+            .for_each(|m| {
+                for line in m.lines() {
+                    eprintln!(" │ {}", line);
+                }
+            });
+
+        artifacts
     });
     let thread_stderr = thread::spawn(move || {
         let stderr_reader = BufReader::new(child_stderr);
@@ -118,7 +119,6 @@ where
     if output.success() {
         Ok(result)
     } else {
-        print_cargo_errors(result);
         anyhow::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
     }
 }
@@ -164,30 +164,21 @@ pub(crate) fn compile_project(
     env: Vec<(&str, &str)>,
     artifact_extension: &str,
 ) -> anyhow::Result<CompilationArtifact> {
-    let stdout = invoke_cargo(
+    let artifacts = invoke_cargo(
         "build",
         [&["--message-format=json"], args].concat(),
         manifest_path.directory().ok(),
         env,
     )?;
-    let reader = std::io::BufReader::new(&*stdout);
-    let messages: Vec<_> = Message::parse_stream(reader).collect::<Result<_, _>>()?;
 
     // We find the last compiler artifact message which should contain information about the
     // resulting dylib file
-    let compile_artifact = messages
-        .iter()
-        .filter_map(|m| match m {
-            cargo_metadata::Message::CompilerArtifact(artifact) => Some(artifact),
-            _ => None,
-        })
-        .last()
-        .ok_or_else(|| {
-            anyhow::anyhow!(
-                "Cargo failed to produce any compilation artifacts. \
+    let compile_artifact = artifacts.last().ok_or_else(|| {
+        anyhow::anyhow!(
+            "Cargo failed to produce any compilation artifacts. \
                  Please check that your project contains a NEAR smart contract."
-            )
-        })?;
+        )
+    })?;
     // The project could have generated many auxiliary files, we are only interested in
     // dylib files with a specific (platform-dependent) extension
     let dylib_files = compile_artifact
