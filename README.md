@@ -45,7 +45,7 @@ cargo near build
 
 Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
 
-You can also make this command embed ABI into your WASM artifact by adding `--embed-abi` parameter. This, once deployed, will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
+You can also make this command embed ABI into your WASM artifact by adding `--embed-abi` parameter. Once deployed, this will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
 
 ```console
 cargo near abi
