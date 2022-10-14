@@ -78,30 +78,28 @@ where
         .context("could not attach to child stderr")?;
 
     // stdout and stderr have to be processed concurrently to not block the process from progressing
-    let thread_stdout = thread::spawn(move || {
+    let thread_stdout = thread::spawn(move || -> Result<_, std::io::Error> {
         let mut artifacts = vec![];
         let stdout_reader = std::io::BufReader::new(child_stdout);
-        Message::parse_stream(stdout_reader)
-            .map(|m| m.unwrap())
-            .filter_map(|m| match m {
+        for message in Message::parse_stream(stdout_reader) {
+            match message? {
                 Message::CompilerArtifact(artifact) => {
                     artifacts.push(artifact);
-                    None
                 }
                 Message::CompilerMessage(message)
                     if message.message.level == DiagnosticLevel::Error =>
                 {
-                    message.message.rendered
+                    if let Some(msg) = message.message.rendered {
+                        for line in msg.lines() {
+                            eprintln!(" │ {}", line);
+                        }
+                    }
                 }
-                _ => None,
-            })
-            .for_each(|m| {
-                for line in m.lines() {
-                    eprintln!(" │ {}", line);
-                }
-            });
+                _ => {}
+            };
+        }
 
-        artifacts
+        Ok(artifacts)
     });
     let thread_stderr = thread::spawn(move || {
         let stderr_reader = BufReader::new(child_stderr);
@@ -117,7 +115,7 @@ where
     let output = child.wait()?;
 
     if output.success() {
-        Ok(result)
+        Ok(result?)
     } else {
         anyhow::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
     }
