@@ -158,7 +158,12 @@ pub(crate) fn compile_project(
     args: &[&str],
     env: Vec<(&str, &str)>,
     artifact_extension: &str,
+    hide_warnings: bool,
 ) -> anyhow::Result<CompilationArtifact> {
+    if hide_warnings {
+        env::set_var("RUSTFLAGS", "-Awarnings");
+    }
+
     let artifacts = invoke_cargo(
         "build",
         [&["--message-format=json"], args].concat(),
