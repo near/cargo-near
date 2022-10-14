@@ -98,7 +98,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();
     for (header, message) in messages {
-        eprintln!("  - {:>width$}: {}", header, message, width = max_width);
+        eprintln!("     - {:>width$}: {}", header, message, width = max_width);
     }
 
     Ok(())
