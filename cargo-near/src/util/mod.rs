@@ -1,6 +1,5 @@
 use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
-use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::{Artifact, Message};
 use std::collections::HashSet;
 use std::ffi::OsStr;
@@ -86,9 +85,7 @@ where
                 Message::CompilerArtifact(artifact) => {
                     artifacts.push(artifact);
                 }
-                Message::CompilerMessage(message)
-                    if message.message.level == DiagnosticLevel::Error =>
-                {
+                Message::CompilerMessage(message) => {
                     if let Some(msg) = message.message.rendered {
                         for line in msg.lines() {
                             eprintln!(" │ {}", line);
