@@ -37,19 +37,21 @@ $ cargo install --path cargo-near
 
 ## Usage
 
-To build a NEAR smart contract (while in the directory containing contract's Cargo.toml):
+See `cargo near --help` for a complete list of available commands. Help is also available for each individual command with a `--help` flag, e.g. `cargo near build --help`.
 
 ```console
-$ cargo near build
+cargo near build
 ```
 
-To generate an [ABI](https://github.com/near/abi) for a contract (while in the directory containing contract's Cargo.toml):
+Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
+
+You can also make this command embed ABI into your WASM artifact by adding `--embed-abi` parameter. This, once deployed, will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
 
 ```console
-$ cargo near abi
+cargo near abi
 ```
 
-See `cargo near --help` for a complete list of options.
+Generates NEAR smart contract's [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
 
 ## Contribution
 
