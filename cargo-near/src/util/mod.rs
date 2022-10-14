@@ -156,12 +156,12 @@ pub struct CompilationArtifact {
 pub(crate) fn compile_project(
     manifest_path: &CargoManifestPath,
     args: &[&str],
-    env: Vec<(&str, &str)>,
+    mut env: Vec<(&str, &str)>,
     artifact_extension: &str,
     hide_warnings: bool,
 ) -> anyhow::Result<CompilationArtifact> {
     if hide_warnings {
-        env::set_var("RUSTFLAGS", "-Awarnings");
+        env.push(("RUSTFLAGS", "-Awarnings"));
     }
 
     let artifacts = invoke_cargo(
