@@ -1,12 +1,16 @@
 use colored::Colorize;
 
-pub(crate) fn handle_step<F, T>(msg: &str, f: F) -> T
+pub(crate) fn handle_step<F, T, E>(msg: &str, f: F) -> Result<T, E>
 where
-    F: FnOnce() -> T,
+    F: FnOnce() -> Result<T, E>,
 {
     eprint!(" {} {}", "•".bold().cyan(), msg);
     let result = f();
-    eprintln!("{}", "done".bold().green());
+    if result.is_ok() {
+        eprintln!("{}", "done".bold().green());
+    } else {
+        eprintln!("{}", "failed".bold().red());
+    }
     result
 }
 
