@@ -6,7 +6,7 @@ where
 {
     eprint!(" {} {}", "•".bold().cyan(), msg);
     let result = f();
-    eprintln!(" {}", "[done]".green());
+    eprintln!("{}", "done".bold().green());
     result
 }
 
