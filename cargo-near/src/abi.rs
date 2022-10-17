@@ -59,6 +59,19 @@ pub(crate) fn generate_abi(
         }
     }
 
+    if !crate_metadata
+        .root_package
+        .dependencies
+        .iter()
+        .find(|dep| dep.name == "near-sdk")
+        .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?
+        .features
+        .iter()
+        .any(|feature| feature == "abi")
+    {
+        anyhow::bail!("`near-sdk` dependency must have the `abi` feature enabled")
+    }
+
     let near_sdk_node = crate_resolve
         .nodes
         .iter()
@@ -91,19 +104,6 @@ pub(crate) fn generate_abi(
         } else {
             anyhow::bail!("your project is using `near-abi` {}, which is older than the currently installed `cargo-near` allows; please update your `near-sdk` dependency", actual_abi_ver);
         }
-    }
-
-    if !crate_metadata
-        .root_package
-        .dependencies
-        .iter()
-        .find(|dep| dep.name == "near-sdk")
-        .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?
-        .features
-        .iter()
-        .any(|feature| feature == "abi")
-    {
-        anyhow::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
 
     let dylib_artifact = util::compile_project(
