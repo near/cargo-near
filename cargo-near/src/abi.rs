@@ -1,5 +1,6 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{util, AbiCommand};
+use cargo_metadata::Version;
 use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
@@ -27,17 +28,17 @@ pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
 ) -> anyhow::Result<AbiRoot> {
-    let root_node = crate_metadata
-        .raw_metadata
-        .resolve
-        .as_ref()
-        .and_then(|dep_graph| {
-            dep_graph
-            .nodes
-            .iter()
-            .find(|node| node.id == crate_metadata.root_package.id)
-        })
-        .ok_or_else(|| anyhow::anyhow!("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed"))?;
+    let crate_resolve = crate_metadata.raw_metadata.resolve.as_ref().ok_or_else(|| anyhow::anyhow!("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed"))?;
+
+    let root_node = crate_resolve
+        .nodes
+        .iter()
+        .find(|node| node.id == crate_metadata.root_package.id)
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "unable to locate the root cargo package in the dependency graph, perhaps your `Cargo.toml` is malformed"
+            )
+        })?;
 
     let near_sdk_dep = root_node
         .deps
@@ -55,6 +56,40 @@ pub(crate) fn generate_abi(
     for required_feature in ["__abi-generate", "__abi-embed"] {
         if !near_sdk_dep.features.contains_key(required_feature) {
             anyhow::bail!("unsupported `near-sdk` version. expected 4.1.* or higher");
+        }
+    }
+
+    let near_sdk_node = crate_resolve
+        .nodes
+        .iter()
+        .find(|node| node.id == near_sdk_dep.id)
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "unable to locate the `near-sdk` package in the dependency graph, please report this issue at https://github.com/near/cargo-near"
+            )
+        })?;
+    let near_abi_dep = near_sdk_node
+        .deps
+        .iter()
+        .find(|dep| dep.name == "near_abi")
+        .and_then(|near_abi| {
+            crate_metadata
+                .raw_metadata
+                .packages
+                .iter()
+                .find(|pkg| pkg.id == near_abi.pkg)
+        })
+        .ok_or_else(|| anyhow::anyhow!("expected `near-sdk` to provide `near-abi`, please report this issue at https://github.com/near/cargo-near"))?;
+
+    let expected_abi_ver = &Version::parse(env!("CARGO_NEAR_ABI_VERSION"))?;
+    let actual_abi_ver = &near_abi_dep.version;
+    if expected_abi_ver.major != actual_abi_ver.major
+        || expected_abi_ver.minor != actual_abi_ver.minor
+    {
+        if expected_abi_ver < actual_abi_ver {
+            anyhow::bail!("your project is using `near-abi` {}, which is newer than the currently installed `cargo-near` allows; please update your `cargo-near`", actual_abi_ver);
+        } else {
+            anyhow::bail!("your project is using `near-abi` {}, which is older than the currently installed `cargo-near` allows; please update your `near-sdk` dependency", actual_abi_ver);
         }
     }
 
