@@ -27,6 +27,7 @@ pub(crate) enum AbiCompression {
 pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
+    hide_warnings: bool,
 ) -> anyhow::Result<AbiRoot> {
     let root_node = crate_metadata
         .raw_metadata
@@ -82,6 +83,7 @@ pub(crate) fn generate_abi(
             ("CARGO_PROFILE_DEV_LTO", "off"),
         ],
         util::dylib_extension(),
+        hide_warnings,
     )?;
 
     let mut contract_abi = util::handle_step("Extracting ABI...", || {
@@ -181,7 +183,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.doc)?;
+    let contract_abi = generate_abi(&crate_metadata, args.doc, false)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 

@@ -38,7 +38,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     let mut pretty_abi_path = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let contract_abi = abi::generate_abi(&crate_metadata, args.doc)?;
+        let contract_abi = abi::generate_abi(&crate_metadata, args.doc, true)?;
         let AbiResult { path } = abi::write_to_file(
             &contract_abi,
             &crate_metadata,
@@ -71,6 +71,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         &cargo_args,
         build_env,
         "wasm",
+        false,
     )?;
 
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
