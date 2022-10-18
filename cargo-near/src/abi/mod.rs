@@ -4,7 +4,11 @@ use colored::Colorize;
 use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
+use std::io::{BufRead, BufReader, Read};
 use std::path::PathBuf;
+use std::process::{ChildStderr, ChildStdout};
+
+mod generation;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
@@ -29,6 +33,15 @@ pub(crate) fn generate_abi(
     generate_docs: bool,
     hide_warnings: bool,
 ) -> anyhow::Result<AbiRoot> {
+    let near_abi_gen_dir = &crate_metadata
+        .target_directory
+        .join(crate_metadata.root_package.name.clone() + "-near-abi-gen");
+    fs::create_dir_all(near_abi_gen_dir)?;
+    log::debug!(
+        "Using temp Cargo workspace at '{}'",
+        near_abi_gen_dir.display()
+    );
+
     let root_node = crate_metadata
         .raw_metadata
         .resolve
@@ -86,16 +99,63 @@ pub(crate) fn generate_abi(
         hide_warnings,
     )?;
 
-    let mut contract_abi = util::handle_step("Extracting ABI...", || {
-        let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
-        anyhow::Ok(
-            near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
-                .into_abi_root(extract_metadata(crate_metadata)),
-        )
-    })?;
+    util::print_step("Extracting ABI");
+    if dylib_artifact.fresh {
+        let cargo_toml = generation::generate_toml(&crate_metadata.manifest_path, crate_metadata)?;
+        fs::write(near_abi_gen_dir.join("Cargo.toml"), cargo_toml)?;
+
+        let build_rs = generation::generate_build_rs(&dylib_artifact.path)?;
+        fs::write(near_abi_gen_dir.join("build.rs"), build_rs)?;
+
+        let main_rs = generation::generate_main_rs(&dylib_artifact.path)?;
+        fs::write(near_abi_gen_dir.join("main.rs"), main_rs)?;
+    }
+
+    let (stdout, _) = util::invoke_cargo_generic(
+        "run",
+        [
+            "--package",
+            &format!("{}-near-abi-gen", crate_metadata.root_package.name),
+        ]
+        .iter(),
+        Some(near_abi_gen_dir),
+        vec![(
+            "LD_LIBRARY_PATH",
+            dylib_artifact
+                .path
+                .parent()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+        )],
+        stdout_fn,
+        stderr_fn,
+    )?;
+
+    // This will fail to serialize if there is a `schema_version` mismatch
+    let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
+        serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
+    )?
+    .into_abi_root(extract_metadata(crate_metadata));
 
     if !generate_docs {
         strip_docs(&mut contract_abi);
+    }
+
+    fn stdout_fn(mut child_stdout: ChildStdout) -> Result<Vec<u8>, std::io::Error> {
+        let mut buf = Vec::new();
+        child_stdout.read_to_end(&mut buf)?;
+        Ok(buf)
+    }
+
+    fn stderr_fn(child_stderr: ChildStderr) -> Result<(), std::io::Error> {
+        let stderr_reader = BufReader::new(child_stderr);
+        let stderr_lines = stderr_reader.lines();
+        for line in stderr_lines {
+            eprintln!(" │ {}", line.expect("failed to read cargo stderr"));
+        }
+
+        Ok(())
     }
 
     Ok(contract_abi)

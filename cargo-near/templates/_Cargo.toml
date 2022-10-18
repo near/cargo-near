@@ -1,0 +1,21 @@
+[package]
+name = "near-abi-gen"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "build.rs"
+
+[[bin]]
+name = "near-abi-gen"
+path = "main.rs"
+
+[profile.dev]
+opt-level = 0
+debug = 0
+lto = "off"
+
+[dependencies]
+serde_json = "1.0"
+
+[workspace]
+members = []

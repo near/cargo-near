@@ -110,6 +110,8 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
     Ok(())
 }
 
+// We could probably parse this from cargo-metadata output, but not sure if this use pattern even makes sense
+#[ignore]
 #[test]
 #[named]
 fn test_dependency_platform_specific() -> anyhow::Result<()> {

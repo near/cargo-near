@@ -1,12 +1,12 @@
 use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
 use cargo_metadata::{Artifact, Message};
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{ChildStderr, ChildStdout, Command};
 use std::{env, thread};
 
 mod print;
@@ -31,19 +31,36 @@ pub(crate) const fn dylib_extension() -> &'static str {
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.
 ///
 /// Returns execution standard output as a byte array.
-pub(crate) fn invoke_cargo<A, P, E, S, EK, EV>(
+pub(crate) fn invoke_cargo_generic<
+    Args,
+    Arg,
+    TPath,
+    Env,
+    EnvKey,
+    EnvVal,
+    StdoutFn,
+    StdoutResult,
+    StderrFn,
+    StderrResult,
+>(
     command: &str,
-    args: A,
-    working_dir: Option<P>,
-    env: E,
-) -> Result<Vec<Artifact>>
+    args: Args,
+    working_dir: Option<TPath>,
+    env: Env,
+    stdout_fn: StdoutFn,
+    stderr_fn: StderrFn,
+) -> Result<(StdoutResult, StderrResult)>
 where
-    A: IntoIterator<Item = S>,
-    P: AsRef<Path>,
-    E: IntoIterator<Item = (EK, EV)>,
-    S: AsRef<OsStr>,
-    EK: AsRef<OsStr>,
-    EV: AsRef<OsStr>,
+    Args: IntoIterator<Item = Arg>,
+    Arg: AsRef<OsStr>,
+    TPath: AsRef<Path>,
+    Env: IntoIterator<Item = (EnvKey, EnvVal)>,
+    EnvKey: AsRef<OsStr>,
+    EnvVal: AsRef<OsStr>,
+    StdoutFn: FnOnce(ChildStdout) -> Result<StdoutResult, std::io::Error> + Send + 'static,
+    StdoutResult: Send + 'static,
+    StderrFn: FnOnce(ChildStderr) -> Result<StderrResult, std::io::Error> + Send + 'static,
+    StderrResult: Send + 'static,
 {
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let mut cmd = Command::new(cargo);
@@ -63,7 +80,6 @@ where
     log::info!("Invoking cargo: {:?}", cmd);
 
     let mut child = cmd
-        // capture the stdout to return from this function as bytes
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
@@ -78,7 +94,47 @@ where
         .context("could not attach to child stderr")?;
 
     // stdout and stderr have to be processed concurrently to not block the process from progressing
-    let thread_stdout = thread::spawn(move || -> Result<_, std::io::Error> {
+    let thread_stdout =
+        thread::spawn(move || -> Result<StdoutResult, std::io::Error> { stdout_fn(child_stdout) });
+    let thread_stderr =
+        thread::spawn(move || -> Result<StderrResult, std::io::Error> { stderr_fn(child_stderr) });
+
+    let stdout_result = thread_stdout.join().expect("failed to join stdout thread");
+    let stderr_result = thread_stderr.join().expect("failed to join stderr thread");
+
+    let output = child.wait()?;
+
+    if output.success() {
+        Ok((stdout_result?, stderr_result?))
+    } else {
+        anyhow::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
+    }
+}
+
+/// Invokes `cargo` with the subcommand `command`, the supplied `args` and set `env` variables.
+/// Expects `cargo` to output JSON message stream, so make sure to pass either
+/// "--message-format=json-render-diagnostics" or "--message-format=json" in the `args`.
+///
+/// If `working_dir` is set, cargo process will be spawned in the specified directory.
+///
+/// Returns list of artifacts produced by `cargo`.
+pub(crate) fn invoke_cargo_json<Args, Arg, TPath, Env, EnvKey, EnvVal>(
+    command: &str,
+    args: Args,
+    working_dir: Option<TPath>,
+    env: Env,
+) -> Result<Vec<Artifact>>
+where
+    Args: IntoIterator<Item = Arg>,
+    Arg: AsRef<OsStr>,
+    TPath: AsRef<Path>,
+    Env: IntoIterator<Item = (EnvKey, EnvVal)>,
+    EnvKey: AsRef<OsStr>,
+    EnvVal: AsRef<OsStr>,
+{
+    let (result, _) = invoke_cargo_generic(command, args, working_dir, env, stdout_fn, stderr_fn)?;
+
+    fn stdout_fn(child_stdout: ChildStdout) -> Result<Vec<Artifact>, std::io::Error> {
         let mut artifacts = vec![];
         let stdout_reader = std::io::BufReader::new(child_stdout);
         for message in Message::parse_stream(stdout_reader) {
@@ -98,25 +154,19 @@ where
         }
 
         Ok(artifacts)
-    });
-    let thread_stderr = thread::spawn(move || {
+    }
+
+    fn stderr_fn(child_stderr: ChildStderr) -> Result<(), std::io::Error> {
         let stderr_reader = BufReader::new(child_stderr);
         let stderr_lines = stderr_reader.lines();
         for line in stderr_lines {
             eprintln!(" │ {}", line.expect("failed to read cargo stderr"));
         }
-    });
 
-    let result = thread_stdout.join().expect("failed to join stdout thread");
-    thread_stderr.join().expect("failed to join stderr thread");
-
-    let output = child.wait()?;
-
-    if output.success() {
-        Ok(result?)
-    } else {
-        anyhow::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
+        Ok(())
     }
+
+    Ok(result)
 }
 
 pub(crate) fn invoke_rustup<I, S>(args: I) -> anyhow::Result<Vec<u8>>
@@ -184,7 +234,7 @@ pub(crate) fn compile_project(
         }
     }
 
-    let artifacts = invoke_cargo(
+    let artifacts = invoke_cargo_json(
         "build",
         [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
@@ -252,38 +302,4 @@ pub(crate) fn copy(from: &Path, to: &Path) -> anyhow::Result<PathBuf> {
         })?;
     }
     Ok(out_path)
-}
-
-pub(crate) fn extract_abi_entries(
-    dylib_path: &Path,
-) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
-    let dylib_file_contents = fs::read(&dylib_path)?;
-    let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
-    log::debug!(
-        "A dylib was built at {:?} with format {} for architecture {}",
-        &dylib_path,
-        &object.file_format(),
-        &object.arch()
-    );
-    let near_abi_symbols = object
-        .symbols()
-        .flat_map(|sym| sym.name)
-        .filter(|sym_name| sym_name.starts_with("__near_abi_"))
-        .map(|sym_name| sym_name.to_string())
-        .collect::<HashSet<_>>();
-    if near_abi_symbols.is_empty() {
-        anyhow::bail!("No NEAR ABI symbols found in the dylib");
-    }
-    log::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
-
-    let mut entries = vec![];
-    unsafe {
-        let lib = libloading::Library::new(dylib_path)?;
-        for symbol in near_abi_symbols {
-            let entry: libloading::Symbol<fn() -> near_abi::__private::ChunkedAbiEntry> =
-                lib.get(symbol.as_bytes())?;
-            entries.push(entry().clone());
-        }
-    }
-    Ok(entries)
 }

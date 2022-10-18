@@ -480,9 +480,13 @@ dependencies = [
  "libloading",
  "log",
  "near-abi",
+ "prettyplease",
+ "quote",
  "schemars",
  "serde_json",
  "symbolic-debuginfo",
+ "syn",
+ "toml",
  "zstd",
 ]
 
