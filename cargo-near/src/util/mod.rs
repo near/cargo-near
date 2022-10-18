@@ -3,11 +3,15 @@ use anyhow::{Context, Result};
 use cargo_metadata::diagnostic::DiagnosticLevel;
 use cargo_metadata::Message;
 use std::collections::HashSet;
-use std::env;
 use std::ffi::OsStr;
 use std::fs;
+use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::{env, thread};
+
+mod print;
+pub(crate) use print::*;
 
 pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
@@ -36,7 +40,7 @@ fn print_cargo_errors(output: Vec<u8>) {
             _ => None,
         })
         .for_each(|m| {
-            println!("{}", m);
+            eprintln!("{}", m);
         });
 }
 
@@ -70,25 +74,52 @@ where
 
     cmd.arg(command);
     cmd.args(args);
+    // Ensure that cargo uses color output for piped stderr.
+    cmd.args(["--color", "always"]);
 
     log::info!("Invoking cargo: {:?}", cmd);
 
-    let child = cmd
+    let mut child = cmd
         // capture the stdout to return from this function as bytes
         .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
         .spawn()
         .context(format!("Error executing `{:?}`", cmd))?;
-    let output = child.wait_with_output()?;
+    let mut child_stdout = child
+        .stdout
+        .take()
+        .context("could not attach to child stdout")?;
+    let child_stderr = child
+        .stderr
+        .take()
+        .context("could not attach to child stderr")?;
 
-    if output.status.success() {
-        Ok(output.stdout)
+    // stdout and stderr have to be processed concurrently to not block the process from progressing
+    let thread_stdout = thread::spawn(move || {
+        let mut result = Vec::new();
+        child_stdout
+            .read_to_end(&mut result)
+            .expect("failed to read cargo stdout");
+        result
+    });
+    let thread_stderr = thread::spawn(move || {
+        let stderr_reader = BufReader::new(child_stderr);
+        let stderr_lines = stderr_reader.lines();
+        for line in stderr_lines {
+            eprintln!("  {}", line.expect("failed to read cargo stderr"));
+        }
+    });
+
+    let result = thread_stdout.join().expect("failed to join stdout thread");
+    thread_stderr.join().expect("failed to join stderr thread");
+
+    let output = child.wait()?;
+
+    if output.success() {
+        Ok(result)
     } else {
-        print_cargo_errors(output.stdout);
-        anyhow::bail!(
-            "`{:?}` failed with exit code: {:?}",
-            cmd,
-            output.status.code()
-        );
+        print_cargo_errors(result);
+        anyhow::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
     }
 }
 

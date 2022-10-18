@@ -1,5 +1,6 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{util, AbiCommand};
+use colored::Colorize;
 use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
@@ -71,6 +72,7 @@ pub(crate) fn generate_abi(
         anyhow::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
 
+    util::print_step("Generating ABI");
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
         &["--features", "near-sdk/__abi-generate"],
@@ -82,10 +84,13 @@ pub(crate) fn generate_abi(
         util::dylib_extension(),
     )?;
 
-    let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
-
-    let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
-        .into_abi_root(extract_metadata(crate_metadata));
+    let mut contract_abi = util::handle_step("Extracting ABI...", || {
+        let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
+        anyhow::Ok(
+            near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
+                .into_abi_root(extract_metadata(crate_metadata)),
+        )
+    })?;
 
     if !generate_docs {
         strip_docs(&mut contract_abi);
@@ -159,9 +164,11 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
-    let crate_metadata = CrateMetadata::collect(CargoManifestPath::try_from(
-        args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
-    )?)?;
+    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+        CrateMetadata::collect(CargoManifestPath::try_from(
+            args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
+        )?)
+    })?;
 
     let out_dir = util::force_canonicalize_dir(
         &args
@@ -180,7 +187,11 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
 
     let abi_path = util::copy(&path, &out_dir)?;
 
-    println!("ABI successfully generated at `{}`", abi_path.display());
+    util::print_success("ABI Successfully Generated!");
+    eprintln!(
+        "     - ABI: {}",
+        abi_path.display().to_string().yellow().bold()
+    );
 
     Ok(())
 }
