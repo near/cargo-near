@@ -106,7 +106,7 @@ where
         let stderr_reader = BufReader::new(child_stderr);
         let stderr_lines = stderr_reader.lines();
         for line in stderr_lines {
-            eprintln!("  {}", line.expect("failed to read cargo stderr"));
+            eprintln!(" │ {}", line.expect("failed to read cargo stderr"));
         }
     });
 

@@ -4,16 +4,16 @@ pub(crate) fn handle_step<F, T>(msg: &str, f: F) -> T
 where
     F: FnOnce() -> T,
 {
-    eprint!(" {} {}", "[•]".bold().yellow(), msg.bold());
+    eprint!(" {} {}", "•".bold().cyan(), msg);
     let result = f();
-    eprintln!(" {}", "[done]".bold().green());
+    eprintln!("{}", "done".bold().green());
     result
 }
 
 pub(crate) fn print_step(msg: &str) {
-    eprintln!(" {} {}", "[•]".bold().yellow(), msg.bold());
+    eprintln!(" {} {}", "•".bold().cyan(), msg);
 }
 
 pub(crate) fn print_success(msg: &str) {
-    eprintln!(" {} {}", "[✓]".bold().green(), msg.bold());
+    eprintln!(" {} {}", "✓".bold().green(), msg);
 }
