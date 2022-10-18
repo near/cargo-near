@@ -9,7 +9,7 @@ fn main() {
     match cargo_near::exec(args.cmd) {
         Ok(()) => {}
         Err(err) => {
-            eprintln!("{} {:?}", "error:".bright_red().bold(), err);
+            eprintln!(" {} {:?}", "✗".bright_red().bold(), err);
             std::process::exit(1);
         }
     }
