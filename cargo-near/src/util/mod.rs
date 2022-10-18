@@ -161,7 +161,7 @@ pub(crate) fn compile_project(
 ) -> anyhow::Result<CompilationArtifact> {
     let artifacts = invoke_cargo(
         "build",
-        [&["--message-format=json"], args].concat(),
+        [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
         env,
     )?;
