@@ -1,7 +1,7 @@
 use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
 use cargo_metadata::{Artifact, Message};
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -31,23 +31,24 @@ pub(crate) const fn dylib_extension() -> &'static str {
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.
 ///
 /// Returns execution standard output as a byte array.
-pub(crate) fn invoke_cargo<I, S, P>(
+pub(crate) fn invoke_cargo<A, P, E, S, EK, EV>(
     command: &str,
-    args: I,
+    args: A,
     working_dir: Option<P>,
-    env: Vec<(&str, &str)>,
+    env: E,
 ) -> Result<Vec<Artifact>>
 where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
+    A: IntoIterator<Item = S>,
     P: AsRef<Path>,
+    E: IntoIterator<Item = (EK, EV)>,
+    S: AsRef<OsStr>,
+    EK: AsRef<OsStr>,
+    EV: AsRef<OsStr>,
 {
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let mut cmd = Command::new(cargo);
 
-    env.iter().for_each(|(env_key, env_val)| {
-        cmd.env(env_key, env_val);
-    });
+    cmd.envs(env);
 
     if let Some(path) = working_dir {
         log::debug!("Setting cargo working dir to '{}'", path.as_ref().display());
@@ -156,14 +157,38 @@ pub struct CompilationArtifact {
 pub(crate) fn compile_project(
     manifest_path: &CargoManifestPath,
     args: &[&str],
-    env: Vec<(&str, &str)>,
+    mut env: Vec<(&str, &str)>,
     artifact_extension: &str,
+    hide_warnings: bool,
 ) -> anyhow::Result<CompilationArtifact> {
+    let mut final_env = BTreeMap::new();
+
+    if hide_warnings {
+        env.push(("RUSTFLAGS", "-Awarnings"));
+    }
+
+    for (key, value) in env {
+        match key {
+            "RUSTFLAGS" => {
+                let rustflags: &mut String = final_env
+                    .entry(key)
+                    .or_insert_with(|| std::env::var(key).unwrap_or_default());
+                if !rustflags.is_empty() {
+                    rustflags.push(' ');
+                }
+                rustflags.push_str(value);
+            }
+            _ => {
+                final_env.insert(key, value.to_string());
+            }
+        }
+    }
+
     let artifacts = invoke_cargo(
         "build",
         [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
-        env,
+        final_env.iter(),
     )?;
 
     // We find the last compiler artifact message which should contain information about the
