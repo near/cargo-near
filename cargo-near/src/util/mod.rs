@@ -280,9 +280,26 @@ pub(crate) fn extract_abi_entries(
     unsafe {
         let lib = libloading::Library::new(dylib_path)?;
         for symbol in near_abi_symbols {
-            let entry: libloading::Symbol<fn() -> near_abi::__private::ChunkedAbiEntry> =
-                lib.get(symbol.as_bytes())?;
-            entries.push(entry().clone());
+            let entry: libloading::Symbol<fn() -> String> = lib.get(symbol.as_bytes())?;
+            match serde_json::from_str(&entry()) {
+                Ok(entry) => entries.push(entry),
+                Err(err) => {
+                    // unfortunately, we're unable to extract the raw error without Display-ing it first
+                    let mut err_str = err.to_string();
+                    if let Some((msg, rest)) = err_str.rsplit_once(" at line ") {
+                        if let Some((line, col)) = rest.rsplit_once(" column ") {
+                            if line.chars().all(|c| c.is_numeric())
+                                && col.chars().all(|c| c.is_numeric())
+                            {
+                                err_str.truncate(msg.len());
+                                err_str.shrink_to_fit();
+                                anyhow::bail!(err_str);
+                            }
+                        }
+                    }
+                    anyhow::bail!(err);
+                }
+            };
         }
     }
     Ok(entries)
