@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, miraclx/canon+utf8 ]
   pull_request:
 
 jobs:
