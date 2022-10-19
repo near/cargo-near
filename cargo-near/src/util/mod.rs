@@ -280,8 +280,9 @@ pub(crate) fn extract_abi_entries(
     unsafe {
         let lib = libloading::Library::new(dylib_path)?;
         for symbol in near_abi_symbols {
-            let entry: libloading::Symbol<fn() -> String> = lib.get(symbol.as_bytes())?;
-            match serde_json::from_str(&entry()) {
+            let entry: libloading::Symbol<extern "C" fn() -> *const std::ffi::c_char> =
+                lib.get(symbol.as_bytes())?;
+            match serde_json::from_str(std::ffi::CStr::from_ptr(entry()).to_str()?) {
                 Ok(entry) => entries.push(entry),
                 Err(err) => {
                     // unfortunately, we're unable to extract the raw error without Display-ing it first
