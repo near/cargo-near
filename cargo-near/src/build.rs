@@ -23,11 +23,11 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         )?)
     })?;
 
-    let out_dir = util::force_canonicalize_dir(
-        &args
-            .out_dir
-            .unwrap_or_else(|| crate_metadata.target_directory.clone()),
-    )?;
+    let out_dir = args
+        .out_dir
+        .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
+            util::force_canonicalize_dir(&out_dir)
+        })?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -63,7 +63,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     if let (true, Some(abi_path)) = (args.embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
-        build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.to_str().unwrap()));
+        build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
     }
     util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
@@ -80,21 +80,13 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     util::print_success("Contract successfully built!");
     let mut messages = vec![(
         "Binary",
-        wasm_artifact
-            .path
-            .display()
-            .to_string()
-            .bright_yellow()
-            .bold(),
+        wasm_artifact.path.to_string().bright_yellow().bold(),
     )];
     if let Some(abi_path) = pretty_abi_path {
-        messages.push(("ABI", abi_path.display().to_string().yellow().bold()));
+        messages.push(("ABI", abi_path.to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {
-        messages.push((
-            "Embedded ABI",
-            abi_path.display().to_string().yellow().bold(),
-        ));
+        messages.push(("Embedded ABI", abi_path.to_string().yellow().bold()));
     }
 
     let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();

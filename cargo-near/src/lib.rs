@@ -1,5 +1,5 @@
+use camino::Utf8PathBuf;
 use clap::{AppSettings, Args, Parser, Subcommand};
-use std::path::PathBuf;
 
 mod abi;
 mod build;
@@ -40,11 +40,11 @@ pub struct AbiCommand {
     #[clap(long)]
     pub compact_abi: bool,
     /// Copy final artifacts to the this directory
-    #[clap(long, parse(from_os_str), value_name = "PATH")]
-    pub out_dir: Option<PathBuf>,
+    #[clap(long, parse(from_str), value_name = "PATH")]
+    pub out_dir: Option<Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
-    #[clap(long, parse(from_os_str), value_name = "PATH")]
-    pub manifest_path: Option<PathBuf>,
+    #[clap(long, parse(from_str), value_name = "PATH")]
+    pub manifest_path: Option<Utf8PathBuf>,
 }
 
 #[derive(Debug, clap::Args)]
@@ -63,11 +63,11 @@ pub struct BuildCommand {
     #[clap(long, conflicts_with_all = &["doc", "embed-abi"])]
     pub no_abi: bool,
     /// Copy final artifacts to the this directory
-    #[clap(long, parse(from_os_str), value_name = "PATH")]
-    pub out_dir: Option<PathBuf>,
+    #[clap(long, parse(from_str), value_name = "PATH")]
+    pub out_dir: Option<Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
-    #[clap(long, parse(from_os_str), value_name = "PATH")]
-    pub manifest_path: Option<PathBuf>,
+    #[clap(long, parse(from_str), value_name = "PATH")]
+    pub manifest_path: Option<Utf8PathBuf>,
 }
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
