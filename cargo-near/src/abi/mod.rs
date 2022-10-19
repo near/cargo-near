@@ -132,7 +132,7 @@ pub(crate) fn generate_abi(
         stderr_fn,
     )?;
 
-    // This will fail to serialize if there is a `schema_version` mismatch
+    // This will fail to deserialize if there is a `schema_version` mismatch
     let mut contract_abi = near_abi::__private::ChunkedAbiEntry::combine(
         serde_json::from_slice::<Vec<_>>(&stdout)?.into_iter(),
     )?
