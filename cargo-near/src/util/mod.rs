@@ -1,11 +1,11 @@
 use crate::cargo::manifest::CargoManifestPath;
 use anyhow::{Context, Result};
+use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
 use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, thread};
 
@@ -31,7 +31,7 @@ pub(crate) const fn dylib_extension() -> &'static str {
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.
 ///
 /// Returns execution standard output as a byte array.
-pub(crate) fn invoke_cargo<A, P, E, S, EK, EV>(
+fn invoke_cargo<A, P, E, S, EK, EV>(
     command: &str,
     args: A,
     working_dir: Option<P>,
@@ -39,7 +39,7 @@ pub(crate) fn invoke_cargo<A, P, E, S, EK, EV>(
 ) -> Result<Vec<Artifact>>
 where
     A: IntoIterator<Item = S>,
-    P: AsRef<Path>,
+    P: AsRef<Utf8Path>,
     E: IntoIterator<Item = (EK, EV)>,
     S: AsRef<OsStr>,
     EK: AsRef<OsStr>,
@@ -51,7 +51,8 @@ where
     cmd.envs(env);
 
     if let Some(path) = working_dir {
-        log::debug!("Setting cargo working dir to '{}'", path.as_ref().display());
+        let path = path.as_ref();
+        log::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
 
@@ -149,7 +150,7 @@ where
 }
 
 pub struct CompilationArtifact {
-    pub path: PathBuf,
+    pub path: Utf8PathBuf,
     pub fresh: bool,
 }
 
@@ -211,51 +212,46 @@ pub(crate) fn compile_project(
                 .unwrap_or(false)
         })
         .collect::<Vec<_>>();
-    match dylib_files.as_slice() {
-        [] => Err(anyhow::anyhow!(
+    let mut dylib_files_iter = dylib_files.into_iter();
+    match (dylib_files_iter.next(), dylib_files_iter.next()) {
+        (None, None) => Err(anyhow::anyhow!(
             "Compilation resulted in no '.{}' target files. \
                  Please check that your project contains a NEAR smart contract.",
             artifact_extension
         )),
-        [file] => Ok(CompilationArtifact {
-            path: file.to_owned().into_std_path_buf(),
+        (Some(path), None) => Ok(CompilationArtifact {
+            path,
             fresh: !compile_artifact.fresh,
         }),
         _ => Err(anyhow::anyhow!(
             "Compilation resulted in more than one '.{}' target file: {:?}",
             artifact_extension,
-            dylib_files
+            dylib_files_iter.as_slice()
         )),
     }
 }
 
 /// Create the directory if it doesn't exist, and return the absolute path to it.
-pub(crate) fn force_canonicalize_dir(dir: &Path) -> anyhow::Result<PathBuf> {
-    fs::create_dir_all(&dir)
-        .with_context(|| format!("failed to create directory `{}`", dir.display()))?;
-    dir.canonicalize()
-        .with_context(|| format!("failed to access output directory `{}`", dir.display()))
+pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
+    fs::create_dir_all(&dir).with_context(|| format!("failed to create directory `{}`", dir))?;
+    dir.canonicalize_utf8()
+        .with_context(|| format!("failed to access output directory `{}`", dir))
 }
 
 /// Copy a file to a destination.
 ///
 /// Does nothing if the destination is the same as the source to avoid truncating the file.
-pub(crate) fn copy(from: &Path, to: &Path) -> anyhow::Result<PathBuf> {
+pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
     let out_path = to.join(from.file_name().unwrap());
     if from != out_path {
-        fs::copy(&from, &out_path).with_context(|| {
-            format!(
-                "failed to copy `{}` to `{}`",
-                from.display(),
-                out_path.display(),
-            )
-        })?;
+        fs::copy(&from, &out_path)
+            .with_context(|| format!("failed to copy `{}` to `{}`", from, out_path))?;
     }
     Ok(out_path)
 }
 
 pub(crate) fn extract_abi_entries(
-    dylib_path: &Path,
+    dylib_path: &Utf8Path,
 ) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
     let dylib_file_contents = fs::read(&dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
