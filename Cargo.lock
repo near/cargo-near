@@ -493,6 +493,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "borsh",
+ "camino",
  "cargo-near",
  "clap",
  "function_name",
