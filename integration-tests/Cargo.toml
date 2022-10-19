@@ -10,6 +10,7 @@ near-abi = "0.1.0-pre.0"
 [dev-dependencies]
 anyhow = "1.0"
 borsh = "0.9"
+camino = "1.1.1"
 cargo-near = { path = "../cargo-near" }
 clap = "3.2"
 function_name = "0.3"
