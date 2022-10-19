@@ -11,10 +11,10 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [target.'cfg(windows)'.dependencies]
-near-sdk = { version = "4.1.0-pre.3", features = ["abi"] }
+near-sdk = { version = "4.1.0-pre.3", features = ["abi"], git = "https://github.com/near/near-sdk-rs.git", rev = "cdba7d93996713f54481ce2ab2d54e3e9b9d9035" }
 
 [target.'cfg(unix)'.dependencies]
-near-sdk = { version = "4.1.0-pre.3", features = ["abi"] }
+near-sdk = { version = "4.1.0-pre.3", features = ["abi"], git = "https://github.com/near/near-sdk-rs.git", rev = "cdba7d93996713f54481ce2ab2d54e3e9b9d9035" }
 
 [workspace]
 members = []
