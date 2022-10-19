@@ -211,8 +211,8 @@ pub(crate) fn compile_project(
                 .map(|e| e == artifact_extension)
                 .unwrap_or(false)
         })
-        .collect::<Vec<_>>();
-    let mut dylib_files_iter = dylib_files.into_iter();
+        .collect();
+    let mut dylib_files_iter = Vec::into_iter(dylib_files);
     match (dylib_files_iter.next(), dylib_files_iter.next()) {
         (None, None) => Err(anyhow::anyhow!(
             "Compilation resulted in no '.{}' target files. \
