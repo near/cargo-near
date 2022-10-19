@@ -1,4 +1,5 @@
 use crate::cargo::manifest::CargoManifestPath;
+use crate::util;
 use anyhow::{Context, Result};
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
@@ -16,7 +17,8 @@ impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
     pub fn collect(manifest_path: CargoManifestPath) -> Result<Self> {
         let (metadata, root_package) = get_cargo_metadata(&manifest_path)?;
-        let mut target_directory = metadata.target_directory.as_path().join("near");
+        let mut target_directory =
+            util::force_canonicalize_dir(&metadata.target_directory.as_path().join("near"))?;
 
         // Normalize the package and lib name.
         let package_name = root_package.name.replace('-', "_");
