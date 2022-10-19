@@ -1,4 +1,5 @@
 use crate::cargo::manifest::CargoManifestPath;
+use crate::util;
 use anyhow::{Context, Result};
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
@@ -17,7 +18,7 @@ impl CrateMetadata {
     pub fn collect(manifest_path: CargoManifestPath) -> Result<Self> {
         let (mut metadata, root_package) = get_cargo_metadata(&manifest_path)?;
 
-        metadata.target_directory = metadata.target_directory.canonicalize_utf8()?;
+        metadata.target_directory = util::force_canonicalize_dir(&metadata.target_directory)?;
         metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
 
         let mut target_directory = metadata.target_directory.as_path().join("near");
