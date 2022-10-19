@@ -172,11 +172,11 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
         )?)
     })?;
 
-    let out_dir = util::force_canonicalize_dir(
-        &args
-            .out_dir
-            .unwrap_or_else(|| crate_metadata.target_directory.clone()),
-    )?;
+    let out_dir = args
+        .out_dir
+        .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
+            util::force_canonicalize_dir(&out_dir)
+        })?;
 
     let format = if args.compact_abi {
         AbiFormat::JsonMin
