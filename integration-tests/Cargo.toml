@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-near-abi = "0.1.0-pre.0"
+near-abi = "0.2.0"
 
 [dev-dependencies]
 anyhow = "1.0"
