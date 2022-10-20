@@ -41,6 +41,11 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     let mut min_abi_path = None;
     if !args.no_abi {
         let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true)?;
+        contract_abi.metadata.build = Some(BuildInfo {
+            compiler: format!("rustc {}", rustc_version::version()?),
+            builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
+            image: None,
+        });
         if args.embed_abi {
             let path = util::handle_step("Compressing ABI to be embedded..", || {
                 let AbiResult { path } = abi::write_to_file(
@@ -53,11 +58,6 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
             })?;
             min_abi_path.replace(util::copy(&path, &out_dir)?);
         }
-        contract_abi.metadata.build = Some(BuildInfo {
-            compiler: format!("rustc {}", rustc_version::version()?),
-            builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
-            image: None,
-        });
         abi = Some(contract_abi);
     }
 
