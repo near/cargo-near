@@ -16,16 +16,18 @@ pub(crate) struct CrateMetadata {
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
     pub fn collect(manifest_path: CargoManifestPath) -> Result<Self> {
-        let (metadata, root_package) = get_cargo_metadata(&manifest_path)?;
-        let mut target_directory =
-            util::force_canonicalize_dir(&metadata.target_directory.as_path().join("near"))?;
+        let (mut metadata, root_package) = get_cargo_metadata(&manifest_path)?;
+
+        metadata.target_directory = util::force_canonicalize_dir(&metadata.target_directory)?;
+        metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
+
+        let mut target_directory = metadata.target_directory.join("near");
 
         // Normalize the package and lib name.
         let package_name = root_package.name.replace('-', "_");
 
         let absolute_manifest_dir = manifest_path.directory()?;
-        let absolute_workspace_root = metadata.workspace_root.canonicalize_utf8()?;
-        if absolute_manifest_dir != absolute_workspace_root {
+        if absolute_manifest_dir != metadata.workspace_root {
             // If the contract is a package in a workspace, we use the package name
             // as the name of the sub-folder where we put the `.contract` bundle.
             target_directory = target_directory.join(package_name);
