@@ -1,13 +1,14 @@
 use crate::cargo::manifest::CargoManifestPath;
+use crate::util;
 use anyhow::{Context, Result};
+use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
-use std::path::PathBuf;
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
 pub(crate) struct CrateMetadata {
     pub root_package: Package,
-    pub target_directory: PathBuf,
+    pub target_directory: Utf8PathBuf,
     pub manifest_path: CargoManifestPath,
     pub raw_metadata: cargo_metadata::Metadata,
 }
@@ -16,13 +17,14 @@ impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
     pub fn collect(manifest_path: CargoManifestPath) -> Result<Self> {
         let (metadata, root_package) = get_cargo_metadata(&manifest_path)?;
-        let mut target_directory = metadata.target_directory.as_path().join("near");
+        let mut target_directory =
+            util::force_canonicalize_dir(&metadata.target_directory.as_path().join("near"))?;
 
         // Normalize the package and lib name.
         let package_name = root_package.name.replace('-', "_");
 
         let absolute_manifest_dir = manifest_path.directory()?;
-        let absolute_workspace_root = metadata.workspace_root.canonicalize()?;
+        let absolute_workspace_root = metadata.workspace_root.canonicalize_utf8()?;
         if absolute_manifest_dir != absolute_workspace_root {
             // If the contract is a package in a workspace, we use the package name
             // as the name of the sub-folder where we put the `.contract` bundle.
@@ -31,7 +33,7 @@ impl CrateMetadata {
 
         let crate_metadata = CrateMetadata {
             root_package,
-            target_directory: target_directory.into(),
+            target_directory,
             manifest_path,
             raw_metadata: metadata,
         };
@@ -43,10 +45,7 @@ impl CrateMetadata {
 fn get_cargo_metadata(
     manifest_path: &CargoManifestPath,
 ) -> Result<(cargo_metadata::Metadata, Package)> {
-    log::info!(
-        "Fetching cargo metadata for {}",
-        manifest_path.path.to_string_lossy()
-    );
+    log::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
     let metadata = cmd
         .manifest_path(&manifest_path.path)

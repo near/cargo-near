@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! invoke_cargo_near {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? Opts: $cli_opts:expr; Code: $($code:tt)*) => {{
-        let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
+        let manifest_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
         let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
         let crate_dir = workspace_dir.join(function_name!());
         let src_dir = crate_dir.join("src");
