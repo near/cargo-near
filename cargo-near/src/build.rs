@@ -9,16 +9,21 @@ use std::io::BufRead;
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
-    if !util::invoke_rustup(&["target", "list", "--installed"])?
-        .lines()
-        .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
-    {
-        anyhow::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
-    }
+    util::handle_step("Checking the host environment...", || {
+        if !util::invoke_rustup(&["target", "list", "--installed"])?
+            .lines()
+            .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
+        {
+            anyhow::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
+        }
+        Ok(())
+    })?;
 
-    let crate_metadata = CrateMetadata::collect(CargoManifestPath::try_from(
-        args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
-    )?)?;
+    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+        CrateMetadata::collect(CargoManifestPath::try_from(
+            args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
+        )?)
+    })?;
 
     let out_dir = util::force_canonicalize_dir(
         &args
@@ -35,14 +40,17 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc)?;
+        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true)?;
         if args.embed_abi {
-            let AbiResult { path } = abi::write_to_file(
-                &contract_abi,
-                &crate_metadata,
-                AbiFormat::JsonMin,
-                AbiCompression::Zstd,
-            )?;
+            let path = util::handle_step("Compressing ABI to be embedded..", || {
+                let AbiResult { path } = abi::write_to_file(
+                    &contract_abi,
+                    &crate_metadata,
+                    AbiFormat::JsonMin,
+                    AbiCompression::Zstd,
+                )?;
+                anyhow::Ok(path)
+            })?;
             min_abi_path.replace(util::copy(&path, &out_dir)?);
         }
         contract_abi.metadata.build = Some(BuildInfo {
@@ -57,18 +65,19 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.to_str().unwrap()));
     }
-
+    util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
         &crate_metadata.manifest_path,
         &cargo_args,
         build_env,
         "wasm",
+        false,
     )?;
 
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
-    println!("{}", "Contract Successfully Built!".green().bold());
+    util::print_success("Contract successfully built!");
     let mut messages = vec![(
         "Binary",
         wasm_artifact
@@ -99,7 +108,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
 
     let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();
     for (header, message) in messages {
-        println!("  - {:>width$}: {}", header, message, width = max_width);
+        eprintln!("     - {:>width$}: {}", header, message, width = max_width);
     }
 
     Ok(())
