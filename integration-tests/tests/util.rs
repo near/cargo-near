@@ -42,11 +42,11 @@ impl AsBorshSchema for AbiParameters {
 }
 
 pub trait AsJsonSchema {
-    fn json_schema(&self) -> anyhow::Result<&Vec<AbiJsonParameter>>;
+    fn json_schemas(&self) -> anyhow::Result<&Vec<AbiJsonParameter>>;
 }
 
 impl AsJsonSchema for AbiParameters {
-    fn json_schema(&self) -> anyhow::Result<&Vec<AbiJsonParameter>> {
+    fn json_schemas(&self) -> anyhow::Result<&Vec<AbiJsonParameter>> {
         if let AbiParameters::Json { args } = &self {
             Ok(args)
         } else {

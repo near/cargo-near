@@ -33,7 +33,7 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -55,7 +55,7 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -75,7 +75,7 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -93,7 +93,7 @@ fn test_dependency_no_default_features() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -111,7 +111,7 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -133,7 +133,7 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -163,7 +163,7 @@ fn test_dependency_renamed() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -187,7 +187,7 @@ fn test_dependency_patch() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
     Ok(())

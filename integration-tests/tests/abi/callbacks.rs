@@ -14,7 +14,7 @@ fn test_callbacks_unwrapped() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
@@ -48,7 +48,7 @@ fn test_callbacks_result() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let string_schema = SchemaGenerator::default().subschema_for::<String>();
@@ -82,7 +82,7 @@ fn test_callbacks_vec() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 1);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
@@ -119,7 +119,7 @@ fn test_callbacks_mixed_with_params() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schema()?;
+    let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
