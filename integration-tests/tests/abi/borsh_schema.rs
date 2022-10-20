@@ -1,22 +1,8 @@
+use crate::util::AsBorshSchema;
 use borsh::schema::{BorshSchemaContainer, Definition, Fields};
 use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
 use function_name::named;
-use near_abi::{AbiParameter, AbiType};
 use std::collections::HashMap;
-
-trait AsBorshSchema {
-    fn borsh_schema(&self) -> anyhow::Result<&BorshSchemaContainer>;
-}
-
-impl AsBorshSchema for AbiParameter {
-    fn borsh_schema(&self) -> anyhow::Result<&BorshSchemaContainer> {
-        if let AbiType::Borsh { type_schema } = &self.typ {
-            Ok(type_schema)
-        } else {
-            anyhow::bail!("Expected Borsh serialization type, but got {:?}", self)
-        }
-    }
-}
 
 #[test]
 #[named]
@@ -34,7 +20,8 @@ fn test_borsh_schema_numeric_primitives_signed() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 5);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 5);
     let i8_schema = BorshSchemaContainer {
         declaration: "i8".to_string(),
         definitions: HashMap::new(),
@@ -60,11 +47,11 @@ fn test_borsh_schema_numeric_primitives_signed() -> anyhow::Result<()> {
     //     declaration: "i64".to_string(),
     //     definitions: HashMap::new(),
     // };
-    assert_eq!(function.params[0].borsh_schema()?, &i8_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &i16_schema);
-    assert_eq!(function.params[2].borsh_schema()?, &i32_schema);
-    assert_eq!(function.params[3].borsh_schema()?, &i64_schema);
-    assert_eq!(function.params[4].borsh_schema()?, &i128_schema);
+    assert_eq!(&params[0].type_schema, &i8_schema);
+    assert_eq!(&params[1].type_schema, &i16_schema);
+    assert_eq!(&params[2].type_schema, &i32_schema);
+    assert_eq!(&params[3].type_schema, &i64_schema);
+    assert_eq!(&params[4].type_schema, &i128_schema);
 
     Ok(())
 }
@@ -85,7 +72,8 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 5);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 5);
     let u8_schema = BorshSchemaContainer {
         declaration: "u8".to_string(),
         definitions: HashMap::new(),
@@ -111,11 +99,11 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
     //     declaration: "u64".to_string(),
     //     definitions: HashMap::new(),
     // };
-    assert_eq!(function.params[0].borsh_schema()?, &u8_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &u16_schema);
-    assert_eq!(function.params[2].borsh_schema()?, &u32_schema);
-    assert_eq!(function.params[3].borsh_schema()?, &u64_schema);
-    assert_eq!(function.params[4].borsh_schema()?, &u128_schema);
+    assert_eq!(&params[0].type_schema, &u8_schema);
+    assert_eq!(&params[1].type_schema, &u16_schema);
+    assert_eq!(&params[2].type_schema, &u32_schema);
+    assert_eq!(&params[3].type_schema, &u64_schema);
+    assert_eq!(&params[4].type_schema, &u128_schema);
 
     Ok(())
 }
@@ -129,7 +117,8 @@ fn test_borsh_schema_numeric_primitives_float() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 2);
     let f32_schema = BorshSchemaContainer {
         declaration: "f32".to_string(),
         definitions: HashMap::new(),
@@ -138,8 +127,8 @@ fn test_borsh_schema_numeric_primitives_float() -> anyhow::Result<()> {
         declaration: "f64".to_string(),
         definitions: HashMap::new(),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &f32_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &f64_schema);
+    assert_eq!(&params[0].type_schema, &f32_schema);
+    assert_eq!(&params[1].type_schema, &f64_schema);
 
     Ok(())
 }
@@ -153,14 +142,15 @@ fn test_borsh_schema_string() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 3);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 3);
     let string_schema = BorshSchemaContainer {
         declaration: "string".to_string(),
         definitions: HashMap::new(),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &string_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &string_schema);
-    assert_eq!(function.params[2].borsh_schema()?, &string_schema);
+    assert_eq!(&params[0].type_schema, &string_schema);
+    assert_eq!(&params[1].type_schema, &string_schema);
+    assert_eq!(&params[2].type_schema, &string_schema);
 
     Ok(())
 }
@@ -174,7 +164,8 @@ fn test_borsh_schema_other_primitives() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 2);
     // char is unsupported by borsh spec
     // let char_schema = BorshSchemaContainer {
     //     declaration: "char".to_string(),
@@ -188,8 +179,8 @@ fn test_borsh_schema_other_primitives() -> anyhow::Result<()> {
         declaration: "nil".to_string(),
         definitions: HashMap::new(),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &bool_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &unit_schema);
+    assert_eq!(&params[0].type_schema, &bool_schema);
+    assert_eq!(&params[1].type_schema, &unit_schema);
 
     Ok(())
 }
@@ -207,7 +198,8 @@ fn test_borsh_schema_tuples() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 2);
     // Needs https://github.com/near/borsh-rs/pull/100 to come in first
     // let tuple1_schema = BorshSchemaContainer {
     //     declaration: "Tuple<bool>".to_string(),
@@ -231,8 +223,8 @@ fn test_borsh_schema_tuples() -> anyhow::Result<()> {
             },
         )]),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &tuple2_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &tuple3_schema);
+    assert_eq!(&params[0].type_schema, &tuple2_schema);
+    assert_eq!(&params[1].type_schema, &tuple3_schema);
 
     Ok(())
 }
@@ -251,7 +243,8 @@ fn test_borsh_schema_arrays() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 3);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 3);
     let array8_schema = BorshSchemaContainer {
         declaration: "Array<bool, 8>".to_string(),
         definitions: HashMap::from([(
@@ -281,9 +274,9 @@ fn test_borsh_schema_arrays() -> anyhow::Result<()> {
             },
         )]),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &array8_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &array16_schema);
-    assert_eq!(function.params[2].borsh_schema()?, &array_unlim_schema);
+    assert_eq!(&params[0].type_schema, &array8_schema);
+    assert_eq!(&params[1].type_schema, &array16_schema);
+    assert_eq!(&params[2].type_schema, &array_unlim_schema);
 
     Ok(())
 }
@@ -316,7 +309,8 @@ fn test_borsh_schema_struct() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 2);
     let pair_def_schema = BorshSchemaContainer {
         declaration: "Pair".to_string(),
         definitions: HashMap::from([(
@@ -338,8 +332,8 @@ fn test_borsh_schema_struct() -> anyhow::Result<()> {
             },
         )]),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &pair_def_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &pair_named_def_schema);
+    assert_eq!(&params[0].type_schema, &pair_def_schema);
+    assert_eq!(&params[1].type_schema, &pair_named_def_schema);
 
     Ok(())
 }
@@ -375,7 +369,8 @@ fn test_borsh_schema_enum() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema = BorshSchemaContainer {
         declaration: "IpAddrKind".to_string(),
         definitions: HashMap::from([
@@ -433,8 +428,8 @@ fn test_borsh_schema_enum() -> anyhow::Result<()> {
             ),
         ]),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &ip_addr_kind_def_schema);
-    assert_eq!(function.params[1].borsh_schema()?, &ip_addr_def_schema);
+    assert_eq!(&params[0].type_schema, &ip_addr_kind_def_schema);
+    assert_eq!(&params[1].type_schema, &ip_addr_def_schema);
 
     Ok(())
 }
@@ -470,7 +465,8 @@ fn test_borsh_schema_complex() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 1);
+    let params = function.params.borsh_schemas()?;
+    assert_eq!(params.len(), 1);
     let ip_addr_def_schema = BorshSchemaContainer {
         declaration: "IpAddr".to_string(),
         definitions: HashMap::from([
@@ -506,7 +502,7 @@ fn test_borsh_schema_complex() -> anyhow::Result<()> {
             ),
         ]),
     };
-    assert_eq!(function.params[0].borsh_schema()?, &ip_addr_def_schema);
+    assert_eq!(&params[0].type_schema, &ip_addr_def_schema);
 
     Ok(())
 }

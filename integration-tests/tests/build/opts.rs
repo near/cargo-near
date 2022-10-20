@@ -95,11 +95,13 @@ async fn test_build_opt_doc_embed() -> anyhow::Result<()> {
         }
     };
 
-    let abi_root = build_result.abi_root.unwrap();
+    let mut abi_root = build_result.abi_root.unwrap();
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
 
+    // WASM hash is not included in the embedded ABI
+    abi_root.metadata.wasm_hash = None;
     assert_eq!(
         util::fetch_contract_abi(&build_result.wasm).await?,
         abi_root

@@ -1,7 +1,9 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_abi::{AbiParameter, AbiType};
+use near_abi::{AbiJsonParameter, AbiType};
 use schemars::gen::SchemaGenerator;
+
+use crate::util::AsJsonSchema;
 
 #[test]
 #[named]
@@ -12,7 +14,8 @@ fn test_callbacks_unwrapped() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 0);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
@@ -45,7 +48,8 @@ fn test_callbacks_result() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 0);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let string_schema = SchemaGenerator::default().subschema_for::<String>();
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
@@ -78,7 +82,8 @@ fn test_callbacks_vec() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 0);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 1);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
@@ -114,7 +119,8 @@ fn test_callbacks_mixed_with_params() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
@@ -122,21 +128,17 @@ fn test_callbacks_mixed_with_params() -> anyhow::Result<()> {
     let i32_schema = SchemaGenerator::default().subschema_for::<i32>();
     let u8_schema = SchemaGenerator::default().subschema_for::<u8>();
     assert_eq!(
-        function.params[0],
-        AbiParameter {
+        params[0],
+        AbiJsonParameter {
             name: "b".to_string(),
-            typ: AbiType::Json {
-                type_schema: u32_schema,
-            }
+            type_schema: u32_schema,
         }
     );
     assert_eq!(
-        function.params[1],
-        AbiParameter {
+        params[1],
+        AbiJsonParameter {
             name: "d".to_string(),
-            typ: AbiType::Json {
-                type_schema: i32_schema,
-            }
+            type_schema: i32_schema,
         }
     );
     assert_eq!(
