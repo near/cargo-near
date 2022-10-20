@@ -5,6 +5,8 @@ use git2::Repository;
 use std::collections::HashMap;
 use tempfile::TempDir;
 
+use crate::util::AsJsonSchema;
+
 fn clone_git_repo(version: &str) -> anyhow::Result<TempDir> {
     let temp_dir = tempfile::tempdir()?;
     let repo_dir = temp_dir.path();
@@ -18,7 +20,7 @@ fn clone_git_repo(version: &str) -> anyhow::Result<TempDir> {
 #[test]
 #[named]
 fn test_dependency_local_path() -> anyhow::Result<()> {
-    let near_sdk_dir = clone_git_repo("792d5eb26d26a0878dbf59e304afa4e19540c317")?;
+    let near_sdk_dir = clone_git_repo("6d73c9ff4fd095fc23eaa000c14ab65c15c4aa6b")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", features = ["abi"] }
@@ -31,7 +33,8 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -39,7 +42,7 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
 #[test]
 #[named]
 fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
-    let near_sdk_dir = clone_git_repo("792d5eb26d26a0878dbf59e304afa4e19540c317")?;
+    let near_sdk_dir = clone_git_repo("6d73c9ff4fd095fc23eaa000c14ab65c15c4aa6b")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", version = "4.1.0-pre.3", features = ["abi"] }
@@ -52,7 +55,8 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -71,7 +75,8 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -88,7 +93,8 @@ fn test_dependency_no_default_features() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -105,7 +111,8 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -126,7 +133,8 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -155,7 +163,8 @@ fn test_dependency_renamed() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }
@@ -178,7 +187,8 @@ fn test_dependency_patch() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.params.len(), 2);
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
 
     Ok(())
 }

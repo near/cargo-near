@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_abi::{AbiFunction, AbiParameter, AbiType};
+use near_abi::{AbiFunction, AbiJsonParameter, AbiParameters, AbiType};
 use schemars::gen::SchemaGenerator;
 
 #[test]
@@ -24,20 +24,18 @@ fn test_simple_function() -> anyhow::Result<()> {
             is_init: false,
             is_payable: false,
             is_private: false,
-            params: vec![
-                AbiParameter {
-                    name: "a".to_string(),
-                    typ: AbiType::Json {
+            params: AbiParameters::Json {
+                args: vec![
+                    AbiJsonParameter {
+                        name: "a".to_string(),
+                        type_schema: u32_schema.clone(),
+                    },
+                    AbiJsonParameter {
+                        name: "b".to_string(),
                         type_schema: u32_schema.clone(),
                     }
-                },
-                AbiParameter {
-                    name: "b".to_string(),
-                    typ: AbiType::Json {
-                        type_schema: u32_schema.clone(),
-                    }
-                }
-            ],
+                ],
+            },
             callbacks: vec![],
             callbacks_vec: None,
             result: Some(AbiType::Json {
