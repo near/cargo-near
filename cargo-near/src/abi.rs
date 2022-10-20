@@ -1,15 +1,15 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::{util, AbiCommand};
+use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::AbiRoot;
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
     /// Path to the resulting ABI file.
-    pub path: PathBuf,
+    pub path: Utf8PathBuf,
 }
 
 #[derive(Clone, Debug)]
@@ -190,10 +190,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     let abi_path = util::copy(&path, &out_dir)?;
 
     util::print_success("ABI Successfully Generated!");
-    eprintln!(
-        "     - ABI: {}",
-        abi_path.display().to_string().yellow().bold()
-    );
+    eprintln!("     - ABI: {}", abi_path.to_string().yellow().bold());
 
     Ok(())
 }
