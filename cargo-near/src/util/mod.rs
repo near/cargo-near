@@ -278,7 +278,8 @@ pub(crate) fn extract_abi_entries(
         for symbol in near_abi_symbols {
             let entry: libloading::Symbol<extern "C" fn() -> *const std::ffi::c_char> =
                 lib.get(symbol.as_bytes())?;
-            match serde_json::from_slice(std::ffi::CStr::from_ptr(entry()).to_bytes()) {
+            match serde_json::from_slice(std::ffi::CString::from_raw(entry() as *mut _).to_bytes())
+            {
                 Ok(entry) => entries.push(entry),
                 Err(err) => {
                     // unfortunately, we're unable to extract the raw error without Display-ing it first
