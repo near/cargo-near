@@ -20,7 +20,7 @@ fn clone_git_repo(version: &str) -> anyhow::Result<TempDir> {
 #[test]
 #[named]
 fn test_dependency_local_path() -> anyhow::Result<()> {
-    let near_sdk_dir = clone_git_repo("2fae79fa444e32807fcd1c86344620fbdcf18be0")?;
+    let near_sdk_dir = clone_git_repo("9a7d7ebbed53911d764f49419acd140c1162928f")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", features = ["abi"] }
@@ -42,7 +42,7 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
 #[test]
 #[named]
 fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
-    let near_sdk_dir = clone_git_repo("2fae79fa444e32807fcd1c86344620fbdcf18be0")?;
+    let near_sdk_dir = clone_git_repo("9a7d7ebbed53911d764f49419acd140c1162928f")?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
     // near-sdk = { path = "::path::", version = "4.1.0-pre.3", features = ["abi"] }
@@ -178,7 +178,7 @@ fn test_dependency_patch() -> anyhow::Result<()> {
     // near-sdk = "4.0.0"
     //
     // [patch.crates-io]
-    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "2fae79fa444e32807fcd1c86344620fbdcf18be0" }
+    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "9a7d7ebbed53911d764f49419acd140c1162928f" }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_patch.toml";
         Code:
