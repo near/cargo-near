@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = { version = "4.1.0-pre.3", features = ["abi", "unstable"], git = "https://github.com/near/near-sdk-rs.git", rev = "2fae79fa444e32807fcd1c86344620fbdcf18be0" }
+near-sdk = { version = "4.1.0-pre.3", features = ["abi", "unstable"], git = "https://github.com/near/near-sdk-rs.git", rev = "cb41e379f70e1bf0eb5df7b9c06ec76cc1734d80" }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
