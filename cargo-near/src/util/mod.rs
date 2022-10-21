@@ -275,7 +275,7 @@ pub(crate) fn extract_abi_entries(
     unsafe {
         let lib = libloading::Library::new(dylib_path)?;
         for symbol in near_abi_symbols {
-            let entry: libloading::Symbol<extern "C" fn() -> (*const std::ffi::c_uchar, usize)> =
+            let entry: libloading::Symbol<extern "C" fn() -> (*const u8, usize)> =
                 lib.get(symbol.as_bytes())?;
             let (ptr, len) = entry();
             let data = Vec::from_raw_parts(ptr as *mut _, len, len);
