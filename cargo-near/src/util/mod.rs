@@ -265,7 +265,6 @@ pub(crate) fn extract_abi_entries(
         .symbols()
         .flat_map(|sym| sym.name)
         .filter(|sym_name| sym_name.starts_with("__near_abi_"))
-        .map(|sym_name| sym_name.to_string())
         .collect::<HashSet<_>>();
     if near_abi_symbols.is_empty() {
         anyhow::bail!("No NEAR ABI symbols found in the dylib");
@@ -276,11 +275,10 @@ pub(crate) fn extract_abi_entries(
     unsafe {
         let lib = libloading::Library::new(dylib_path)?;
         for symbol in near_abi_symbols {
-            let entry: libloading::Symbol<
-                extern "C" fn() -> (*const std::ffi::c_uchar, usize, usize),
-            > = lib.get(symbol.as_bytes())?;
-            let (ptr, len, cap) = entry();
-            let data = Vec::from_raw_parts(ptr as *mut _, len, cap);
+            let entry: libloading::Symbol<extern "C" fn() -> (*const std::ffi::c_uchar, usize)> =
+                lib.get(symbol.as_bytes())?;
+            let (ptr, len) = entry();
+            let data = Vec::from_raw_parts(ptr as *mut _, len, len);
             match serde_json::from_slice(&data) {
                 Ok(entry) => entries.push(entry),
                 Err(err) => {
