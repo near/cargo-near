@@ -5,6 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
+const_format = "0.2"
 near-abi = "0.2.0"
 
 [dev-dependencies]
