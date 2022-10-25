@@ -1,7 +1,7 @@
 use const_format::formatcp;
 
 pub const SDK_VERSION: &str = "4.1.0-pre.3";
-pub const SDK_GIT_REV: &str = "6d73c9ff4fd095fc23eaa000c14ab65c15c4aa6b";
+pub const SDK_GIT_REV: &str = "91a44a621732e92723dfb58c377bb2135959ad8f";
 pub const SDK_VERSION_TOML: &str = formatcp!(
     r#"version = "{SDK_VERSION}", git = "https://github.com/near/near-sdk-rs.git", rev = "{SDK_GIT_REV}""#,
 );

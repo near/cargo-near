@@ -166,7 +166,7 @@ fn test_dependency_patch() -> anyhow::Result<()> {
     // near-sdk = "4.0.0"
     //
     // [patch.crates-io]
-    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "792d5eb26d26a0878dbf59e304afa4e19540c317" }
+    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "91a44a621732e92723dfb58c377bb2135959ad8f" }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_patch.toml";
         Code:
