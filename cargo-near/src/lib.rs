@@ -39,7 +39,7 @@ pub struct AbiCommand {
     /// Generate compact (minified) JSON
     #[clap(long)]
     pub compact_abi: bool,
-    /// Copy final artifacts to the this directory
+    /// Copy final artifacts to this directory
     #[clap(long, parse(from_str), value_name = "PATH")]
     pub out_dir: Option<Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
@@ -62,7 +62,7 @@ pub struct BuildCommand {
     /// Do not generate ABI for the contract
     #[clap(long, conflicts_with_all = &["doc", "embed-abi"])]
     pub no_abi: bool,
-    /// Copy final artifacts to the this directory
+    /// Copy final artifacts to this directory
     #[clap(long, parse(from_str), value_name = "PATH")]
     pub out_dir: Option<Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
