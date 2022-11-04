@@ -84,13 +84,6 @@ pub struct BuildCommand {
     pub color: ColorPreference,
 }
 
-#[derive(Debug, Clone, clap::ArgEnum)]
-pub enum X {
-    A,
-    B,
-    C,
-}
-
 #[derive(Copy, Clone, Debug)]
 pub enum ColorPreference {
     Always,
