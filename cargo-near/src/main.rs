@@ -1,9 +1,15 @@
 use cargo_near::Opts;
 use clap::Parser;
 use colored::Colorize;
+use std::env;
 
 fn main() {
     env_logger::init();
+
+    match env::var("NO_COLOR") {
+        Ok(v) if v != "0" => colored::control::set_override(false),
+        _ => colored::control::set_override(atty::is(atty::Stream::Stderr)),
+    }
 
     let Opts::Near(args) = Opts::parse();
     match cargo_near::exec(args.cmd) {

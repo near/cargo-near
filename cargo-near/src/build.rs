@@ -1,6 +1,6 @@
 use crate::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{abi, util, BuildCommand};
+use crate::{abi, util, BuildCommand, ColorPreference};
 use colored::Colorize;
 use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
@@ -9,6 +9,12 @@ use std::io::BufRead;
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
+    match args.color {
+        ColorPreference::Auto => {}
+        ColorPreference::Always => colored::control::set_override(true),
+        ColorPreference::Never => colored::control::set_override(false),
+    }
+
     util::handle_step("Checking the host environment...", || {
         if !util::invoke_rustup(&["target", "list", "--installed"])?
             .lines()

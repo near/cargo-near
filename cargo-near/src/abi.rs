@@ -1,5 +1,5 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{util, AbiCommand};
+use crate::{util, AbiCommand, ColorPreference};
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::AbiRoot;
@@ -168,6 +168,12 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
+    match args.color {
+        ColorPreference::Auto => {}
+        ColorPreference::Always => colored::control::set_override(true),
+        ColorPreference::Never => colored::control::set_override(false),
+    }
+
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
         CrateMetadata::collect(CargoManifestPath::try_from(
             args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),

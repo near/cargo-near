@@ -45,6 +45,10 @@ pub struct AbiCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_str), value_name = "PATH")]
     pub manifest_path: Option<Utf8PathBuf>,
+    /// Coloring: auto, always, never
+    #[clap(long, value_name = "WHEN", default_value = "auto")]
+    #[clap(value_enum, hide_default_value = true, hide_possible_values = true)]
+    pub color: ColorPreference,
 }
 
 #[derive(Debug, clap::Args)]
@@ -68,6 +72,17 @@ pub struct BuildCommand {
     /// Path to the `Cargo.toml` of the contract to build
     #[clap(long, parse(from_str), value_name = "PATH")]
     pub manifest_path: Option<Utf8PathBuf>,
+    /// Coloring: auto, always, never
+    #[clap(long, value_name = "WHEN", default_value = "auto")]
+    #[clap(value_enum, hide_default_value = true, hide_possible_values = true)]
+    pub color: ColorPreference,
+}
+
+#[derive(Clone, Debug, clap::ValueEnum)]
+pub enum ColorPreference {
+    Auto,
+    Always,
+    Never,
 }
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
