@@ -1,6 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_abi::{AbiFunction, AbiJsonParameter, AbiParameters, AbiType};
+use near_abi::{AbiFunction, AbiFunctionKind, AbiJsonParameter, AbiParameters, AbiType};
 use schemars::gen::SchemaGenerator;
 
 #[test]
@@ -20,10 +20,8 @@ fn test_simple_function() -> anyhow::Result<()> {
         &AbiFunction {
             name: "add".to_string(),
             doc: None,
-            is_view: true,
-            is_init: false,
-            is_payable: false,
-            is_private: false,
+            kind: AbiFunctionKind::View,
+            modifiers: vec![],
             params: AbiParameters::Json {
                 args: vec![
                     AbiJsonParameter {
