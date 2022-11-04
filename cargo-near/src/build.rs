@@ -1,6 +1,6 @@
 use crate::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{abi, util, BuildCommand, ColorPreference};
+use crate::{abi, util, BuildCommand};
 use colored::Colorize;
 use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
@@ -9,11 +9,7 @@ use std::io::BufRead;
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
-    match args.color {
-        ColorPreference::Auto => {}
-        ColorPreference::Always => colored::control::set_override(true),
-        ColorPreference::Never => colored::control::set_override(false),
-    }
+    args.color.apply();
 
     util::handle_step("Checking the host environment...", || {
         if !util::invoke_rustup(&["target", "list", "--installed"])?
@@ -46,7 +42,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
     let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true)?;
+        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true, args.color)?;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
             builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
@@ -78,6 +74,7 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         build_env,
         "wasm",
         false,
+        args.color,
     )?;
 
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;

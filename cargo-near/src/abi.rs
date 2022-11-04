@@ -28,6 +28,7 @@ pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
     hide_warnings: bool,
+    color: ColorPreference,
 ) -> anyhow::Result<AbiRoot> {
     let root_node = crate_metadata
         .raw_metadata
@@ -84,6 +85,7 @@ pub(crate) fn generate_abi(
         ],
         util::dylib_extension(),
         hide_warnings,
+        color,
     )?;
 
     let mut contract_abi = util::handle_step("Extracting ABI...", || {
@@ -168,11 +170,7 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
-    match args.color {
-        ColorPreference::Auto => {}
-        ColorPreference::Always => colored::control::set_override(true),
-        ColorPreference::Never => colored::control::set_override(false),
-    }
+    args.color.apply();
 
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
         CrateMetadata::collect(CargoManifestPath::try_from(
@@ -191,7 +189,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.doc, false)?;
+    let contract_abi = generate_abi(&crate_metadata, args.doc, false, args.color)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 

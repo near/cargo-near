@@ -1,3 +1,5 @@
+use std::{env, str::FromStr};
+
 use camino::Utf8PathBuf;
 use clap::{AppSettings, Args, Parser, Subcommand};
 
@@ -46,8 +48,10 @@ pub struct AbiCommand {
     #[clap(long, parse(from_str), value_name = "PATH")]
     pub manifest_path: Option<Utf8PathBuf>,
     /// Coloring: auto, always, never
-    #[clap(long, value_name = "WHEN", default_value = "auto")]
-    #[clap(value_enum, hide_default_value = true, hide_possible_values = true)]
+    #[clap(long, value_name = "WHEN")]
+    #[clap(default_value = "auto", hide_default_value = true)]
+    #[clap(possible_values = &["auto", "always", "never"])]
+    #[clap(parse(try_from_str = ColorPreference::from_str))]
     pub color: ColorPreference,
 }
 
@@ -73,16 +77,62 @@ pub struct BuildCommand {
     #[clap(long, parse(from_str), value_name = "PATH")]
     pub manifest_path: Option<Utf8PathBuf>,
     /// Coloring: auto, always, never
-    #[clap(long, value_name = "WHEN", default_value = "auto")]
-    #[clap(value_enum, hide_default_value = true, hide_possible_values = true)]
+    #[clap(long, value_name = "WHEN")]
+    #[clap(default_value = "auto", hide_default_value = true)]
+    #[clap(possible_values = &["auto", "always", "never"])]
+    #[clap(parse(try_from_str = ColorPreference::from_str))]
     pub color: ColorPreference,
 }
 
-#[derive(Clone, Debug, clap::ValueEnum)]
+#[derive(Debug, Clone, clap::ArgEnum)]
+pub enum X {
+    A,
+    B,
+    C,
+}
+
+#[derive(Copy, Clone, Debug)]
 pub enum ColorPreference {
-    Auto,
     Always,
     Never,
+}
+
+impl FromStr for ColorPreference {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "auto" => match env::var("NO_COLOR") {
+                Ok(v) if v != "0" => Ok(ColorPreference::Never),
+                _ => {
+                    if atty::is(atty::Stream::Stderr) {
+                        Ok(ColorPreference::Always)
+                    } else {
+                        Ok(ColorPreference::Never)
+                    }
+                }
+            },
+            "always" => Ok(ColorPreference::Always),
+            "never" => Ok(ColorPreference::Never),
+            _ => Err(format!("invalid value: {}", s)),
+        }
+    }
+}
+
+impl ColorPreference {
+    pub fn as_str(&self) -> &str {
+        match self {
+            ColorPreference::Always => "always",
+            ColorPreference::Never => "never",
+        }
+    }
+
+    pub fn apply(&self) {
+        match self {
+            ColorPreference::Always => colored::control::set_override(true),
+            ColorPreference::Never => colored::control::set_override(false),
+        }
+    }
 }
 
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
