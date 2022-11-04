@@ -11,7 +11,7 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [dependencies.near]
-near = { package = "near-sdk", features = ["abi"], ::sdk-version-toml:: }
+near = { package = "near-sdk", ::sdk-version-toml:: }
 
 [workspace]
 members = []

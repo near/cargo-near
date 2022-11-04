@@ -180,3 +180,22 @@ fn test_dependency_patch() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+// TODO: Re-enable when we release 4.1.0
+#[ignore]
+#[test]
+#[named]
+fn test_abi_not_a_table() -> anyhow::Result<()> {
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/sdk-dependency/_Cargo_not_a_table.toml";
+        Code:
+        pub fn foo(&self, a: u32, b: u32) {}
+    };
+
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
+
+    Ok(())
+}
