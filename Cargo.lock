@@ -481,7 +481,7 @@ dependencies = [
  "env_logger",
  "libloading",
  "log",
- "near-abi 0.3.0",
+ "near-abi",
  "rustc_version",
  "schemars",
  "serde_json",
@@ -503,7 +503,7 @@ dependencies = [
  "function_name",
  "git2",
  "minifier",
- "near-abi 0.2.0",
+ "near-abi",
  "prettyplease",
  "proc-macro2",
  "quote",
@@ -1631,18 +1631,6 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
-]
-
-[[package]]
-name = "near-abi"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85f9816032a8688b52e2e0e51e1a5513e7e05310eb2eebe1d913fcf82be1e1d7"
-dependencies = [
- "borsh",
- "schemars",
- "semver",
- "serde",
 ]
 
 [[package]]

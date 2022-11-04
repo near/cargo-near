@@ -1,5 +1,6 @@
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
+use near_abi::{AbiFunctionKind, AbiFunctionModifier};
 
 #[test]
 #[named]
@@ -12,10 +13,8 @@ fn test_view_function() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert!(function.is_view);
-    assert!(!function.is_init);
-    assert!(!function.is_payable);
-    assert!(!function.is_private);
+    assert_eq!(function.kind, AbiFunctionKind::View);
+    assert_eq!(function.modifiers, vec![]);
 
     Ok(())
 }
@@ -31,7 +30,8 @@ fn test_call_function() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert!(!function.is_view);
+    assert_eq!(function.kind, AbiFunctionKind::Call);
+    assert_eq!(function.modifiers, vec![]);
 
     Ok(())
 }
@@ -48,7 +48,8 @@ fn test_init_function() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert!(function.is_init);
+    assert_eq!(function.kind, AbiFunctionKind::Call);
+    assert_eq!(function.modifiers, vec![AbiFunctionModifier::Init]);
     assert!(function.result.is_none());
 
     Ok(())
@@ -66,7 +67,8 @@ fn test_payable_function() -> anyhow::Result<()> {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert!(function.is_payable);
+    assert_eq!(function.kind, AbiFunctionKind::Call);
+    assert_eq!(function.modifiers, vec![AbiFunctionModifier::Payable]);
 
     Ok(())
 }
@@ -76,14 +78,15 @@ fn test_payable_function() -> anyhow::Result<()> {
 fn test_private_function() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn! {
         #[private]
-        pub fn add(&self, a: u32, b: u32) -> u32 {
+        pub fn add(&mut self, a: u32, b: u32) -> u32 {
             a + b
         }
     };
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    assert!(function.is_private);
+    assert_eq!(function.kind, AbiFunctionKind::Call);
+    assert_eq!(function.modifiers, vec![AbiFunctionModifier::Private]);
 
     Ok(())
 }
