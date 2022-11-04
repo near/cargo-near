@@ -49,8 +49,8 @@ pub struct AbiCommand {
     pub manifest_path: Option<Utf8PathBuf>,
     /// Coloring: auto, always, never
     #[clap(long, value_name = "WHEN")]
-    #[clap(default_value = "auto", hide_default_value = true)]
-    #[clap(possible_values = &["auto", "always", "never"])]
+    #[clap(default_value = "auto", possible_values = &["auto", "always", "never"])]
+    #[clap(hide_default_value = true, hide_possible_values = true)]
     #[clap(parse(try_from_str = ColorPreference::from_str))]
     pub color: ColorPreference,
 }
@@ -78,8 +78,8 @@ pub struct BuildCommand {
     pub manifest_path: Option<Utf8PathBuf>,
     /// Coloring: auto, always, never
     #[clap(long, value_name = "WHEN")]
-    #[clap(default_value = "auto", hide_default_value = true)]
-    #[clap(possible_values = &["auto", "always", "never"])]
+    #[clap(default_value = "auto", possible_values = &["auto", "always", "never"])]
+    #[clap(hide_default_value = true, hide_possible_values = true)]
     #[clap(parse(try_from_str = ColorPreference::from_str))]
     pub color: ColorPreference,
 }
