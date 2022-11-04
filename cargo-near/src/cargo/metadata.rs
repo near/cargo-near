@@ -54,19 +54,9 @@ fn get_cargo_metadata(
         .manifest_path(&manifest_path.path)
         .exec()
         .context("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
-    let root_package_id = metadata
-        .resolve
-        .as_ref()
-        .and_then(|resolve| resolve.root.as_ref())
-        .context("Cannot infer the root project id")?
-        .clone();
-    // Find the root package by id in the list of packages. It is logical error if the root
-    // package is not found in the list.
     let root_package = metadata
-        .packages
-        .iter()
-        .find(|package| package.id == root_package_id)
-        .expect("The package is not found in the `cargo metadata` output")
+        .root_package()
+        .context("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?
         .clone();
     Ok((metadata, root_package))
 }
