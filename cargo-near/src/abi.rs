@@ -60,15 +60,20 @@ pub(crate) fn generate_abi(
         }
     }
 
-    if !crate_metadata
+    let near_sdk_metadata = crate_metadata
         .root_package
         .dependencies
         .iter()
         .find(|dep| dep.name == "near-sdk")
-        .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?
-        .features
-        .iter()
-        .any(|feature| feature == "abi")
+        .ok_or_else(|| anyhow::anyhow!("`near-sdk` dependency not found"))?;
+
+    // `Dependency::features` return value does not contain default features, so we have to check
+    // for default features separately.
+    if !near_sdk_metadata.uses_default_features
+        && !near_sdk_metadata
+            .features
+            .iter()
+            .any(|feature| feature == "abi")
     {
         anyhow::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
