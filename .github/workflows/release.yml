@@ -141,8 +141,6 @@ jobs:
         name: [
           # aarch64
           linux-aarch64-gnu, linux-aarch64-musl, macos-aarch64, win64-aarch64-msvc,
-          # ? # arm / i686
-          # ? linux-arm-gnu, linux-arm-musl, linux-i686-gnu, linux-i686-musl, win32-msvc,
           # x86_64
           linux-x86_64-gnu, linux-x86_64-musl, macos-x86_64, win64-x86_64-gnu, win64-x86_64-msvc
         ]
@@ -151,11 +149,6 @@ jobs:
         - { name: 'linux-aarch64-musl', target: aarch64-unknown-linux-musl  , os: ubuntu-latest , use-cross: true }
         - { name: 'macos-aarch64'     , target: aarch64-apple-darwin        , os: macos-latest  ,                 }
         - { name: 'win64-aarch64-msvc', target: aarch64-pc-windows-msvc     , os: windows-latest,                 }
-    # ? - { name: 'linux-arm-gnu'     , target: arm-unknown-linux-gnueabihf , os: ubuntu-latest , use-cross: true }
-    # ? - { name: 'linux-arm-musl'    , target: arm-unknown-linux-musleabihf, os: ubuntu-latest , use-cross: true }
-    # ? - { name: 'linux-i686-gnu'    , target: i686-unknown-linux-gnu      , os: ubuntu-latest , use-cross: true }
-    # ? - { name: 'linux-i686-musl'   , target: i686-unknown-linux-musl     , os: ubuntu-latest , use-cross: true }
-    # ? - { name: 'win32-msvc'        , target: i686-pc-windows-msvc        , os: windows-latest,                 }
         - { name: 'linux-x86_64-gnu'  , target: x86_64-unknown-linux-gnu    , os: ubuntu-latest ,                 }
         - { name: 'linux-x86_64-musl' , target: x86_64-unknown-linux-musl   , os: ubuntu-latest , use-cross: true }
         - { name: 'macos-x86_64'      , target: x86_64-apple-darwin         , os: macos-latest  ,                 }
