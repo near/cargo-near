@@ -294,6 +294,7 @@ jobs:
           HASH_LINE="${HASH_LINE}\n| \`$(basename "${file}")\` | \`$(sha256sum "${file}" | cut -d' ' -f1)\` |"
         done
         HASH_LINE="${HASH_LINE}\n\n</details>"
+        echo "HASH_LINE=${HASH_LINE}" >> $GITHUB_ENV
 
     - name: Create release and upload artifacts
       uses: softprops/action-gh-release@v1
