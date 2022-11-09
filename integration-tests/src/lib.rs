@@ -1,11 +1,9 @@
 use const_format::formatcp;
 
-pub const SDK_VERSION: &str = "4.1.0-pre.3";
-pub const SDK_GIT_REV: &str = "f31ece5a1e193207e85e35d855f9ba24fbb33f3e";
-pub const SDK_VERSION_TOML: &str = formatcp!(
-    r#"version = "{SDK_VERSION}", git = "https://github.com/near/near-sdk-rs.git", rev = "{SDK_GIT_REV}""#,
-);
-pub const SDK_VERSION_TOML_TABLE: &str = formatcp!(
+pub const SDK_VERSION: &str = "4.1.0";
+pub const SDK_GIT_REV: &str = "10b0dea3b1a214d789cc90314aa814a4181610ad";
+pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
+pub const SDK_GIT_VERSION_TOML_TABLE: &str = formatcp!(
     r#"
     version = "{SDK_VERSION}"
     git = "https://github.com/near/near-sdk-rs.git"
@@ -29,7 +27,7 @@ macro_rules! invoke_cargo_near {
         cargo_vars.insert("sdk-version", $crate::SDK_VERSION);
         cargo_vars.insert("sdk-git-rev", $crate::SDK_GIT_REV);
         cargo_vars.insert("sdk-version-toml", $crate::SDK_VERSION_TOML);
-        cargo_vars.insert("sdk-version-toml-table", $crate::SDK_VERSION_TOML_TABLE);
+        cargo_vars.insert("sdk-git-version-toml-table", $crate::SDK_GIT_VERSION_TOML_TABLE);
         cargo_vars.insert("name", function_name!());
         for (k, v) in cargo_vars {
             cargo_toml = cargo_toml.replace(&format!("::{}::", k), v);
