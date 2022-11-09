@@ -250,7 +250,7 @@ jobs:
     - name: Get contributors
       run: |
         DEFAULT_RELEASE_NOTE="$(
-          curl -v \
+          curl \
             https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
             -H 'Authorization: token ${{ github.token }}' \
             -d '{"tag_name":"${{ env.GH_PROJECT_VERSION }}","target_commitish":"${{ github.sha }}"}' \
