@@ -254,14 +254,14 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
             -H 'Authorization: token ${{ github.token }}' \
             -d '{"tag_name":"${{ env.GH_PROJECT_VERSION }}","target_commitish":"${{ github.sha }}"}' \
-          | jq .body
+          | jq -r .body
         )"
         echo "Default Release Note"
         echo "${DEFAULT_RELEASE_NOTE}"
         echo
         CONTRIBUTORS="$(
-          echo "${DEFAULT_RELEASE_NOTE}" \
-          | perl -ne 'print if s/.+ by (@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}) in https.+$/\1/i' \
+          <<< "${DEFAULT_RELEASE_NOTE}" \
+            perl -ne 'print if s/.+ by (@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}) in https.+$/\1/i' \
           | sort -u \
         )"
         echo "Contributors"
