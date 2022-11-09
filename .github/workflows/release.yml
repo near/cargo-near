@@ -260,8 +260,8 @@ jobs:
         echo "${DEFAULT_RELEASE_NOTE}"
         echo
         CONTRIBUTORS="$(
-          <<< "${DEFAULT_RELEASE_NOTE}" \
-          perl -ne 'print if s/.+ by (@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}) in https.+$/\1/i' \
+          echo "${DEFAULT_RELEASE_NOTE}" \
+          | perl -ne 'print if s/.+ by (@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}) in https.+$/\1/i' \
           | sort -u \
         )"
         echo "Contributors"
