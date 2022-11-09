@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0-ci-release-check] - 2022-11-09
+## [0.3.0] - 2022-11-09
 
 Highlight: We revised the overall experience of the CLI, making it more accessible, robust, and easier to understand.
 
@@ -28,6 +28,6 @@ Highlight: We revised the overall experience of the CLI, making it more accessib
 
 > Release Page: <https://github.com/near/cargo-near/releases/tag/v0.2.0>
 
-[unreleased]: https://github.com/near/cargo-near/compare/v0.2.0-ci-release-check...HEAD
-[0.2.0-ci-release-check]: https://github.com/near/cargo-near/compare/v0.2.0...v0.2.0-ci-release-check
+[unreleased]: https://github.com/near/cargo-near/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/near/cargo-near/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/near/cargo-near/releases/tag/v0.2.0
