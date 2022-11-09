@@ -290,10 +290,12 @@ jobs:
         echo "CHANGELOG_LINE=${CHANGELOG_LINE}" >> $GITHUB_ENV
 
         HASH_LINE="<details>\n<summary>Verify the SHA256 checksums of the release artifacts</summary>\n\n| File | Hash |\n| --- | --- |"
-        for file in artifacts/*/*; do
-          HASH_LINE="${HASH_LINE}\n| [\`$(basename "${file}")\`](https://github.com/near/cargo-near/releases/download/${{ env.GH_PROJECT_VERSION }}/$file) | \`$(sha256sum "${file}" | cut -d' ' -f1)\` |"
+        pushd artifacts
+        for file in */*; do
+          HASH_LINE="${HASH_LINE}\n| [\`${file}\`](https://github.com/near/cargo-near/releases/download/${{ env.GH_PROJECT_VERSION }}/$file) | \`$(sha256sum "${file}" | cut -d' ' -f1)\` |"
         done
         HASH_LINE="${HASH_LINE}\n\n</details>"
+        popd
         echo "HASH_LINE<<EOF" >> $GITHUB_ENV
         echo -e "${HASH_LINE}" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
