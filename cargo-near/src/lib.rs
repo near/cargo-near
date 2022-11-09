@@ -107,7 +107,7 @@ impl FromStr for ColorPreference {
             },
             "always" => Ok(ColorPreference::Always),
             "never" => Ok(ColorPreference::Never),
-            _ => Err(format!("invalid value: {}", s)),
+            _ => Err(format!("invalid color preference: {}", s)),
         }
     }
 }
