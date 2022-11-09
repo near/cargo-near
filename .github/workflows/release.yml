@@ -17,7 +17,7 @@ env:
   PROJECT_DIR: cargo-near
   PROJECT_INDEX_URL: https://github.com/rust-lang/crates.io-index/raw/master/ca/rg/cargo-near
   RUST_BACKTRACE: 1
-  CARGO_PROFILE: release
+  CARGO_PROFILE: slim # Use slim profile for CI builds. Check the Cargo.toml for more context.
 
 jobs:
   check:

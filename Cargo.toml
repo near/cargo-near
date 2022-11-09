@@ -3,3 +3,9 @@ members = [
     "cargo-near",
     "integration-tests",
 ]
+
+[profile.slim]
+inherits = "release"
+lto = true
+strip = true
+codegen-units = 1
