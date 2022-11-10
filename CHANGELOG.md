@@ -18,6 +18,7 @@ Highlight: We revised the overall experience of the CLI, making it more accessib
 - `cargo-near` no longer requires explicitly activating the `abi` feature for the SDK. <https://github.com/near/cargo-near/pull/85>
 - Fixed a bug where `cargo-near` exports an empty ABI file when the target directory is explicitly specified. <https://github.com/near/cargo-near/pull/75>
 - Introduced build stages with a neat report interface. <https://github.com/near/cargo-near/pull/59>, <https://github.com/near/cargo-near/pull/63>, <https://github.com/near/cargo-near/pull/69>
+- Added the `--color` flag to control the color output. <https://github.com/near/cargo-near/pull/86>
 - Ensured all forwarded `cargo` output retains colors in it's report, maintaining tooling familiarity. <https://github.com/near/cargo-near/pull/66>
 - Removed the buffering that made `cargo`'s `stdout` lag behind its `stderr`. <https://github.com/near/cargo-near/pull/65>
 - When building contracts, `cargo`'s warnings are only emitted at the build stage, and not duplicated. <https://github.com/near/cargo-near/pull/68>
