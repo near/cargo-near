@@ -14,28 +14,8 @@ fn test_abi_feature_not_enabled() -> anyhow::Result<()> {
     }
 
     assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "`near-sdk` dependency must have the `abi` feature enabled"
-    );
-
-    Ok(())
-}
-
-#[test]
-#[named]
-fn test_abi_not_a_table() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
-        generate_abi_fn_with! {
-            Cargo: "/templates/negative/_Cargo_not_a_table.toml";
-            Code:
-            pub fn foo(&self, a: u32, b: u32) {}
-        };
-        Ok(())
-    }
-
-    assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "`near-sdk` dependency must have the `abi` feature enabled"
+        run_test().map_err(|e| e.to_string()),
+        Err("`near-sdk` dependency must have the `abi` feature enabled".to_string())
     );
 
     Ok(())
@@ -54,8 +34,8 @@ fn test_abi_old_sdk() -> anyhow::Result<()> {
     }
 
     assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "unsupported `near-sdk` version. expected 4.1.* or higher"
+        run_test().map_err(|e| e.to_string()),
+        Err("unsupported `near-sdk` version. expected 4.1.* or higher".to_string())
     );
 
     Ok(())
@@ -74,8 +54,11 @@ fn test_abi_weird_version() -> anyhow::Result<()> {
     }
 
     assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed"
+        run_test().map_err(|e| e.to_string()),
+        Err(
+            "Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed"
+                .to_string()
+        )
     );
 
     Ok(())
@@ -92,8 +75,8 @@ fn test_abi_no_code() -> anyhow::Result<()> {
     }
 
     assert_eq!(
-        run_test().unwrap_err().to_string(),
-        "No NEAR ABI symbols found in the dylib"
+        run_test().map_err(|e| e.to_string()),
+        Err("No NEAR ABI symbols found in the dylib".to_string())
     );
 
     Ok(())
