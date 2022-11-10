@@ -26,5 +26,5 @@ Highlight: We revised the overall experience of the CLI, making it more accessib
 
 > Release Page: <https://github.com/near/cargo-near/releases/tag/v0.2.0>
 
-[unreleased]: https://github.com/near/cargo-near/compare/v0.3.0-ci...HEAD
+[unreleased]: https://github.com/near/cargo-near/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/near/cargo-near/releases/tag/v0.2.0
