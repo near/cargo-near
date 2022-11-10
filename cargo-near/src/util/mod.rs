@@ -1,4 +1,5 @@
 use crate::cargo::manifest::CargoManifestPath;
+use crate::ColorPreference;
 use anyhow::{Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
@@ -36,6 +37,7 @@ fn invoke_cargo<A, P, E, S, EK, EV>(
     args: A,
     working_dir: Option<P>,
     env: E,
+    color: ColorPreference,
 ) -> Result<Vec<Artifact>>
 where
     A: IntoIterator<Item = S>,
@@ -58,8 +60,11 @@ where
 
     cmd.arg(command);
     cmd.args(args);
-    // Ensure that cargo uses color output for piped stderr.
-    cmd.args(["--color", "always"]);
+
+    match color {
+        ColorPreference::Always => cmd.args(["--color", "always"]),
+        ColorPreference::Never => cmd.args(["--color", "never"]),
+    };
 
     log::info!("Invoking cargo: {:?}", cmd);
 
@@ -161,6 +166,7 @@ pub(crate) fn compile_project(
     mut env: Vec<(&str, &str)>,
     artifact_extension: &str,
     hide_warnings: bool,
+    color: ColorPreference,
 ) -> anyhow::Result<CompilationArtifact> {
     let mut final_env = BTreeMap::new();
 
@@ -190,6 +196,7 @@ pub(crate) fn compile_project(
         [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
         final_env.iter(),
+        color,
     )?;
 
     // We find the last compiler artifact message which should contain information about the

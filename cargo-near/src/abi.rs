@@ -1,5 +1,5 @@
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{util, AbiCommand};
+use crate::{util, AbiCommand, ColorPreference};
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::AbiRoot;
@@ -28,6 +28,7 @@ pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
     generate_docs: bool,
     hide_warnings: bool,
+    color: ColorPreference,
 ) -> anyhow::Result<AbiRoot> {
     let root_node = crate_metadata
         .raw_metadata
@@ -89,6 +90,7 @@ pub(crate) fn generate_abi(
         ],
         util::dylib_extension(),
         hide_warnings,
+        color,
     )?;
 
     let mut contract_abi = util::handle_step("Extracting ABI...", || {
@@ -173,6 +175,8 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
+    args.color.apply();
+
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
         CrateMetadata::collect(CargoManifestPath::try_from(
             args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
@@ -190,7 +194,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.doc, false)?;
+    let contract_abi = generate_abi(&crate_metadata, args.doc, false, args.color)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
