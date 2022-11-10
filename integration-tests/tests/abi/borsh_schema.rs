@@ -285,13 +285,19 @@ fn test_borsh_schema_arrays() -> anyhow::Result<()> {
 #[named]
 fn test_borsh_schema_struct() -> anyhow::Result<()> {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize, BorshSchema};
-        use near_sdk::near_bindgen;
+        // fixme! remove after borsh fixes trait qualification
+        // fixme! https://github.com/near/borsh-rs/issues/112
+        use near_sdk::borsh::BorshSchema;
 
-        #[derive(BorshSchema, BorshSerialize, BorshDeserialize)]
+        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::{near_bindgen, NearSchema};
+
+        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
+        #[abi(borsh)]
         pub struct Pair(u32, u32);
 
-        #[derive(BorshSchema, BorshSerialize, BorshDeserialize)]
+        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
+        #[abi(borsh)]
         pub struct PairNamed {
             first: u32,
             second: u32
@@ -342,16 +348,22 @@ fn test_borsh_schema_struct() -> anyhow::Result<()> {
 #[named]
 fn test_borsh_schema_enum() -> anyhow::Result<()> {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize, BorshSchema};
-        use near_sdk::near_bindgen;
+        // fixme! remove after borsh fixes trait qualification
+        // fixme! https://github.com/near/borsh-rs/issues/112
+        use near_sdk::borsh::BorshSchema;
 
-        #[derive(BorshSchema, BorshSerialize, BorshDeserialize)]
+        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::{near_bindgen, NearSchema};
+
+        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
+        #[abi(borsh)]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(BorshSchema, BorshSerialize, BorshDeserialize)]
+        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
+        #[abi(borsh)]
         pub enum IpAddr {
             V4(u8, u8, u8, u8),
             V6(String),
@@ -438,16 +450,22 @@ fn test_borsh_schema_enum() -> anyhow::Result<()> {
 #[named]
 fn test_borsh_schema_complex() -> anyhow::Result<()> {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize, BorshSchema};
-        use near_sdk::near_bindgen;
+        // fixme! remove after borsh fixes trait qualification
+        // fixme! https://github.com/near/borsh-rs/issues/112
+        use near_sdk::borsh::BorshSchema;
 
-        #[derive(BorshSchema, BorshSerialize, BorshDeserialize)]
+        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::{near_bindgen, NearSchema};
+
+        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
+        #[abi(borsh)]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(BorshSchema, BorshSerialize, BorshDeserialize)]
+        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
+        #[abi(borsh)]
         pub struct IpAddr {
             kind: IpAddrKind,
             address: String,
