@@ -386,15 +386,16 @@ fn test_schema_arrays() -> anyhow::Result<()> {
 #[named]
 fn test_schema_struct() -> anyhow::Result<()> {
     let abi_root = generate_abi! {
-        use near_sdk::__private::schemars::JsonSchema;
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-        use near_sdk::near_bindgen;
+        use near_sdk::{near_bindgen, NearSchema};
         use near_sdk::serde::{Deserialize, Serialize};
 
-        #[derive(JsonSchema, Serialize, Deserialize)]
+        #[derive(NearSchema, Serialize, Deserialize)]
+        #[abi(json)]
         pub struct Pair(u32, u32);
 
-        #[derive(JsonSchema, Serialize, Deserialize)]
+        #[derive(NearSchema, Serialize, Deserialize)]
+        #[abi(json)]
         pub struct PairNamed {
             first: u32,
             second: u32
@@ -490,18 +491,19 @@ fn test_schema_struct() -> anyhow::Result<()> {
 #[named]
 fn test_schema_enum() -> anyhow::Result<()> {
     let abi_root = generate_abi! {
-        use near_sdk::__private::schemars::JsonSchema;
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-        use near_sdk::near_bindgen;
+        use near_sdk::{near_bindgen, NearSchema};
         use near_sdk::serde::{Deserialize, Serialize};
 
-        #[derive(JsonSchema, Serialize, Deserialize)]
+        #[derive(NearSchema, Serialize, Deserialize)]
+        #[abi(json)]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(JsonSchema, Serialize, Deserialize)]
+        #[derive(NearSchema, Serialize, Deserialize)]
+        #[abi(json)]
         pub enum IpAddr {
             V4(u8, u8, u8, u8),
             V6(String),
@@ -621,18 +623,19 @@ fn test_schema_enum() -> anyhow::Result<()> {
 #[named]
 fn test_schema_complex() -> anyhow::Result<()> {
     let abi_root = generate_abi! {
-        use near_sdk::__private::schemars::JsonSchema;
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-        use near_sdk::near_bindgen;
+        use near_sdk::{near_bindgen, NearSchema};
         use near_sdk::serde::{Deserialize, Serialize};
 
-        #[derive(JsonSchema, Serialize, Deserialize)]
+        #[derive(NearSchema, Serialize, Deserialize)]
+        #[abi(json)]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(JsonSchema, Serialize, Deserialize)]
+        #[derive(NearSchema, Serialize, Deserialize)]
+        #[abi(json)]
         pub struct IpAddr {
             kind: IpAddrKind,
             address: String,

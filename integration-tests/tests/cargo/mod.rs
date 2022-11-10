@@ -62,6 +62,23 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
 
 #[test]
 #[named]
+fn test_dependency_default_features() -> anyhow::Result<()> {
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/_Cargo.toml";
+        Code:
+        pub fn foo(&self, a: bool, b: u32) {}
+    };
+
+    assert_eq!(abi_root.body.functions.len(), 1);
+    let function = &abi_root.body.functions[0];
+    let params = function.params.json_schemas()?;
+    assert_eq!(params.len(), 2);
+
+    Ok(())
+}
+
+#[test]
+#[named]
 fn test_dependency_explicit() -> anyhow::Result<()> {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_explicit.toml";
@@ -157,8 +174,6 @@ fn test_dependency_renamed() -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: add support for patch section
-#[ignore]
 #[test]
 #[named]
 fn test_dependency_patch() -> anyhow::Result<()> {
@@ -166,7 +181,7 @@ fn test_dependency_patch() -> anyhow::Result<()> {
     // near-sdk = "4.0.0"
     //
     // [patch.crates-io]
-    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "91a44a621732e92723dfb58c377bb2135959ad8f" }
+    // near-sdk = { git = "https://github.com/near/near-sdk-rs.git", rev = "10b0dea3b1a214d789cc90314aa814a4181610ad" }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_patch.toml";
         Code:

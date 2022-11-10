@@ -7,11 +7,9 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+near-sdk = { features = ["abi"], ::sdk-version-toml:: }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
-
-[dependencies.near-sdk]
-::sdk-version-toml-table::
 
 [workspace]
 members = []
