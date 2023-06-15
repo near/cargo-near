@@ -3,8 +3,8 @@ use std::{env, str::FromStr};
 use camino::Utf8PathBuf;
 use clap::{AppSettings, Args, Parser, Subcommand};
 
-mod abi;
-mod build;
+pub mod abi;
+pub mod build;
 mod cargo;
 mod util;
 

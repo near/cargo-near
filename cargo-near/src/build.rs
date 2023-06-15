@@ -8,7 +8,7 @@ use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
+pub fn run(args: BuildCommand) -> anyhow::Result<()> {
     args.color.apply();
 
     util::handle_step("Checking the host environment...", || {
