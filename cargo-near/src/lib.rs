@@ -6,7 +6,7 @@ use clap::{AppSettings, Args, Parser, Subcommand};
 pub mod abi;
 pub mod build;
 mod cargo;
-mod util;
+pub mod util;
 
 #[derive(Debug, Parser)]
 #[clap(bin_name = "cargo", version, about)]
