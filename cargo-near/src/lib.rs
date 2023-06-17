@@ -131,6 +131,6 @@ impl ColorPreference {
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
     match cmd {
         NearCommand::Abi(args) => abi::run(args),
-        NearCommand::Build(args) => build::run(args),
+        NearCommand::Build(args) => build::run(args).map(|_| ()),
     }
 }
