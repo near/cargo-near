@@ -10,7 +10,7 @@ use crate::util::AsJsonSchema;
 fn clone_git_repo() -> anyhow::Result<TempDir> {
     let temp_dir = tempfile::tempdir()?;
     let repo_dir = temp_dir.path();
-    let repo = Repository::clone("https://github.com/near/near-sdk-rs", &repo_dir)?;
+    let repo = Repository::clone("https://github.com/near/near-sdk-rs", repo_dir)?;
     let commit = repo.revparse_single(SDK_GIT_REV)?;
     repo.checkout_tree(&commit, Some(&mut CheckoutBuilder::new()))?;
 

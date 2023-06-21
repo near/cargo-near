@@ -13,7 +13,7 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
     args.color.apply();
 
     util::handle_step("Checking the host environment...", || {
-        if !util::invoke_rustup(&["target", "list", "--installed"])?
+        if !util::invoke_rustup(["target", "list", "--installed"])?
             .lines()
             .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
         {
