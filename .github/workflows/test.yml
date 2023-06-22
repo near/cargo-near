@@ -26,7 +26,8 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.69.0
+          toolchain: ${{ env.RUST_MSRV }}
+          default: true
 
       - name: Cargo check
         run: cargo check -p cargo-near
