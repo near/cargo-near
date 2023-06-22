@@ -43,6 +43,15 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@v2
 
+      # Remove this whole block once nearcore supports Rust 1.70.0+
+      # https://github.com/near/nearcore/issues/9143
+      - name: "Install 1.69.0 toolchain"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.69.0
+          default: true
+
       - name: Install `wasm32-unknown-unknown`
         run: rustup target add wasm32-unknown-unknown
 
