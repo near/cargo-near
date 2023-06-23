@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2023-06-23
+
+- Exposed `build` and `abi` modules to make them reusable when cargo-near is used as a crate. <https://github.com/near/cargo-near/pull/97>
+
 ## [0.3.0] - 2022-11-10
 
 Highlight: We revised the overall experience of the CLI, making it more accessible, robust, and easier to understand.
