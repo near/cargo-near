@@ -240,7 +240,7 @@ pub(crate) fn compile_project(
 
 /// Create the directory if it doesn't exist, and return the absolute path to it.
 pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
-    fs::create_dir_all(&dir).with_context(|| format!("failed to create directory `{}`", dir))?;
+    fs::create_dir_all(dir).with_context(|| format!("failed to create directory `{}`", dir))?;
     dir.canonicalize_utf8()
         .with_context(|| format!("failed to access output directory `{}`", dir))
 }
@@ -251,7 +251,7 @@ pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> anyhow::Result<Utf8PathB
 pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
     let out_path = to.join(from.file_name().unwrap());
     if from != out_path {
-        fs::copy(&from, &out_path)
+        fs::copy(from, &out_path)
             .with_context(|| format!("failed to copy `{}` to `{}`", from, out_path))?;
     }
     Ok(out_path)
@@ -260,7 +260,7 @@ pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> anyhow::Result<Utf8PathBuf
 pub(crate) fn extract_abi_entries(
     dylib_path: &Utf8Path,
 ) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
-    let dylib_file_contents = fs::read(&dylib_path)?;
+    let dylib_file_contents = fs::read(dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
     log::debug!(
         "A dylib was built at {:?} with format {} for architecture {}",
