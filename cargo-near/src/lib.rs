@@ -3,10 +3,10 @@ use std::{env, str::FromStr};
 use camino::Utf8PathBuf;
 use clap::{AppSettings, Args, Parser, Subcommand};
 
-mod abi;
-mod build;
+pub mod abi;
+pub mod build;
 mod cargo;
-mod util;
+pub mod util;
 
 #[derive(Debug, Parser)]
 #[clap(bin_name = "cargo", version, about)]
@@ -131,6 +131,6 @@ impl ColorPreference {
 pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
     match cmd {
         NearCommand::Abi(args) => abi::run(args),
-        NearCommand::Build(args) => build::run(args),
+        NearCommand::Build(args) => build::run(args).map(|_| ()),
     }
 }

@@ -1,5 +1,6 @@
 use crate::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util::CompilationArtifact;
 use crate::{abi, util, BuildCommand};
 use colored::Colorize;
 use near_abi::BuildInfo;
@@ -8,7 +9,7 @@ use std::io::BufRead;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
+pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
     args.color.apply();
 
     util::handle_step("Checking the host environment...", || {
@@ -106,5 +107,5 @@ pub(crate) fn run(args: BuildCommand) -> anyhow::Result<()> {
         eprintln!("     - {:>width$}: {}", header, message, width = max_width);
     }
 
-    Ok(())
+    Ok(wasm_artifact)
 }
