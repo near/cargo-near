@@ -188,7 +188,7 @@ macro_rules! build_fn_with {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
             use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-            use near_sdk::{near_bindgen, NearSchema};
+            use near_sdk::near_bindgen;
 
             #[near_bindgen]
             #[derive(Default, BorshDeserialize, BorshSerialize)]

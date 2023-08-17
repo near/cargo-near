@@ -42,6 +42,7 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
 
     let mut abi = None;
     let mut min_abi_path = None;
+    dbg!(args.no_abi);
     if !args.no_abi {
         let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true, args.color)?;
         contract_abi.metadata.build = Some(BuildInfo {
@@ -49,6 +50,8 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
             builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
             image: None,
         });
+
+        dbg!(args.embed_abi);
         if args.embed_abi {
             let path = util::handle_step("Compressing ABI to be embedded..", || {
                 let AbiResult { path } = abi::write_to_file(

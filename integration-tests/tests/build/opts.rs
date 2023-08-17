@@ -94,7 +94,7 @@ async fn test_build_opt_doc_embed() -> anyhow::Result<()> {
             a + b
         }
     };
-
+    dbg!(&build_result.abi_compressed.unwrap());
     let mut abi_root = build_result.abi_root.unwrap();
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
@@ -127,7 +127,7 @@ fn test_build_opt_no_abi_doc() -> anyhow::Result<()> {
     assert!(run_test()
         .unwrap_err()
         .to_string()
-        .contains("The argument '--no-abi' cannot be used with '--doc'"));
+        .contains("the argument '--no-abi' cannot be used with '--doc'"));
 
     Ok(())
 }
@@ -149,7 +149,7 @@ fn test_build_opt_no_abi_embed() -> anyhow::Result<()> {
     assert!(run_test()
         .unwrap_err()
         .to_string()
-        .contains("The argument '--no-abi' cannot be used with '--embed-abi'"));
+        .contains("the argument '--no-abi' cannot be used with '--embed-abi'"));
 
     Ok(())
 }
