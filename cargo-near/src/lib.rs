@@ -7,6 +7,8 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 pub mod abi;
 pub mod build;
 mod cargo;
+pub mod deploy;
+pub mod new;
 pub mod util;
 
 #[derive(Debug, Parser)]
@@ -30,10 +32,61 @@ pub enum NearCommand {
     /// Generates ABI for the contract
     #[clap(name = "abi")]
     Abi(AbiCommand),
+    // Deploy a NEAR contract
+    #[clap(name = "deploy")]
+    Deploy(DeployCommand),
+    // Create a new NEAR contract
+    #[clap(name = "new")]
+    New(NewCommand),
+}
+#[derive(Debug, clap::Args)]
+pub struct DeployCommand {
+    /// Include rustdocs in the ABI file
+    // #[clap(long)]
+    // pub account_id: String,
+    /// Generate compact (minified) JSON
+    // #[clap(long)]
+    // pub compact_abi: bool,
+    ///  Path of the contract to deploy
+    #[clap(
+        long,
+        value_name = "PATH",
+        default_value = "contract/target/near/hello_near.wasm"
+    )]
+    pub path: Utf8PathBuf,
+    // /// Path to the `Cargo.toml` of the contract to build
+    // #[clap(long, value_name = "PATH")]
+    // pub manifest_path: Option<Utf8PathBuf>,
+    #[clap(default_value = "testnet")]
+    #[arg(value_enum)]
+    pub network: Network,
+    #[clap(long, value_name = "WHEN")]
+    #[clap(default_value = "auto")]
+    #[clap(hide_default_value = true, hide_possible_values = true)]
+    #[arg(value_enum)]
+    pub color: ColorPreference,
+}
+#[derive(Debug, clap::Args)]
+pub struct NewCommand {
+    #[clap(long, value_name = "PROJECT_NAME")]
+    #[clap(default_value = "example_contract")]
+    project_dir: Utf8PathBuf,
+    #[clap(long, value_name = "WHEN")]
+    #[clap(default_value = "auto")]
+    #[clap(hide_default_value = true, hide_possible_values = true)]
+    #[arg(value_enum)]
+    pub color: ColorPreference,
+}
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+pub enum Network {
+    Testnet,
+    // Betanet,
+    Mainnet,
+    // Localnet,
 }
 
 #[derive(Debug, clap::Args)]
-// #[clap(setting = AppSettings::DeriveDisplayOrder)]
 pub struct AbiCommand {
     /// Include rustdocs in the ABI file
     #[clap(long)]
@@ -51,7 +104,6 @@ pub struct AbiCommand {
     #[clap(long, value_name = "WHEN")]
     #[clap(default_value = "auto")]
     #[clap(hide_default_value = true, hide_possible_values = true)]
-    // #[clap(parse(try_from_str = ColorPreference::from_str))]
     #[arg(value_enum)]
     pub color: ColorPreference,
 }
@@ -97,7 +149,7 @@ impl FromStr for ColorPreference {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "auto" => Ok(default_mode()),
+            "auto" => Ok(get_default_color_preference()),
             "always" => Ok(ColorPreference::Always),
             "never" => Ok(ColorPreference::Never),
             _ => Err(format!("invalid color preference: {}", s)),
@@ -105,7 +157,7 @@ impl FromStr for ColorPreference {
     }
 }
 
-fn default_mode() -> ColorPreference {
+fn get_default_color_preference() -> ColorPreference {
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => ColorPreference::Never,
         _ => {
@@ -130,7 +182,7 @@ impl ColorPreference {
     pub fn apply(&self) {
         match self {
             ColorPreference::Auto => {
-                default_mode().apply();
+                get_default_color_preference().apply();
             }
             ColorPreference::Always => colored::control::set_override(true),
             ColorPreference::Never => colored::control::set_override(false),
@@ -142,5 +194,7 @@ pub fn exec(cmd: NearCommand) -> anyhow::Result<()> {
     match cmd {
         NearCommand::Abi(args) => abi::run(args),
         NearCommand::Build(args) => build::run(args).map(|_| ()),
+        NearCommand::Deploy(args) => deploy::run(args),
+        NearCommand::New(args) => new::run(args),
     }
 }

@@ -21,3 +21,7 @@ pub(crate) fn print_step(msg: &str) {
 pub(crate) fn print_success(msg: &str) {
     eprintln!(" {} {}", "✓".bold().green(), msg);
 }
+
+pub(crate) fn print_error(msg: &str) {
+    eprintln!(" {} {}", "✗".bold().red(), msg);
+}

@@ -21,7 +21,6 @@ pub async fn test_add(wasm: &[u8]) -> anyhow::Result<()> {
 pub async fn fetch_contract_abi(wasm: &[u8]) -> anyhow::Result<AbiRoot> {
     let worker = workspaces::sandbox().await?;
     let contract = worker.dev_deploy(wasm).await?;
-    dbg!(contract.as_account());
     let outcome = contract.call("__contract_abi").view().await?;
     let outcome_json = zstd::decode_all(outcome.result.as_slice())?;
     Ok(serde_json::from_slice::<AbiRoot>(&outcome_json)?)

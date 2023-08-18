@@ -6,7 +6,7 @@ use cargo_metadata::{Artifact, Message};
 use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::process::Command;
 use std::{env, thread};
 
@@ -309,4 +309,10 @@ pub(crate) fn extract_abi_entries(
         }
     }
     Ok(entries)
+}
+
+pub(crate) fn write_file(file_path: &Utf8Path, contents: &[u8]) -> anyhow::Result<()> {
+    let mut file = fs::File::create(file_path)?;
+    file.write_all(contents)?;
+    Ok(())
 }

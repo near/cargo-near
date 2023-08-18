@@ -31,6 +31,13 @@ sha2 = "0.10"
 symbolic-debuginfo = "12.3.0"
 schemars = "0.8"
 near-abi = { version = "0.3.0", features = ["__chunked-entries"] }
+near-sdk = { version = "*" }
+near-cli-rs = { version = "0.5.1", default-features = false }
+near-crypto = "0.17.0"
+near-primitives = "0.17.0"
+near-jsonrpc-client = "0.6.0"
+near-jsonrpc-primitives = "0.17.0"
+color-eyre = "0.6"
 libloading = "0.8.0"
 zstd = "0.12.4"
 atty = "0.2.14"

@@ -94,7 +94,6 @@ async fn test_build_opt_doc_embed() -> anyhow::Result<()> {
             a + b
         }
     };
-    dbg!(&build_result.abi_compressed.unwrap());
     let mut abi_root = build_result.abi_root.unwrap();
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
