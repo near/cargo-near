@@ -1,4 +1,5 @@
-use camino::{Utf8Path, Utf8PathBuf};
+use near_cli_rs::types::path_buf::PathBuf;
+use std::path::Path;
 
 const MANIFEST_FILE_NAME: &str = "Cargo.toml";
 
@@ -6,37 +7,30 @@ const MANIFEST_FILE_NAME: &str = "Cargo.toml";
 #[derive(Clone, Debug)]
 pub struct CargoManifestPath {
     /// Absolute path to the manifest file
-    pub path: Utf8PathBuf,
+    pub path: PathBuf,
 }
 
 impl CargoManifestPath {
     /// The directory path of the manifest path, if there is one.
-    pub fn directory(&self) -> anyhow::Result<&Utf8Path> {
-        self.path.parent().ok_or_else(|| {
+    pub fn directory(&self) -> anyhow::Result<&Path> {
+        self.path.0.parent().ok_or_else(|| {
             anyhow::anyhow!("Unable to infer the directory containing Cargo.toml file")
         })
     }
 }
 
-impl TryFrom<Utf8PathBuf> for CargoManifestPath {
+impl TryFrom<PathBuf> for CargoManifestPath {
     type Error = anyhow::Error;
 
-    fn try_from(manifest_path: Utf8PathBuf) -> Result<Self, Self::Error> {
-        if let Some(file_name) = manifest_path.file_name() {
+    fn try_from(manifest_path: PathBuf) -> Result<Self, Self::Error> {
+        if let Some(file_name) = manifest_path.0.clone().file_name() {
             if file_name != MANIFEST_FILE_NAME {
                 anyhow::bail!("the manifest-path must be a path to a Cargo.toml file")
             }
         }
-        let canonical_manifest_path = manifest_path.canonicalize_utf8().map_err(|err| match err
-            .kind()
-        {
-            std::io::ErrorKind::NotFound => {
-                anyhow::anyhow!("manifest path `{}` does not exist", manifest_path)
-            }
-            _ => err.into(),
-        })?;
+
         Ok(CargoManifestPath {
-            path: canonical_manifest_path,
+            path: manifest_path,
         })
     }
 }

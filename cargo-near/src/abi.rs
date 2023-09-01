@@ -3,13 +3,14 @@ use crate::{util, AbiCommand, ColorPreference};
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::AbiRoot;
+use near_cli_rs::types::path_buf::PathBuf;
 use std::collections::HashMap;
 use std::fs;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
     /// Path to the resulting ABI file.
-    pub path: Utf8PathBuf,
+    pub path: camino::Utf8PathBuf,
 }
 
 #[derive(Clone, Debug)]
@@ -94,7 +95,7 @@ pub(crate) fn generate_abi(
     )?;
 
     let mut contract_abi = util::handle_step("Extracting ABI...", || {
-        let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
+        let abi_entries = util::extract_abi_entries(&dylib_artifact.path.as_std_path())?;
         anyhow::Ok(
             near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
                 .into_abi_root(extract_metadata(crate_metadata)),
@@ -135,7 +136,10 @@ pub(crate) fn write_to_file(
     ));
     fs::write(&out_path_abi, near_abi_compressed)?;
 
-    Ok(AbiResult { path: out_path_abi })
+    Ok(AbiResult {
+        // path: PathBuf(std::path::PathBuf::from(out_path_abi.to_string())),
+        path: out_path_abi,
+    })
 }
 
 fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
@@ -178,15 +182,13 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     args.color.apply();
 
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
-        CrateMetadata::collect(CargoManifestPath::try_from(
-            args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
-        )?)
+        CrateMetadata::collect(CargoManifestPath::try_from(args.manifest_path.unwrap())?)
     })?;
 
     let out_dir = args
         .out_dir
         .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
-            util::force_canonicalize_dir(&out_dir)
+            util::force_canonicalize_dir(&Utf8PathBuf::from_path_buf(out_dir.0).unwrap())
         })?;
 
     let format = if args.compact_abi {
@@ -198,7 +200,10 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
-    let abi_path = util::copy(&path, &out_dir)?;
+    let abi_path = util::copy(
+        &path, // &path.0.to_str().map(|s| Utf8PathBuf::from(s)).unwrap(),
+        &out_dir,
+    )?;
 
     util::print_success("ABI Successfully Generated!");
     eprintln!("     - ABI: {}", abi_path.to_string().yellow().bold());

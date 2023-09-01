@@ -1,14 +1,14 @@
 use crate::cargo::manifest::CargoManifestPath;
 use crate::util;
 use anyhow::{Context, Result};
-use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
+use near_cli_rs::types::path_buf::PathBuf;
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
 pub(crate) struct CrateMetadata {
     pub root_package: Package,
-    pub target_directory: Utf8PathBuf,
+    pub target_directory: camino::Utf8PathBuf,
     pub manifest_path: CargoManifestPath,
     pub raw_metadata: cargo_metadata::Metadata,
 }
@@ -51,7 +51,7 @@ fn get_cargo_metadata(
     log::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
     let metadata = cmd
-        .manifest_path(&manifest_path.path)
+        .manifest_path(&manifest_path.path.0)
         .exec()
         .context("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
     let root_package = metadata

@@ -1,4 +1,4 @@
-use cargo_near::Opts;
+use cargo_near::Cmd;
 use clap::Parser;
 use colored::Colorize;
 use std::env;
@@ -11,7 +11,7 @@ fn main() {
         _ => colored::control::set_override(atty::is(atty::Stream::Stderr)),
     }
 
-    let Opts::Near(args) = Opts::parse();
+    let Opts::Near(args) = Cmd::try_parse();
     match cargo_near::exec(args.cmd) {
         Ok(()) => {}
         Err(err) => {

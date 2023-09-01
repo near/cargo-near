@@ -2,8 +2,10 @@ use crate::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util::CompilationArtifact;
 use crate::{abi, util, BuildCommand};
+use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use near_abi::BuildInfo;
+use near_cli_rs::types::path_buf::PathBuf;
 use sha2::{Digest, Sha256};
 use std::io::BufRead;
 
@@ -23,15 +25,13 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
     })?;
 
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
-        CrateMetadata::collect(CargoManifestPath::try_from(
-            args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
-        )?)
+        CrateMetadata::collect(CargoManifestPath::try_from(args.manifest_path.unwrap())?)
     })?;
 
     let out_dir = args
         .out_dir
         .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
-            util::force_canonicalize_dir(&out_dir)
+            util::force_canonicalize_dir(Utf8Path::from_path(&out_dir.0).unwrap())
         })?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
@@ -62,14 +62,17 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
                 )?;
                 anyhow::Ok(path)
             })?;
-            min_abi_path.replace(util::copy(&path, &out_dir)?);
+            min_abi_path.replace(util::copy(
+                &path, // &path.0.to_str().map(|s| Utf8PathBuf::from(s)).unwrap(),
+                &out_dir,
+            )?);
         }
         abi = Some(contract_abi);
     }
 
     if let (true, Some(abi_path)) = (args.embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
-        build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
+        build_env.push(("CARGO_NEAR_ABI_PATH", &abi_path.into_string()));
     }
     util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(

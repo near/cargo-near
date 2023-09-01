@@ -44,8 +44,8 @@ macro_rules! invoke_cargo_near {
 
         let cargo_near::Opts::Near(mut args) = clap::Parser::try_parse_from($cli_opts.split(" "))?;
         match &mut args.cmd {
-            cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = Some(cargo_path),
-            cargo_near::NearCommand::Build(cmd) => cmd.manifest_path = Some(cargo_path),
+            cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = cargo_near::UTF8PathBuf(Some(cargo_path)),
+            cargo_near::NearCommand::Build(cmd) => cmd.manifest_path = cargo_near::UTF8PathBuf(Some(cargo_path)),
         }
         cargo_near::exec(args.cmd)?;
 
@@ -58,6 +58,7 @@ macro_rules! generate_abi_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         let opts = "cargo near abi";
         $(let opts = format!("cargo near abi {}", $cli_opts);)?;
+        println!("opts: {}", opts);
         let result_dir = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: opts;

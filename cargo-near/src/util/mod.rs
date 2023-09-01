@@ -3,10 +3,12 @@ use crate::ColorPreference;
 use anyhow::{Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
+use near_cli_rs::types::path_buf::PathBuf;
 use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
+use std::path::Path;
 use std::process::Command;
 use std::{env, thread};
 
@@ -41,7 +43,7 @@ fn invoke_cargo<A, P, E, S, EK, EV>(
 ) -> Result<Vec<Artifact>>
 where
     A: IntoIterator<Item = S>,
-    P: AsRef<Utf8Path>,
+    P: AsRef<Path>,
     E: IntoIterator<Item = (EK, EV)>,
     S: AsRef<OsStr>,
     EK: AsRef<OsStr>,
@@ -54,7 +56,7 @@ where
 
     if let Some(path) = working_dir {
         let path = path.as_ref();
-        log::debug!("Setting cargo working dir to '{}'", path);
+        log::debug!("Setting cargo working dir to '{}'", path.to_string_lossy());
         cmd.current_dir(path);
     }
 
@@ -259,7 +261,7 @@ pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> anyhow::Result<Utf8PathBuf
 }
 
 pub(crate) fn extract_abi_entries(
-    dylib_path: &Utf8Path,
+    dylib_path: &Path,
 ) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
     let dylib_file_contents = fs::read(dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
