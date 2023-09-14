@@ -62,6 +62,7 @@ where
     cmd.args(args);
 
     match color {
+        ColorPreference::Auto => cmd.args(["--color", "auto"]),
         ColorPreference::Always => cmd.args(["--color", "always"]),
         ColorPreference::Never => cmd.args(["--color", "never"]),
     };

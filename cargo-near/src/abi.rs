@@ -175,17 +175,22 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
-    args.color.apply();
+    let color = args.color.unwrap_or_else(|| ColorPreference::Auto);
+    color.apply();
 
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
-        CrateMetadata::collect(CargoManifestPath::try_from(
-            args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
-        )?)
+        let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
+            manifest_path.into()
+        } else {
+            "Cargo.toml".into()
+        };
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
     })?;
 
     let out_dir = args
         .out_dir
         .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
+            let out_dir = Utf8PathBuf::from(out_dir);
             util::force_canonicalize_dir(&out_dir)
         })?;
 
@@ -194,7 +199,7 @@ pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.doc, false, args.color)?;
+    let contract_abi = generate_abi(&crate_metadata, args.doc, false, color)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
