@@ -3,7 +3,7 @@ name = "cargo-near"
 version = "0.3.1"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition = "2021"
-rust-version = "1.60.0"
+rust-version = "1.70.0"
 description = "Cargo extension for building Rust smart contracts on NEAR"
 readme = "README.md"
 repository = "https://github.com/near/cargo-near"
@@ -16,7 +16,7 @@ anyhow = "1.0"
 bs58 = "0.4"
 camino = "1.1.1"
 cargo_metadata = "0.14"
-clap = { version = "3.2", features = ["derive", "env"] }
+clap = { version = "4.0.18", features = ["derive", "env"] }
 colored = "2.0"
 env_logger = "0.9"
 log = "0.4"
@@ -29,3 +29,13 @@ near-abi = { version = "0.3.0", features = ["__chunked-entries"] }
 libloading = "0.7.3"
 zstd = "0.11"
 atty = "0.2.14"
+
+color-eyre = "0.6"
+inquire = "0.6"
+strum = { version = "0.24", features = ["derive"] }
+strum_macros = "0.24"
+interactive-clap = "0.2.4"
+interactive-clap-derive = "0.2.4"
+near-cli-rs = { version = "0.5.2" }
+derive_more = "0.99.9"
+shell-words = "1.0.0"
