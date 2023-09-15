@@ -1,10 +1,13 @@
-use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::{util, AbiCommand, ColorPreference};
+use std::collections::HashMap;
+use std::fs;
+
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::AbiRoot;
-use std::collections::HashMap;
-use std::fs;
+
+use crate::common::ColorPreference;
+use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
@@ -174,7 +177,7 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
     }
 }
 
-pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
+pub(crate) fn run(args: super::AbiCommand) -> anyhow::Result<()> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 

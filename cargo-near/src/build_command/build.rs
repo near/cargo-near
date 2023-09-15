@@ -4,14 +4,15 @@ use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
 use std::io::BufRead;
 
-use crate::abi::{AbiCompression, AbiFormat, AbiResult};
-use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::util::CompilationArtifact;
-use crate::{abi, util, BuildCommand, ColorPreference};
+use crate::abi_command::abi;
+use crate::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
+use crate::common::ColorPreference;
+use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
+pub fn run(args: super::BuildCommand) -> anyhow::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 

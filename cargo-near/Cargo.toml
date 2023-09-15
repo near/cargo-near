@@ -34,8 +34,8 @@ color-eyre = "0.6"
 inquire = "0.6"
 strum = { version = "0.24", features = ["derive"] }
 strum_macros = "0.24"
-interactive-clap = "0.2.4"
-interactive-clap-derive = "0.2.4"
+interactive-clap = {git = "https://github.com/near-cli-rs/interactive-clap"}
+interactive-clap-derive = {git = "https://github.com/near-cli-rs/interactive-clap"}
 near-cli-rs = { version = "0.5.2" }
 derive_more = "0.99.9"
 shell-words = "1.0.0"

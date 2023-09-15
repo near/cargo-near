@@ -1,14 +1,16 @@
-use crate::cargo::manifest::CargoManifestPath;
-use crate::ColorPreference;
-use anyhow::{Context, Result};
-use camino::{Utf8Path, Utf8PathBuf};
-use cargo_metadata::{Artifact, Message};
 use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::process::Command;
 use std::{env, thread};
+
+use anyhow::{Context, Result};
+use camino::{Utf8Path, Utf8PathBuf};
+use cargo_metadata::{Artifact, Message};
+
+use crate::common::ColorPreference;
+use crate::types::manifest::CargoManifestPath;
 
 mod print;
 pub(crate) use print::*;

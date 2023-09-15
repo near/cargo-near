@@ -1,4 +1,4 @@
-use crate::cargo::manifest::CargoManifestPath;
+use crate::types::manifest::CargoManifestPath;
 use crate::util;
 use anyhow::{Context, Result};
 use camino::Utf8PathBuf;
