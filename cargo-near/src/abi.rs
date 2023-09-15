@@ -175,7 +175,7 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
 }
 
 pub(crate) fn run(args: AbiCommand) -> anyhow::Result<()> {
-    let color = args.color.unwrap_or_else(|| ColorPreference::Auto);
+    let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {

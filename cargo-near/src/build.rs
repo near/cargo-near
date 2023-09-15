@@ -1,16 +1,19 @@
-use crate::abi::{AbiCompression, AbiFormat, AbiResult};
-use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::util::CompilationArtifact;
-use crate::{abi, util, BuildCommand};
+use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
 use std::io::BufRead;
 
+use crate::abi::{AbiCompression, AbiFormat, AbiResult};
+use crate::cargo::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::util::CompilationArtifact;
+use crate::{abi, util, BuildCommand, ColorPreference};
+
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
-    args.color.apply();
+    let color = args.color.unwrap_or(ColorPreference::Auto);
+    color.apply();
 
     util::handle_step("Checking the host environment...", || {
         if !util::invoke_rustup(["target", "list", "--installed"])?
@@ -23,14 +26,18 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
     })?;
 
     let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
-        CrateMetadata::collect(CargoManifestPath::try_from(
-            args.manifest_path.unwrap_or_else(|| "Cargo.toml".into()),
-        )?)
+        let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
+            manifest_path.into()
+        } else {
+            "Cargo.toml".into()
+        };
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
     })?;
 
     let out_dir = args
         .out_dir
         .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
+            let out_dir = Utf8PathBuf::from(out_dir);
             util::force_canonicalize_dir(&out_dir)
         })?;
 
@@ -43,7 +50,7 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
     let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true, args.color)?;
+        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true, color.clone())?;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
             builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
@@ -75,7 +82,7 @@ pub fn run(args: BuildCommand) -> anyhow::Result<CompilationArtifact> {
         build_env,
         "wasm",
         false,
-        args.color,
+        color,
     )?;
 
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;

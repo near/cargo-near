@@ -1,12 +1,7 @@
-// use cargo_near::Opts;
-use camino::Utf8PathBuf;
-use clap::Parser;
-use colored::Colorize;
-use inquire::{CustomType, Select, Text};
 use interactive_clap::ToCliArgs;
 pub use near_cli_rs::CliResult;
 use std::env;
-use strum::{EnumDiscriminants, EnumIter, EnumMessage, IntoEnumIterator};
+use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
@@ -57,7 +52,7 @@ fn main() -> CliResult {
             | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
                 eprintln!(
                     "Your console command:\n{} {}",
-                    std::env::args().next().as_deref().unwrap_or("./validator"),
+                    std::env::args().next().as_deref().unwrap_or("./cargo-near"),
                     shell_words::join(cli_cmd.to_cli_args())
                 );
                 return Ok(());
