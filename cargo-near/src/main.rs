@@ -4,14 +4,14 @@ use std::env;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
+#[interactive_clap(context = ())]
 struct Cmd {
     #[interactive_clap(subcommand)]
     opts: Opts,
 }
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
+#[interactive_clap(context = ())]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 #[interactive_clap(disable_back)]
 /// Near
@@ -29,8 +29,6 @@ fn main() -> CliResult {
         _ => colored::control::set_override(atty::is(atty::Stream::Stderr)),
     }
 
-    let config = near_cli_rs::common::get_config_toml()?;
-
     color_eyre::install()?;
 
     let cli = match Cmd::try_parse() {
@@ -38,16 +36,8 @@ fn main() -> CliResult {
         Err(error) => error.exit(),
     };
 
-    let global_context = near_cli_rs::GlobalContext {
-        config,
-        offline: false,
-    };
-
     loop {
-        match <Cmd as interactive_clap::FromCli>::from_cli(
-            Some(cli.clone()),
-            global_context.clone(),
-        ) {
+        match <Cmd as interactive_clap::FromCli>::from_cli(Some(cli.clone()), ()) {
             interactive_clap::ResultFromCli::Ok(cli_cmd)
             | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
                 eprintln!(
@@ -66,7 +56,7 @@ fn main() -> CliResult {
                 if let Some(cli_cmd) = optional_cli_cmd {
                     eprintln!(
                         "Your console command:\n{} {}",
-                        std::env::args().next().as_deref().unwrap_or("./bos"),
+                        std::env::args().next().as_deref().unwrap_or("./cargo-near"),
                         shell_words::join(cli_cmd.to_cli_args())
                     );
                 }

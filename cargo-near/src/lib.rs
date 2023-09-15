@@ -10,14 +10,14 @@ mod types;
 pub mod util;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
+#[interactive_clap(context = ())]
 pub struct NearArgs {
     #[interactive_clap(subcommand)]
     pub cmd: NearCommand,
 }
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
+#[interactive_clap(context = ())]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 #[interactive_clap(disable_back)]
 /// What are you up to? (select one of the options with the up-down arrows on your keyboard and press Enter)
@@ -33,7 +33,7 @@ pub enum NearCommand {
 }
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
+#[interactive_clap(context = ())]
 #[interactive_clap(skip_default_from_cli)]
 pub struct AbiCommand {
     /// Include rustdocs in the ABI file
@@ -58,7 +58,7 @@ pub struct AbiCommand {
 }
 
 impl interactive_clap::FromCli for AbiCommand {
-    type FromCliContext = near_cli_rs::GlobalContext;
+    type FromCliContext = ();
     type FromCliError = color_eyre::eyre::Error;
     fn from_cli(
         optional_clap_variant: Option<<Self as interactive_clap::ToCli>::CliVariant>,
@@ -102,38 +102,34 @@ impl interactive_clap::FromCli for AbiCommand {
             manifest_path,
             color,
         };
-        match abi::run(args) {
-            Ok(_) => interactive_clap::ResultFromCli::Ok(clap_variant),
-            Err(err) => interactive_clap::ResultFromCli::Err(
-                Some(clap_variant),
-                color_eyre::Report::msg(err),
-            ),
+        if let Err(err) = abi::run(args) {
+            interactive_clap::ResultFromCli::Err(Some(clap_variant), color_eyre::Report::msg(err))
+        } else {
+            interactive_clap::ResultFromCli::Ok(clap_variant)
         }
     }
 }
 
 impl AbiCommand {
-    fn input_color(
-        _context: &near_cli_rs::GlobalContext,
-    ) -> color_eyre::eyre::Result<Option<ColorPreference>> {
+    fn input_color(_context: &()) -> color_eyre::eyre::Result<Option<ColorPreference>> {
         Ok(None)
     }
 
     fn input_out_dir(
-        _context: &near_cli_rs::GlobalContext,
+        _context: &(),
     ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBuf>> {
         Ok(None)
     }
 
     fn input_manifest_path(
-        _context: &near_cli_rs::GlobalContext,
+        _context: &(),
     ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBuf>> {
         Ok(None)
     }
 }
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
+#[interactive_clap(context = ())]
 #[interactive_clap(skip_default_from_cli)]
 pub struct BuildCommand {
     /// Build contract in release mode, with optimizations
@@ -165,7 +161,7 @@ pub struct BuildCommand {
 }
 
 impl interactive_clap::FromCli for BuildCommand {
-    type FromCliContext = near_cli_rs::GlobalContext;
+    type FromCliContext = ();
     type FromCliError = color_eyre::eyre::Error;
     fn from_cli(
         optional_clap_variant: Option<<Self as interactive_clap::ToCli>::CliVariant>,
@@ -213,31 +209,27 @@ impl interactive_clap::FromCli for BuildCommand {
             manifest_path,
             color,
         };
-        match build::run(args).map(|_| ()) {
-            Ok(_) => interactive_clap::ResultFromCli::Ok(clap_variant),
-            Err(err) => interactive_clap::ResultFromCli::Err(
-                Some(clap_variant),
-                color_eyre::Report::msg(err),
-            ),
+        if let Err(err) = build::run(args).map(|_| ()) {
+            interactive_clap::ResultFromCli::Err(Some(clap_variant), color_eyre::Report::msg(err))
+        } else {
+            interactive_clap::ResultFromCli::Ok(clap_variant)
         }
     }
 }
 
 impl BuildCommand {
-    fn input_color(
-        _context: &near_cli_rs::GlobalContext,
-    ) -> color_eyre::eyre::Result<Option<ColorPreference>> {
+    fn input_color(_context: &()) -> color_eyre::eyre::Result<Option<ColorPreference>> {
         Ok(None)
     }
 
     fn input_out_dir(
-        _context: &near_cli_rs::GlobalContext,
+        _context: &(),
     ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBuf>> {
         Ok(None)
     }
 
     fn input_manifest_path(
-        _context: &near_cli_rs::GlobalContext,
+        _context: &(),
     ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBuf>> {
         Ok(None)
     }
