@@ -31,6 +31,14 @@ fn main() -> CliResult {
         offline: false,
     };
 
+    let console_command_path = if env::var("CARGO_HOME").is_ok() {
+        "cargo".to_string()
+    } else if let Ok(value) = env::var("CARGO") {
+        value.clone()
+    } else {
+        env::args().next().unwrap_or("./cargo".to_string())
+    };
+
     loop {
         match <Cmd as interactive_clap::FromCli>::from_cli(
             Some(cli.clone()),
@@ -39,8 +47,7 @@ fn main() -> CliResult {
             interactive_clap::ResultFromCli::Ok(cli_cmd)
             | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
                 eprintln!(
-                    "Your console command:\n{} {}",
-                    std::env::args().next().as_deref().unwrap_or("./cargo-near"),
+                    "Your console command:\n{console_command_path} {}",
                     shell_words::join(cli_cmd.to_cli_args())
                 );
                 return Ok(());
@@ -53,8 +60,7 @@ fn main() -> CliResult {
             interactive_clap::ResultFromCli::Err(optional_cli_cmd, err) => {
                 if let Some(cli_cmd) = optional_cli_cmd {
                     eprintln!(
-                        "Your console command:\n{} {}",
-                        std::env::args().next().as_deref().unwrap_or("./cargo-near"),
+                        "Your console command:\n{console_command_path} {}",
                         shell_words::join(cli_cmd.to_cli_args())
                     );
                 }
