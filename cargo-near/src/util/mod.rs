@@ -5,9 +5,9 @@ use std::io::{BufRead, BufReader};
 use std::process::Command;
 use std::{env, thread};
 
-use anyhow::{Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
+use color_eyre::eyre::{ContextCompat, WrapErr};
 
 use crate::common::ColorPreference;
 use crate::types::manifest::CargoManifestPath;
@@ -40,7 +40,7 @@ fn invoke_cargo<A, P, E, S, EK, EV>(
     working_dir: Option<P>,
     env: E,
     color: ColorPreference,
-) -> Result<Vec<Artifact>>
+) -> color_eyre::eyre::Result<Vec<Artifact>>
 where
     A: IntoIterator<Item = S>,
     P: AsRef<Utf8Path>,
@@ -76,18 +76,18 @@ where
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .context(format!("Error executing `{:?}`", cmd))?;
+        .wrap_err_with(|| format!("Error executing `{:?}`", cmd))?;
     let child_stdout = child
         .stdout
         .take()
-        .context("could not attach to child stdout")?;
+        .wrap_err("could not attach to child stdout")?;
     let child_stderr = child
         .stderr
         .take()
-        .context("could not attach to child stderr")?;
+        .wrap_err("could not attach to child stderr")?;
 
     // stdout and stderr have to be processed concurrently to not block the process from progressing
-    let thread_stdout = thread::spawn(move || -> Result<_, std::io::Error> {
+    let thread_stdout = thread::spawn(move || -> color_eyre::eyre::Result<_, std::io::Error> {
         let mut artifacts = vec![];
         let stdout_reader = std::io::BufReader::new(child_stdout);
         for message in Message::parse_stream(stdout_reader) {
@@ -124,11 +124,11 @@ where
     if output.success() {
         Ok(result?)
     } else {
-        anyhow::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
+        color_eyre::eyre::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
     }
 }
 
-pub(crate) fn invoke_rustup<I, S>(args: I) -> anyhow::Result<Vec<u8>>
+pub(crate) fn invoke_rustup<I, S>(args: I) -> color_eyre::eyre::Result<Vec<u8>>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
@@ -143,13 +143,13 @@ where
     let child = cmd
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .context(format!("Error executing `{:?}`", cmd))?;
+        .wrap_err_with(|| format!("Error executing `{:?}`", cmd))?;
 
     let output = child.wait_with_output()?;
     if output.status.success() {
         Ok(output.stdout)
     } else {
-        anyhow::bail!(
+        color_eyre::eyre::bail!(
             "`{:?}` failed with exit code: {:?}",
             cmd,
             output.status.code()
@@ -170,7 +170,7 @@ pub(crate) fn compile_project(
     artifact_extension: &str,
     hide_warnings: bool,
     color: ColorPreference,
-) -> anyhow::Result<CompilationArtifact> {
+) -> color_eyre::eyre::Result<CompilationArtifact> {
     let mut final_env = BTreeMap::new();
 
     if hide_warnings {
@@ -204,12 +204,10 @@ pub(crate) fn compile_project(
 
     // We find the last compiler artifact message which should contain information about the
     // resulting dylib file
-    let compile_artifact = artifacts.last().ok_or_else(|| {
-        anyhow::anyhow!(
-            "Cargo failed to produce any compilation artifacts. \
-                 Please check that your project contains a NEAR smart contract."
-        )
-    })?;
+    let compile_artifact = artifacts.last().wrap_err(
+        "Cargo failed to produce any compilation artifacts. \
+                 Please check that your project contains a NEAR smart contract.",
+    )?;
     // The project could have generated many auxiliary files, we are only interested in
     // dylib files with a specific (platform-dependent) extension
     let dylib_files = compile_artifact
@@ -224,45 +222,44 @@ pub(crate) fn compile_project(
         .collect();
     let mut dylib_files_iter = Vec::into_iter(dylib_files);
     match (dylib_files_iter.next(), dylib_files_iter.next()) {
-        (None, None) => Err(anyhow::anyhow!(
-            "Compilation resulted in no '.{}' target files. \
-                 Please check that your project contains a NEAR smart contract.",
-            artifact_extension
-        )),
+        (None, None) => color_eyre::eyre::bail!(
+            "Compilation resulted in no '.{artifact_extension}' target files. \
+                 Please check that your project contains a NEAR smart contract."
+        ),
         (Some(path), None) => Ok(CompilationArtifact {
             path,
             fresh: !compile_artifact.fresh,
         }),
-        _ => Err(anyhow::anyhow!(
+        _ => color_eyre::eyre::bail!(
             "Compilation resulted in more than one '.{}' target file: {:?}",
             artifact_extension,
             dylib_files_iter.as_slice()
-        )),
+        ),
     }
 }
 
 /// Create the directory if it doesn't exist, and return the absolute path to it.
-pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
-    fs::create_dir_all(dir).with_context(|| format!("failed to create directory `{}`", dir))?;
+pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
+    fs::create_dir_all(dir).wrap_err_with(|| format!("failed to create directory `{}`", dir))?;
     dir.canonicalize_utf8()
-        .with_context(|| format!("failed to access output directory `{}`", dir))
+        .wrap_err_with(|| format!("failed to access output directory `{}`", dir))
 }
 
 /// Copy a file to a destination.
 ///
 /// Does nothing if the destination is the same as the source to avoid truncating the file.
-pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
+pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
     let out_path = to.join(from.file_name().unwrap());
     if from != out_path {
         fs::copy(from, &out_path)
-            .with_context(|| format!("failed to copy `{}` to `{}`", from, out_path))?;
+            .wrap_err_with(|| format!("failed to copy `{}` to `{}`", from, out_path))?;
     }
     Ok(out_path)
 }
 
 pub(crate) fn extract_abi_entries(
     dylib_path: &Utf8Path,
-) -> anyhow::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
+) -> color_eyre::eyre::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
     let dylib_file_contents = fs::read(dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
     log::debug!(
@@ -277,7 +274,7 @@ pub(crate) fn extract_abi_entries(
         .filter(|sym_name| sym_name.starts_with("__near_abi_"))
         .collect::<HashSet<_>>();
     if near_abi_symbols.is_empty() {
-        anyhow::bail!("No NEAR ABI symbols found in the dylib");
+        color_eyre::eyre::bail!("No NEAR ABI symbols found in the dylib");
     }
     log::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
 
@@ -301,11 +298,11 @@ pub(crate) fn extract_abi_entries(
                             {
                                 err_str.truncate(msg.len());
                                 err_str.shrink_to_fit();
-                                anyhow::bail!(err_str);
+                                color_eyre::eyre::bail!(err_str);
                             }
                         }
                     }
-                    anyhow::bail!(err);
+                    color_eyre::eyre::bail!(err);
                 }
             };
         }

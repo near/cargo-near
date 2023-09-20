@@ -7,7 +7,7 @@ use tempfile::TempDir;
 
 use crate::util::AsJsonSchema;
 
-fn clone_git_repo() -> anyhow::Result<TempDir> {
+fn clone_git_repo() -> color_eyre::eyre::Result<TempDir> {
     let temp_dir = tempfile::tempdir()?;
     let repo_dir = temp_dir.path();
     let repo = Repository::clone("https://github.com/near/near-sdk-rs", repo_dir)?;
@@ -19,7 +19,7 @@ fn clone_git_repo() -> anyhow::Result<TempDir> {
 
 #[test]
 #[named]
-fn test_dependency_local_path() -> anyhow::Result<()> {
+fn test_dependency_local_path() -> cargo_near::CliResult {
     let near_sdk_dir = clone_git_repo()?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
@@ -41,7 +41,7 @@ fn test_dependency_local_path() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
+fn test_dependency_local_path_with_version() -> cargo_near::CliResult {
     let near_sdk_dir = clone_git_repo()?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
@@ -62,7 +62,7 @@ fn test_dependency_local_path_with_version() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_default_features() -> anyhow::Result<()> {
+fn test_dependency_default_features() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/_Cargo.toml";
         Code:
@@ -79,7 +79,7 @@ fn test_dependency_default_features() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_explicit() -> anyhow::Result<()> {
+fn test_dependency_explicit() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_explicit.toml";
         Code:
@@ -96,7 +96,7 @@ fn test_dependency_explicit() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_no_default_features() -> anyhow::Result<()> {
+fn test_dependency_no_default_features() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_no_default_features.toml";
         Code:
@@ -113,7 +113,7 @@ fn test_dependency_no_default_features() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_multiple_features() -> anyhow::Result<()> {
+fn test_dependency_multiple_features() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_multiple_features.toml";
         Code:
@@ -130,7 +130,7 @@ fn test_dependency_multiple_features() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_platform_specific() -> anyhow::Result<()> {
+fn test_dependency_platform_specific() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_platform_specific.toml";
         Code:
@@ -149,7 +149,7 @@ fn test_dependency_platform_specific() -> anyhow::Result<()> {
 #[ignore]
 #[test]
 #[named]
-fn test_dependency_renamed() -> anyhow::Result<()> {
+fn test_dependency_renamed() -> cargo_near::CliResult {
     let abi_root = generate_abi_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_renamed.toml";
         Code:
@@ -176,7 +176,7 @@ fn test_dependency_renamed() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_dependency_patch() -> anyhow::Result<()> {
+fn test_dependency_patch() -> cargo_near::CliResult {
     // [dependencies]
     // near-sdk = "4.0.0"
     //
@@ -200,7 +200,7 @@ fn test_dependency_patch() -> anyhow::Result<()> {
 #[ignore]
 #[test]
 #[named]
-fn test_abi_not_a_table() -> anyhow::Result<()> {
+fn test_abi_not_a_table() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_not_a_table.toml";
         Code:

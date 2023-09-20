@@ -71,7 +71,7 @@ impl interactive_clap::FromCli for AbiCommand {
             color,
         };
         if let Err(err) = self::abi::run(args) {
-            interactive_clap::ResultFromCli::Err(Some(clap_variant), color_eyre::Report::msg(err))
+            interactive_clap::ResultFromCli::Err(Some(clap_variant), color_eyre::eyre::eyre!(err))
         } else {
             interactive_clap::ResultFromCli::Ok(clap_variant)
         }

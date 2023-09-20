@@ -5,7 +5,7 @@ use schemars::gen::SchemaGenerator;
 
 #[test]
 #[named]
-fn test_result_default() -> anyhow::Result<()> {
+fn test_result_default() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self) {}
     };
@@ -19,7 +19,7 @@ fn test_result_default() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_result_type() -> anyhow::Result<()> {
+fn test_result_type() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self) -> u32 {
             1
@@ -41,7 +41,7 @@ fn test_result_type() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_result_handle_result() -> anyhow::Result<()> {
+fn test_result_handle_result() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         #[handle_result]
         pub fn foo(&self) -> Result<u32, &'static str> {

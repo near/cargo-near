@@ -12,7 +12,6 @@ keywords = ["cargo", "near", "contract", "abi", "build"]
 categories = ["development-tools", "development-tools::cargo-plugins", "development-tools::build-utils", "command-line-utilities"]
 
 [dependencies]
-anyhow = "1.0"
 bs58 = "0.4"
 camino = "1.1.1"
 cargo_metadata = "0.14"

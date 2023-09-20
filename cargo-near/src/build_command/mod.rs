@@ -82,7 +82,7 @@ impl interactive_clap::FromCli for BuildCommand {
             color,
         };
         if let Err(err) = self::build::run(args).map(|_| ()) {
-            interactive_clap::ResultFromCli::Err(Some(clap_variant), color_eyre::Report::msg(err))
+            interactive_clap::ResultFromCli::Err(Some(clap_variant), color_eyre::eyre::eyre!(err))
         } else {
             interactive_clap::ResultFromCli::Ok(clap_variant)
         }

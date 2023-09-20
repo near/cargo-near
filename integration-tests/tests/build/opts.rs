@@ -5,7 +5,7 @@ use std::fs;
 
 #[test]
 #[named]
-fn test_build_no_abi() -> anyhow::Result<()> {
+fn test_build_no_abi() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--no-abi";
         Code:
@@ -21,7 +21,7 @@ fn test_build_no_abi() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_build_opt_doc() -> anyhow::Result<()> {
+fn test_build_opt_doc() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--doc";
         Code:
@@ -41,7 +41,7 @@ fn test_build_opt_doc() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_build_opt_out_dir() -> anyhow::Result<()> {
+fn test_build_opt_out_dir() -> cargo_near::CliResult {
     let out_dir = tempfile::tempdir()?;
     let build_result = build_fn_with! {
         Opts: format!("--out-dir {}", out_dir.path().display());
@@ -66,7 +66,7 @@ fn test_build_opt_out_dir() -> anyhow::Result<()> {
 
 #[tokio::test]
 #[named]
-async fn test_build_opt_release() -> anyhow::Result<()> {
+async fn test_build_opt_release() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--release";
         Code:
@@ -85,7 +85,7 @@ async fn test_build_opt_release() -> anyhow::Result<()> {
 
 #[tokio::test]
 #[named]
-async fn test_build_opt_doc_embed() -> anyhow::Result<()> {
+async fn test_build_opt_doc_embed() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--doc --embed-abi";
         Code:
@@ -112,8 +112,8 @@ async fn test_build_opt_doc_embed() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_build_opt_no_abi_doc() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
+fn test_build_opt_no_abi_doc() -> cargo_near::CliResult {
+    fn run_test() -> cargo_near::CliResult {
         build_fn_with! {
             Opts: "--no-abi --doc";
             Code:
@@ -134,8 +134,8 @@ fn test_build_opt_no_abi_doc() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_build_opt_no_abi_embed() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
+fn test_build_opt_no_abi_embed() -> cargo_near::CliResult {
+    fn run_test() -> cargo_near::CliResult {
         build_fn_with! {
             Opts: "--no-abi --embed-abi";
             Code:

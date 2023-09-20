@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 #[test]
 #[named]
-fn test_borsh_schema_numeric_primitives_signed() -> anyhow::Result<()> {
+fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -58,7 +58,7 @@ fn test_borsh_schema_numeric_primitives_signed() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
+fn test_borsh_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -110,7 +110,7 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_numeric_primitives_float() -> anyhow::Result<()> {
+fn test_borsh_schema_numeric_primitives_float() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[serializer(borsh)] a: f32, #[serializer(borsh)] b: f64) {}
     };
@@ -135,7 +135,7 @@ fn test_borsh_schema_numeric_primitives_float() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_string() -> anyhow::Result<()> {
+fn test_borsh_schema_string() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[serializer(borsh)] a: String, #[serializer(borsh)] b: &str, #[serializer(borsh)] c: &'static str) {}
     };
@@ -157,7 +157,7 @@ fn test_borsh_schema_string() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_other_primitives() -> anyhow::Result<()> {
+fn test_borsh_schema_other_primitives() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[serializer(borsh)] b: bool, #[serializer(borsh)] c: ()) {}
     };
@@ -187,7 +187,7 @@ fn test_borsh_schema_other_primitives() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_tuples() -> anyhow::Result<()> {
+fn test_borsh_schema_tuples() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -231,7 +231,7 @@ fn test_borsh_schema_tuples() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_arrays() -> anyhow::Result<()> {
+fn test_borsh_schema_arrays() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -283,7 +283,7 @@ fn test_borsh_schema_arrays() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_struct() -> anyhow::Result<()> {
+fn test_borsh_schema_struct() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
         // fixme! remove after borsh fixes trait qualification
         // fixme! https://github.com/near/borsh-rs/issues/112
@@ -346,7 +346,7 @@ fn test_borsh_schema_struct() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_enum() -> anyhow::Result<()> {
+fn test_borsh_schema_enum() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
         // fixme! remove after borsh fixes trait qualification
         // fixme! https://github.com/near/borsh-rs/issues/112
@@ -448,7 +448,7 @@ fn test_borsh_schema_enum() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_borsh_schema_complex() -> anyhow::Result<()> {
+fn test_borsh_schema_complex() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
         // fixme! remove after borsh fixes trait qualification
         // fixme! https://github.com/near/borsh-rs/issues/112

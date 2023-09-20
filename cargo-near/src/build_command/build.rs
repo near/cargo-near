@@ -12,7 +12,7 @@ use crate::util;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub fn run(args: super::BuildCommand) -> anyhow::Result<util::CompilationArtifact> {
+pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
@@ -21,7 +21,7 @@ pub fn run(args: super::BuildCommand) -> anyhow::Result<util::CompilationArtifac
             .lines()
             .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
         {
-            anyhow::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
+            color_eyre::eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
     })?;
@@ -65,7 +65,7 @@ pub fn run(args: super::BuildCommand) -> anyhow::Result<util::CompilationArtifac
                     AbiFormat::JsonMin,
                     AbiCompression::Zstd,
                 )?;
-                anyhow::Ok(path)
+                Ok(path)
             })?;
             min_abi_path.replace(util::copy(&path, &out_dir)?);
         }

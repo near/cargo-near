@@ -5,7 +5,7 @@ use schemars::schema::Schema;
 
 #[test]
 #[named]
-fn test_schema_numeric_primitives_signed() -> anyhow::Result<()> {
+fn test_schema_numeric_primitives_signed() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: i8, b: i16, c: i32, d: i64, e: i128, f: isize) {}
     };
@@ -79,7 +79,7 @@ fn test_schema_numeric_primitives_signed() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
+fn test_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: u8, b: u16, c: u32, d: u64, e: u128, f: usize) {}
     };
@@ -159,7 +159,7 @@ fn test_schema_numeric_primitives_unsigned() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_numeric_primitives_float() -> anyhow::Result<()> {
+fn test_schema_numeric_primitives_float() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: f32, b: f64) {}
     };
@@ -197,7 +197,7 @@ fn test_schema_numeric_primitives_float() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_string() -> anyhow::Result<()> {
+fn test_schema_string() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: String, b: &str, c: &'static str) {}
     };
@@ -222,7 +222,7 @@ fn test_schema_string() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_other_primitives() -> anyhow::Result<()> {
+fn test_schema_other_primitives() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: char, b: bool, c: ()) {}
     };
@@ -263,7 +263,7 @@ fn test_schema_other_primitives() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_tuples() -> anyhow::Result<()> {
+fn test_schema_tuples() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: (bool,), b: (bool, bool), c: (bool, bool, bool)) {}
     };
@@ -332,7 +332,7 @@ fn test_schema_tuples() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_arrays() -> anyhow::Result<()> {
+fn test_schema_arrays() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: [bool; 8], b: [bool; 16], c: &[bool]) {}
     };
@@ -384,7 +384,7 @@ fn test_schema_arrays() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_struct() -> anyhow::Result<()> {
+fn test_schema_struct() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
         use near_sdk::{near_bindgen, NearSchema};
@@ -489,7 +489,7 @@ fn test_schema_struct() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_enum() -> anyhow::Result<()> {
+fn test_schema_enum() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
         use near_sdk::{near_bindgen, NearSchema};
@@ -621,7 +621,7 @@ fn test_schema_enum() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_schema_complex() -> anyhow::Result<()> {
+fn test_schema_complex() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
         use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
         use near_sdk::{near_bindgen, NearSchema};

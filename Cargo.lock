@@ -649,7 +649,6 @@ dependencies = [
 name = "cargo-near"
 version = "0.3.1"
 dependencies = [
- "anyhow",
  "atty",
  "bs58 0.4.0",
  "camino",
@@ -681,11 +680,11 @@ dependencies = [
 name = "cargo-near-integration-tests"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "borsh 0.9.3",
  "camino",
  "cargo-near",
  "clap",
+ "color-eyre",
  "const_format",
  "function_name",
  "git2",

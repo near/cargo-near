@@ -4,7 +4,7 @@ use near_abi::{AbiFunctionKind, AbiFunctionModifier};
 
 #[test]
 #[named]
-fn test_view_function() -> anyhow::Result<()> {
+fn test_view_function() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn add(&self, a: u32, b: u32) -> u32 {
             a + b
@@ -21,7 +21,7 @@ fn test_view_function() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_call_function() -> anyhow::Result<()> {
+fn test_call_function() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn add(&mut self, a: u32, b: u32) -> u32 {
             a + b
@@ -38,7 +38,7 @@ fn test_call_function() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_init_function() -> anyhow::Result<()> {
+fn test_init_function() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         #[init]
         pub fn add(a: u32, b: u32) -> Self {
@@ -57,7 +57,7 @@ fn test_init_function() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_payable_function() -> anyhow::Result<()> {
+fn test_payable_function() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         #[payable]
         pub fn add(&mut self, a: u32, b: u32) -> u32 {
@@ -75,7 +75,7 @@ fn test_payable_function() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_private_function() -> anyhow::Result<()> {
+fn test_private_function() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         #[private]
         pub fn add(&mut self, a: u32, b: u32) -> u32 {

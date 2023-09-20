@@ -5,7 +5,7 @@ use workspaces::prelude::DevAccountDeployer;
 
 #[tokio::test]
 #[named]
-async fn test_build_embed_abi() -> anyhow::Result<()> {
+async fn test_build_embed_abi() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--embed-abi";
         Code:
@@ -33,7 +33,7 @@ async fn test_build_embed_abi() -> anyhow::Result<()> {
 
 #[tokio::test]
 #[named]
-async fn test_build_no_embed_abi() -> anyhow::Result<()> {
+async fn test_build_no_embed_abi() -> cargo_near::CliResult {
     let build_result = build_fn! {
         pub fn add(&self, a: u32, b: u32) -> u32 {
             a + b

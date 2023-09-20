@@ -3,9 +3,9 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 mod abi_command;
 mod build_command;
-pub mod common;
-pub mod types;
-pub mod util;
+mod common;
+mod types;
+mod util;
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]

@@ -7,7 +7,7 @@ mod opts;
 
 #[tokio::test]
 #[named]
-async fn test_build_simple() -> anyhow::Result<()> {
+async fn test_build_simple() -> cargo_near::CliResult {
     let build_result = build_fn! {
         /// Adds `a` and `b`.
         pub fn add(&self, a: u32, b: u32) -> u32 {
