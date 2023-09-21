@@ -4,8 +4,8 @@ use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
 use std::io::BufRead;
 
-use crate::abi_command::abi;
-use crate::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
+use crate::commands::abi_command::abi;
+use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;

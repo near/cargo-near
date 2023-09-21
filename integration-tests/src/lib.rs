@@ -45,18 +45,18 @@ macro_rules! invoke_cargo_near {
         let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts)?;
 
         match cli_args.cmd {
-            Some(cargo_near::CliNearCommand::Abi(cmd)) => {
-                let args = cargo_near::abi_command::AbiCommand {
+            Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
+                let args = cargo_near::commands::abi_command::AbiCommand {
                     doc: cmd.doc,
                     compact_abi: cmd.compact_abi,
                     out_dir: cmd.out_dir,
                     manifest_path: Some(cargo_near::types::utf8_path_buf::Utf8PathBufInner(cargo_path)),
                     color: cmd.color,
                 };
-                cargo_near::abi_command::abi::run(args)?;
+                cargo_near::commands::abi_command::abi::run(args)?;
             },
-            Some(cargo_near::CliNearCommand::Build(cmd)) => {
-                let args = cargo_near::build_command::BuildCommand {
+            Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
+                let args = cargo_near::commands::build_command::BuildCommand {
                     release: cmd.release,
                     embed_abi: cmd.embed_abi,
                     doc: cmd.doc,
@@ -65,8 +65,7 @@ macro_rules! invoke_cargo_near {
                     manifest_path: Some(cargo_near::types::utf8_path_buf::Utf8PathBufInner(cargo_path)),
                     color: cmd.color,
                 };
-                println!("### {args:?}");
-                cargo_near::build_command::build::run(args)?;
+                cargo_near::commands::build_command::build::run(args)?;
             },
             None => ()
         }
