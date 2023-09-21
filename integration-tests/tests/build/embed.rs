@@ -1,7 +1,6 @@
 use crate::util;
 use cargo_near_integration_tests::{build_fn, build_fn_with};
 use function_name::named;
-use workspaces::prelude::DevAccountDeployer;
 
 #[tokio::test]
 #[named]
@@ -42,7 +41,7 @@ async fn test_build_no_embed_abi() -> cargo_near::CliResult {
 
     let worker = workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
-    let outcome = contract.call(&worker, "__contract_abi").view().await;
+    let outcome = contract.call("__contract_abi").view().await;
     outcome.unwrap_err();
 
     Ok(())

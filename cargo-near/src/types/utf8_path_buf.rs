@@ -8,14 +8,14 @@
     derive_more::FromStr,
 )]
 #[as_ref(forward)]
-pub struct Utf8PathBuf(pub camino::Utf8PathBuf);
+pub struct Utf8PathBufInner(pub camino::Utf8PathBuf);
 
-impl std::fmt::Display for Utf8PathBuf {
+impl std::fmt::Display for Utf8PathBufInner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 
-impl interactive_clap::ToCli for Utf8PathBuf {
-    type CliVariant = Utf8PathBuf;
+impl interactive_clap::ToCli for Utf8PathBufInner {
+    type CliVariant = Utf8PathBufInner;
 }

@@ -176,7 +176,7 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
     }
 }
 
-pub(crate) fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
+pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 

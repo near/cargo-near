@@ -42,12 +42,34 @@ macro_rules! invoke_cargo_near {
 
         std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
 
-        let cargo_near::Opts::Near(mut args) = clap::Parser::try_parse_from($cli_opts.split(" "))?;
-        match &mut args.cmd {
-            cargo_near::NearCommand::Abi(cmd) => cmd.manifest_path = Some(cargo_path),
-            cargo_near::NearCommand::Build(cmd) => cmd.manifest_path = Some(cargo_path),
+        let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts)?;
+
+        match cli_args.cmd {
+            Some(cargo_near::CliNearCommand::Abi(cmd)) => {
+                let args = cargo_near::abi_command::AbiCommand {
+                    doc: cmd.doc,
+                    compact_abi: cmd.compact_abi,
+                    out_dir: cmd.out_dir,
+                    manifest_path: Some(cargo_near::types::utf8_path_buf::Utf8PathBufInner(cargo_path)),
+                    color: cmd.color,
+                };
+                cargo_near::abi_command::abi::run(args)?;
+            },
+            Some(cargo_near::CliNearCommand::Build(cmd)) => {
+                let args = cargo_near::build_command::BuildCommand {
+                    release: cmd.release,
+                    embed_abi: cmd.embed_abi,
+                    doc: cmd.doc,
+                    no_abi: cmd.no_abi,
+                    out_dir: cmd.out_dir,
+                    manifest_path: Some(cargo_near::types::utf8_path_buf::Utf8PathBufInner(cargo_path)),
+                    color: cmd.color,
+                };
+                println!("### {args:?}");
+                cargo_near::build_command::build::run(args)?;
+            },
+            None => ()
         }
-        cargo_near::exec(args.cmd)?;
 
         workspace_dir.join("target").join("near")
     }};
@@ -60,7 +82,7 @@ macro_rules! generate_abi_with {
         $(let opts = format!("cargo near abi {}", $cli_opts);)?;
         let result_dir = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
-            Opts: opts;
+            Opts: &opts;
             Code:
             $($code)*
         };
@@ -132,7 +154,7 @@ macro_rules! build_with {
         $(let opts = format!("cargo near build {}", $cli_opts);)?;
         let result_dir = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
-            Opts: opts;
+            Opts: &opts;
             Code:
             $($code)*
         };

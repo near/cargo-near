@@ -1,11 +1,18 @@
 pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
-mod abi_command;
-mod build_command;
+pub mod abi_command;
+pub mod build_command;
 mod common;
-mod types;
+pub mod types;
 mod util;
+
+#[derive(Debug, Clone, interactive_clap::InteractiveClap)]
+#[interactive_clap(context = near_cli_rs::GlobalContext)]
+pub struct Cmd {
+    #[interactive_clap(subcommand)]
+    opts: Opts,
+}
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]

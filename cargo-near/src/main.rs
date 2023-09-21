@@ -2,12 +2,7 @@ use interactive_clap::ToCliArgs;
 pub use near_cli_rs::CliResult;
 use std::env;
 
-#[derive(Debug, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(context = near_cli_rs::GlobalContext)]
-struct Cmd {
-    #[interactive_clap(subcommand)]
-    opts: cargo_near::Opts,
-}
+use cargo_near::Cmd;
 
 fn main() -> CliResult {
     env_logger::init();

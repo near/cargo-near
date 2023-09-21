@@ -13,11 +13,11 @@ pub struct AbiCommand {
     /// Copy final artifacts to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_default_input_arg)]
-    pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBufInner>,
     /// Path to the `Cargo.toml` of the contract to build
     #[interactive_clap(long)]
     #[interactive_clap(skip_default_input_arg)]
-    pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBufInner>,
     /// Coloring: auto, always, never
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
@@ -87,13 +87,13 @@ impl AbiCommand {
 
     fn input_out_dir(
         _context: &near_cli_rs::GlobalContext,
-    ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBuf>> {
+    ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBufInner>> {
         Ok(None)
     }
 
     fn input_manifest_path(
         _context: &near_cli_rs::GlobalContext,
-    ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBuf>> {
+    ) -> color_eyre::eyre::Result<Option<crate::types::utf8_path_buf::Utf8PathBufInner>> {
         Ok(None)
     }
 }
