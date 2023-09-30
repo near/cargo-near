@@ -11,6 +11,10 @@ license = "MIT OR Apache-2.0"
 keywords = ["cargo", "near", "contract", "abi", "build"]
 categories = ["development-tools", "development-tools::cargo-plugins", "development-tools::build-utils", "command-line-utilities"]
 
+[package.metadata.wix]
+upgrade-guid = "FFBAE83D-C3FA-45DD-9F19-C8F312E905C5"
+path-guid = "4A9FB601-2F10-48F8-BBC0-B467169D6BAD"
+
 [dependencies]
 bs58 = "0.4"
 camino = "1.1.1"

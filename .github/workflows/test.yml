@@ -29,6 +29,10 @@ jobs:
           toolchain: ${{ env.RUST_MSRV }}
           default: true
 
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
+
       - name: Cargo check
         run: cargo check -p cargo-near
 
@@ -54,6 +58,10 @@ jobs:
 
       - name: Install `wasm32-unknown-unknown`
         run: rustup target add wasm32-unknown-unknown
+
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
       - name: Run tests
         run: cargo test --workspace --verbose

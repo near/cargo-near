@@ -1,313 +1,194 @@
-# Derived from:
-#  - https://github.com/miraclx/zy/blob/45b1cca61061cf9f0c60ad75ba1460c80ff6481c/.github/workflows/release.yml
-#  - https://github.com/BurntSushi/ripgrep/blob/000015791742bb1280f1853adb714fdee1ba9f8e/.github/workflows/release.yml
-#  - https://github.com/near/near-cli-rs/blob/a8679a3603015f1d651f874fdf0feff0d7514131/.github/workflows/release.yml
-#  - https://github.com/sharkdp/bat/blob/7c847d84b0c3c97df6badfbb39d153ad93aec74e/.github/workflows/CICD.yml
-#  - https://github.com/near/near-jsonrpc-client-rs/blob/2a9cce4710bb87592baf5d7ca7015e3d474584e9/.github/workflows/ci.yml
+# Copyright 2022-2023, axodotdev
+# SPDX-License-Identifier: MIT or Apache-2.0
+#
+# CI that:
+#
+# * checks for a Git Tag that looks like a release
+# * builds artifacts with cargo-dist (archives, installers, hashes)
+# * uploads those artifacts to temporary workflow zip
+# * on success, uploads the artifacts to a Github Release™
+#
+# Note that the Github Release™ will be created with a generated
+# title/body based on your changelogs.
+name: Release
 
-name: release
+permissions:
+  contents: write
 
+# This task will run whenever you push a git tag that looks like a version
+# like "1.0.0", "v0.1.0-prerelease.1", "my-app/0.1.0", "releases/v1.0.0", etc.
+# Various formats will be parsed into a VERSION and an optional PACKAGE_NAME, where
+# PACKAGE_NAME must be the name of a Cargo package in your workspace, and VERSION
+# must be a Cargo-style SemVer Version (must have at least major.minor.patch).
+#
+# If PACKAGE_NAME is specified, then the release will be for that
+# package (erroring out if it doesn't have the given version or isn't cargo-dist-able).
+#
+# If PACKAGE_NAME isn't specified, then the release will be for all
+# (cargo-dist-able) packages in the workspace with that version (this mode is
+# intended for workspaces with only one dist-able package, or with all dist-able
+# packages versioned/released in lockstep).
+#
+# If you push multiple tags at once, separate instances of this workflow will
+# spin up, creating an independent Github Release™ for each one. However Github
+# will hard limit this to 3 tags per commit, as it will assume more tags is a
+# mistake.
+#
+# If there's a prerelease-style suffix to the version, then the Github Release™
+# will be marked as a prerelease.
 on:
   push:
-    branches:
-    - main
-
-env:
-  PROJECT_DIR: cargo-near
-  PROJECT_INDEX_URL: https://github.com/rust-lang/crates.io-index/raw/master/ca/rg/cargo-near
-  RUST_BACKTRACE: 1
-  CARGO_PROFILE: slim # Use slim profile for CI builds. Check the Cargo.toml for more context.
+    tags:
+      - '**[0-9]+.[0-9]+.[0-9]+*'
+  pull_request:
 
 jobs:
-  check:
+  # Run 'cargo dist plan' to determine what tasks we need to do
+  plan:
     runs-on: ubuntu-latest
     outputs:
-      project_name: ${{ env.PROJECT_NAME }}
-      project_version: ${{ env.PROJECT_VERSION }}
-      is_prerelease: ${{ env.IS_PRERELEASE }}
-      git_previous_tag: ${{ env.GIT_PREVIOUS_TAG }}
-      should_publish_crate: ${{ env.SHOULD_PUBLISH_CRATE }}
-      should_release_binary: ${{ env.SHOULD_RELEASE_BINARY }}
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        # might be a simple `fetch-tags: true` option soon, see https://github.com/actions/checkout/pull/579
-        fetch-depth: 0
-
-    - name: Check git environment
-      shell: bash
-      run: |
-        GIT_PREVIOUS_TAG="$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*')"
-        echo "GIT_PREVIOUS_TAG=${GIT_PREVIOUS_TAG}" >> $GITHUB_ENV
-        echo "Current latest git release tag is \"${GIT_PREVIOUS_TAG}\""
-
-    - name: Get project name
-      run: |
-        if [ ! -f "${PROJECT_DIR}/Cargo.toml" ]; then
-          echo "Error: ${PROJECT_DIR}/Cargo.toml does not exist"
-          exit 1
-        fi
-
-        PROJECT_NAME=$(sed -n 's/^name = "\(.*\)"/\1/p' "${PROJECT_DIR}/Cargo.toml" | head -n1)
-        echo "Project Name: $PROJECT_NAME"
-
-        if [[ "${PROJECT_INDEX_URL}" == *"${PROJECT_NAME}" ]]; then
-          echo "PROJECT_NAME=${PROJECT_NAME}" >> $GITHUB_ENV
-        else
-          echo "Project name does not match the index URL [${PROJECT_INDEX_URL}]."
-          exit 1
-        fi
-
-    - name: Version introspection
-      run: |
-        PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "${PROJECT_DIR}/Cargo.toml" | head -n1)
-        echo "PROJECT_VERSION=${PROJECT_VERSION}" >> $GITHUB_ENV
-        echo "Project version: ${PROJECT_VERSION}"
-
-        if [[ ! "${PROJECT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
-          echo "Project version is not a valid semver: ${PROJECT_VERSION}"
-          exit 1
-        fi
-
-        if [[ "${PROJECT_VERSION}" == *-* ]]; then
-          echo "Project version [${PROJECT_VERSION}] is a pre-release."
-          echo "IS_PRERELEASE=true" >> $GITHUB_ENV
-        else
-          echo "Project version [${PROJECT_VERSION}] is not a pre-release."
-          echo "IS_PRERELEASE=false" >> $GITHUB_ENV
-        fi
-
-    - name: Check if crates.io release exists
-      run: |
-        CRATE_VERSIONS=$(curl -sL "${PROJECT_INDEX_URL}" | jq -r '.vers')
-        echo -e "Already published versions:\n${CRATE_VERSIONS}"
-
-        if echo "${CRATE_VERSIONS}" | grep -q "^${PROJECT_VERSION}$"; then
-          echo "Project version [${PROJECT_VERSION}] has already been released."
-          echo "SHOULD_PUBLISH_CRATE=false" >> $GITHUB_ENV
-        else
-          echo "Project version [${PROJECT_VERSION}] has not been released."
-          echo "SHOULD_PUBLISH_CRATE=true" >> $GITHUB_ENV
-        fi
-
-    - name: Check if GitHub release exists
-      run: |
-        RELEASED_VERSIONS=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*")
-        echo -e "Already released versions:\n${RELEASED_VERSIONS}"
-
-        if echo "${RELEASED_VERSIONS}" | grep -q "^v${PROJECT_VERSION}$"; then
-          echo "Project version [${PROJECT_VERSION}] has already been released."
-          echo "SHOULD_RELEASE_BINARY=false" >> $GITHUB_ENV
-        else
-          echo "Project version [${PROJECT_VERSION}] has not been released."
-          echo "SHOULD_RELEASE_BINARY=true" >> $GITHUB_ENV
-        fi
-
-  crate:
-    runs-on: ubuntu-latest
-    needs: check
-    if: needs.check.outputs.should_publish_crate == 'true'
+      val: ${{ steps.plan.outputs.manifest }}
+      tag: ${{ !github.event.pull_request && github.ref_name || '' }}
+      tag-flag: ${{ !github.event.pull_request && format('--tag={0}', github.ref_name) || '' }}
+      publishing: ${{ !github.event.pull_request }}
     env:
-      PROJECT_NAME: ${{ needs.check.outputs.project_name }}
-
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install cargo-dist
+        run: "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.3.0/cargo-dist-installer.sh | sh"
+      - id: plan
+        run: |
+          cargo dist plan ${{ !github.event.pull_request && format('--tag={0}', github.ref_name) || '' }} --output-format=json > dist-manifest.json
+          echo "cargo dist plan ran successfully"
+          cat dist-manifest.json
+          echo "manifest=$(jq -c "." dist-manifest.json)" >> "$GITHUB_OUTPUT"
+      - name: "Upload dist-manifest.json"
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: dist-manifest.json
 
-    - name: Install rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - uses: actions-rs/cargo@v1
-      with:
-        command: publish
-        args: --package ${{ env.PROJECT_NAME }}
-      env:
-        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-  binary:
-    runs-on: ${{ matrix.os }}
-    needs: check
-    if: needs.check.outputs.should_release_binary == 'true'
-    env:
-      PROJECT_NAME: ${{ needs.check.outputs.project_name }}
-      PROJECT_VERSION: ${{ needs.check.outputs.project_version }}
+  # Build and packages all the platform-specific things
+  upload-local-artifacts:
+    # Let the initial task tell us to not run (currently very blunt)
+    needs: plan
+    if: ${{ fromJson(needs.plan.outputs.val).releases != null && (needs.plan.outputs.publishing == 'true' || fromJson(needs.plan.outputs.val).ci.github.pr_run_mode == 'upload') }}
     strategy:
       fail-fast: false
-      matrix:
-        name: [
-          # aarch64
-          linux-aarch64-gnu, linux-aarch64-musl, macos-aarch64, win64-aarch64-msvc,
-          # x86_64
-          linux-x86_64-gnu, linux-x86_64-musl, macos-x86_64, win64-x86_64-gnu, win64-x86_64-msvc
-        ]
-        include:
-        - { name: 'linux-aarch64-gnu' , target: aarch64-unknown-linux-gnu   , os: ubuntu-latest , use-cross: true }
-        - { name: 'linux-aarch64-musl', target: aarch64-unknown-linux-musl  , os: ubuntu-latest , use-cross: true }
-        - { name: 'macos-aarch64'     , target: aarch64-apple-darwin        , os: macos-latest  ,                 }
-        - { name: 'win64-aarch64-msvc', target: aarch64-pc-windows-msvc     , os: windows-latest,                 }
-        - { name: 'linux-x86_64-gnu'  , target: x86_64-unknown-linux-gnu    , os: ubuntu-latest ,                 }
-        - { name: 'linux-x86_64-musl' , target: x86_64-unknown-linux-musl   , os: ubuntu-latest , use-cross: true }
-        - { name: 'macos-x86_64'      , target: x86_64-apple-darwin         , os: macos-latest  ,                 }
-        - { name: 'win64-x86_64-gnu'  , target: x86_64-pc-windows-gnu       , os: windows-latest,                 }
-        - { name: 'win64-x86_64-msvc' , target: x86_64-pc-windows-msvc      , os: windows-latest,                 }
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Install rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        target: ${{ matrix.target }}
-
-    - uses: Swatinem/rust-cache@v2
-      with:
-        key: ${{ matrix.target }}
-
-    - name: Build
-      uses: actions-rs/cargo@v1
-      with:
-        use-cross: ${{ matrix.use-cross }}
-        command: build
-        args: >-
-          --package ${{ env.PROJECT_NAME }}
-          --profile ${{ env.CARGO_PROFILE }}
-          --target ${{ matrix.target }}
-          --locked --verbose
-
-    - name: Build archive
-      shell: bash
-      run: |
-        PKG_BASENAME="${{ env.PROJECT_NAME }}-v${{ env.PROJECT_VERSION }}-${{ matrix.target }}"
-        mkdir "${PKG_BASENAME}"
-
-        EXE_suffix=""
-        case ${{ matrix.target }} in
-          *-pc-windows-*) EXE_suffix=".exe" ;;
-        esac
-        PROJECT_BIN_PATH="target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/${{ env.PROJECT_NAME }}${EXE_suffix}"
-
-        cp "${PROJECT_BIN_PATH}" "${PKG_BASENAME}/"
-        cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE "${PKG_BASENAME}/"
-
-        case ${{ matrix.target }} in
-          *-pc-windows-*)
-              PKG_PATH="${PKG_BASENAME}.zip"
-              7z -y a "${PKG_PATH}" "${PKG_BASENAME}"/* | tail -2
-            ;;
-          *)
-              PKG_PATH="${PKG_BASENAME}.tar.gz"
-              tar czf "${PKG_PATH}" "${PKG_BASENAME}"/*
-            ;;
-        esac
-        echo "PKG_PATH=${PKG_PATH}" >> $GITHUB_ENV
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: ${{ env.PKG_PATH }}
-        path: ${{ env.PKG_PATH }}
-        retention-days: 1
-
-  github:
-    runs-on: ubuntu-latest
-    needs: [check, binary]
+      # Target platforms/runners are computed by cargo-dist in create-release.
+      # Each member of the matrix has the following arguments:
+      #
+      # - runner: the github runner
+      # - dist-args: cli flags to pass to cargo dist
+      # - install-dist: expression to run to install cargo-dist on the runner
+      #
+      # Typically there will be:
+      # - 1 "global" task that builds universal installers
+      # - N "local" tasks that build each platform's binaries and platform-specific installers
+      matrix: ${{ fromJson(needs.plan.outputs.val).ci.github.artifacts_matrix }}
+    runs-on: ${{ matrix.runner }}
     env:
-      PROJECT_NAME: ${{ needs.check.outputs.project_name }}
-      PROJECT_VERSION: ${{ needs.check.outputs.project_version }}
-      GH_PROJECT_VERSION: v${{ needs.check.outputs.project_version }}
-      IS_PRERELEASE: ${{ needs.check.outputs.is_prerelease }}
-      GIT_PREVIOUS_TAG: ${{ needs.check.outputs.git_previous_tag }}
-      WILL_PUBLISH_CRATE: ${{ needs.check.outputs.should_publish_crate }}
-
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: swatinem/rust-cache@v2
+      - name: Install cargo-dist
+        run: ${{ matrix.install_dist }}
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
+      - name: Build and package
+        run: |
+          # Actually do builds and make zips and whatnot
+          cargo dist build ${{ needs.plan.outputs.tag-flag }} --output-format=json ${{ matrix.dist_args }} > dist-manifest.json
+          echo "cargo dist ran successfully"
+      - id: cargo-dist
+        # We force bash here just because github makes it really hard to get values up
+        # to "real" actions without writing to env-vars, and writing to env-vars has
+        # inconsistent syntax between shell and powershell. cargo-dist and jq work fine
+        # in powershell.
+        shell: bash
+        run: |
+          # Parse out what we just built and upload it to the Github Release™
+          echo "paths<<EOF" >> "$GITHUB_OUTPUT"
+          jq --raw-output ".artifacts[]?.path | select( . != null )" dist-manifest.json >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+      - name: "Upload artifacts"
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: ${{ steps.cargo-dist.outputs.paths }}
 
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        path: artifacts
+  # Build and package all the platform-agnostic(ish) things
+  upload-global-artifacts:
+    needs: [plan, upload-local-artifacts]
+    runs-on: "ubuntu-20.04"
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install cargo-dist
+        run: "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.3.0/cargo-dist-installer.sh | sh"
+      # Get all the local artifacts for the global tasks to use (for e.g. checksums)
+      - name: Fetch local artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: target/distrib/
+      - id: cargo-dist
+        shell: bash
+        run: |
+          cargo dist build ${{ needs.plan.outputs.tag-flag }} --output-format=json "--artifacts=global" > dist-manifest.json
+          echo "cargo dist ran successfully"
 
-    - name: List artifacts
-      run: tree artifacts
+          # Parse out what we just built and upload it to the Github Release™
+          echo "paths<<EOF" >> "$GITHUB_OUTPUT"
+          jq --raw-output ".artifacts[]?.path | select( . != null )" dist-manifest.json >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+      - name: "Upload artifacts"
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: ${{ steps.cargo-dist.outputs.paths }}
 
-    - name: Extract release notes
-      id: extract-release-notes
-      uses: ffurrer2/extract-release-notes@c24866884b7a0d2fd2095be2e406b6f260479da8
+  should-publish:
+    needs:
+      - plan
+      - upload-local-artifacts
+      - upload-global-artifacts
+    if: ${{ needs.plan.outputs.publishing == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: print tag
+        run: echo "ok we're publishing!"
 
-    - name: Get contributors
-      run: |
-        DEFAULT_RELEASE_NOTE="$(
-          curl -sL \
-            https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
-            -H 'Authorization: token ${{ github.token }}' \
-            -d '{"tag_name":"${{ env.GH_PROJECT_VERSION }}","target_commitish":"${{ github.sha }}"}' \
-          | jq -r .body
-        )"
-        echo "Default Release Note"
-        echo "${DEFAULT_RELEASE_NOTE}"
-        echo
-        CONTRIBUTORS="$(
-          <<< "${DEFAULT_RELEASE_NOTE}" \
-            perl -ne 'print if s/.+ by (@[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}) in https.+$/\1/i' \
-          | sort -u \
-        )"
-        echo "Contributors"
-        echo "${CONTRIBUTORS}"
-        echo
-        PRETTY_CONTRIBUTOR_LIST="$(
-          xargs <<< "${CONTRIBUTORS}" \
-          | sed 's/ /, /g;s/\(.*\), \(.*\)$/\1 and \2/' \
-        )"
-        echo "Prettified Contributors"
-        echo "${PRETTY_CONTRIBUTOR_LIST}"
-        echo
-        echo "PRETTY_CONTRIBUTOR_LIST=${PRETTY_CONTRIBUTOR_LIST}" >> $GITHUB_ENV
-
-    - name: Prepare release body
-      run: |
-        if [ -n "${PRETTY_CONTRIBUTOR_LIST}" ]; then
-          PRETTY_CONTRIBUTOR_LINE="<sup> 🎉 Thanks to ${PRETTY_CONTRIBUTOR_LIST} for their contributions to this release. 🎉 </sup>"
-          echo "PRETTY_CONTRIBUTOR_LINE=${PRETTY_CONTRIBUTOR_LINE}" >> $GITHUB_ENV
-        fi
-
-        CRATE_LINE="**Crate Link**: https://crates.io/crates/${{ env.PROJECT_NAME }}/${{ env.PROJECT_VERSION }}"
-        echo "CRATE_LINE=${CRATE_LINE}" >> $GITHUB_ENV
-
-        CHANGELOG_LINE="**Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ env.GIT_PREVIOUS_TAG }}...${{ env.GH_PROJECT_VERSION }}"
-        echo "CHANGELOG_LINE=${CHANGELOG_LINE}" >> $GITHUB_ENV
-
-        HASH_LINE="<details>\n<summary>Verify the SHA256 checksums of the release artifacts</summary>\n\n| File | Hash |\n| --- | --- |"
-        for file in artifacts/*/*; do
-          filename=$(basename "$file")
-          HASH_LINE="${HASH_LINE}\n| [\`${filename}\`](https://github.com/near/cargo-near/releases/download/${{ env.GH_PROJECT_VERSION }}/${filename}) | \`$(sha256sum "${file}" | cut -d' ' -f1)\` |"
-        done
-        HASH_LINE="${HASH_LINE}\n\n</details>"
-        echo "HASH_LINE<<EOF" >> $GITHUB_ENV
-        echo -e "${HASH_LINE}" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
-
-    - name: Create release and upload artifacts
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ env.GH_PROJECT_VERSION }}
-        prerelease: ${{ env.IS_PRERELEASE }}
-        target_commitish: ${{ github.sha }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        files: |
-          artifacts/**/*.tar.gz
-          artifacts/**/*.zip
-        body: |
-          ## What's changed?
-
-          ${{ steps.extract-release-notes.outputs.release_notes }}
-
-          ${{ env.CRATE_LINE }}
-
-          ${{ env.CHANGELOG_LINE }}
-
-          ${{ env.PRETTY_CONTRIBUTOR_LINE }}
-
-          ${{ env.HASH_LINE }}
+  # Create a Github Release with all the results once everything is done,
+  publish-release:
+    needs: [plan, should-publish]
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: "Download artifacts"
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.plan.outputs.tag }}
+          name: ${{ fromJson(needs.plan.outputs.val).announcement_title }}
+          body: ${{ fromJson(needs.plan.outputs.val).announcement_github_body }}
+          prerelease: ${{ fromJson(needs.plan.outputs.val).announcement_is_prerelease }}
+          artifacts: "artifacts/*"
