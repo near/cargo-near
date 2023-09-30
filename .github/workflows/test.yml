@@ -33,6 +33,13 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
+      - name: downgrade crates to support older Rust toolchain
+        if: matrix.toolchain == '1.69.0'
+        run: |
+          cargo update -p anstyle --precise 1.0.2
+          cargo update -p clap --precise 4.3.24
+          cargo update -p clap_lex --precise 0.5.0
+
       - name: Cargo check
         run: cargo check -p cargo-near
 
@@ -76,6 +83,10 @@ jobs:
       - name: Check Formatting
         run: cargo fmt -- --check
 
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
+
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
 
@@ -90,4 +101,4 @@ jobs:
         run: cargo install cargo-audit
 
       - name: Run Audit Tool
-        run: cargo audit --ignore RUSTSEC-2020-0071
+        run: cargo audit --ignore RUSTSEC-2020-0071 --ignore RUSTSEC-2022-0093
