@@ -3,8 +3,8 @@ use function_name::named;
 
 #[test]
 #[named]
-fn test_abi_feature_not_enabled() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
+fn test_abi_feature_not_enabled() -> cargo_near::CliResult {
+    fn run_test() -> cargo_near::CliResult {
         generate_abi_fn_with! {
             Cargo: "/templates/negative/_Cargo_no_abi_feature.toml";
             Code:
@@ -23,8 +23,8 @@ fn test_abi_feature_not_enabled() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_abi_old_sdk() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
+fn test_abi_old_sdk() -> cargo_near::CliResult {
+    fn run_test() -> cargo_near::CliResult {
         generate_abi_fn_with! {
             Cargo: "/templates/negative/_Cargo_old_sdk.toml";
             Code:
@@ -43,8 +43,8 @@ fn test_abi_old_sdk() -> anyhow::Result<()> {
 
 #[test]
 #[named]
-fn test_abi_weird_version() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
+fn test_abi_weird_version() -> cargo_near::CliResult {
+    fn run_test() -> cargo_near::CliResult {
         generate_abi_fn_with! {
             Cargo: "/templates/negative/_Cargo_malformed.toml";
             Code:
@@ -68,8 +68,8 @@ fn test_abi_weird_version() -> anyhow::Result<()> {
 // with no code should work.
 #[test]
 #[named]
-fn test_abi_no_code() -> anyhow::Result<()> {
-    fn run_test() -> anyhow::Result<()> {
+fn test_abi_no_code() -> cargo_near::CliResult {
+    fn run_test() -> cargo_near::CliResult {
         generate_abi_fn! {};
         Ok(())
     }

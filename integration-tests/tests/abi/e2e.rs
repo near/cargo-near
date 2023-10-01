@@ -5,7 +5,7 @@ use schemars::gen::SchemaGenerator;
 
 #[test]
 #[named]
-fn test_simple_function() -> anyhow::Result<()> {
+fn test_simple_function() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn! {
         pub fn add(&self, a: u32, b: u32) -> u32 {
             a + b

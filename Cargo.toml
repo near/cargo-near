@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
     "cargo-near",
     "integration-tests",
@@ -9,3 +10,30 @@ inherits = "release"
 lto = true
 strip = true
 codegen-units = 1
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.3.0"
+# CI backends to support
+ci = ["github"]
+# The installers to generate for each app
+installers = ["shell", "powershell", "npm", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["x86_64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+# The archive format to use for windows builds (defaults .zip)
+windows-archive = ".tar.gz"
+# The archive format to use for non-windows builds (defaults .tar.xz)
+unix-archive = ".tar.gz"
+# Publish jobs to run in CI
+pr-run-mode = "upload"
+# XXX: In order to install system dependencies, we need to edit the release.yml,
+# so we allow dirty CI scripts to avoid cargo-dist complains.
+# This should not be necessary once the following issue is addressed:
+# https://github.com/axodotdev/cargo-dist/issues/423
+allow-dirty = ["ci"]

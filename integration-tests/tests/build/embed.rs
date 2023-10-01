@@ -1,11 +1,13 @@
 use crate::util;
 use cargo_near_integration_tests::{build_fn, build_fn_with};
 use function_name::named;
-use workspaces::prelude::DevAccountDeployer;
 
 #[tokio::test]
 #[named]
-async fn test_build_embed_abi() -> anyhow::Result<()> {
+// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
+// https://github.com/near/cargo-near/issues/104
+#[ignore]
+async fn test_build_embed_abi() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--embed-abi";
         Code:
@@ -33,7 +35,7 @@ async fn test_build_embed_abi() -> anyhow::Result<()> {
 
 #[tokio::test]
 #[named]
-async fn test_build_no_embed_abi() -> anyhow::Result<()> {
+async fn test_build_no_embed_abi() -> cargo_near::CliResult {
     let build_result = build_fn! {
         pub fn add(&self, a: u32, b: u32) -> u32 {
             a + b
@@ -42,7 +44,7 @@ async fn test_build_no_embed_abi() -> anyhow::Result<()> {
 
     let worker = workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
-    let outcome = contract.call(&worker, "__contract_abi").view().await;
+    let outcome = contract.call("__contract_abi").view().await;
     outcome.unwrap_err();
 
     Ok(())

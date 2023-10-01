@@ -7,7 +7,10 @@ mod opts;
 
 #[tokio::test]
 #[named]
-async fn test_build_simple() -> anyhow::Result<()> {
+// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
+// https://github.com/near/cargo-near/issues/104
+#[ignore]
+async fn test_build_simple() -> cargo_near::CliResult {
     let build_result = build_fn! {
         /// Adds `a` and `b`.
         pub fn add(&self, a: u32, b: u32) -> u32 {
