@@ -33,13 +33,6 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
-      - name: downgrade crates to support older Rust toolchain
-        if: matrix.toolchain == '1.69.0'
-        run: |
-          cargo update -p anstyle --precise 1.0.2
-          cargo update -p clap --precise 4.3.24
-          cargo update -p clap_lex --precise 0.5.0
-
       - name: Cargo check
         run: cargo check -p cargo-near
 
@@ -54,13 +47,11 @@ jobs:
       - name: Checkout Sources
         uses: actions/checkout@v2
 
-      # Remove this whole block once nearcore supports Rust 1.70.0+
-      # https://github.com/near/nearcore/issues/9143
-      - name: "Install 1.69.0 toolchain"
+      - name: "Install stable Rust toolchain"
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.69.0
+          toolchain: stable
           default: true
 
       - name: Install `wasm32-unknown-unknown`
