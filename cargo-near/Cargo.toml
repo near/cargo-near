@@ -39,6 +39,6 @@ strum = { version = "0.24", features = ["derive"] }
 strum_macros = "0.24"
 interactive-clap = "0.2.5"
 interactive-clap-derive = "0.2.5"
-near-cli-rs = { version = "0.5.2" }
+near-cli-rs = { git = "https://github.com/near/near-cli-rs", rev = "65fb0e45e1631c9e162ec2b84b3de6396939cf44" }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
