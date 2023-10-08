@@ -1,5 +1,7 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
+mod use_random_account_id;
+
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 pub struct CreateAccount {
@@ -16,7 +18,7 @@ pub enum CreateAccountMethod {
         message = "use-random-account-id     - I would like to create a random account"
     ))]
     /// I would like to create a random account
-    UseRandomAccountId,
+    UseRandomAccountId(self::use_random_account_id::RandomAccount),
     #[strum_discriminants(strum(
         message = "use-specific-account-id   - I would like to create a specific account"
     ))]
