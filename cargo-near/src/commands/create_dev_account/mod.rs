@@ -1,6 +1,6 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
-mod use_random_account_id;
+pub mod use_random_account_id;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]

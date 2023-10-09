@@ -52,7 +52,7 @@ impl From<RandomAccountContext> for NewAccountContext {
     }
 }
 
-fn random_account_id(
+pub fn random_account_id(
     networks: &linked_hash_map::LinkedHashMap<String, near_cli_rs::config::NetworkConfig>,
 ) -> color_eyre::eyre::Result<near_cli_rs::types::account_id::AccountId> {
     loop {

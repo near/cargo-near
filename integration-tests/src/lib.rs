@@ -67,7 +67,11 @@ macro_rules! invoke_cargo_near {
                 };
                 cargo_near::commands::build_command::build::run(args)?;
             },
-            Some(cargo_near::commands::CliNearCommand::CreateDevAccount(create_account)) => todo!(), // XXX
+            Some(cargo_near::commands::CliNearCommand::CreateDevAccount(_)) => {
+                let config = near_cli_rs::common::get_config_toml()?;
+                let networks = config.network_connection;
+                eprintln!("random account_id: {}", cargo_near::commands::create_dev_account::use_random_account_id::random_account_id(&networks)?);
+            },
             None => ()
         }
 
@@ -231,5 +235,16 @@ macro_rules! build_fn {
             Code:
             $($code)*
         }
+    }};
+}
+
+#[macro_export]
+macro_rules! create_dev_account_fn {
+    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Cmd: $cli_cmd:expr;)? Code: $($code:tt)*) => {{
+        let _result_dir = $crate::invoke_cargo_near! {
+            $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
+            Opts: $($cli_cmd)?;
+            Code: $($code)*
+        };
     }};
 }
