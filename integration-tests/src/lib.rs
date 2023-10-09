@@ -1,11 +1,17 @@
 use const_format::formatcp;
 
-pub const SDK_VERSION: &str = "4.1.0";
-pub const SDK_GIT_REV: &str = "10b0dea3b1a214d789cc90314aa814a4181610ad";
+/// published `near-sdk` version
+pub const SDK_VERSION: &str = "4.1.1";
+/// NOTE: this version is version of near-sdk in master branch from 5.x.x development cycle
+pub const SDK_VERSION_MASTER: &str = "4.1.1";
+pub const SDK_GIT_REV: &str = "15bfb0e6d54ff386478d137074027c2cb863df03";
 pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
+pub const SDK_GIT_VERSION_TOML_COMMA: &str = formatcp!(
+    r#"version = "{SDK_VERSION_MASTER}", git = "https://github.com/near/near-sdk-rs.git", rev = "{SDK_GIT_REV}""#
+);
 pub const SDK_GIT_VERSION_TOML_TABLE: &str = formatcp!(
     r#"
-    version = "{SDK_VERSION}"
+    version = "{SDK_VERSION_MASTER}"
     git = "https://github.com/near/near-sdk-rs.git"
     rev = "{SDK_GIT_REV}"
     "#
@@ -27,6 +33,7 @@ macro_rules! invoke_cargo_near {
         cargo_vars.insert("sdk-version", $crate::SDK_VERSION);
         cargo_vars.insert("sdk-git-rev", $crate::SDK_GIT_REV);
         cargo_vars.insert("sdk-version-toml", $crate::SDK_VERSION_TOML);
+        cargo_vars.insert("sdk-git-version-toml-comma", $crate::SDK_GIT_VERSION_TOML_COMMA);
         cargo_vars.insert("sdk-git-version-toml-table", $crate::SDK_GIT_VERSION_TOML_TABLE);
         cargo_vars.insert("name", function_name!());
         for (k, v) in cargo_vars {
@@ -109,15 +116,12 @@ macro_rules! generate_abi_fn_with {
         $crate::generate_abi_with! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
-            // fixme! remove after borsh fixes trait qualification
-            // fixme! https://github.com/near/borsh-rs/issues/112
-            use near_sdk::borsh::BorshSchema;
-
-            use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+            use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
             use near_sdk::near_bindgen;
 
             #[near_bindgen]
             #[derive(Default, BorshDeserialize, BorshSerialize)]
+            #[borsh(crate = "near_sdk::borsh")]
             pub struct Contract {}
 
             #[near_bindgen]
@@ -208,11 +212,12 @@ macro_rules! build_fn_with {
         $crate::build_with! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
-            use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+            use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
             use near_sdk::{near_bindgen, NearSchema};
 
             #[near_bindgen]
             #[derive(Default, BorshDeserialize, BorshSerialize)]
+            #[borsh(crate = "near_sdk::borsh")]
             pub struct Contract {}
 
             #[near_bindgen]

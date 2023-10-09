@@ -386,7 +386,7 @@ fn test_schema_arrays() -> cargo_near::CliResult {
 #[named]
 fn test_schema_struct() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
         use near_sdk::{near_bindgen, NearSchema};
         use near_sdk::serde::{Deserialize, Serialize};
 
@@ -403,6 +403,7 @@ fn test_schema_struct() -> cargo_near::CliResult {
 
         #[near_bindgen]
         #[derive(Default, BorshDeserialize, BorshSerialize)]
+        #[borsh(crate = "near_sdk::borsh")]
         pub struct Contract {}
 
         #[near_bindgen]
@@ -491,7 +492,7 @@ fn test_schema_struct() -> cargo_near::CliResult {
 #[named]
 fn test_schema_enum() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
         use near_sdk::{near_bindgen, NearSchema};
         use near_sdk::serde::{Deserialize, Serialize};
 
@@ -511,6 +512,7 @@ fn test_schema_enum() -> cargo_near::CliResult {
 
         #[near_bindgen]
         #[derive(Default, BorshDeserialize, BorshSerialize)]
+        #[borsh(crate = "near_sdk::borsh")]
         pub struct Contract {}
 
         #[near_bindgen]
@@ -623,7 +625,7 @@ fn test_schema_enum() -> cargo_near::CliResult {
 #[named]
 fn test_schema_complex() -> cargo_near::CliResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
         use near_sdk::{near_bindgen, NearSchema};
         use near_sdk::serde::{Deserialize, Serialize};
 
@@ -643,6 +645,7 @@ fn test_schema_complex() -> cargo_near::CliResult {
 
         #[near_bindgen]
         #[derive(Default, BorshDeserialize, BorshSerialize)]
+        #[borsh(crate = "near_sdk::borsh")]
         pub struct Contract {}
 
         #[near_bindgen]
