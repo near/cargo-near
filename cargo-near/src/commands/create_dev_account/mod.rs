@@ -15,9 +15,9 @@ pub struct CreateAccount {
 /// How do you cover the costs of account creation?
 pub enum CreateAccountMethod {
     #[strum_discriminants(strum(
-        message = "use-random-account-id     - I would like to create a random account"
+        message = "use-random-account-id     - I would like to create a random account (useful for quick start development)"
     ))]
-    /// I would like to create a random account
+    /// Use a random name for account (useful for quick start development)
     UseRandomAccountId(self::use_random_account_id::RandomAccount),
     #[strum_discriminants(strum(
         message = "use-specific-account-id   - I would like to create a specific account"
