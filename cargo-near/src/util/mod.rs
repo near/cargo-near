@@ -57,6 +57,13 @@ where
     if let Some(path) = working_dir {
         let path = path.as_ref();
         log::debug!("Setting cargo working dir to '{}'", path);
+        #[cfg(target_os = "windows")]
+        {
+            let mut path = path.as_std_path().to_string_lossy().to_string();
+            // remove first 4 elements from path string
+            path.drain(..4);
+            let path = std::path::PathBuf::from(path);
+        }
         cmd.current_dir(path);
     }
 
