@@ -17,7 +17,6 @@ clap = "4.0.18"
 function_name = "0.3"
 git2 = "0.14"
 minifier = "0.2.2"
-near-cli-rs = { git = "https://github.com/near/near-cli-rs" }
 prettyplease = "0.1"
 proc-macro2 = "1.0"
 schemars = "0.8"

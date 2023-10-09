@@ -766,7 +766,6 @@ dependencies = [
  "git2",
  "minifier",
  "near-abi",
- "near-cli-rs",
  "prettyplease",
  "proc-macro2",
  "quote",
