@@ -37,8 +37,8 @@ color-eyre = "0.6"
 inquire = "0.6"
 strum = { version = "0.24", features = ["derive"] }
 strum_macros = "0.24"
-interactive-clap = "0.2.5"
-interactive-clap-derive = "0.2.5"
+interactive-clap = "0.2.6"
+interactive-clap-derive = "0.2.6"
 linked-hash-map = { version = "0.5", features = ["serde_impl"] }
 names = { version = "0.14.0", default-features = false }
 near-cli-rs = { git = "https://github.com/near/near-cli-rs" }
