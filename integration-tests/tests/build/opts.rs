@@ -66,9 +66,6 @@ fn test_build_opt_out_dir() -> cargo_near::CliResult {
 
 #[tokio::test]
 #[named]
-// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
-// https://github.com/near/cargo-near/issues/104
-#[ignore]
 async fn test_build_opt_release() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--release";
@@ -88,9 +85,6 @@ async fn test_build_opt_release() -> cargo_near::CliResult {
 
 #[tokio::test]
 #[named]
-// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
-// https://github.com/near/cargo-near/issues/104
-#[ignore]
 async fn test_build_opt_doc_embed() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--doc --embed-abi";
@@ -118,9 +112,6 @@ async fn test_build_opt_doc_embed() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
-// https://github.com/near/cargo-near/issues/104
-#[ignore]
 fn test_build_opt_no_abi_doc() -> cargo_near::CliResult {
     fn run_test() -> cargo_near::CliResult {
         build_fn_with! {
@@ -133,19 +124,17 @@ fn test_build_opt_no_abi_doc() -> cargo_near::CliResult {
         };
         Ok(())
     }
+
     assert!(run_test()
         .unwrap_err()
         .to_string()
-        .contains("The argument '--no-abi' cannot be used with '--doc'"));
+        .contains("error: the argument '--no-abi' cannot be used with '--doc'"));
 
     Ok(())
 }
 
 #[test]
 #[named]
-// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
-// https://github.com/near/cargo-near/issues/104
-#[ignore]
 fn test_build_opt_no_abi_embed() -> cargo_near::CliResult {
     fn run_test() -> cargo_near::CliResult {
         build_fn_with! {
@@ -161,7 +150,7 @@ fn test_build_opt_no_abi_embed() -> cargo_near::CliResult {
     assert!(run_test()
         .unwrap_err()
         .to_string()
-        .contains("The argument '--no-abi' cannot be used with '--embed-abi'"));
+        .contains("error: the argument '--no-abi' cannot be used with '--embed-abi'"));
 
     Ok(())
 }

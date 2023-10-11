@@ -196,8 +196,6 @@ fn test_dependency_patch() -> cargo_near::CliResult {
     Ok(())
 }
 
-// TODO: Re-enable when we release 4.1.0
-#[ignore]
 #[test]
 #[named]
 fn test_abi_not_a_table() -> cargo_near::CliResult {

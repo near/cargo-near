@@ -4,9 +4,6 @@ use function_name::named;
 
 #[tokio::test]
 #[named]
-// TODO: remove ignore after near-workspaces-rs supports Rust 1.70+
-// https://github.com/near/cargo-near/issues/104
-#[ignore]
 async fn test_build_embed_abi() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
         Opts: "--embed-abi";
@@ -42,7 +39,7 @@ async fn test_build_no_embed_abi() -> cargo_near::CliResult {
         }
     };
 
-    let worker = workspaces::sandbox().await?;
+    let worker = near_workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("__contract_abi").view().await;
     outcome.unwrap_err();
