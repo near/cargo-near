@@ -56,6 +56,7 @@ where
 
     if let Some(path) = working_dir {
         let path = path.as_ref();
+        // remove UNC prefix to be able compile on Windows
         let path = force_canonicalize_dir(path).unwrap();
         log::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
@@ -242,6 +243,7 @@ pub(crate) fn compile_project(
 /// Create the directory if it doesn't exist, and return the absolute path to it.
 pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
     fs::create_dir_all(dir).wrap_err_with(|| format!("failed to create directory `{}`", dir))?;
+    // use `dunce` create instead of default one because it's compatible with Windows
     let compatible_path = dunce::canonicalize(&dir);
     match compatible_path {
         Ok(path) => Ok(Utf8PathBuf::from_path_buf(path).unwrap()),
