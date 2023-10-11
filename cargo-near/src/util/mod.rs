@@ -57,7 +57,7 @@ where
     if let Some(path) = working_dir {
         let path = path.as_ref();
         // remove UNC prefix to be able to compile on Windows
-        let path = force_canonicalize_dir(path).unwrap();
+        let path = force_canonicalize_dir(path)?;
         log::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
