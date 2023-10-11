@@ -57,13 +57,6 @@ where
     if let Some(path) = working_dir {
         let path = path.as_ref();
         log::debug!("Setting cargo working dir to '{}'", path);
-        #[cfg(target_os = "windows")]
-        {
-            let mut path = path.as_std_path().to_string_lossy().to_string();
-            // remove first 4 elements from path string
-            path.drain(..4);
-            let path = std::path::PathBuf::from(path);
-        }
         cmd.current_dir(path);
     }
 
@@ -245,10 +238,18 @@ pub(crate) fn compile_project(
     }
 }
 
+const UNC_PREFIX: &str = r"\\?\";
 /// Create the directory if it doesn't exist, and return the absolute path to it.
 pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
     fs::create_dir_all(dir).wrap_err_with(|| format!("failed to create directory `{}`", dir))?;
     dir.canonicalize_utf8()
+        .map(|path| {
+            if path.starts_with(UNC_PREFIX) {
+                path.strip_prefix(UNC_PREFIX).unwrap().to_path_buf()
+            } else {
+                path
+            }
+        })
         .wrap_err_with(|| format!("failed to access output directory `{}`", dir))
 }
 
