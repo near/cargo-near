@@ -56,6 +56,7 @@ where
 
     if let Some(path) = working_dir {
         let path = path.as_ref();
+        let path = force_canonicalize_dir(path).unwrap();
         log::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
@@ -238,19 +239,14 @@ pub(crate) fn compile_project(
     }
 }
 
-const UNC_PREFIX: &str = r"\\?\";
 /// Create the directory if it doesn't exist, and return the absolute path to it.
 pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
     fs::create_dir_all(dir).wrap_err_with(|| format!("failed to create directory `{}`", dir))?;
-    dir.canonicalize_utf8()
-        .map(|path| {
-            if path.starts_with(UNC_PREFIX) {
-                path.strip_prefix(UNC_PREFIX).unwrap().to_path_buf()
-            } else {
-                path
-            }
-        })
-        .wrap_err_with(|| format!("failed to access output directory `{}`", dir))
+    let compatible_path = dunce::canonicalize(&dir);
+    match compatible_path {
+        Ok(path) => Ok(Utf8PathBuf::from_path_buf(path).unwrap()),
+        Err(err) => Err(err).wrap_err_with(|| format!("failed to canonicalize path: {} ", dir)),
+    }
 }
 
 /// Copy a file to a destination.

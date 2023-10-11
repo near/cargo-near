@@ -42,3 +42,4 @@ interactive-clap-derive = "0.2.5"
 near-cli-rs = { version = "0.5.2" }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
+dunce = "1"
