@@ -246,7 +246,7 @@ pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result
     // use `dunce` create instead of default one because it's compatible with Windows UNC paths
     // and don't breake cargo compilation on Windows
     // https://github.com/rust-lang/rust/issues/42869
-    let compatible_path = dunce::canonicalize(&dir);
+    let compatible_path = dunce::canonicalize(dir);
     match compatible_path {
         Ok(path) => Ok(Utf8PathBuf::from_path_buf(path).unwrap()),
         Err(err) => Err(err).wrap_err_with(|| format!("failed to canonicalize path: {} ", dir)),
