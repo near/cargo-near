@@ -248,10 +248,9 @@ pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result
     // https://github.com/rust-lang/rust/issues/42869
     Utf8PathBuf::from_path_buf(
         dunce::canonicalize(dir)
-            .wrap_err_with(|| format!("failed to canonicalize path: {} ", dir))?
+            .wrap_err_with(|| format!("failed to canonicalize path: {} ", dir))?,
     )
-    .wrap_err_with(|| format!("failed to convert canonicalized path to UTF-8 path: {} ", dir))
-    .into()
+    .map_err(|err| color_eyre::eyre::eyre!(" failed to convert path {}", err.to_string_lossy()))
 }
 
 /// Copy a file to a destination.
