@@ -14,8 +14,7 @@ pub struct BuildCommand {
     #[interactive_clap(long)]
     pub doc: bool,
     /// Do not generate ABI for the contract
-    #[interactive_clap(long)]
-    // #[clap(long, conflicts_with_all = &["doc", "embed-abi"])]
+    #[interactive_clap(long, conflicts_with_all = &["doc", "embed_abi"])]
     pub no_abi: bool,
     /// Copy final artifacts to this directory
     #[interactive_clap(long)]
