@@ -1,6 +1,6 @@
 pub mod build;
 
-#[derive(Debug, Clone, interactive_clap::InteractiveClap)]
+#[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 #[interactive_clap(skip_default_from_cli)]
 pub struct BuildCommand {
