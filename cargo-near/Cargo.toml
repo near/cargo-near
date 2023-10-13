@@ -44,3 +44,4 @@ names = { version = "0.14.0", default-features = false }
 near-cli-rs = { git = "https://github.com/near/near-cli-rs" }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
+dunce = "1"
