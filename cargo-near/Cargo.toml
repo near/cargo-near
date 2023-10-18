@@ -43,8 +43,7 @@ derive_more = "0.99.9"
 shell-words = "1.0.0"
 interactive-clap = "0.2.7"
 interactive-clap-derive = "0.2.7"
-near-cli-rs = { git = "https://github.com/near/near-cli-rs", rev = "5d3a05876b58b910dfbf509bf39ef5f46b543436" }
-
+near-cli-rs = { version = "0.6.2" }
 near-crypto = "0.17.0"
 near-primitives = "0.17.0"
 near-jsonrpc-client = "0.6.0"
