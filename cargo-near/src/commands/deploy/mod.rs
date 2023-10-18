@@ -14,9 +14,6 @@ pub struct Contract {
     #[interactive_clap(skip_default_input_arg)]
     /// What is the contract account ID?
     contract_account_id: near_cli_rs::types::account_id::AccountId,
-    #[allow(dead_code)]
-    #[interactive_clap(skip)]
-    file_path: crate::types::utf8_path_buf::Utf8PathBufInner,
     #[interactive_clap(subcommand)]
     initialize: InitializeMode,
 }
@@ -29,12 +26,13 @@ impl ContractContext {
         previous_context: near_cli_rs::GlobalContext,
         scope: &<Contract as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
+        let file_path = build_command::build::run(scope.build_command_args.clone())?.path;
         Ok(Self(
             near_cli_rs::commands::contract::deploy::ContractFileContext {
                 global_context: previous_context,
                 receiver_account_id: scope.contract_account_id.clone().into(),
                 signer_account_id: scope.contract_account_id.clone().into(),
-                code: scope.file_path.read_bytes()?,
+                code: std::fs::read(file_path)?,
             },
         ))
     }
@@ -88,19 +86,8 @@ impl interactive_clap::FromCli for Contract {
             .clone()
             .expect("Unexpected error");
 
-        let file_path = match build_command::build::run(build_command_args.clone()) {
-            Ok(compilation_artifact) => compilation_artifact.path,
-            Err(err) => {
-                return interactive_clap::ResultFromCli::Err(
-                    Some(clap_variant),
-                    color_eyre::eyre::eyre!(err),
-                )
-            }
-        };
-
         let new_context_scope = InteractiveClapContextScopeForContract {
             build_command_args,
-            file_path: file_path.into(),
             contract_account_id,
         };
 
