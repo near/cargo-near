@@ -3,6 +3,7 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 pub mod abi_command;
 pub mod build_command;
 pub mod create_dev_account;
+pub mod deploy;
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
@@ -28,4 +29,7 @@ pub enum NearCommand {
     ))]
     /// Create a development account using the faucet service sponsor to cover the cost of creating an account (testnet only for now)
     CreateDevAccount(self::create_dev_account::CreateAccount),
+    #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
+    /// Add a new contract code
+    Deploy(self::deploy::Contract),
 }

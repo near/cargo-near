@@ -1,3 +1,5 @@
+use color_eyre::eyre::Context;
+
 #[derive(
     Debug,
     Default,
@@ -18,4 +20,11 @@ impl std::fmt::Display for Utf8PathBufInner {
 
 impl interactive_clap::ToCli for Utf8PathBufInner {
     type CliVariant = Utf8PathBufInner;
+}
+
+impl Utf8PathBufInner {
+    pub fn read_bytes(&self) -> color_eyre::Result<Vec<u8>> {
+        std::fs::read(self.0.clone().into_std_path_buf())
+            .wrap_err_with(|| format!("Error reading data from file: {:?}", self.0))
+    }
 }

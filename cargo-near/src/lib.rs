@@ -1,3 +1,5 @@
+#![allow(clippy::large_enum_variant)]
+
 pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 

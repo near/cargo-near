@@ -821,6 +821,10 @@ dependencies = [
  "names",
  "near-abi",
  "near-cli-rs",
+ "near-crypto 0.17.0",
+ "near-jsonrpc-client",
+ "near-jsonrpc-primitives",
+ "near-primitives 0.17.0",
  "rustc_version",
  "schemars",
  "serde_json",
@@ -2835,7 +2839,8 @@ dependencies = [
 [[package]]
 name = "near-cli-rs"
 version = "0.6.2"
-source = "git+https://github.com/near/near-cli-rs#809d62827532ece7724c7f62eee162e066ff6a1f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c80aaad38d0bf04a9056ca97d1f46e8b052b7a9a8b9f4af1f417c07b8f56e25"
 dependencies = [
  "bip39",
  "bs58 0.5.0",
