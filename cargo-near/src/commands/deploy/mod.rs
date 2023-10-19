@@ -116,13 +116,6 @@ impl interactive_clap::FromCli for Contract {
 }
 
 impl Contract {
-    #[allow(dead_code)]
-    fn input_build_command_args(
-        _context: &near_cli_rs::GlobalContext,
-    ) -> color_eyre::eyre::Result<Option<build_command::BuildCommand>> {
-        Ok(None)
-    }
-
     pub fn input_contract_account_id(
         context: &near_cli_rs::GlobalContext,
     ) -> color_eyre::eyre::Result<Option<near_cli_rs::types::account_id::AccountId>> {
