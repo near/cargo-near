@@ -37,11 +37,15 @@ color-eyre = "0.6"
 inquire = "0.6"
 strum = { version = "0.24", features = ["derive"] }
 strum_macros = "0.24"
-interactive-clap = "0.2.6"
-interactive-clap-derive = "0.2.6"
 linked-hash-map = { version = "0.5", features = ["serde_impl"] }
 names = { version = "0.14.0", default-features = false }
-near-cli-rs = { git = "https://github.com/near/near-cli-rs" }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
+interactive-clap = "0.2.7"
+interactive-clap-derive = "0.2.7"
+near-cli-rs = { version = "0.6.2" }
+near-crypto = "0.17.0"
+near-primitives = "0.17.0"
+near-jsonrpc-client = "0.6.0"
+near-jsonrpc-primitives = "0.17.0"
 dunce = "1"
