@@ -9,6 +9,7 @@ pub mod deploy;
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 #[interactive_clap(disable_back)]
+#[non_exhaustive]
 /// What are you up to? (select one of the options with the up-down arrows on your keyboard and press Enter)
 pub enum NearCommand {
     #[strum_discriminants(strum(
