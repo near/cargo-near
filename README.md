@@ -37,7 +37,7 @@ irm https://github.com/near/cargo-near/releases/latest/download/cargo-near-insta
 ### Install prebuilt binaries into your npm project
 
 ```sh
-npm install cargo-near@0.4.1
+npm install cargo-near
 ```
 
 ### Compile latest released version from source code
