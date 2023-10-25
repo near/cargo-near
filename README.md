@@ -22,13 +22,31 @@
 
 ## Installation
 
-From crates.io:
+### Install prebuilt binaries via shell script (Linux, macOS)
 
-```console
-$ cargo install cargo-near
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
 ```
 
-To install from source:
+### Install prebuilt binaries via powershell script (Windows)
+
+```sh
+irm https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.ps1 | iex
+```
+
+### Install prebuilt binaries into your npm project
+
+```sh
+npm install cargo-near
+```
+
+### Compile latest released version from source code
+
+```console
+cargo install cargo-near
+```
+
+### Compile latest development version from source code
 
 ```console
 $ git clone https://github.com/near/cargo-near
@@ -37,7 +55,13 @@ $ cargo install --path cargo-near
 
 ## Usage
 
-See `cargo near --help` for a complete list of available commands. Help is also available for each individual command with a `--help` flag, e.g. `cargo near build --help`.
+See `cargo near --help` for a complete list of available commands or run `cargo near` to dive into interactive mode. Help is also available for each individual command with a `--help` flag, e.g. `cargo near build --help`.
+
+```console
+cargo near
+```
+
+Starts interactive mode that will allow to explore all the available commands.
 
 ```console
 cargo near build
@@ -52,6 +76,19 @@ cargo near abi
 ```
 
 Generates NEAR smart contract's [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
+
+```console
+cargo near create-dev-account
+```
+
+Guides you through creation of a new NEAR account on [testnet](https://explorer.testnet.near.org).
+
+```console
+cargo near deploy
+```
+
+Builds the smart contract (equivalent to `cargo near build`) and guides you to deploy it to the blockchain.
+
 
 ## Contribution
 
