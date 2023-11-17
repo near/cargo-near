@@ -1,1 +1,9 @@
+# Build files
 /target
+
+# Code Editor related files
+.idea
+.vscode
+
+# OS X
+.DS_Store
