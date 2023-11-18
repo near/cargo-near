@@ -17,8 +17,11 @@ impl NewContext {
         _previous_context: near_cli_rs::GlobalContext,
         scope: &<New as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
+        let project_dir = scope.project_dir.to_string();
+        let project_name = project_dir.rsplit('/').next().wrap_err("Internal error!")?;
+
         for new_project_file in NEW_PROJECT_FILES {
-            let mut folder_path = std::path::PathBuf::from(&scope.project_dir);
+            let mut folder_path = std::path::PathBuf::from(&project_dir);
             let file_path = std::path::PathBuf::from(new_project_file.file_path);
             folder_path.push(file_path.parent().wrap_err_with(|| {
                 format!("Impossible to get parent for `{}`", file_path.display())
@@ -28,18 +31,23 @@ impl NewContext {
                 format!("Impossible to get filename for `{}`", file_path.display())
             })?);
             std::fs::File::create(&path)
-                .wrap_err_with(|| format!("Failed to create file: {:?}", path))?
-                .write(new_project_file.content.as_bytes())
-                .wrap_err_with(|| format!("Failed to write to file: {:?}", path))?;
+                .wrap_err_with(|| format!("Failed to create file: {}", path.display()))?
+                .write(
+                    new_project_file
+                        .content
+                        .replace("cargo-near-new-project", project_name)
+                        .as_bytes(),
+                )
+                .wrap_err_with(|| format!("Failed to write to file: {}", path.display()))?;
         }
 
         std::process::Command::new("git")
             .arg("init")
-            .current_dir(&scope.project_dir)
+            .current_dir(&project_dir)
             .output()
             .wrap_err("Failed to execute process: `git init`")?;
 
-        println!("New project is created at '{}'\n", scope.project_dir);
+        println!("New project is created at '{project_dir}'\n");
         println!("Now you can build, deploy, and finish CI setup for automatic deployment:");
         println!("1. `cargo near build`");
         println!("2. `cargo test`");
