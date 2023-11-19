@@ -1,5 +1,4 @@
 use color_eyre::eyre::{ContextCompat, WrapErr};
-use std::io::Write;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -17,28 +16,25 @@ impl NewContext {
         _previous_context: near_cli_rs::GlobalContext,
         scope: &<New as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
-        let project_dir = scope.project_dir.to_string();
-        let project_name = project_dir.rsplit('/').next().wrap_err("Internal error!")?;
+        let project_dir: &std::path::Path = scope.project_dir.as_ref();
+        let project_name = project_dir
+            .file_name()
+            .wrap_err("Could not extract project name from project path")?
+            .to_str()
+            .wrap_err("Project name has to be a valid UTF-8 string")?;
 
         for new_project_file in NEW_PROJECT_FILES {
-            let mut folder_path = std::path::PathBuf::from(&project_dir);
-            let file_path = std::path::PathBuf::from(new_project_file.file_path);
-            folder_path.push(file_path.parent().wrap_err_with(|| {
-                format!("Impossible to get parent for `{}`", file_path.display())
-            })?);
-            std::fs::create_dir_all(&folder_path)?;
-            let path = folder_path.join(file_path.file_name().wrap_err_with(|| {
-                format!("Impossible to get filename for `{}`", file_path.display())
-            })?);
-            std::fs::File::create(&path)
-                .wrap_err_with(|| format!("Failed to create file: {}", path.display()))?
-                .write(
-                    new_project_file
-                        .content
-                        .replace("cargo-near-new-project", project_name)
-                        .as_bytes(),
-                )
-                .wrap_err_with(|| format!("Failed to write to file: {}", path.display()))?;
+            let new_file_path = project_dir.join(new_project_file.file_path);
+            std::fs::create_dir_all(&new_file_path.parent().wrap_err_with(|| {
+                format!("Impossible to get parent for `{}`", new_file_path.display())
+            })?)?;
+            std::fs::write(
+                &new_file_path,
+                new_project_file
+                    .content
+                    .replace("cargo-near-new-project-name", project_name),
+            )
+            .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }
 
         std::process::Command::new("git")
@@ -47,7 +43,7 @@ impl NewContext {
             .output()
             .wrap_err("Failed to execute process: `git init`")?;
 
-        println!("New project is created at '{project_dir}'\n");
+        println!("New project is created at '{}'\n", project_dir.display());
         println!("Now you can build, deploy, and finish CI setup for automatic deployment:");
         println!("1. `cargo near build`");
         println!("2. `cargo test`");
@@ -66,42 +62,42 @@ struct NewProjectFile {
 const NEW_PROJECT_FILES: &[NewProjectFile] = &[
     NewProjectFile {
         file_path: ".github/workflows/deploy-production.yml",
-        content: include_str!("prototype_for_project/.github/workflows/deploy-production.yml"),
+        content: include_str!("new-project-template/.github/workflows/deploy-production.yml"),
     },
     NewProjectFile {
         file_path: ".github/workflows/deploy-staging.yml",
-        content: include_str!("prototype_for_project/.github/workflows/deploy-staging.yml"),
+        content: include_str!("new-project-template/.github/workflows/deploy-staging.yml"),
     },
     NewProjectFile {
         file_path: ".github/workflows/test.yml",
-        content: include_str!("prototype_for_project/.github/workflows/test.yml"),
+        content: include_str!("new-project-template/.github/workflows/test.yml"),
     },
     NewProjectFile {
         file_path: ".github/workflows/undeploy-staging.yml",
-        content: include_str!("prototype_for_project/.github/workflows/undeploy-staging.yml"),
+        content: include_str!("new-project-template/.github/workflows/undeploy-staging.yml"),
     },
     NewProjectFile {
         file_path: "src/lib.rs",
-        content: include_str!("prototype_for_project/src/lib.rs"),
+        content: include_str!("new-project-template/src/lib.rs"),
     },
     NewProjectFile {
         file_path: "tests/test_basics.rs",
-        content: include_str!("prototype_for_project/tests/test_basics.rs"),
+        content: include_str!("new-project-template/tests/test_basics.rs"),
     },
     NewProjectFile {
         file_path: ".gitignore",
-        content: include_str!("prototype_for_project/.gitignore"),
+        content: include_str!("new-project-template/.gitignore"),
     },
     NewProjectFile {
         file_path: "Cargo.toml",
-        content: include_str!("prototype_for_project/Cargo.toml"),
+        content: include_str!("new-project-template/Cargo.toml"),
     },
     NewProjectFile {
         file_path: "README.md",
-        content: include_str!("prototype_for_project/README.md"),
+        content: include_str!("new-project-template/README.md"),
     },
     NewProjectFile {
         file_path: "rust-toolchain.toml",
-        content: include_str!("prototype_for_project/rust-toolchain.toml"),
+        content: include_str!("new-project-template/rust-toolchain.toml"),
     },
 ];

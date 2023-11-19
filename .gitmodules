@@ -1,0 +1,3 @@
+[submodule "cargo-near/src/commands/new/new-project-template"]
+	path = cargo-near/src/commands/new/new-project-template
+	url = https://github.com/near/cargo-near-new-project-template
