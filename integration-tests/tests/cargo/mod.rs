@@ -196,7 +196,11 @@ fn test_dependency_patch() -> cargo_near::CliResult {
     Ok(())
 }
 
+/// this is a test of Cargo.toml format
+/// TODO: un-ignore when `5.x.x` near-sdk is published
+/// and `cargo_near_integration_tests::SDK_VERSION` is changed 4.x.x -> 5.x.x
 #[test]
+#[ignore]
 #[named]
 fn test_abi_not_a_table() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {

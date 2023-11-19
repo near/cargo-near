@@ -11,10 +11,14 @@ serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
 [target.'cfg(windows)'.dependencies]
-near-sdk = { ::sdk-version-toml:: }
+# NOTE: uncomment line 15 and comment 16, if it's desirable to switch to published `near-sdk` version
+# near-sdk = { ::sdk-version-toml:: }
+near-sdk = { ::sdk-git-version-toml-comma:: }
 
 [target.'cfg(unix)'.dependencies]
-near-sdk = { ::sdk-version-toml:: }
+# NOTE: uncomment line 20 and comment 21, if it's desirable to switch to published `near-sdk` version
+# near-sdk = { ::sdk-version-toml:: }
+near-sdk = { ::sdk-git-version-toml-comma:: }
 
 [workspace]
 members = []

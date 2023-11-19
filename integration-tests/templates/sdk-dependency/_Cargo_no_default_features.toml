@@ -7,7 +7,9 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = { default-features = false, features = ["abi"], ::sdk-version-toml:: }
+# NOTE: uncomment line 11 and comment 12, if it's desirable to switch to published `near-sdk` version
+# near-sdk = { default-features = false, features = ["abi"], ::sdk-version-toml:: }
+near-sdk = { default-features = false, features = ["abi"], ::sdk-git-version-toml-comma:: }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 
