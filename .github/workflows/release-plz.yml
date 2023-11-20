@@ -15,9 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
           token: ${{ secrets.MY_GITHUB_TOKEN }}
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable

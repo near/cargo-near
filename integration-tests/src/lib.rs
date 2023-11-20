@@ -74,8 +74,7 @@ macro_rules! invoke_cargo_near {
                 };
                 cargo_near::commands::build_command::build::run(args)?;
             },
-            Some(cargo_near::commands::CliNearCommand::CreateDevAccount(_)) => todo!(),
-            Some(cargo_near::commands::CliNearCommand::Deploy(_)) => todo!(),
+            Some(_) => todo!(),
             None => ()
         }
 
