@@ -10,6 +10,7 @@ repository = "https://github.com/near/cargo-near"
 license = "MIT OR Apache-2.0"
 keywords = ["cargo", "near", "contract", "abi", "build"]
 categories = ["development-tools", "development-tools::cargo-plugins", "development-tools::build-utils", "command-line-utilities"]
+include = ["/src"]
 
 [package.metadata.wix]
 upgrade-guid = "FFBAE83D-C3FA-45DD-9F19-C8F312E905C5"
