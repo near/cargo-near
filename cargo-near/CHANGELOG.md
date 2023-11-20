@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/near/cargo-near/compare/cargo-near-v0.4.1...cargo-near-v0.5.0) - 2023-11-20
+
+### Added
+- New command to initialize a new smart contract project ([#117](https://github.com/near/cargo-near/pull/117))
+
+### Other
+- update `near-sdk`, `near-abi`, `borsh` version ([#109](https://github.com/near/cargo-near/pull/109))
+
 ## [0.4.1](https://github.com/near/cargo-near/compare/cargo-near-v0.4.0...cargo-near-v0.4.1) - 2023-10-19
 
 ### Added
