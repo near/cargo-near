@@ -4,6 +4,7 @@ pub mod abi_command;
 pub mod build_command;
 pub mod create_dev_account;
 pub mod deploy;
+pub mod new;
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
@@ -12,6 +13,11 @@ pub mod deploy;
 #[non_exhaustive]
 /// What are you up to? (select one of the options with the up-down arrows on your keyboard and press Enter)
 pub enum NearCommand {
+    #[strum_discriminants(strum(
+        message = "new                 -  Initializes a new project to create a contract"
+    ))]
+    /// Initializes a new project to create a contract
+    New(self::new::New),
     #[strum_discriminants(strum(
         message = "build               -  Build a NEAR contract and optionally embed ABI"
     ))]

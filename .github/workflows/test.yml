@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -15,7 +15,9 @@ jobs:
 
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Get MSRV
         run: |
@@ -45,7 +47,9 @@ jobs:
 
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: "Install stable Rust toolchain"
         uses: actions-rs/toolchain@v1
@@ -69,7 +73,9 @@ jobs:
 
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Check Formatting
         run: cargo fmt -- --check
@@ -86,7 +92,9 @@ jobs:
 
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Audit Tool
         run: cargo install cargo-audit

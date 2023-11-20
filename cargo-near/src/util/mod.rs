@@ -213,12 +213,12 @@ pub(crate) fn compile_project(
     let dylib_files = compile_artifact
         .filenames
         .iter()
-        .cloned()
         .filter(|f| {
             f.extension()
                 .map(|e| e == artifact_extension)
                 .unwrap_or(false)
         })
+        .cloned()
         .collect();
     let mut dylib_files_iter = Vec::into_iter(dylib_files);
     match (dylib_files_iter.next(), dylib_files_iter.next()) {
