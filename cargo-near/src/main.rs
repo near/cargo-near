@@ -42,7 +42,7 @@ fn main() -> CliResult {
             interactive_clap::ResultFromCli::Ok(cli_cmd)
             | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
                 eprintln!(
-                    "Your console command:\n{console_command_path} {}",
+                    "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}",
                     shell_words::join(cli_cmd.to_cli_args())
                 );
                 return Ok(());
@@ -55,7 +55,7 @@ fn main() -> CliResult {
             interactive_clap::ResultFromCli::Err(optional_cli_cmd, err) => {
                 if let Some(cli_cmd) = optional_cli_cmd {
                     eprintln!(
-                        "Your console command:\n{console_command_path} {}",
+                        "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}\n",
                         shell_words::join(cli_cmd.to_cli_args())
                     );
                 }

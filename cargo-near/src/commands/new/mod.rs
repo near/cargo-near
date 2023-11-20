@@ -17,6 +17,14 @@ impl NewContext {
         scope: &<New as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let project_dir: &std::path::Path = scope.project_dir.as_ref();
+
+        if project_dir.exists() {
+            return Err(color_eyre::eyre::eyre!(
+                "Destination `{}` already exists. Refusing to overwrite existing project.",
+                project_dir.display()
+            ));
+        }
+
         let project_name = project_dir
             .file_name()
             .wrap_err("Could not extract project name from project path")?
@@ -43,12 +51,17 @@ impl NewContext {
             .output()
             .wrap_err("Failed to execute process: `git init`")?;
 
-        println!("New project is created at '{}'\n", project_dir.display());
-        println!("Now you can build, deploy, and finish CI setup for automatic deployment:");
-        println!("1. `cargo near build`");
-        println!("2. `cargo test`");
-        println!("3. `cargo near deploy`");
-        println!("4. Configure `NEAR_CONTRACT_STAGING_*` and `NEAR_CONTRACT_PRODUCTION_*` variables and secrets on GitHub to enable automatic deployment to staging and production. See more details in `.github/workflow/*` files.");
+        println!("New project is created at '{}'.\n", project_dir.display());
+        println!("Now you can build, test, and deploy your project using cargo-near:");
+        println!(" * `cargo near build`");
+        println!(" * `cargo test`");
+        println!(" * `cargo near deploy`");
+        println!(
+            "Your new project has preconfigured automations for CI and CD, just configure \
+            `NEAR_CONTRACT_STAGING_*` and `NEAR_CONTRACT_PRODUCTION_*` variables and secrets \
+            on GitHub to enable automatic deployment to staging and production. See more \
+            details in `.github/workflow/*` files.\n"
+        );
 
         Ok(Self)
     }
