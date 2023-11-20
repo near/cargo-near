@@ -25,7 +25,7 @@ impl NewContext {
 
         for new_project_file in NEW_PROJECT_FILES {
             let new_file_path = project_dir.join(new_project_file.file_path);
-            std::fs::create_dir_all(&new_file_path.parent().wrap_err_with(|| {
+            std::fs::create_dir_all(new_file_path.parent().wrap_err_with(|| {
                 format!("Impossible to get parent for `{}`", new_file_path.display())
             })?)?;
             std::fs::write(
@@ -39,7 +39,7 @@ impl NewContext {
 
         std::process::Command::new("git")
             .arg("init")
-            .current_dir(&project_dir)
+            .current_dir(project_dir)
             .output()
             .wrap_err("Failed to execute process: `git init`")?;
 
