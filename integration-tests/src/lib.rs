@@ -14,6 +14,7 @@ pub mod from_git {
     
     pub const SDK_VERSION: &str = "4.1.1";
     pub const SDK_REVISION: &str = "15bfb0e6d54ff386478d137074027c2cb863df03";
+    pub const SDK_SHORT_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
     pub const SDK_VERSION_TOML: &str = formatcp!(
         r#"version = "{SDK_VERSION}", git = "https://github.com/near/near-sdk-rs.git", rev = "{SDK_REVISION}""#
     );
@@ -42,7 +43,7 @@ macro_rules! invoke_cargo_near {
         $(cargo_vars = $cargo_vars)?;
         cargo_vars.insert("sdk-cratesio-version", $crate::from_crates_io::SDK_VERSION);
         cargo_vars.insert("sdk-cratesio-version-toml", $crate::from_crates_io::SDK_VERSION_TOML);
-        cargo_vars.insert("sdk-git-rev", $crate::from_git::SDK_REVISION);
+        cargo_vars.insert("sdk-git-short-version-toml", $crate::from_git::SDK_SHORT_VERSION_TOML);
         cargo_vars.insert("sdk-git-version-toml", $crate::from_git::SDK_VERSION_TOML);
         cargo_vars.insert("sdk-git-version-toml-table", $crate::from_git::SDK_VERSION_TOML_TABLE);
         cargo_vars.insert("name", function_name!());
