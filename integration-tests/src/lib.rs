@@ -1,21 +1,31 @@
-use const_format::formatcp;
 
-/// published `near-sdk` version
-pub const SDK_VERSION: &str = "4.1.1";
-/// NOTE: this version is version of near-sdk in master branch from 5.x.x development cycle
-pub const SDK_VERSION_MASTER: &str = "4.1.1";
-pub const SDK_GIT_REV: &str = "15bfb0e6d54ff386478d137074027c2cb863df03";
-pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
-pub const SDK_GIT_VERSION_TOML_COMMA: &str = formatcp!(
-    r#"version = "{SDK_VERSION_MASTER}", git = "https://github.com/near/near-sdk-rs.git", rev = "{SDK_GIT_REV}""#
-);
-pub const SDK_GIT_VERSION_TOML_TABLE: &str = formatcp!(
-    r#"
-    version = "{SDK_VERSION_MASTER}"
-    git = "https://github.com/near/near-sdk-rs.git"
-    rev = "{SDK_GIT_REV}"
-    "#
-);
+/// NOTE: `near-sdk` version, published on crates.io
+pub mod from_crates_io {
+    use const_format::formatcp;
+
+    pub const SDK_VERSION: &str = "4.1.1";
+    pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
+    
+}
+
+/// NOTE: this version is version of near-sdk in arbitrary revision from N.x.x development cycle
+pub mod from_git {
+    use const_format::formatcp;
+    
+    pub const SDK_VERSION: &str = "4.1.1";
+    pub const SDK_REVISION: &str = "15bfb0e6d54ff386478d137074027c2cb863df03";
+    pub const SDK_VERSION_TOML: &str = formatcp!(
+        r#"version = "{SDK_VERSION}", git = "https://github.com/near/near-sdk-rs.git", rev = "{SDK_REVISION}""#
+    );
+    pub const SDK_VERSION_TOML_TABLE: &str = formatcp!(
+        r#"
+        version = "{SDK_VERSION}"
+        git = "https://github.com/near/near-sdk-rs.git"
+        rev = "{SDK_REVISION}"
+        "#
+    );
+}
+
 
 #[macro_export]
 macro_rules! invoke_cargo_near {
@@ -30,11 +40,11 @@ macro_rules! invoke_cargo_near {
         $(cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $cargo_path)).to_string())?;
         let mut cargo_vars = std::collections::HashMap::new();
         $(cargo_vars = $cargo_vars)?;
-        cargo_vars.insert("sdk-version", $crate::SDK_VERSION);
-        cargo_vars.insert("sdk-git-rev", $crate::SDK_GIT_REV);
-        cargo_vars.insert("sdk-version-toml", $crate::SDK_VERSION_TOML);
-        cargo_vars.insert("sdk-git-version-toml-comma", $crate::SDK_GIT_VERSION_TOML_COMMA);
-        cargo_vars.insert("sdk-git-version-toml-table", $crate::SDK_GIT_VERSION_TOML_TABLE);
+        cargo_vars.insert("sdk-cratesio-version", $crate::from_crates_io::SDK_VERSION);
+        cargo_vars.insert("sdk-cratesio-version-toml", $crate::from_crates_io::SDK_VERSION_TOML);
+        cargo_vars.insert("sdk-git-rev", $crate::from_git::SDK_REVISION);
+        cargo_vars.insert("sdk-git-version-toml", $crate::from_git::SDK_VERSION_TOML);
+        cargo_vars.insert("sdk-git-version-toml-table", $crate::from_git::SDK_VERSION_TOML_TABLE);
         cargo_vars.insert("name", function_name!());
         for (k, v) in cargo_vars {
             cargo_toml = cargo_toml.replace(&format!("::{}::", k), v);

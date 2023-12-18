@@ -1,4 +1,4 @@
-use cargo_near_integration_tests::{generate_abi_fn_with, generate_abi_with, SDK_GIT_REV};
+use cargo_near_integration_tests::{generate_abi_fn_with, generate_abi_with, from_git};
 use function_name::named;
 use git2::build::CheckoutBuilder;
 use git2::Repository;
@@ -11,7 +11,7 @@ fn clone_git_repo() -> color_eyre::eyre::Result<TempDir> {
     let temp_dir = tempfile::tempdir()?;
     let repo_dir = temp_dir.path();
     let repo = Repository::clone("https://github.com/near/near-sdk-rs", repo_dir)?;
-    let commit = repo.revparse_single(SDK_GIT_REV)?;
+    let commit = repo.revparse_single(from_git::SDK_REVISION)?;
     repo.checkout_tree(&commit, Some(&mut CheckoutBuilder::new()))?;
 
     Ok(temp_dir)

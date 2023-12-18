@@ -8,8 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # NOTE: uncomment line 11 and comment 12, if it's desirable to switch to published `near-sdk` version
-# near-sdk = { features = ["abi", "unstable"], ::sdk-version-toml:: }
-near-sdk = { features = ["abi", "unstable"], ::sdk-git-version-toml-comma:: }
+# near-sdk = { features = ["abi", "unstable"], ::sdk-cratesio-version-toml:: }
+near-sdk = { features = ["abi", "unstable"], ::sdk-git-version-toml:: }
 serde = { version = "1", features = ["derive"] }
 schemars = "0.8"
 

@@ -12,13 +12,13 @@ schemars = "0.8"
 
 [target.'cfg(windows)'.dependencies]
 # NOTE: uncomment line 15 and comment 16, if it's desirable to switch to published `near-sdk` version
-# near-sdk = { ::sdk-version-toml:: }
-near-sdk = { ::sdk-git-version-toml-comma:: }
+# near-sdk = { ::sdk-cratesio-version-toml:: }
+near-sdk = { ::sdk-git-version-toml:: }
 
 [target.'cfg(unix)'.dependencies]
 # NOTE: uncomment line 20 and comment 21, if it's desirable to switch to published `near-sdk` version
-# near-sdk = { ::sdk-version-toml:: }
-near-sdk = { ::sdk-git-version-toml-comma:: }
+# near-sdk = { ::sdk-cratesio-version-toml:: }
+near-sdk = { ::sdk-git-version-toml:: }
 
 [workspace]
 members = []
