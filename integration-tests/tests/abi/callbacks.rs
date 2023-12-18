@@ -12,8 +12,8 @@ fn test_callbacks_unwrapped() -> cargo_near::CliResult {
         pub fn foo(&self, #[callback_unwrap] a: bool, #[callback_unwrap] b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
@@ -46,8 +46,8 @@ fn test_callbacks_result() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
@@ -80,8 +80,8 @@ fn test_callbacks_vec() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 1);
@@ -117,8 +117,8 @@ fn test_callbacks_mixed_with_params() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
     assert_eq!(function.callbacks.len(), 2);

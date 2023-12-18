@@ -14,7 +14,7 @@ fn test_abi_opt_doc() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
 

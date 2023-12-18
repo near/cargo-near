@@ -32,7 +32,7 @@ fn test_build_opt_doc() -> cargo_near::CliResult {
     };
 
     let abi_root = build_result.abi_root.unwrap();
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
 
@@ -76,7 +76,7 @@ async fn test_build_opt_release() -> cargo_near::CliResult {
     };
 
     let abi_root = build_result.abi_root.unwrap();
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     assert!(build_result.abi_compressed.is_none());
     util::test_add(&build_result.wasm).await?;
 
@@ -96,7 +96,7 @@ async fn test_build_opt_doc_embed() -> cargo_near::CliResult {
     };
 
     let mut abi_root = build_result.abi_root.unwrap();
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
 

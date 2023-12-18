@@ -7,9 +7,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = 4
+near-sdk = 5
 serde = { version = "1", features = ["derive"] }
-schemars = "0.8"
 
 [workspace]
 members = []

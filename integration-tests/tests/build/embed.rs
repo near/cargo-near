@@ -14,7 +14,7 @@ async fn test_build_embed_abi() -> cargo_near::CliResult {
     };
 
     let mut abi_root = build_result.abi_root.unwrap();
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.name, "add");
 

@@ -10,7 +10,7 @@ use crate::util::AsJsonSchema;
 fn clone_git_repo() -> color_eyre::eyre::Result<TempDir> {
     let temp_dir = tempfile::tempdir()?;
     let repo_dir = temp_dir.path();
-    let repo = Repository::clone("https://github.com/near/near-sdk-rs", repo_dir)?;
+    let repo = Repository::clone(from_git::SDK_REPO, repo_dir)?;
     let commit = repo.revparse_single(from_git::SDK_REVISION)?;
     repo.checkout_tree(&commit, Some(&mut CheckoutBuilder::new()))?;
 
@@ -31,8 +31,8 @@ fn test_dependency_local_path() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -52,8 +52,8 @@ fn test_dependency_local_path_with_version() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -69,8 +69,8 @@ fn test_dependency_default_features() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -86,8 +86,8 @@ fn test_dependency_explicit() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -103,8 +103,8 @@ fn test_dependency_no_default_features() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -120,8 +120,8 @@ fn test_dependency_multiple_features() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -137,8 +137,8 @@ fn test_dependency_platform_specific() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 
@@ -189,8 +189,8 @@ fn test_dependency_patch() -> cargo_near::CliResult {
         pub fn foo(&self, a: bool, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
 

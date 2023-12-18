@@ -11,7 +11,7 @@ fn test_view_function() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.kind, AbiFunctionKind::View);
     assert_eq!(function.modifiers, vec![]);
@@ -28,7 +28,7 @@ fn test_call_function() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.kind, AbiFunctionKind::Call);
     assert_eq!(function.modifiers, vec![]);
@@ -46,7 +46,7 @@ fn test_init_function() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.kind, AbiFunctionKind::Call);
     assert_eq!(function.modifiers, vec![AbiFunctionModifier::Init]);
@@ -65,7 +65,7 @@ fn test_payable_function() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.kind, AbiFunctionKind::Call);
     assert_eq!(function.modifiers, vec![AbiFunctionModifier::Payable]);
@@ -83,7 +83,7 @@ fn test_private_function() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.kind, AbiFunctionKind::Call);
     assert_eq!(function.modifiers, vec![AbiFunctionModifier::Private]);
