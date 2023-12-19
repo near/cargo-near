@@ -66,7 +66,7 @@ fn test_abi_weird_version() -> cargo_near::CliResult {
 
 // TODO: Arguably this should not be an error. Feels like generating ABI for a contract
 // with no code should work.
-// NOTE: this was ignored, as abi now contains 
+// NOTE: this was ignored, as abi now contains
 // ```json
 // {
 //   "name": "contract_source_metadata",
