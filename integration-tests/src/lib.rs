@@ -11,9 +11,9 @@ pub mod from_git {
     use const_format::formatcp;
 
     pub const SDK_VERSION: &str = "5.0.0-alpha.1";
-    pub const SDK_REVISION: &str = "fc5d161068239cb1545c705ff0e48e8a868b8dea";
+    pub const SDK_REVISION: &str = "13430592a7be246dd5a29439791f4081e0107ff3";
     pub const SDK_SHORT_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
-    pub const SDK_REPO: &str = "https://github.com/dj8yfo/near-sdk-rs.git";
+    pub const SDK_REPO: &str = "https://github.com/near/near-sdk-rs.git";
     pub const SDK_VERSION_TOML: &str =
         formatcp!(r#"version = "{SDK_VERSION}", git = "{SDK_REPO}", rev = "{SDK_REVISION}""#);
     pub const SDK_VERSION_TOML_TABLE: &str = formatcp!(
