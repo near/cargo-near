@@ -1,0 +1,16 @@
+name: Publish to npmjs.com
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure credentials
+        run: |
+          npm set "//registry.npmjs.org/:_authToken" ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - name: Publish to npmjs.com
+        run: |
+          npm publish "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/${GITHUB_REPOSITORY#*/}-npm-package.tar.gz"
