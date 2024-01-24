@@ -25,5 +25,5 @@ syn = "1.0"
 tempfile = "3.3"
 tokio = "1.0"
 quote = "1.0"
-near-workspaces = "0.8.0"
+near-workspaces = {git = "https://github.com/FroVolod/near-workspaces-rs"}
 zstd = "0.11"
