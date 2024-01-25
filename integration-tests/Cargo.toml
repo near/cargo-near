@@ -13,12 +13,10 @@ borsh = { version = "1.0.0", features = ["derive", "unstable__schema"]}
 camino = "1.1.1"
 cargo-near = { path = "../cargo-near" }
 color-eyre = "0.6"
-clap = "4.0.18"
 function_name = "0.3"
 git2 = "0.14"
 minifier = "0.2.2"
 prettyplease = "0.1"
-proc-macro2 = "1.0"
 schemars = "0.8"
 serde_json = "1.0"
 syn = "1.0"
