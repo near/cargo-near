@@ -3,7 +3,7 @@ name = "cargo-near"
 version = "0.5.0"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition = "2021"
-rust-version = "1.70.0"
+rust-version = "1.72.0"
 description = "Cargo extension for building Rust smart contracts on NEAR"
 readme = "README.md"
 repository = "https://github.com/near/cargo-near"
@@ -43,11 +43,7 @@ linked-hash-map = { version = "0.5", features = ["serde_impl"] }
 names = { version = "0.14.0", default-features = false }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
-interactive-clap = "0.2.7"
-interactive-clap-derive = "0.2.7"
-near-cli-rs = { version = "0.6.2" }
-near-crypto = "0.17.0"
-near-primitives = "0.17.0"
-near-jsonrpc-client = "0.6.0"
-near-jsonrpc-primitives = "0.17.0"
+interactive-clap = "0.2.8"
+interactive-clap-derive = "0.2.8"
+near-cli-rs = { version = "0.7.7" }
 dunce = "1"
