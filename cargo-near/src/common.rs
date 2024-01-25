@@ -1,6 +1,5 @@
 use std::{env, str::FromStr};
 
-pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 #[derive(Debug, EnumDiscriminants, Clone, clap::ValueEnum)]
