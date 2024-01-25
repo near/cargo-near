@@ -46,8 +46,4 @@ shell-words = "1.0.0"
 interactive-clap = "0.2.8"
 interactive-clap-derive = "0.2.8"
 near-cli-rs = { version = "0.7.7" }
-near-crypto = "0.20.0"
-near-primitives = "0.20.0"
-near-jsonrpc-client = "0.8.0"
-near-jsonrpc-primitives = "0.20.0"
 dunce = "1"
