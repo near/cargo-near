@@ -66,7 +66,7 @@ macro_rules! invoke_cargo_near {
                     doc: cmd.doc,
                     compact_abi: cmd.compact_abi,
                     out_dir: cmd.out_dir,
-                    manifest_path: Some(cargo_near::types::utf8_path_buf::Utf8PathBufInner(cargo_path)),
+                    manifest_path: Some(cargo_path.into()),
                     color: cmd.color,
                 };
                 cargo_near::commands::abi_command::abi::run(args)?;
@@ -78,7 +78,7 @@ macro_rules! invoke_cargo_near {
                     doc: cmd.doc,
                     no_abi: cmd.no_abi,
                     out_dir: cmd.out_dir,
-                    manifest_path: Some(cargo_near::types::utf8_path_buf::Utf8PathBufInner(cargo_path)),
+                    manifest_path: Some(cargo_path.into()),
                     color: cmd.color,
                 };
                 cargo_near::commands::build_command::build::run(args)?;
