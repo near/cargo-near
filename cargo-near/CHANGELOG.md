@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1](https://github.com/near/cargo-near/compare/cargo-near-v0.5.0...cargo-near-v0.5.1) - 2024-01-25
+
+### Other
+- Upgraded NEAR crates to 0.20.0 release ([#125](https://github.com/near/cargo-near/pull/125))
+- Updated binary releases pipeline to use cargo-dist v0.7.2 (previously v0.3.0)  ([#122](https://github.com/near/cargo-near/pull/122))
+
 ## [0.5.0](https://github.com/near/cargo-near/compare/cargo-near-v0.4.1...cargo-near-v0.5.0) - 2023-11-20
 
 ### Added

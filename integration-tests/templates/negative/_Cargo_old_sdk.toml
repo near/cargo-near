@@ -10,6 +10,11 @@ crate-type = ["cdylib"]
 near-sdk = "=4.0.0"
 serde = { version = "1", features = ["derive"] }
 
+# XXX: parity-secp256k1 was purged from crates.io, so we need to patch the old SDK with git dependency:
+# See https://github.com/near/near-sdk-rs/issues/1126
+[patch.crates-io]
+parity-secp256k1 = {git = "https://github.com/paritytech/rust-secp256k1"}
+
 [workspace]
 members = []
 
