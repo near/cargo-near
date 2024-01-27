@@ -31,7 +31,7 @@ impl Utf8PathBuf {
     }
 
     pub fn from_path_buf(path: PathBuf) -> Result<Self, PathBuf> {
-        Ok(Self::from(camino::Utf8PathBuf::from_path_buf(path)?))
+        Ok(camino::Utf8PathBuf::from_path_buf(path)?.into())
     }
 
     pub fn join(&self, path: impl AsRef<camino::Utf8Path>) -> Utf8PathBuf {
