@@ -47,3 +47,7 @@ interactive-clap = "0.2.8"
 interactive-clap-derive = "0.2.8"
 near-cli-rs = { version = "0.7.7", default-features = false }
 dunce = "1"
+
+[features]
+default = ["ledger"]
+ledger = ["near-cli-rs/ledger"]
