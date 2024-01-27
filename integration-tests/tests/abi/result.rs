@@ -10,8 +10,8 @@ fn test_result_default() -> cargo_near::CliResult {
         pub fn foo(&self) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     assert!(function.result.is_none());
 
     Ok(())
@@ -26,8 +26,8 @@ fn test_result_type() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.result,
@@ -49,8 +49,8 @@ fn test_result_handle_result() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let u32_schema = SchemaGenerator::default().subschema_for::<u32>();
     assert_eq!(
         function.result,

@@ -15,7 +15,7 @@ async fn test_build_simple() -> cargo_near::CliResult {
         }
     };
     let functions = build_result.abi_root.unwrap().body.functions;
-    assert_eq!(functions.len(), 1);
+    assert_eq!(functions.len(), 2);
     assert_eq!(functions[0].name, "add");
     assert_eq!(functions[0].doc, None);
 

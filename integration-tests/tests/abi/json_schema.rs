@@ -10,8 +10,8 @@ fn test_schema_numeric_primitives_signed() -> cargo_near::CliResult {
         pub fn foo(&self, a: i8, b: i16, c: i32, d: i64, e: i128, f: isize) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 6);
     // `format` is an open-ended keyword so one can define their own custom formats.
@@ -84,8 +84,8 @@ fn test_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
         pub fn foo(&self, a: u8, b: u16, c: u32, d: u64, e: u128, f: usize) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 6);
     // `format` is an open-ended keyword so one can define their own custom formats.
@@ -164,8 +164,8 @@ fn test_schema_numeric_primitives_float() -> cargo_near::CliResult {
         pub fn foo(&self, a: f32, b: f64) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
     // `format` is an open-ended keyword so one can define their own custom formats.
@@ -202,8 +202,8 @@ fn test_schema_string() -> cargo_near::CliResult {
         pub fn foo(&self, a: String, b: &str, c: &'static str) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 3);
     let string_schema: Schema = serde_json::from_str(
@@ -227,8 +227,8 @@ fn test_schema_other_primitives() -> cargo_near::CliResult {
         pub fn foo(&self, a: char, b: bool, c: ()) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 3);
     let char_schema: Schema = serde_json::from_str(
@@ -268,8 +268,8 @@ fn test_schema_tuples() -> cargo_near::CliResult {
         pub fn foo(&self, a: (bool,), b: (bool, bool), c: (bool, bool, bool)) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 3);
     let tuple1_schema: Schema = serde_json::from_str(
@@ -337,8 +337,8 @@ fn test_schema_arrays() -> cargo_near::CliResult {
         pub fn foo(&self, a: [bool; 8], b: [bool; 16], c: &[bool]) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 3);
     let array8_schema: Schema = serde_json::from_str(
@@ -412,8 +412,8 @@ fn test_schema_struct() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
     let pair_def_schema: Schema = serde_json::from_str(
@@ -521,8 +521,8 @@ fn test_schema_enum() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema: Schema = serde_json::from_str(
@@ -654,8 +654,8 @@ fn test_schema_complex() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.json_schemas()?;
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema: Schema = serde_json::from_str(

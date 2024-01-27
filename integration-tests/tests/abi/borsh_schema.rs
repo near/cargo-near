@@ -19,8 +19,8 @@ fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 6);
     let i8_schema = BorshSchemaContainer::new(
@@ -69,8 +69,8 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 6);
     let u8_schema = BorshSchemaContainer::new(
@@ -111,8 +111,8 @@ fn test_borsh_schema_numeric_primitives_float() -> cargo_near::CliResult {
         pub fn foo(&self, #[serializer(borsh)] a: f32, #[serializer(borsh)] b: f64) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 2);
     let f32_schema = BorshSchemaContainer::new(
@@ -136,8 +136,8 @@ fn test_borsh_schema_string() -> cargo_near::CliResult {
         pub fn foo(&self, #[serializer(borsh)] a: String, #[serializer(borsh)] b: &str, #[serializer(borsh)] c: &'static str) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 3);
     let string_schema = BorshSchemaContainer::new(
@@ -168,8 +168,8 @@ fn test_borsh_schema_other_primitives() -> cargo_near::CliResult {
         pub fn foo(&self, #[serializer(borsh)] b: bool, #[serializer(borsh)] c: ()) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 2);
     // char is unsupported by borsh spec
@@ -203,8 +203,8 @@ fn test_borsh_schema_tuples() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 3);
     let tuple1_schema = BorshSchemaContainer::new(
@@ -262,8 +262,8 @@ fn test_borsh_schema_arrays() -> cargo_near::CliResult {
         ) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 3);
     let array8_schema = BorshSchemaContainer::new(
@@ -346,8 +346,8 @@ fn test_borsh_schema_struct() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 2);
     let pair_def_schema = BorshSchemaContainer::new(
@@ -417,8 +417,8 @@ fn test_borsh_schema_enum() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema = BorshSchemaContainer::new(
@@ -529,8 +529,8 @@ fn test_borsh_schema_complex() -> cargo_near::CliResult {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
     let params = function.params.borsh_schemas()?;
     assert_eq!(params.len(), 1);
     let ip_addr_def_schema = BorshSchemaContainer::new(

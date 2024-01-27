@@ -9,7 +9,6 @@ crate-type = ["cdylib"]
 [dependencies]
 near-sdk = { path = "::path::" }
 serde = { version = "1", features = ["derive"] }
-schemars = "0.8"
 
 [workspace]
 members = []
