@@ -20,8 +20,6 @@ jobs:
           fetch-depth: 0
           submodules: recursive
           token: ${{ secrets.MY_GITHUB_TOKEN }}
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev

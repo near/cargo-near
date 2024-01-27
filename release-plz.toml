@@ -1,2 +1,9 @@
 [workspace]
 git_release_enable = false
+# Use `cargo-near` crate CHANGELOG as top-level one
+changelog_update = false
+
+[[package]]
+name = "cargo-near"
+changelog_update = true
+changelog_path = "./CHANGELOG.md"
