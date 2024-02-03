@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/near/cargo-near/compare/cargo-near-v0.5.2...cargo-near-v0.6.0) - 2024-02-03
+
+### Added
+- Use hello-world contract instead of the status-message contract for the new project starter
+- Enable by default release mode, embedded ABIs with doc strings
+
 ## [0.5.2](https://github.com/near/cargo-near/compare/cargo-near-v0.5.1...cargo-near-v0.5.2) - 2024-01-27
 
 ### Other
