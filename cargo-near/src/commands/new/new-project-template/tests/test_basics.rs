@@ -7,27 +7,20 @@ async fn test_contract_is_operational() -> Result<(), Box<dyn std::error::Error>
 
     let contract = sandbox.dev_deploy(&contract_wasm).await?;
 
-    let user1_account = sandbox.dev_create_account().await?;
-    let user2_account = sandbox.dev_create_account().await?;
+    let user_account = sandbox.dev_create_account().await?;
 
-    let outcome = user1_account
-        .call(contract.id(), "set_status")
-        .args_json(json!({"message": "test status"}))
+    let outcome = user_account
+        .call(contract.id(), "set_greeting")
+        .args_json(json!({"greeting": "Hello World!"}))
         .transact()
         .await?;
     assert!(outcome.is_success());
 
-    let user1_message_outcome = contract
-        .view("get_status")
-        .args_json(json!({"account_id": user1_account.id()}))
+    let user_message_outcome = contract
+        .view("get_greeting")
+        .args_json(json!({}))
         .await?;
-    assert_eq!(user1_message_outcome.json::<String>()?, "test status");
-
-    let user2_message_outcome = contract
-        .view("get_status")
-        .args_json(json!({"account_id": user2_account.id()}))
-        .await?;
-    assert_eq!(user2_message_outcome.result, b"null");
+    assert_eq!(user_message_outcome.json::<String>()?, "Hello World!");
 
     Ok(())
 }

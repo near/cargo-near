@@ -1,78 +1,58 @@
+// Find all our documentation at https://docs.near.org
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-use near_sdk::collections::LookupMap;
-use near_sdk::{env, near_bindgen, AccountId, BorshStorageKey};
+use near_sdk::{log, near_bindgen};
 
+// Define the contract structure
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 #[borsh(crate = "near_sdk::borsh")]
-pub struct StatusMessage {
-    records: LookupMap<AccountId, String>,
+pub struct Contract {
+    greeting: String,
 }
 
-#[derive(BorshSerialize, BorshStorageKey)]
-#[borsh(crate = "near_sdk::borsh")]
-enum StorageKey {
-    StatusMessageRecords,
-}
-
-impl Default for StatusMessage {
+// Define the default, which automatically initializes the contract
+impl Default for Contract {
     fn default() -> Self {
         Self {
-            records: LookupMap::new(StorageKey::StatusMessageRecords),
+            greeting: "Hello".to_string(),
         }
     }
 }
 
+// Implement the contract structure
 #[near_bindgen]
-impl StatusMessage {
-    pub fn set_status(&mut self, message: String) {
-        let account_id = env::predecessor_account_id();
-        self.records.insert(&account_id, &message);
+impl Contract {
+    // Public method - returns the greeting saved, defaulting to DEFAULT_GREETING
+    pub fn get_greeting(&self) -> String {
+        self.greeting.clone()
     }
 
-    pub fn get_status(&self, account_id: AccountId) -> Option<String> {
-        self.records.get(&account_id)
+    // Public method - accepts a greeting, such as "howdy", and records it
+    pub fn set_greeting(&mut self, greeting: String) {
+        log!("Saving greeting: {greeting}");
+        self.greeting = greeting;
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+/*
+ * The rest of this file holds the inline tests for the code above
+ * Learn more about Rust tests: https://doc.rust-lang.org/book/ch11-01-writing-tests.html
+ */
 #[cfg(test)]
 mod tests {
-    use near_sdk::test_utils::{accounts, VMContextBuilder};
-    use near_sdk::testing_env;
-
     use super::*;
 
-    // Allows for modifying the environment of the mocked blockchain
-    fn get_context(predecessor_account_id: AccountId) -> VMContextBuilder {
-        let mut builder = VMContextBuilder::new();
-        builder
-            .current_account_id(accounts(0))
-            .signer_account_id(predecessor_account_id.clone())
-            .predecessor_account_id(predecessor_account_id);
-        builder
+    #[test]
+    fn get_default_greeting() {
+        let contract = Contract::default();
+        // this test did not call set_greeting so should return the default "Hello" greeting
+        assert_eq!(contract.get_greeting(), "Hello");
     }
 
     #[test]
-    fn set_get_message() {
-        let mut context = get_context(accounts(1));
-        // Initialize the mocked blockchain
-        testing_env!(context.build());
-
-        // Set the testing environment for the subsequent calls
-        testing_env!(context.predecessor_account_id(accounts(1)).build());
-
-        let mut contract = StatusMessage::default();
-        contract.set_status("hello".to_string());
-        assert_eq!(
-            "hello".to_string(),
-            contract.get_status(accounts(1)).unwrap()
-        );
-    }
-
-    #[test]
-    fn get_nonexistent_message() {
-        let contract = StatusMessage::default();
-        assert_eq!(None, contract.get_status("francis.near".parse().unwrap()));
+    fn set_then_get_greeting() {
+        let mut contract = Contract::default();
+        contract.set_greeting("howdy".to_string());
+        assert_eq!(contract.get_greeting(), "howdy");
     }
 }
