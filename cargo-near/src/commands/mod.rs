@@ -19,9 +19,9 @@ pub enum NearCommand {
     /// Initializes a new project to create a contract
     New(self::new::New),
     #[strum_discriminants(strum(
-        message = "build               -  Build a NEAR contract and optionally embed ABI"
+        message = "build               -  Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)"
     ))]
-    /// Build a NEAR contract and optionally embed ABI
+    /// Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)
     Build(self::build_command::BuildCommand),
     #[strum_discriminants(strum(
         message = "abi                 -  Generates ABI for the contract"
@@ -29,12 +29,11 @@ pub enum NearCommand {
     /// Generates ABI for the contract
     Abi(self::abi_command::AbiCommand),
     #[strum_discriminants(strum(
-        message = "create-dev-account  -  Create a development account using the faucet service sponsor to cover
-                         the cost of creating an account (testnet only for now).
-                         To create an account on another network, you need to use \"near-cli-rs\":
-                         https://github.com/near/near-cli-rs"
+        message = "create-dev-account  -  Create a development account using a faucet service sponsor to receive some NEAR tokens (testnet only).
+                         To create an account on a different network, use NEAR CLI [https://near.cli.rs]"
     ))]
-    /// Create a development account using the faucet service sponsor to cover the cost of creating an account (testnet only for now)
+    /// Create a development account using the faucet service sponsor to receive some NEAR tokens (testnet only)
+    /// To create an account on a different network, use NEAR CLI [https://near.cli.rs]
     CreateDevAccount(self::create_dev_account::CreateAccount),
     #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
     /// Add a new contract code

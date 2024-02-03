@@ -4,18 +4,18 @@ pub mod build;
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = BuildCommandlContext)]
 pub struct BuildCommand {
-    /// Build contract in release mode, with optimizations
+    /// Build contract in debug mode, without optimizations and bigger is size
     #[interactive_clap(long)]
-    pub release: bool,
-    /// Embed the ABI in the contract binary
-    #[interactive_clap(long)]
-    pub embed_abi: bool,
-    /// Include rustdocs in the embedded ABI
-    #[interactive_clap(long)]
-    pub doc: bool,
+    pub no_release: bool,
     /// Do not generate ABI for the contract
-    #[interactive_clap(long, conflicts_with_all = &["doc", "embed_abi"])]
+    #[interactive_clap(long)]
     pub no_abi: bool,
+    /// Do not embed the ABI in the contract binary
+    #[interactive_clap(long)]
+    pub no_embed_abi: bool,
+    /// Do not include rustdocs in the embedded ABI
+    #[interactive_clap(long)]
+    pub no_doc: bool,
     /// Copy final artifacts to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
@@ -40,10 +40,10 @@ impl BuildCommandlContext {
         scope: &<BuildCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = BuildCommand {
-            release: scope.release,
-            embed_abi: scope.embed_abi,
-            doc: scope.doc,
+            no_release: scope.no_release,
             no_abi: scope.no_abi,
+            no_embed_abi: scope.no_embed_abi,
+            no_doc: scope.no_doc,
             out_dir: scope.out_dir.clone(),
             manifest_path: scope.manifest_path.clone(),
             color: scope.color.clone(),

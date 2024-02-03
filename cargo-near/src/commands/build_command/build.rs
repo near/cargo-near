@@ -44,20 +44,20 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
-    if args.release {
+    if !args.no_release {
         cargo_args.push("--release");
     }
 
     let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let mut contract_abi = abi::generate_abi(&crate_metadata, args.doc, true, color.clone())?;
+        let mut contract_abi = abi::generate_abi(&crate_metadata, !args.no_doc, true, color.clone())?;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
             builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
             image: None,
         });
-        if args.embed_abi {
+        if !args.no_embed_abi {
             let path = util::handle_step("Compressing ABI to be embedded..", || {
                 let AbiResult { path } = abi::write_to_file(
                     &contract_abi,
@@ -72,7 +72,7 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
         abi = Some(contract_abi);
     }
 
-    if let (true, Some(abi_path)) = (args.embed_abi, &min_abi_path) {
+    if let (false, Some(abi_path)) = (args.no_embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
     }

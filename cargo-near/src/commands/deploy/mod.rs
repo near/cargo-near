@@ -62,10 +62,10 @@ impl interactive_clap::FromCli for Contract {
         let build_command_args =
             if let Some(cli_build_command_args) = &clap_variant.build_command_args {
                 build_command::BuildCommand {
-                    release: cli_build_command_args.release,
-                    embed_abi: cli_build_command_args.embed_abi,
-                    doc: cli_build_command_args.doc,
+                    no_release: cli_build_command_args.no_release,
                     no_abi: cli_build_command_args.no_abi,
+                    no_embed_abi: cli_build_command_args.no_embed_abi,
+                    no_doc: cli_build_command_args.no_doc,
                     out_dir: cli_build_command_args.out_dir.clone(),
                     manifest_path: cli_build_command_args.manifest_path.clone(),
                     color: cli_build_command_args.color.clone(),
