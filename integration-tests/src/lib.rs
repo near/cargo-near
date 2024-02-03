@@ -63,7 +63,7 @@ macro_rules! invoke_cargo_near {
         match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
                 let args = cargo_near::commands::abi_command::AbiCommand {
-                    doc: cmd.doc,
+                    no_doc: cmd.no_doc,
                     compact_abi: cmd.compact_abi,
                     out_dir: cmd.out_dir,
                     manifest_path: Some(cargo_path.into()),
@@ -73,10 +73,10 @@ macro_rules! invoke_cargo_near {
             },
             Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
                 let args = cargo_near::commands::build_command::BuildCommand {
-                    release: cmd.release,
-                    embed_abi: cmd.embed_abi,
-                    doc: cmd.doc,
+                    no_release: cmd.no_release,
                     no_abi: cmd.no_abi,
+                    no_embed_abi: cmd.no_embed_abi,
+                    no_doc: cmd.no_doc,
                     out_dir: cmd.out_dir,
                     manifest_path: Some(cargo_path.into()),
                     color: cmd.color,

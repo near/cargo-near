@@ -4,9 +4,9 @@ use std::fs;
 
 #[test]
 #[named]
-fn test_abi_opt_doc() -> cargo_near::CliResult {
+fn test_abi_no_doc() -> cargo_near::CliResult {
     let abi_root = generate_abi_fn_with! {
-        Opts: "--doc";
+        Opts: "--no-doc";
         Code:
         /// Adds `a` and `b`.
         pub fn add(&self, a: u32, b: u32) -> u32 {
@@ -16,7 +16,7 @@ fn test_abi_opt_doc() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
+    assert!(function.doc.is_none());
 
     Ok(())
 }

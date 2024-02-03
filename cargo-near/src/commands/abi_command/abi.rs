@@ -201,7 +201,7 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.doc, false, color)?;
+    let contract_abi = generate_abi(&crate_metadata, !args.no_doc, false, color)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
