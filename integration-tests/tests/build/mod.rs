@@ -2,7 +2,6 @@ use crate::util;
 use cargo_near_integration_tests::build_fn;
 use function_name::named;
 
-mod embed;
 mod opts;
 
 #[tokio::test]
@@ -14,12 +13,20 @@ async fn test_build_simple() -> cargo_near::CliResult {
             a + b
         }
     };
-    let functions = build_result.abi_root.unwrap().body.functions;
-    assert_eq!(functions.len(), 2);
-    assert_eq!(functions[0].name, "add");
-    assert_eq!(functions[0].doc, None);
+    let mut abi_root = build_result.abi_root.unwrap();
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[0];
+    assert_eq!(function.name, "add");
+    assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
 
-    assert!(build_result.abi_compressed.is_none());
+    // WASM hash is not included in the embedded ABI
+    abi_root.metadata.wasm_hash = None;
+    assert_eq!(
+        util::fetch_contract_abi(&build_result.wasm).await?,
+        abi_root
+    );
+
+    assert!(build_result.abi_compressed.is_some());
 
     util::test_add(&build_result.wasm).await?;
 

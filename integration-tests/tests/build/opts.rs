@@ -19,11 +19,30 @@ fn test_build_no_abi() -> cargo_near::CliResult {
     Ok(())
 }
 
+#[tokio::test]
+#[named]
+async fn test_build_no_embed_abi() -> cargo_near::CliResult {
+    let build_result = build_fn_with! {
+        Opts: "--no-embed-abi";
+        Code:
+        pub fn add(&self, a: u32, b: u32) -> u32 {
+            a + b
+        }
+    };
+
+    let worker = near_workspaces::sandbox().await?;
+    let contract = worker.dev_deploy(&build_result.wasm).await?;
+    let outcome = contract.call("__contract_abi").view().await;
+    outcome.unwrap_err();
+
+    Ok(())
+}
+
 #[test]
 #[named]
-fn test_build_opt_doc() -> cargo_near::CliResult {
+fn test_build_no_doc() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
-        Opts: "--doc";
+        Opts: "--no-doc";
         Code:
         /// Adds `a` and `b`.
         pub fn add(&self, a: u32, b: u32) -> u32 {
@@ -34,7 +53,7 @@ fn test_build_opt_doc() -> cargo_near::CliResult {
     let abi_root = build_result.abi_root.unwrap();
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
-    assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
+    assert!(function.doc.is_none());
 
     Ok(())
 }
@@ -66,9 +85,9 @@ fn test_build_opt_out_dir() -> cargo_near::CliResult {
 
 #[tokio::test]
 #[named]
-async fn test_build_opt_release() -> cargo_near::CliResult {
+async fn test_build_no_release() -> cargo_near::CliResult {
     let build_result = build_fn_with! {
-        Opts: "--release";
+        Opts: "--no-release";
         Code:
         pub fn add(&self, a: u32, b: u32) -> u32 {
             a + b
@@ -77,80 +96,8 @@ async fn test_build_opt_release() -> cargo_near::CliResult {
 
     let abi_root = build_result.abi_root.unwrap();
     assert_eq!(abi_root.body.functions.len(), 2);
-    assert!(build_result.abi_compressed.is_none());
+    assert!(build_result.abi_compressed.is_some());
     util::test_add(&build_result.wasm).await?;
-
-    Ok(())
-}
-
-#[tokio::test]
-#[named]
-async fn test_build_opt_doc_embed() -> cargo_near::CliResult {
-    let build_result = build_fn_with! {
-        Opts: "--doc --embed-abi";
-        Code:
-        /// Adds `a` and `b`.
-        pub fn add(&self, a: u32, b: u32) -> u32 {
-            a + b
-        }
-    };
-
-    let mut abi_root = build_result.abi_root.unwrap();
-    assert_eq!(abi_root.body.functions.len(), 2);
-    let function = &abi_root.body.functions[0];
-    assert_eq!(function.doc.as_ref().unwrap(), " Adds `a` and `b`.");
-
-    // WASM hash is not included in the embedded ABI
-    abi_root.metadata.wasm_hash = None;
-    assert_eq!(
-        util::fetch_contract_abi(&build_result.wasm).await?,
-        abi_root
-    );
-
-    Ok(())
-}
-
-#[test]
-#[named]
-fn test_build_opt_no_abi_doc() -> cargo_near::CliResult {
-    fn run_test() -> cargo_near::CliResult {
-        build_fn_with! {
-            Opts: "--no-abi --doc";
-            Code:
-            /// Adds `a` and `b`.
-            pub fn add(&self, a: u32, b: u32) -> u32 {
-                a + b
-            }
-        };
-        Ok(())
-    }
-
-    assert!(run_test()
-        .unwrap_err()
-        .to_string()
-        .contains("error: the argument '--no-abi' cannot be used with '--doc'"));
-
-    Ok(())
-}
-
-#[test]
-#[named]
-fn test_build_opt_no_abi_embed() -> cargo_near::CliResult {
-    fn run_test() -> cargo_near::CliResult {
-        build_fn_with! {
-            Opts: "--no-abi --embed-abi";
-            Code:
-            /// Adds `a` and `b`.
-            pub fn add(&self, a: u32, b: u32) -> u32 {
-                a + b
-            }
-        };
-        Ok(())
-    }
-    assert!(run_test()
-        .unwrap_err()
-        .to_string()
-        .contains("error: the argument '--no-abi' cannot be used with '--embed-abi'"));
 
     Ok(())
 }

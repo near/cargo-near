@@ -6,7 +6,7 @@ pub mod abi;
 pub struct AbiCommand {
     /// Include rustdocs in the ABI file
     #[interactive_clap(long)]
-    pub doc: bool,
+    pub no_doc: bool,
     /// Generate compact (minified) JSON
     #[interactive_clap(long)]
     pub compact_abi: bool,
@@ -34,7 +34,7 @@ impl AbiCommandlContext {
         scope: &<AbiCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = AbiCommand {
-            doc: scope.doc,
+            no_doc: scope.no_doc,
             compact_abi: scope.compact_abi,
             out_dir: scope.out_dir.clone(),
             manifest_path: scope.manifest_path.clone(),
