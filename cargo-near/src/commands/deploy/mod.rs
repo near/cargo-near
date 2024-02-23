@@ -62,6 +62,7 @@ impl interactive_clap::FromCli for Contract {
         let build_command_args =
             if let Some(cli_build_command_args) = &clap_variant.build_command_args {
                 build_command::BuildCommand {
+                    no_docker: cli_build_command_args.no_docker,
                     no_release: cli_build_command_args.no_release,
                     no_abi: cli_build_command_args.no_abi,
                     no_embed_abi: cli_build_command_args.no_embed_abi,
