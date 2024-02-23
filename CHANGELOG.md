@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1](https://github.com/near/cargo-near/compare/cargo-near-v0.6.0...cargo-near-v0.6.1) - 2024-02-23
+
+### Other
+- Updated near-sdk-rs to version 5.0.0 for the new projects ([#132](https://github.com/near/cargo-near/pull/132))
+
 ## [0.6.0](https://github.com/near/cargo-near/compare/cargo-near-v0.5.2...cargo-near-v0.6.0) - 2024-02-03
 
 ### Added
