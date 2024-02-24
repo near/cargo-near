@@ -26,7 +26,12 @@ impl ContractContext {
         previous_context: near_cli_rs::GlobalContext,
         scope: &<Contract as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
-        let file_path = build_command::build::run(scope.build_command_args.clone())?.path;
+        let file_path = if !scope.build_command_args.no_docker {
+            build_command::docker_run(scope.build_command_args.clone())?
+        } else {
+            build_command::build::run(scope.build_command_args.clone())?.path
+        };
+
         Ok(Self(
             near_cli_rs::commands::contract::deploy::ContractFileContext {
                 global_context: previous_context,

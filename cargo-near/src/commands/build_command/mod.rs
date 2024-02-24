@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use color_eyre::eyre::WrapErr;
+use color_eyre::{eyre::WrapErr, owo_colors::OwoColorize};
 
 pub mod build;
 
@@ -59,13 +59,13 @@ impl BuildCommandlContext {
         if args.no_docker {
             self::build::run(args)?;
         } else {
-            docker_run(args)?
+            docker_run(args)?;
         }
         Ok(Self)
     }
 }
 
-fn docker_run(args: BuildCommand) -> near_cli_rs::CliResult {
+pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
     let mut cargo_args = vec![];
     // Use this in new release version:
     // let mut cargo_args = vec!["--no-docker"];
@@ -81,23 +81,25 @@ fn docker_run(args: BuildCommand) -> near_cli_rs::CliResult {
     }
     let color = args
         .color
+        .clone()
         .unwrap_or(crate::common::ColorPreference::Auto)
         .to_string();
     cargo_args.extend(&["--color", &color]);
 
-    let mount = if let Some(manifest_path) = args.manifest_path {
-        format!("type=bind,source={manifest_path},target=/host")
+    let mut contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
+        manifest_path.into()
     } else {
-        format!(
-            "type=bind,source={},target=/host",
-            std::env::current_dir()?.to_string_lossy()
-        )
+        camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
+            color_eyre::eyre::eyre!("failed to convert path {}", err.to_string_lossy())
+        })?
     };
-    let mut docker_args = vec!["--name", "cargo-near-container", "--mount", &mount];
+
+    let volume = format!("{contract_path}:/host");
+    let mut docker_args = vec!["--name", "cargo-near-container", "-v", &volume];
     docker_args.extend(&[
         "--rm",
         "-it",
-        "sourcescan/cargo-near:0.6.0",
+        "sourcescan/cargo-near:0.6.0", //XXX need to fix version!!!
         "bash",
         "-c",
         "cd /host && cargo near build",
@@ -108,13 +110,46 @@ fn docker_run(args: BuildCommand) -> near_cli_rs::CliResult {
     docker_cmd.arg("run");
     docker_cmd.args(docker_args);
 
-    let status = docker_cmd
-        .status()
-        .wrap_err_with(|| format!("Error executing `{:?}`", docker_cmd))?;
+    let status = match docker_cmd.status() {
+        Ok(exit_status) => exit_status,
+        Err(_) => {
+            println!("Error executing SourceScan command `{:?}`", docker_cmd);
+            println!(
+                "{}",
+                "WARNING! Compilation without SourceScan verification".red()
+            );
+            return Ok(self::build::run(args)?.path);
+        }
+    };
 
     if status.success() {
-        Ok(())
+        contract_path.push("target");
+        contract_path.push("near");
+
+        let dir = contract_path
+            .read_dir()
+            .wrap_err_with(|| format!("No artifacts directory found: `{contract_path:?}`."))?;
+
+        for entry in dir.flatten() {
+            if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
+                return camino::Utf8PathBuf::from_path_buf(entry.path()).map_err(|err| {
+                    color_eyre::eyre::eyre!("failed to convert path {}", err.to_string_lossy())
+                });
+            }
+        }
+
+        Err(color_eyre::eyre::eyre!(
+            "Wasm file not found in directory: `{contract_path:?}`."
+        ))
     } else {
-        color_eyre::eyre::bail!("`{:?}` failed with exit status: {status}", docker_cmd)
+        println!(
+            "SourceScan command `{:?}` failed with exit status: {status}",
+            docker_cmd
+        );
+        println!(
+            "{}",
+            "WARNING! Compilation without SourceScan verification".red()
+        );
+        Ok(self::build::run(args)?.path)
     }
 }
