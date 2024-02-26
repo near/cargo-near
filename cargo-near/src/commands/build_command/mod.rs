@@ -86,7 +86,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         .to_string();
     cargo_args.extend(&["--color", &color]);
 
-    let mut contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
+    let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
         manifest_path.into()
     } else {
         camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
@@ -94,16 +94,30 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         })?
     };
 
-    let volume = format!("{contract_path}:/host");
-    let mut docker_args = vec!["--name", "cargo-near-container", "-v", &volume];
-    docker_args.extend(&[
+    let mut tmp_contract_path = contract_path.clone();
+    tmp_contract_path.push("tmp");
+    let mut clone_contract_cmd = Command::new("cp");
+    clone_contract_cmd.args(["-a", &contract_path.as_str(), &tmp_contract_path.as_str()]);
+    clone_contract_cmd
+        .status()
+        .wrap_err("Failed to clone project to temporary directory.")?;
+
+    let volume = format!("{tmp_contract_path}:/host");
+    let mut docker_args = vec![
+        "--name",
+        "cargo-near-container",
+        "--volume",
+        &volume,
         "--rm",
-        "-it",
-        "sourcescan/cargo-near:0.6.0", //XXX need to fix version!!!
-        "bash",
-        "-c",
-        "cd /host && cargo near build",
-    ]);
+        "--workdir",
+        "/host",
+        "--env",
+        "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
+        "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
+        "cargo",
+        "near",
+        "build",
+    ];
     docker_args.extend(&cargo_args);
 
     let mut docker_cmd = Command::new("docker");
@@ -123,12 +137,12 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     };
 
     if status.success() {
-        contract_path.push("target");
-        contract_path.push("near");
+        tmp_contract_path.push("target");
+        tmp_contract_path.push("near");
 
-        let dir = contract_path
+        let dir = tmp_contract_path
             .read_dir()
-            .wrap_err_with(|| format!("No artifacts directory found: `{contract_path:?}`."))?;
+            .wrap_err_with(|| format!("No artifacts directory found: `{tmp_contract_path:?}`."))?;
 
         for entry in dir.flatten() {
             if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
@@ -139,7 +153,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         }
 
         Err(color_eyre::eyre::eyre!(
-            "Wasm file not found in directory: `{contract_path:?}`."
+            "Wasm file not found in directory: `{tmp_contract_path:?}`."
         ))
     } else {
         println!(
