@@ -22,36 +22,44 @@
 
 ## Installation
 
-### Install prebuilt binaries via shell script (Linux, macOS)
+<details>
+  <summary>Install prebuilt binaries via shell script (Linux, macOS)</summary>
 
 ```sh
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
 ```
+</details>
 
-### Install prebuilt binaries via powershell script (Windows)
+<details>
+  <summary>Install prebuilt binaries via powershell script (Windows)</summary>
 
 ```sh
 irm https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.ps1 | iex
 ```
+</details>
 
-### Install prebuilt binaries into your npm project
+<details>
+  <summary>Install prebuilt binaries into your Node.js application</summary>
 
 ```sh
 npm install cargo-near
 ```
+</details>
 
-### Compile latest released version from source code
+<details>
+  <summary>Compile and install from source code (Cargo)</summary>
 
-```console
+```sh
 cargo install cargo-near
 ```
 
-### Compile latest development version from source code
+or, install the most recent version from git repository:
 
-```console
+```sh
 $ git clone https://github.com/near/cargo-near
 $ cargo install --path cargo-near
 ```
+</details>
 
 ## Usage
 
