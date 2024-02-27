@@ -86,23 +86,28 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         .to_string();
     cargo_args.extend(&["--color", &color]);
 
-    let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
+    let mut contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
         manifest_path.into()
     } else {
         camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
-            color_eyre::eyre::eyre!("failed to convert path {}", err.to_string_lossy())
+            color_eyre::eyre::eyre!("Failed to convert path {}", err.to_string_lossy())
         })?
     };
 
-    let mut tmp_contract_path = contract_path.clone();
-    tmp_contract_path.push("tmp");
-    let mut clone_contract_cmd = Command::new("cp");
-    clone_contract_cmd.args(["-a", &contract_path.as_str(), &tmp_contract_path.as_str()]);
+    let tmp_contract_dir = tempfile::tempdir()?;
+    let mut tmp_contract_path = tmp_contract_dir.path().to_path_buf();
+
+    let mut clone_contract_cmd = Command::new("git");
+    clone_contract_cmd.args([
+        "clone",
+        &contract_path.as_str(),
+        &tmp_contract_path.to_string_lossy(),
+    ]);
     clone_contract_cmd
         .status()
         .wrap_err("Failed to clone project to temporary directory.")?;
 
-    let volume = format!("{tmp_contract_path}:/host");
+    let volume = format!("{}:/host", tmp_contract_path.to_string_lossy());
     let mut docker_args = vec![
         "--name",
         "cargo-near-container",
@@ -146,9 +151,12 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
         for entry in dir.flatten() {
             if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
-                return camino::Utf8PathBuf::from_path_buf(entry.path()).map_err(|err| {
-                    color_eyre::eyre::eyre!("failed to convert path {}", err.to_string_lossy())
-                });
+                contract_path.push("contract.wasm");
+                let _ = std::fs::rename::<std::path::PathBuf, camino::Utf8PathBuf>(
+                    entry.path(),
+                    contract_path.clone(),
+                );
+                return Ok(contract_path);
             }
         }
 
