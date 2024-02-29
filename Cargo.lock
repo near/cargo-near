@@ -782,6 +782,7 @@ dependencies = [
  "derive_more",
  "dunce",
  "env_logger",
+ "git2",
  "inquire",
  "interactive-clap",
  "interactive-clap-derive",

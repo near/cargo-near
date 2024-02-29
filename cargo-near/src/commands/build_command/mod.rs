@@ -1,6 +1,10 @@
 use std::process::Command;
 
-use color_eyre::{eyre::WrapErr, owo_colors::OwoColorize};
+use color_eyre::{
+    eyre::{ContextCompat, WrapErr},
+    owo_colors::OwoColorize,
+};
+use serde_json::to_string;
 
 pub mod build;
 
@@ -94,20 +98,21 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         })?
     };
 
+    let repo_id = check_repo_state(&contract_path)?;
+    println!("repo_id: {repo_id}");
+
     let tmp_contract_dir = tempfile::tempdir()?;
     let mut tmp_contract_path = tmp_contract_dir.path().to_path_buf();
 
-    let mut clone_contract_cmd = Command::new("git");
-    clone_contract_cmd.args([
-        "clone",
-        &contract_path.as_str(),
-        &tmp_contract_path.to_string_lossy(),
-    ]);
-    clone_contract_cmd
-        .status()
-        .wrap_err("Failed to clone project to temporary directory.")?;
+    let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
-    let volume = format!("{}:/host", tmp_contract_path.to_string_lossy());
+    let volume = format!(
+        "{}:/host",
+        tmp_repo
+            .workdir()
+            .wrap_err("Could not get the working directory for the repository")?
+            .to_string_lossy()
+    );
     let mut docker_args = vec![
         "--name",
         "cargo-near-container",
@@ -174,4 +179,78 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         );
         Ok(self::build::run(args)?.path)
     }
+}
+
+fn check_repo_state(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<git2::Oid> {
+    let repo = git2::Repository::open(contract_path)?;
+
+    let mut dirty_files = Vec::new();
+    collect_statuses(&repo, &mut dirty_files)?;
+    // Include each submodule so that the error message can provide
+    // specifically *which* files in a submodule are modified.
+    status_submodules(&repo, &mut dirty_files)?;
+
+    if dirty_files.is_empty() {
+        Ok(repo.revparse_single("HEAD")?.id())
+    } else {
+        color_eyre::eyre::bail!(
+            "{} files in the working directory contain changes that were \
+             not yet committed into git:\n\n{}\n\n\
+             commit these changes to continue",
+            dirty_files.len(),
+            dirty_files
+                .iter()
+                .map(to_string)
+                .collect::<Result<Vec<_>, _>>()
+                .wrap_err("Error parsing PathBaf")?
+                .join("\n")
+        )
+    }
+}
+
+// Helper to collect dirty statuses for a single repo.
+fn collect_statuses(
+    repo: &git2::Repository,
+    dirty_files: &mut Vec<std::path::PathBuf>,
+) -> near_cli_rs::CliResult {
+    let mut status_opts = git2::StatusOptions::new();
+    // Exclude submodules, as they are being handled manually by recursing
+    // into each one so that details about specific files can be
+    // retrieved.
+    status_opts
+        .exclude_submodules(true)
+        .include_ignored(true)
+        .include_untracked(true);
+    let repo_statuses = repo.statuses(Some(&mut status_opts)).with_context(|| {
+        format!(
+            "failed to retrieve git status from repo {}",
+            repo.path().display()
+        )
+    })?;
+    let workdir = repo.workdir().unwrap();
+    let this_dirty = repo_statuses.iter().filter_map(|entry| {
+        let path = entry.path().expect("valid utf-8 path");
+        if path.ends_with("Cargo.lock") || entry.status() == git2::Status::IGNORED {
+            return None;
+        }
+        Some(workdir.join(path))
+    });
+    dirty_files.extend(this_dirty);
+    Ok(())
+}
+
+// Helper to collect dirty statuses while recursing into submodules.
+fn status_submodules(
+    repo: &git2::Repository,
+    dirty_files: &mut Vec<std::path::PathBuf>,
+) -> near_cli_rs::CliResult {
+    for submodule in repo.submodules()? {
+        // Ignore submodules that don't open, they are probably not initialized.
+        // If its files are required, then the verification step should fail.
+        if let Ok(sub_repo) = submodule.open() {
+            status_submodules(&sub_repo, dirty_files)?;
+            collect_statuses(&sub_repo, dirty_files)?;
+        }
+    }
+    Ok(())
 }
