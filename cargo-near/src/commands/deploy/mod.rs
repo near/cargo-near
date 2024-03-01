@@ -1,3 +1,6 @@
+use color_eyre::eyre::WrapErr;
+use serde_json::to_string;
+
 use near_cli_rs::commands::contract::deploy::initialize_mode::InitializeMode;
 
 use crate::commands::build_command;
@@ -26,6 +29,18 @@ impl ContractContext {
         previous_context: near_cli_rs::GlobalContext,
         scope: &<Contract as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
+        let contract_path: camino::Utf8PathBuf =
+            if let Some(manifest_path) = &scope.build_command_args.manifest_path {
+                manifest_path.into()
+            } else {
+                camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
+                    color_eyre::eyre::eyre!("Failed to convert path {}", err.to_string_lossy())
+                })?
+            };
+
+        let repo_id = check_repo_state(&contract_path)?;
+        println!("repo_id: {repo_id}");
+
         let file_path = if !scope.build_command_args.no_docker {
             build_command::docker_run(scope.build_command_args.clone())?
         } else {
@@ -130,4 +145,78 @@ impl Contract {
             "What is the contract account ID?",
         )
     }
+}
+
+fn check_repo_state(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<git2::Oid> {
+    let repo = git2::Repository::open(contract_path)?;
+
+    let mut dirty_files = Vec::new();
+    collect_statuses(&repo, &mut dirty_files)?;
+    // Include each submodule so that the error message can provide
+    // specifically *which* files in a submodule are modified.
+    status_submodules(&repo, &mut dirty_files)?;
+
+    if dirty_files.is_empty() {
+        Ok(repo.revparse_single("HEAD")?.id())
+    } else {
+        color_eyre::eyre::bail!(
+            "{} files in the working directory contain changes that were \
+             not yet committed into git:\n\n{}\n\n\
+             commit these changes to continue deployment",
+            dirty_files.len(),
+            dirty_files
+                .iter()
+                .map(to_string)
+                .collect::<Result<Vec<_>, _>>()
+                .wrap_err("Error parsing PathBaf")?
+                .join("\n")
+        )
+    }
+}
+
+// Helper to collect dirty statuses for a single repo.
+fn collect_statuses(
+    repo: &git2::Repository,
+    dirty_files: &mut Vec<std::path::PathBuf>,
+) -> near_cli_rs::CliResult {
+    let mut status_opts = git2::StatusOptions::new();
+    // Exclude submodules, as they are being handled manually by recursing
+    // into each one so that details about specific files can be
+    // retrieved.
+    status_opts
+        .exclude_submodules(true)
+        .include_ignored(true)
+        .include_untracked(true);
+    let repo_statuses = repo.statuses(Some(&mut status_opts)).with_context(|| {
+        format!(
+            "Failed to retrieve git status from repo {}",
+            repo.path().display()
+        )
+    })?;
+    let workdir = repo.workdir().unwrap();
+    let this_dirty = repo_statuses.iter().filter_map(|entry| {
+        let path = entry.path().expect("valid utf-8 path");
+        if path.ends_with("Cargo.lock") || entry.status() == git2::Status::IGNORED {
+            return None;
+        }
+        Some(workdir.join(path))
+    });
+    dirty_files.extend(this_dirty);
+    Ok(())
+}
+
+// Helper to collect dirty statuses while recursing into submodules.
+fn status_submodules(
+    repo: &git2::Repository,
+    dirty_files: &mut Vec<std::path::PathBuf>,
+) -> near_cli_rs::CliResult {
+    for submodule in repo.submodules()? {
+        // Ignore submodules that don't open, they are probably not initialized.
+        // If its files are required, then the verification step should fail.
+        if let Ok(sub_repo) = submodule.open() {
+            status_submodules(&sub_repo, dirty_files)?;
+            collect_statuses(&sub_repo, dirty_files)?;
+        }
+    }
+    Ok(())
 }
