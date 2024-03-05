@@ -49,6 +49,8 @@ near-cli-rs = { version = "0.7.7", default-features = false }
 dunce = "1"
 tempfile = "3.10.1"
 git2 = "0.14"
+cargo_toml = "0.19.1"
+reqwest = "0.11.24"
 
 [features]
 default = ["ledger"]

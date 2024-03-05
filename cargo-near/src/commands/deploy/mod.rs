@@ -1,4 +1,4 @@
-use color_eyre::eyre::WrapErr;
+use color_eyre::eyre::{ContextCompat, WrapErr};
 use serde_json::to_string;
 
 use near_cli_rs::commands::contract::deploy::initialize_mode::InitializeMode;
@@ -38,8 +38,7 @@ impl ContractContext {
                 })?
             };
 
-        let repo_id = check_repo_state(&contract_path)?;
-        println!("repo_id: {repo_id}");
+        is_remote_repo(&contract_path)?;
 
         let file_path = if !scope.build_command_args.no_docker {
             build_command::docker_run(scope.build_command_args.clone())?
@@ -149,7 +148,6 @@ impl Contract {
 
 fn check_repo_state(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<git2::Oid> {
     let repo = git2::Repository::open(contract_path)?;
-
     let mut dirty_files = Vec::new();
     collect_statuses(&repo, &mut dirty_files)?;
     // Include each submodule so that the error message can provide
@@ -157,21 +155,20 @@ fn check_repo_state(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<g
     status_submodules(&repo, &mut dirty_files)?;
 
     if dirty_files.is_empty() {
-        Ok(repo.revparse_single("HEAD")?.id())
-    } else {
-        color_eyre::eyre::bail!(
-            "{} files in the working directory contain changes that were \
+        return Ok(repo.revparse_single("HEAD")?.id());
+    }
+    color_eyre::eyre::bail!(
+        "{} files in the working directory contain changes that were \
              not yet committed into git:\n\n{}\n\n\
              commit these changes to continue deployment",
-            dirty_files.len(),
-            dirty_files
-                .iter()
-                .map(to_string)
-                .collect::<Result<Vec<_>, _>>()
-                .wrap_err("Error parsing PathBaf")?
-                .join("\n")
-        )
-    }
+        dirty_files.len(),
+        dirty_files
+            .iter()
+            .map(to_string)
+            .collect::<Result<Vec<_>, _>>()
+            .wrap_err("Error parsing PathBaf")?
+            .join("\n")
+    )
 }
 
 // Helper to collect dirty statuses for a single repo.
@@ -219,4 +216,66 @@ fn status_submodules(
         }
     }
     Ok(())
+}
+
+fn is_remote_repo(contract_path: &camino::Utf8PathBuf) -> near_cli_rs::CliResult {
+    let mut path_cargo_toml = contract_path.clone();
+    path_cargo_toml.push("Cargo.toml");
+    let cargo_toml = cargo_toml::Manifest::from_slice(
+        &std::fs::read(&path_cargo_toml)
+            .wrap_err_with(|| format!("Failed to read file <{path_cargo_toml}>"))?,
+    )
+    .wrap_err("Could not parse 'Cargo.toml'")?;
+
+    let mut remote_repo_url = reqwest::Url::parse(
+        cargo_toml
+            .package()
+            .repository()
+            .wrap_err("No reference to the remote repository for this contract was found in the file 'Cargo.toml'.\
+                        \nAdd the value 'repository' to the '[package]' section  to continue deployment.")?
+    )?;
+
+    let path = remote_repo_url.path().trim_end_matches('/');
+
+    let repo_id = check_repo_state(contract_path)?.to_string();
+
+    let commit = format!("{path}/commit/{repo_id}");
+
+    remote_repo_url.set_path(&commit);
+
+    let mut retries_left = (0..5).rev();
+    loop {
+        let response = reqwest::blocking::get(remote_repo_url.clone())?;
+
+        if retries_left.next().is_none() {
+            color_eyre::eyre::bail!("Currently, it is not possible to check for remote repository <{remote_repo_url}>. Try again after a while.")
+        }
+
+        // Check if status is within 100-199.
+        if response.status().is_informational() {
+            eprintln!("Transport error.\nPlease wait. The next try to send this query is happening right now ...");
+        }
+
+        // Check if status is within 200-299.
+        if response.status().is_success() {
+            return Ok(());
+        }
+
+        // Check if status is within 300-399.
+        if response.status().is_redirection() {
+            return Ok(());
+        }
+
+        // Check if status is within 400-499.
+        if response.status().is_client_error() {
+            color_eyre::eyre::bail!("Remote repository <{remote_repo_url}> does not exist.")
+        }
+
+        // Check if status is within 500-599.
+        if response.status().is_server_error() {
+            eprintln!("Transport error.\nPlease wait. The next try to send this query is happening right now ...");
+        }
+
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
 }
