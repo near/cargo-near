@@ -38,7 +38,10 @@ impl ContractContext {
                 })?
             };
 
-        is_remote_repo(&contract_path)?;
+        eprintln!(
+            "\nThe URL of the remote repository:\n{}\n",
+            remote_repo_url(&contract_path)?
+        );
 
         let file_path = if !scope.build_command_args.no_docker {
             build_command::docker_run(scope.build_command_args.clone())?
@@ -218,7 +221,7 @@ fn status_submodules(
     Ok(())
 }
 
-fn is_remote_repo(contract_path: &camino::Utf8PathBuf) -> near_cli_rs::CliResult {
+fn remote_repo_url(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<reqwest::Url> {
     let mut path_cargo_toml = contract_path.clone();
     path_cargo_toml.push("Cargo.toml");
     let cargo_toml = cargo_toml::Manifest::from_slice(
@@ -258,12 +261,12 @@ fn is_remote_repo(contract_path: &camino::Utf8PathBuf) -> near_cli_rs::CliResult
 
         // Check if status is within 200-299.
         if response.status().is_success() {
-            return Ok(());
+            return Ok(remote_repo_url);
         }
 
         // Check if status is within 300-399.
         if response.status().is_redirection() {
-            return Ok(());
+            return Ok(remote_repo_url);
         }
 
         // Check if status is within 400-499.
