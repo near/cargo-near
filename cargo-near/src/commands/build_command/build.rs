@@ -43,7 +43,7 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
         })?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
-    let mut cargo_args = vec!["--target", COMPILATION_TARGET];
+    let mut cargo_args = vec!["--target", COMPILATION_TARGET, "--locked"];
     if !args.no_release {
         cargo_args.push("--release");
     }
