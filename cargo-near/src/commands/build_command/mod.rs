@@ -1,9 +1,19 @@
+use std::process::Command;
+
+use color_eyre::{
+    eyre::{ContextCompat, WrapErr},
+    owo_colors::OwoColorize,
+};
+
 pub mod build;
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = BuildCommandlContext)]
 pub struct BuildCommand {
+    /// Build contract without SourceScan verification
+    #[interactive_clap(long)]
+    pub no_docker: bool,
     /// Build contract in debug mode, without optimizations and bigger is size
     #[interactive_clap(long)]
     pub no_release: bool,
@@ -40,6 +50,7 @@ impl BuildCommandlContext {
         scope: &<BuildCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = BuildCommand {
+            no_docker: scope.no_docker,
             no_release: scope.no_release,
             no_abi: scope.no_abi,
             no_embed_abi: scope.no_embed_abi,
@@ -48,7 +59,120 @@ impl BuildCommandlContext {
             manifest_path: scope.manifest_path.clone(),
             color: scope.color.clone(),
         };
-        self::build::run(args)?;
+        if args.no_docker {
+            self::build::run(args)?;
+        } else {
+            docker_run(args)?;
+        }
         Ok(Self)
+    }
+}
+
+pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+    let mut cargo_args = vec![];
+    // Use this in new release version:
+    // let mut cargo_args = vec!["--no-docker"];
+
+    if args.no_abi {
+        cargo_args.push("--no-abi")
+    }
+    if args.no_embed_abi {
+        cargo_args.push("--no-embed-abi")
+    }
+    if args.no_doc {
+        cargo_args.push("--no-doc")
+    }
+    let color = args
+        .color
+        .clone()
+        .unwrap_or(crate::common::ColorPreference::Auto)
+        .to_string();
+    cargo_args.extend(&["--color", &color]);
+
+    let mut contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
+        manifest_path.into()
+    } else {
+        camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
+            color_eyre::eyre::eyre!("Failed to convert path {}", err.to_string_lossy())
+        })?
+    };
+
+    let tmp_contract_dir = tempfile::tempdir()?;
+    let mut tmp_contract_path = tmp_contract_dir.path().to_path_buf();
+
+    let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
+
+    let volume = format!(
+        "{}:/host",
+        tmp_repo
+            .workdir()
+            .wrap_err("Could not get the working directory for the repository")?
+            .to_string_lossy()
+    );
+    let mut docker_args = vec![
+        "--name",
+        "cargo-near-container",
+        "--volume",
+        &volume,
+        "--rm",
+        "--workdir",
+        "/host",
+        "--env",
+        "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
+        "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
+        "cargo",
+        "near",
+        "build",
+    ];
+    docker_args.extend(&cargo_args);
+
+    let mut docker_cmd = Command::new("docker");
+    docker_cmd.arg("run");
+    docker_cmd.args(docker_args);
+
+    let status = match docker_cmd.status() {
+        Ok(exit_status) => exit_status,
+        Err(_) => {
+            println!("Error executing SourceScan command `{:?}`", docker_cmd);
+            println!(
+                "{}",
+                "WARNING! Compilation without SourceScan verification".red()
+            );
+            return Ok(self::build::run(args)?.path);
+        }
+    };
+
+    if status.success() {
+        tmp_contract_path.push("target");
+        tmp_contract_path.push("near");
+
+        let dir = tmp_contract_path
+            .read_dir()
+            .wrap_err_with(|| format!("No artifacts directory found: `{tmp_contract_path:?}`."))?;
+
+        for entry in dir.flatten() {
+            if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
+                contract_path.push("contract.wasm");
+                let _ = std::fs::rename::<std::path::PathBuf, camino::Utf8PathBuf>(
+                    entry.path(),
+                    contract_path.clone(),
+                );
+                return Ok(contract_path);
+            }
+        }
+
+        Err(color_eyre::eyre::eyre!(
+            "Wasm file not found in directory: `{tmp_contract_path:?}`."
+        ))
+    } else {
+        println!(
+            "SourceScan command `{:?}` failed with exit status: {status}",
+            docker_cmd
+        );
+        println!(
+            "{}",
+            "WARNING! Compilation without SourceScan verification".red()
+        );
+        Ok(self::build::run(args)?.path)
     }
 }
