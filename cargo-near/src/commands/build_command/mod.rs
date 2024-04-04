@@ -161,10 +161,11 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         for entry in dir.flatten() {
             if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
                 contract_path.push("contract.wasm");
-                let _ = std::fs::rename::<std::path::PathBuf, camino::Utf8PathBuf>(
+                std::fs::copy::<std::path::PathBuf, camino::Utf8PathBuf>(
                     entry.path(),
                     contract_path.clone(),
-                );
+                )?;
+
                 return Ok(contract_path);
             }
         }
