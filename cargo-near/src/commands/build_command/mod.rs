@@ -110,6 +110,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             .to_string_lossy()
     );
     let mut docker_args = vec![
+        "-it",
         "--name",
         "cargo-near-container",
         "--volume",
@@ -120,11 +121,19 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "--env",
         "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
         "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
+        "sh",
+        "-c"
+    ];
+    let mut cargo_cmd_list = vec![
         "cargo",
         "near",
         "build",
     ];
-    docker_args.extend(&cargo_args);
+    cargo_cmd_list.extend(&cargo_args);
+
+    let cargo_cmd = cargo_cmd_list.join(" ");
+    
+    docker_args.push(&cargo_cmd);
 
     let mut docker_cmd = Command::new("docker");
     docker_cmd.arg("run");
@@ -132,13 +141,12 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let status = match docker_cmd.status() {
         Ok(exit_status) => exit_status,
-        Err(_) => {
-            println!("Error executing SourceScan command `{:?}`", docker_cmd);
-            println!(
-                "{}",
-                "WARNING! Compilation without SourceScan verification".red()
-            );
-            return Ok(self::build::run(args)?.path);
+        Err(io_err) => {
+            println!("Error obtaining status from executing SourceScan command `{:?}`", docker_cmd);
+            println!("Error `{:?}`", io_err);
+            return Err(color_eyre::eyre::eyre!(
+                "Reproducible build in docker container failed"
+            ))
         }
     };
 
@@ -169,10 +177,9 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             "SourceScan command `{:?}` failed with exit status: {status}",
             docker_cmd
         );
-        println!(
-            "{}",
-            "WARNING! Compilation without SourceScan verification".red()
-        );
-        Ok(self::build::run(args)?.path)
+
+        Err(color_eyre::eyre::eyre!(
+            "Reproducible build in docker container failed"
+        ))
     }
 }
