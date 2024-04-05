@@ -4,6 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use color_eyre::{
     eyre::{ContextCompat, WrapErr},
     owo_colors::OwoColorize,
+    Result,
 };
 
 pub mod build;
@@ -69,6 +70,26 @@ impl BuildCommandlContext {
     }
 }
 
+fn get_current_user_info() -> Result<(String, String, String)> {
+    let uid = Command::new("id")
+        .arg("-u")
+        .output()?
+        .stdout;
+    let gid = Command::new("id")
+        .arg("-g")
+        .output()?
+        .stdout;
+    let username = Command::new("whoami")
+        .output()?
+        .stdout;
+
+    Ok((
+        String::from_utf8(uid)?.trim().to_string(),
+        String::from_utf8(gid)?.trim().to_string(),
+        String::from_utf8(username)?.trim().to_string(),
+    ))
+}
+
 pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
     let mut cargo_args = vec![];
     // Use this in new release version:
@@ -103,6 +124,8 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
+    let (uid, gid, username) = get_current_user_info()?;
+
     // Get the current timestamp as seconds
     let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string();
 
@@ -126,10 +149,13 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "--workdir",
         "/host",
         "--env",
-        "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
-        "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
+        "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0-chown",
+        "docker.io/sourcescan/cargo-near:0.6.0-chown", //XXX need to fix version!!! image from cargo.toml for contract
+        &uid,
+        &gid,
+        &username,
         "sh",
-        "-c"
+        "-c",
     ];
     let mut cargo_cmd_list = vec![
         "cargo",
