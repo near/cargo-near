@@ -1,4 +1,5 @@
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use color_eyre::{
     eyre::{ContextCompat, WrapErr},
@@ -102,6 +103,12 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
+    // Get the current timestamp as seconds
+    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string();
+
+    // Append the timestamp to the container name
+    let container_name = format!("cargo-near-container-{}", timestamp);
+
     let volume = format!(
         "{}:/host",
         tmp_repo
@@ -112,7 +119,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let mut docker_args = vec![
         "-it",
         "--name",
-        "cargo-near-container",
+        &container_name,
         "--volume",
         &volume,
         "--rm",
