@@ -1,9 +1,10 @@
 use std::process::Command;
 
-use color_eyre::{
-    eyre::{ContextCompat, WrapErr},
-    owo_colors::OwoColorize,
-};
+use camino::Utf8PathBuf;
+use color_eyre::{eyre::{ContextCompat, WrapErr}, owo_colors::OwoColorize};
+use serde::Deserialize;
+
+use crate::{types::{manifest::CargoManifestPath, metadata::CrateMetadata}, util};
 
 pub mod build;
 
@@ -68,6 +69,45 @@ impl BuildCommandlContext {
     }
 }
 
+#[derive(Deserialize, Debug)]
+struct ReproducibleBuildMeta{
+    build_environment: String,
+}
+
+fn get_metadata(args: &BuildCommand) -> color_eyre::eyre::Result<CrateMetadata> {
+    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+        let manifest_path: Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
+            manifest_path.into()
+        } else {
+            "Cargo.toml".into()
+        };
+        log::trace!("crate manifest path : {:?}", manifest_path);
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
+    })?;
+    log::trace!("crate metadata : {:#?}", crate_metadata);
+    Ok(crate_metadata)
+    
+}
+
+fn get_docker_build_meta(cargo_metadata: &CrateMetadata) -> color_eyre::eyre::Result<ReproducibleBuildMeta>{
+    let build_meta_value = cargo_metadata.root_package.metadata.get(
+        "near"
+            ).and_then( |value | value.get("reproducible_build"));
+
+    let build_meta: ReproducibleBuildMeta = match build_meta_value {
+        None => return Err(color_eyre::eyre::eyre!("Missing reproducible build metadata `[package.metadata.near.reproducible_build]` in Cargo.toml")), 
+
+        Some(build_meta_value) => {
+           serde_json::from_value(build_meta_value.clone()).map_err(|err| {
+           
+            color_eyre::eyre::eyre!("Malformed reproducible build metadata `[package.metadata.near.reproducible_build]`: {}", err)
+           })?
+        }
+    };
+    log::info!("reproducible build metadata: {:#?}", build_meta);
+    Ok(build_meta)
+}
+
 pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
     let mut cargo_args = vec![];
     // Use this in new release version:
@@ -89,6 +129,10 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         .to_string();
     cargo_args.extend(&["--color", &color]);
 
+    let cargo_metadata = get_metadata(&args)?;
+    let docker_build_meta = get_docker_build_meta(&cargo_metadata)?;
+
+
     let mut contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &args.manifest_path {
         manifest_path.into()
     } else {
@@ -98,6 +142,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     };
 
     let tmp_contract_dir = tempfile::tempdir()?;
+    log::debug!("temporary contract dir : {:?}", tmp_contract_dir);
     let mut tmp_contract_path = tmp_contract_dir.path().to_path_buf();
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
@@ -120,7 +165,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "/host",
         "--env",
         "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
-        "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
+        &docker_build_meta.build_environment,
         "sh",
         "-c"
     ];
@@ -135,6 +180,8 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     
     docker_args.push(&cargo_cmd);
 
+    log::debug!("docker command : {:?}", docker_args);
+
     let mut docker_cmd = Command::new("docker");
     docker_cmd.arg("run");
     docker_cmd.args(docker_args);
@@ -142,8 +189,9 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let status = match docker_cmd.status() {
         Ok(exit_status) => exit_status,
         Err(io_err) => {
-            println!("Error obtaining status from executing SourceScan command `{:?}`", docker_cmd);
-            println!("Error `{:?}`", io_err);
+            println!();
+            println!("{}", format!("Error obtaining status from executing SourceScan command `{:?}`", docker_cmd).yellow());
+            println!("{}", format!("Error `{:?}`", io_err).yellow());
             return Err(color_eyre::eyre::eyre!(
                 "Reproducible build in docker container failed"
             ))
@@ -174,9 +222,13 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             "Wasm file not found in directory: `{tmp_contract_path:?}`."
         ))
     } else {
+        println!();
         println!(
-            "SourceScan command `{:?}` failed with exit status: {status}",
-            docker_cmd
+            "{}",
+            format!(
+                "See output above ↑↑↑.\nSourceScan command `{:?}` failed with exit status: {status}.",
+                docker_cmd
+            ).yellow()
         );
 
         Err(color_eyre::eyre::eyre!(
