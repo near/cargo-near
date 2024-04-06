@@ -1,6 +1,8 @@
-use std::process::Command;
+use std::process::{Command, id};
 use std::time::{SystemTime, UNIX_EPOCH};
-use nix::unistd::{getuid, getgid, getpid};
+
+#[cfg(unix)]
+use nix::unistd::{getuid, getgid};
 
 use color_eyre::{
     eyre::{ContextCompat, WrapErr},
@@ -105,11 +107,8 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
-    // get uid, gid and pid using libc
-    let uid = getuid().to_string();
-    let gid = getgid().to_string();
-    let pid = getpid().to_string();
-    
+    // Cross-platform process ID and timestamp
+    let pid = id().to_string();
     let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string();
 
     let volume = format!(
@@ -122,7 +121,12 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-builder"; //XXX need to fix version!!! image from cargo.toml for contract
     let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
     let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
-    let uid_gid = format!("{}:{}", uid, gid);
+
+    // Platform-specific UID/GID retrieval
+    #[cfg(unix)]
+    let uid_gid = format!("{}:{}", getuid(), getgid());
+    #[cfg(not(unix))]
+    let uid_gid = "1000:1000".to_string();
 
     let mut docker_args = vec![
         "-u", &uid_gid,
