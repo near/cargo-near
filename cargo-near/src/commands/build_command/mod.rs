@@ -118,11 +118,13 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             .wrap_err("Could not get the working directory for the repository")?
             .to_string_lossy()
     );
-    let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-chown"; //XXX need to fix version!!! image from cargo.toml for contract
+    let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-builder"; //XXX need to fix version!!! image from cargo.toml for contract
     let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
     let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
+    let uid_gid = format!("{}:{}", uid, gid);
 
     let mut docker_args = vec![
+        "-u", &uid_gid,
         "-it",
         "--name", &docker_container_name,
         "--volume", &volume,
@@ -130,9 +132,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "--workdir", "/host",
         "--env", &near_build_env_ref,
         docker_image,
-        "--uid", &uid,
-        "--gid", &gid,
-        "--run",
+        "/bin/bash", "-c"
     ];
 
     let mut cargo_cmd_list = vec![
