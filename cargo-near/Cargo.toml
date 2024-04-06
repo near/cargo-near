@@ -52,6 +52,9 @@ git2 = "0.14"
 cargo_toml = "0.19.1"
 reqwest = "0.11.24"
 
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.28.0", features = ["user", "process"] }
+
 [features]
 default = ["ledger"]
 ledger = ["near-cli-rs/ledger"]

@@ -1,9 +1,14 @@
-use std::process::Command;
+use std::process::{Command, id};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[cfg(unix)]
+use nix::unistd::{getuid, getgid};
 
 use color_eyre::{
     eyre::{ContextCompat, WrapErr},
     owo_colors::OwoColorize,
 };
+use env_logger::fmt::Timestamp;
 
 pub mod build;
 
@@ -102,6 +107,10 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
+    // Cross-platform process ID and timestamp
+    let pid = id().to_string();
+    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string();
+
     let volume = format!(
         "{}:/host",
         tmp_repo
@@ -109,21 +118,28 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             .wrap_err("Could not get the working directory for the repository")?
             .to_string_lossy()
     );
+    let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-builder"; //XXX need to fix version!!! image from cargo.toml for contract
+    let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
+    let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
+
+    // Platform-specific UID/GID retrieval
+    #[cfg(unix)]
+    let uid_gid = format!("{}:{}", getuid(), getgid());
+    #[cfg(not(unix))]
+    let uid_gid = "1000:1000".to_string();
+
     let mut docker_args = vec![
+        "-u", &uid_gid,
         "-it",
-        "--name",
-        "cargo-near-container",
-        "--volume",
-        &volume,
+        "--name", &docker_container_name,
+        "--volume", &volume,
         "--rm",
-        "--workdir",
-        "/host",
-        "--env",
-        "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
-        "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
-        "sh",
-        "-c"
+        "--workdir", "/host",
+        "--env", &near_build_env_ref,
+        docker_image,
+        "/bin/bash", "-c"
     ];
+
     let mut cargo_cmd_list = vec![
         "cargo",
         "near",
