@@ -1,5 +1,6 @@
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
+use nix::unistd::{getuid, getgid, getpid};
 
 use color_eyre::{
     eyre::{ContextCompat, WrapErr},
@@ -105,9 +106,9 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
     // get uid, gid and pid using libc
-    let uid = unsafe { libc::getuid() }.to_string();
-    let gid = unsafe { libc::getgid() }.to_string();
-    let pid = unsafe { libc::getpid() }.to_string();
+    let uid = getuid().to_string();
+    let gid = getgid().to_string();
+    let pid = getpid().to_string();
     
     let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string();
 
@@ -118,7 +119,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             .wrap_err("Could not get the working directory for the repository")?
             .to_string_lossy()
     );
-    let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-builder"; //XXX need to fix version!!! image from cargo.toml for contract
+    let docker_image = "cargo-near"; //XXX need to fix version!!! image from cargo.toml for contract
     let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
     let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
     let uid_gid = format!("{}:{}", uid, gid);
