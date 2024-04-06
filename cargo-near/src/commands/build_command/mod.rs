@@ -1,9 +1,11 @@
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use color_eyre::{
     eyre::{ContextCompat, WrapErr},
     owo_colors::OwoColorize,
 };
+use env_logger::fmt::Timestamp;
 
 pub mod build;
 
@@ -102,10 +104,13 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
-    // get uid and gid using libc
+    // get uid, gid and pid using libc
     let uid = unsafe { libc::getuid() }.to_string();
     let gid = unsafe { libc::getgid() }.to_string();
+    let pid = unsafe { libc::getpid() }.to_string();
     
+    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string();
+
     let volume = format!(
         "{}:/host",
         tmp_repo
@@ -114,11 +119,12 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             .to_string_lossy()
     );
     let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-chown"; //XXX need to fix version!!! image from cargo.toml for contract
+    let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
     let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
 
     let mut docker_args = vec![
         "-it",
-        "--name", "cargo-near-container",
+        "--name", &docker_container_name,
         "--volume", &volume,
         "--rm",
         "--workdir", "/host",
