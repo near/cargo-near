@@ -787,6 +787,7 @@ dependencies = [
  "inquire",
  "interactive-clap",
  "interactive-clap-derive",
+ "libc",
  "libloading",
  "linked-hash-map",
  "log",

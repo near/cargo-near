@@ -34,6 +34,7 @@ near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
 libloading = "0.7.3"
 zstd = "0.11"
 atty = "0.2.14"
+libc = "0.2"
 
 color-eyre = "0.6"
 inquire = "0.6"

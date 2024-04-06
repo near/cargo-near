@@ -102,6 +102,10 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
 
+    // get uid and gid using libc
+    let uid = unsafe { libc::getuid() }.to_string();
+    let gid = unsafe { libc::getgid() }.to_string();
+    
     let volume = format!(
         "{}:/host",
         tmp_repo
@@ -109,21 +113,22 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             .wrap_err("Could not get the working directory for the repository")?
             .to_string_lossy()
     );
+    let docker_image = "docker.io/sourcescan/cargo-near:0.6.0-chown"; //XXX need to fix version!!! image from cargo.toml for contract
+    let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
+
     let mut docker_args = vec![
         "-it",
-        "--name",
-        "cargo-near-container",
-        "--volume",
-        &volume,
+        "--name", "cargo-near-container",
+        "--volume", &volume,
         "--rm",
-        "--workdir",
-        "/host",
-        "--env",
-        "NEAR_BUILD_ENVIRONMENT_REF=docker.io/sourcescan/cargo-near:0.6.0",
-        "docker.io/sourcescan/cargo-near:0.6.0", //XXX need to fix version!!! image from cargo.toml for contract
-        "sh",
-        "-c"
+        "--workdir", "/host",
+        "--env", &near_build_env_ref,
+        docker_image,
+        "--uid", &uid,
+        "--gid", &gid,
+        "--run",
     ];
+
     let mut cargo_cmd_list = vec![
         "cargo",
         "near",
