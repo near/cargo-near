@@ -23,10 +23,14 @@ impl TryFrom<Utf8PathBuf> for CargoManifestPath {
     type Error = color_eyre::eyre::ErrReport;
 
     fn try_from(manifest_path: Utf8PathBuf) -> Result<Self, Self::Error> {
-        if let Some(file_name) = manifest_path.file_name() {
-            if file_name != MANIFEST_FILE_NAME {
+        match manifest_path.file_name() {
+            None => {
                 color_eyre::eyre::bail!("the manifest-path must be a path to a Cargo.toml file")
             }
+            Some(file_name) if file_name != MANIFEST_FILE_NAME => {
+                color_eyre::eyre::bail!("the manifest-path must be a path to a Cargo.toml file")
+            }
+            _ => {}
         }
         let canonical_manifest_path = manifest_path.canonicalize_utf8().map_err(|err| match err
             .kind()
@@ -34,7 +38,7 @@ impl TryFrom<Utf8PathBuf> for CargoManifestPath {
             std::io::ErrorKind::NotFound => {
                 color_eyre::eyre::eyre!("manifest path `{manifest_path}` does not exist")
             }
-            _ => color_eyre::eyre::eyre!("Failed to derive a key from the master key: {err}"),
+            _ => color_eyre::eyre::eyre!("manifest_path.canonicalize_utf8() error: {err}"),
         })?;
         Ok(CargoManifestPath {
             path: canonical_manifest_path,

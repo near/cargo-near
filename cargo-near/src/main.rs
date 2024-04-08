@@ -1,7 +1,7 @@
-use std::io::Write;
 use interactive_clap::ToCliArgs;
 pub use near_cli_rs::CliResult;
 use std::env;
+use std::io::Write;
 
 use cargo_near::Cmd;
 
