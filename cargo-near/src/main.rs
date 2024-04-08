@@ -1,11 +1,26 @@
 use interactive_clap::ToCliArgs;
 pub use near_cli_rs::CliResult;
 use std::env;
+use std::io::Write;
 
 use cargo_near::Cmd;
 
 fn main() -> CliResult {
-    env_logger::init();
+    let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
+    builder
+        .format(|buf, record| {
+            let ts = buf.timestamp_seconds();
+            writeln!(
+                buf,
+                "{}:{} {} [{}] - {}",
+                record.file().unwrap_or("unknown"),
+                record.line().unwrap_or(0),
+                ts,
+                record.level(),
+                record.args()
+            )
+        })
+        .init();
 
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => colored::control::set_override(false),

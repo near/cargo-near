@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{ops::Deref, path::PathBuf};
 
 use color_eyre::eyre::Context;
 
@@ -22,6 +22,13 @@ impl std::fmt::Display for Utf8PathBuf {
 
 impl interactive_clap::ToCli for Utf8PathBuf {
     type CliVariant = Utf8PathBuf;
+}
+
+impl Deref for Utf8PathBuf {
+    type Target = camino::Utf8PathBuf;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl Utf8PathBuf {
