@@ -178,6 +178,8 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     if args.no_doc {
         cargo_args.push("--no-doc")
     }
+    cargo_args.push("--no-docker");
+
     let color = args
         .color
         .clone()
