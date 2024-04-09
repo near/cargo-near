@@ -38,13 +38,12 @@ impl ContractContext {
                 })?
             };
 
-
         let file_path = if !scope.build_command_args.no_docker {
             build_command::docker_run(scope.build_command_args.clone())?
         } else {
             build_command::build::run(scope.build_command_args.clone())?.path
         };
-        // TODO: rework flow with checkout after contract built before deploy 
+        // TODO: rework flow with checkout after contract built before deploy
         // NOTE:  `git clone https://github.com/dj8yfo/sample_no_workspace/tree/73f5eb98c257fd9115675f3894ddfd37a5915e7b `
         // and `git clone https://github.com/dj8yfo/sample_no_workspace.git/commit/73f5eb98c257fd9115675f3894ddfd37a5915e7`
         // are both an error

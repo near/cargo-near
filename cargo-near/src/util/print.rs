@@ -4,12 +4,12 @@ pub(crate) fn handle_step<F, T>(msg: &str, f: F) -> color_eyre::eyre::Result<T>
 where
     F: FnOnce() -> color_eyre::eyre::Result<T>,
 {
-    eprint!(" {} {}", "•".bold().cyan(), msg);
+    eprint!(" {} {}\n", "•".bold().cyan(), msg);
     let result = f();
     if result.is_ok() {
-        eprintln!("{}", "done".bold().green());
+        eprintln!("{} {}\n", "•".bold().cyan(), "done".bold().green());
     } else {
-        eprintln!("{}", "failed".bold().red());
+        eprintln!("{} {}\n", "•".bold().cyan(), "failed".bold().red());
     }
     result
 }

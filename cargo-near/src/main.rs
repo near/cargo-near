@@ -1,4 +1,6 @@
+use colored::Colorize;
 use interactive_clap::ToCliArgs;
+use log::Level;
 pub use near_cli_rs::CliResult;
 use std::env;
 use std::io::Write;
@@ -7,16 +9,32 @@ use cargo_near::Cmd;
 
 fn main() -> CliResult {
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
+
+    let environment = if std::env::var("NEAR_BUILD_ENVIRONMENT_REF").is_ok() {
+        "container".cyan()
+    } else {
+        "host".purple()
+    };
+
     builder
-        .format(|buf, record| {
+        .format(move |buf, record| {
+            let level = format!("[{}]", record.level());
+            let level = match record.level() {
+                Level::Error => level.red(),
+                Level::Warn => level.yellow(),
+                Level::Info => level.cyan(),
+                Level::Debug => level.truecolor(100, 100, 100),
+                Level::Trace => level.truecolor(200, 200, 200),
+            };
             let ts = buf.timestamp_seconds();
             writeln!(
                 buf,
-                "{}:{} {} [{}] - {}",
+                "{}-[{}] {}:{} {} - {}",
+                level,
+                environment,
                 record.file().unwrap_or("unknown"),
                 record.line().unwrap_or(0),
                 ts,
-                record.level(),
                 record.args()
             )
         })

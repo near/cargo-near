@@ -246,6 +246,8 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "/host",
         "--env",
         &near_build_env_ref,
+        "--env",
+        "RUST_LOG=cargo_near=debug",
         &docker_image,
         "/bin/bash",
         "-c",

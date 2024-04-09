@@ -193,10 +193,6 @@ pub(crate) fn compile_project(
             }
         }
     }
-    log::debug!(
-        "compile project args: {:?}",
-        [&["--message-format=json-render-diagnostics"], args].concat()
-    );
 
     let artifacts = invoke_cargo(
         "build",
