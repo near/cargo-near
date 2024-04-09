@@ -40,6 +40,7 @@ impl CrateMetadata {
             manifest_path,
             raw_metadata: metadata,
         };
+        log::trace!("crate metadata : {:#?}", crate_metadata);
         Ok(crate_metadata)
     }
 }

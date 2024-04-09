@@ -132,18 +132,6 @@ impl ReproducibleBuildMeta {
     }
 }
 
-fn get_metadata(manifest_path: camino::Utf8PathBuf) -> color_eyre::eyre::Result<CrateMetadata> {
-    log::debug!(
-        "crate in cloned location manifest path : {:?}",
-        manifest_path
-    );
-    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
-    })?;
-    log::trace!("crate metadata : {:#?}", crate_metadata);
-    Ok(crate_metadata)
-}
-
 fn get_docker_build_meta(
     cargo_metadata: &CrateMetadata,
 ) -> color_eyre::eyre::Result<ReproducibleBuildMeta> {
@@ -197,15 +185,23 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         .to_string();
     cargo_args.extend(&["--color", &color]);
 
-    let mut cloned_repo = clone_repo(&args)?;
+    let mut cloned_repo = util::handle_step(
+        "Cloning project repo to a temporary build site, removing uncommitted changes...",
+        || clone_repo(&args),
+    )?;
 
-    let cargo_toml_path: camino::Utf8PathBuf = {
-        let mut cloned_path: std::path::PathBuf = cloned_repo.tmp_contract_path.clone();
-        cloned_path.push("Cargo.toml");
-        cloned_path.try_into()?
-    };
-    let cargo_metadata = get_metadata(cargo_toml_path)?;
-    let docker_build_meta = get_docker_build_meta(&cargo_metadata)?;
+    let crate_metadata = util::handle_step(
+        "Collecting cargo project metadata from temporary build site...",
+        || {
+            let cargo_toml_path: camino::Utf8PathBuf = {
+                let mut cloned_path: std::path::PathBuf = cloned_repo.tmp_contract_path.clone();
+                cloned_path.push("Cargo.toml");
+                cloned_path.try_into()?
+            };
+            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?)
+        },
+    )?;
+    let docker_build_meta = get_docker_build_meta(&crate_metadata)?;
 
     // Cross-platform process ID and timestamp
     let pid = id().to_string();
@@ -227,6 +223,10 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let docker_image = docker_build_meta.concat_image();
     let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
 
+    let rust_log = {
+        let value = std::env::var("RUST_LOG").unwrap_or("error".to_string());
+        format!("RUST_LOG={}", value)
+    };
     // Platform-specific UID/GID retrieval
     #[cfg(unix)]
     let uid_gid = format!("{}:{}", getuid(), getgid());
@@ -247,7 +247,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "--env",
         &near_build_env_ref,
         "--env",
-        "RUST_LOG=cargo_near=debug",
+        &rust_log,
         &docker_image,
         "/bin/bash",
         "-c",

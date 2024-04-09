@@ -7,9 +7,9 @@ where
     eprint!(" {} {}\n", "•".bold().cyan(), msg);
     let result = f();
     if result.is_ok() {
-        eprintln!("{} {}\n", "•".bold().cyan(), "done".bold().green());
+        eprintln!(" {} {}\n", "•".bold().cyan(), "done".bold().green());
     } else {
-        eprintln!("{} {}\n", "•".bold().cyan(), "failed".bold().red());
+        eprintln!(" {} {}\n", "•".bold().cyan(), "failed".bold().red());
     }
     result
 }

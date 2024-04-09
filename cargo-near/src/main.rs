@@ -29,7 +29,7 @@ fn main() -> CliResult {
             let ts = buf.timestamp_seconds();
             writeln!(
                 buf,
-                "{}-[{}] {}:{} {} - {}",
+                " {}-[{}] {}:{} {} - {}",
                 level,
                 environment,
                 record.file().unwrap_or("unknown"),
