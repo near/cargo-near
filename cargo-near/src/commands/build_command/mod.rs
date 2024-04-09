@@ -1,5 +1,5 @@
 use std::ops::Deref;
-use std::process::{id, Command};
+use std::process::{id, Command, ExitStatus};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[cfg(unix)]
@@ -127,7 +127,10 @@ impl ReproducibleBuildMeta {
             .filter(|c| !c.is_ascii_control())
             .filter(|c| !c.is_ascii_whitespace())
             .collect();
-        println!("{}", format!("docker image to be used: {}", result).green());
+        println!(
+            "{}",
+            format!(" docker image to be used: {}", result).green()
+        );
         result
     }
 }
@@ -159,12 +162,16 @@ fn get_docker_build_meta(
 
     println!(
         "{}",
-        format!("reproducible build metadata: {:#?}", build_meta).green()
+        util::indent_string(&format!("reproducible build metadata: {:#?}", build_meta)).green()
     );
     Ok(build_meta)
 }
 
-pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+fn docker_subprocess_step(
+    args: BuildCommand,
+    docker_build_meta: ReproducibleBuildMeta,
+    cloned_repo: &ClonedRepo,
+) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
     let mut cargo_args = vec![];
     // Use this in new release version:
     // let mut cargo_args = vec!["--no-docker"];
@@ -186,25 +193,6 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         .unwrap_or(crate::common::ColorPreference::Auto)
         .to_string();
     cargo_args.extend(&["--color", &color]);
-
-    let mut cloned_repo = util::handle_step(
-        "Cloning project repo to a temporary build site, removing uncommitted changes...",
-        || clone_repo(&args),
-    )?;
-
-    let crate_metadata = util::handle_step(
-        "Collecting cargo project metadata from temporary build site...",
-        || {
-            let cargo_toml_path: camino::Utf8PathBuf = {
-                let mut cloned_path: std::path::PathBuf = cloned_repo.tmp_contract_path.clone();
-                cloned_path.push("Cargo.toml");
-                cloned_path.try_into()?
-            };
-            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?)
-        },
-    )?;
-    let docker_build_meta = get_docker_build_meta(&crate_metadata)?;
-
     // Cross-platform process ID and timestamp
     let pid = id().to_string();
     let timestamp = SystemTime::now()
@@ -257,7 +245,6 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let cargo_cmd = cargo_cmd_list.join(" ");
 
     docker_args.push(&cargo_cmd);
-
     log::debug!("docker command : {:?}", docker_args);
 
     let mut docker_cmd = Command::new("docker");
@@ -282,8 +269,37 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
             ));
         }
     };
+    Ok((status, docker_cmd))
+}
+
+pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+    let mut cloned_repo = util::handle_step(
+        "Cloning project repo to a temporary build site, removing uncommitted changes...",
+        || clone_repo(&args),
+    )?;
+
+    let crate_metadata = util::handle_step(
+        "Collecting cargo project metadata from temporary build site...",
+        || {
+            let cargo_toml_path: camino::Utf8PathBuf = {
+                let mut cloned_path: std::path::PathBuf = cloned_repo.tmp_contract_path.clone();
+                cloned_path.push("Cargo.toml");
+                cloned_path.try_into()?
+            };
+            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?)
+        },
+    )?;
+
+    let docker_build_meta =
+        util::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
+            get_docker_build_meta(&crate_metadata)
+        })?;
+
+    util::print_step("Running docker command step...");
+    let (status, docker_cmd) = docker_subprocess_step(args, docker_build_meta, &cloned_repo)?;
 
     if status.success() {
+        util::print_success("Running docker command step (finished)");
         // TODO: make this a `ClonedRepo` `copy_artifact` method
         cloned_repo.tmp_contract_path.push("target");
         cloned_repo.tmp_contract_path.push("near");
