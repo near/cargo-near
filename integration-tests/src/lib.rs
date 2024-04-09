@@ -73,7 +73,8 @@ macro_rules! invoke_cargo_near {
             },
             Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
                 let args = cargo_near::commands::build_command::BuildCommand {
-                    no_docker: cmd.no_docker,
+                    // this is implied by 10 lines below
+                    no_docker: true,
                     no_release: cmd.no_release,
                     no_abi: cmd.no_abi,
                     no_embed_abi: cmd.no_embed_abi,
