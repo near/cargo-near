@@ -96,11 +96,11 @@ fn clone_repo(args: &BuildCommand) -> color_eyre::eyre::Result<ClonedRepo> {
             color_eyre::eyre::eyre!("Failed to convert path {}", err.to_string_lossy())
         })?
     };
-    log::debug!("ClonedRepo.contract_path: {:?}", contract_path,);
+    log::info!("ClonedRepo.contract_path: {:?}", contract_path,);
 
     let tmp_contract_dir = tempfile::tempdir()?;
     let tmp_contract_path = tmp_contract_dir.path().to_path_buf();
-    log::debug!("ClonedRepo.tmp_contract_path: {:?}", tmp_contract_path);
+    log::info!("ClonedRepo.tmp_contract_path: {:?}", tmp_contract_path);
     let tmp_repo = git2::Repository::clone(contract_path.as_str(), &tmp_contract_path)?;
     Ok(ClonedRepo {
         tmp_repo,
@@ -225,10 +225,6 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
     let docker_image = docker_build_meta.concat_image();
     let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
 
-    let rust_log = {
-        let value = std::env::var("RUST_LOG").unwrap_or("error".to_string());
-        format!("RUST_LOG={}", value)
-    };
     // Platform-specific UID/GID retrieval
     #[cfg(unix)]
     let uid_gid = format!("{}:{}", getuid(), getgid());
@@ -249,7 +245,7 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
         "--env",
         &near_build_env_ref,
         "--env",
-        &rust_log,
+        "RUST_LOG=cargo_near=info",
         &docker_image,
         "/bin/bash",
         "-c",
