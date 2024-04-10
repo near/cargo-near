@@ -313,13 +313,17 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
 
         for entry in dir.flatten() {
             if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
-                cloned_repo.contract_path.push("contract.wasm");
+                let wasm_path = {
+                    let mut contract_path = cloned_repo.contract_path.clone();
+                    contract_path.push("contract.wasm");
+                    contract_path
+                };
                 std::fs::copy::<std::path::PathBuf, camino::Utf8PathBuf>(
                     entry.path(),
-                    cloned_repo.contract_path.clone(),
+                    wasm_path.clone(),
                 )?;
 
-                return Ok(cloned_repo.contract_path);
+                return Ok(wasm_path);
             }
         }
 

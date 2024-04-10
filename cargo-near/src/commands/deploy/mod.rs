@@ -39,19 +39,15 @@ impl ContractContext {
             };
 
         let file_path = if !scope.build_command_args.no_docker {
+            // TODO: clone to tmp folder and checkout specific revision must be separate steps
+            eprintln!(
+                "\n The URL of the remote repository:\n {}\n",
+                remote_repo_url(&contract_path)?
+            );
             build_command::docker_run(scope.build_command_args.clone())?
         } else {
             build_command::build::run(scope.build_command_args.clone())?.path
         };
-        // TODO: rework flow with checkout after contract built before deploy
-        // NOTE:  `git clone https://github.com/dj8yfo/sample_no_workspace/tree/73f5eb98c257fd9115675f3894ddfd37a5915e7b `
-        // and `git clone https://github.com/dj8yfo/sample_no_workspace.git/commit/73f5eb98c257fd9115675f3894ddfd37a5915e7`
-        // are both an error
-        // TODO: clone to tmp folder and checkout specific revision must be separate steps
-        // eprintln!(
-        //     "\nThe URL of the remote repository:\n{}\n",
-        //     remote_repo_url(&contract_path)?
-        // );
 
         Ok(Self(
             near_cli_rs::commands::contract::deploy::ContractFileContext {
@@ -249,6 +245,7 @@ fn remote_repo_url(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<re
     let commit = format!("{path}/commit/{repo_id}");
 
     remote_repo_url.set_path(&commit);
+    log::info!("checking existence of {}", remote_repo_url);
 
     let mut retries_left = (0..5).rev();
     loop {
