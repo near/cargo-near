@@ -25,6 +25,9 @@ pub struct BuildCommand {
     /// Build contract without SourceScan verification
     #[interactive_clap(long)]
     pub no_docker: bool,
+    /// add --locked to corresponding `cargo` commands
+    #[interactive_clap(long)]
+    pub locked: bool,
     /// Build contract in debug mode, without optimizations and bigger is size
     #[interactive_clap(long)]
     pub no_release: bool,
@@ -62,6 +65,7 @@ impl BuildCommandlContext {
     ) -> color_eyre::eyre::Result<Self> {
         let args = BuildCommand {
             no_docker: scope.no_docker,
+            locked: scope.locked,
             no_release: scope.no_release,
             no_abi: scope.no_abi,
             no_embed_abi: scope.no_embed_abi,
@@ -186,6 +190,7 @@ fn docker_subprocess_step(
         cargo_args.push("--no-doc")
     }
     cargo_args.push("--no-docker");
+    cargo_args.push("--locked");
 
     let color = args
         .color
@@ -286,7 +291,8 @@ pub fn docker_run(args: BuildCommand) -> color_eyre::eyre::Result<camino::Utf8Pa
                 cloned_path.push("Cargo.toml");
                 cloned_path.try_into()?
             };
-            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?)
+            let locked = true;
+            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, locked)
         },
     )?;
 

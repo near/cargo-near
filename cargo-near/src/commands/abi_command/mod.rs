@@ -7,6 +7,9 @@ pub struct AbiCommand {
     /// Include rustdocs in the ABI file
     #[interactive_clap(long)]
     pub no_doc: bool,
+    /// add --locked to corresponding `cargo` commands
+    #[interactive_clap(long)]
+    pub locked: bool,
     /// Generate compact (minified) JSON
     #[interactive_clap(long)]
     pub compact_abi: bool,
@@ -35,6 +38,7 @@ impl AbiCommandlContext {
     ) -> color_eyre::eyre::Result<Self> {
         let args = AbiCommand {
             no_doc: scope.no_doc,
+            locked: scope.locked,
             compact_abi: scope.compact_abi,
             out_dir: scope.out_dir.clone(),
             manifest_path: scope.manifest_path.clone(),

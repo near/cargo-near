@@ -15,8 +15,11 @@ pub(crate) struct CrateMetadata {
 
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
-    pub fn collect(manifest_path: CargoManifestPath) -> color_eyre::eyre::Result<Self> {
-        let (mut metadata, root_package) = get_cargo_metadata(&manifest_path)?;
+    pub fn collect(
+        manifest_path: CargoManifestPath,
+        locked: bool,
+    ) -> color_eyre::eyre::Result<Self> {
+        let (mut metadata, root_package) = get_cargo_metadata(&manifest_path, locked)?;
 
         metadata.target_directory = util::force_canonicalize_dir(&metadata.target_directory)?;
         metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
@@ -48,9 +51,13 @@ impl CrateMetadata {
 /// Get the result of `cargo metadata`, together with the root package id.
 fn get_cargo_metadata(
     manifest_path: &CargoManifestPath,
+    locked: bool,
 ) -> color_eyre::eyre::Result<(cargo_metadata::Metadata, Package)> {
     log::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
+    if locked {
+        cmd.other_options(["--locked".to_string()]);
+    }
     let metadata = cmd
         .manifest_path(&manifest_path.path)
         .exec()

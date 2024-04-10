@@ -32,7 +32,7 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.locked)
     })?;
 
     let out_dir = args
@@ -43,16 +43,24 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
         })?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
-    let mut cargo_args = vec!["--target", COMPILATION_TARGET, "--locked"];
+    let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     if !args.no_release {
         cargo_args.push("--release");
+    }
+    if args.locked {
+        cargo_args.push("--locked");
     }
 
     let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let mut contract_abi =
-            abi::generate_abi(&crate_metadata, !args.no_doc, true, color.clone())?;
+        let mut contract_abi = abi::generate_abi(
+            &crate_metadata,
+            !args.no_doc,
+            args.locked,
+            true,
+            color.clone(),
+        )?;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
             builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),

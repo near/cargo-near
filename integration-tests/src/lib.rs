@@ -64,6 +64,7 @@ macro_rules! invoke_cargo_near {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
                 let args = cargo_near::commands::abi_command::AbiCommand {
                     no_doc: cmd.no_doc,
+                    locked: false,
                     compact_abi: cmd.compact_abi,
                     out_dir: cmd.out_dir,
                     manifest_path: Some(cargo_path.into()),
@@ -75,6 +76,7 @@ macro_rules! invoke_cargo_near {
                 let args = cargo_near::commands::build_command::BuildCommand {
                     // this is implied by 10 lines below
                     no_docker: true,
+                    locked: false,
                     no_release: cmd.no_release,
                     no_abi: cmd.no_abi,
                     no_embed_abi: cmd.no_embed_abi,
