@@ -1,13 +1,17 @@
-use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::process::Command;
+use std::{
+    collections::{BTreeMap, HashSet},
+    path::PathBuf,
+};
 use std::{env, thread};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
 use color_eyre::eyre::{ContextCompat, WrapErr};
+use log::{error, info};
 
 use crate::common::ColorPreference;
 use crate::types::manifest::CargoManifestPath;
@@ -314,4 +318,54 @@ pub(crate) fn extract_abi_entries(
         }
     }
     Ok(entries)
+}
+
+pub(crate) const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
+
+fn get_rustc_wasm32_unknown_unknown_target_libdir() -> color_eyre::eyre::Result<PathBuf> {
+    let command = Command::new("rustc")
+        .args(["--target", COMPILATION_TARGET, "--print", "target-libdir"])
+        .output()?;
+
+    if command.status.success() {
+        Ok(String::from_utf8(command.stdout)?.trim().into())
+    } else {
+        color_eyre::eyre::bail!(
+            "Getting rustc's wasm32-unknown-unknown target wasn't successful. Got {}",
+            command.status,
+        )
+    }
+}
+
+pub fn wasm32_target_libdir_exists() -> bool {
+    let result = get_rustc_wasm32_unknown_unknown_target_libdir();
+
+    match result {
+        Ok(wasm32_target_libdir_path) => {
+            if wasm32_target_libdir_path.exists() {
+                info!(
+                    "Found {COMPILATION_TARGET} in {:?}",
+                    wasm32_target_libdir_path
+                );
+                true
+            } else {
+                info!(
+                    "Failed to find {COMPILATION_TARGET} in {:?}",
+                    wasm32_target_libdir_path
+                );
+                false
+            }
+        }
+        Err(_) => {
+            error!("Some error in getting the target libdir, trying rustup..");
+
+            invoke_rustup(["target", "list", "--installed"])
+                .map(|stdout| {
+                    stdout
+                        .lines()
+                        .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
+                })
+                .is_ok()
+        }
+    }
 }
