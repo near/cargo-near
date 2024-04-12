@@ -1,3 +1,4 @@
+use cargo_near::commands::build_command::INSIDE_DOCKER_ENV_KEY;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 use log::Level;
@@ -10,7 +11,7 @@ use cargo_near::Cmd;
 fn main() -> CliResult {
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
 
-    let environment = if std::env::var("NEAR_BUILD_ENVIRONMENT_REF").is_ok() {
+    let environment = if std::env::var(INSIDE_DOCKER_ENV_KEY).is_ok() {
         "container".cyan()
     } else {
         "host".purple()

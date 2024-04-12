@@ -160,6 +160,7 @@ where
 pub struct CompilationArtifact {
     pub path: Utf8PathBuf,
     pub fresh: bool,
+    pub from_docker: bool,
 }
 
 /// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated artifact.
@@ -229,6 +230,7 @@ pub(crate) fn compile_project(
         (Some(path), None) => Ok(CompilationArtifact {
             path,
             fresh: !compile_artifact.fresh,
+            from_docker: false,
         }),
         _ => color_eyre::eyre::bail!(
             "Compilation resulted in more than one '.{}' target file: {:?}",

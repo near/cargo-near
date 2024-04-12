@@ -12,7 +12,9 @@ use crate::util;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+pub(super) fn run(
+    args: super::BuildCommand,
+) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 

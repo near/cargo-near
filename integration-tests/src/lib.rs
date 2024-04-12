@@ -73,8 +73,6 @@ macro_rules! invoke_cargo_near {
             },
             Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
                 let args = cargo_near::commands::build_command::BuildCommand {
-                    // this is implied by 10 lines below
-                    no_docker: true,
                     no_release: cmd.no_release,
                     no_abi: cmd.no_abi,
                     no_embed_abi: cmd.no_embed_abi,
@@ -83,7 +81,11 @@ macro_rules! invoke_cargo_near {
                     manifest_path: Some(cargo_path.into()),
                     color: cmd.color,
                 };
-                cargo_near::commands::build_command::build::run(args)?;
+                std::env::set_var(
+                    cargo_near::commands::build_command::INSIDE_DOCKER_ENV_KEY,
+                    "INTEGRATION_TESTS_NO_DOCKER"
+                );
+                args.run(cargo_near::commands::build_command::BuildContext::Build)?;
             },
             Some(_) => todo!(),
             None => ()
