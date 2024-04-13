@@ -1,11 +1,8 @@
 // Find all our documentation at https://docs.near.org
-use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-use near_sdk::{log, near_bindgen};
+use near_sdk::{log, near};
 
 // Define the contract structure
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
-#[borsh(crate = "near_sdk::borsh")]
+#[near(contract_state)]
 pub struct Contract {
     greeting: String,
 }
@@ -20,7 +17,7 @@ impl Default for Contract {
 }
 
 // Implement the contract structure
-#[near_bindgen]
+#[near]
 impl Contract {
     // Public method - returns the greeting saved, defaulting to DEFAULT_GREETING
     pub fn get_greeting(&self) -> String {
