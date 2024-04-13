@@ -161,7 +161,7 @@ impl super::BuildCommand {
                 .workdir()
                 .wrap_err("Could not get the working directory for the repository")?
                 .to_string_lossy(),
-                &container_code_path
+            &container_code_path
         );
         let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
         let docker_image = docker_build_meta.concat_image();
