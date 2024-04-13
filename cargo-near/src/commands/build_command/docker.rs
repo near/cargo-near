@@ -153,13 +153,15 @@ impl super::BuildCommand {
             .as_secs()
             .to_string();
 
+        let container_code_path = "/home/near/code".to_string();
         let volume = format!(
-            "{}:/host",
+            "{}:{}",
             cloned_repo
                 .tmp_repo
                 .workdir()
                 .wrap_err("Could not get the working directory for the repository")?
-                .to_string_lossy()
+                .to_string_lossy(),
+                &container_code_path
         );
         let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
         let docker_image = docker_build_meta.concat_image();
@@ -181,7 +183,7 @@ impl super::BuildCommand {
             &volume,
             "--rm",
             "--workdir",
-            "/host",
+            &container_code_path,
             "--env",
             &near_build_env_ref,
             "--env",
