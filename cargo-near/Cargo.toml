@@ -45,7 +45,7 @@ derive_more = "0.99.9"
 shell-words = "1.0.0"
 interactive-clap = "0.2.8"
 interactive-clap-derive = "0.2.8"
-near-cli-rs = { version = "0.7.7", default-features = false }
+near-cli-rs = { version = "0.8.1", default-features = false }
 dunce = "1"
 
 [features]
