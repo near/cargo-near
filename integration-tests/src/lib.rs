@@ -72,17 +72,12 @@ macro_rules! invoke_cargo_near {
                 cargo_near::commands::abi_command::abi::run(args)?;
             },
             Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
-                let args = cargo_near::commands::build_command::BuildCommand {
-                    no_docker: cmd.no_docker,
-                    no_release: cmd.no_release,
-                    no_abi: cmd.no_abi,
-                    no_embed_abi: cmd.no_embed_abi,
-                    no_doc: cmd.no_doc,
-                    out_dir: cmd.out_dir,
-                    manifest_path: Some(cargo_path.into()),
-                    color: cmd.color,
+                let args = {
+                  let mut args = cargo_near::commands::build_command::BuildCommand::from(cmd)  ;
+                  args.manifest_path = Some(cargo_path.into());
+                  args
                 };
-                cargo_near::commands::build_command::build::run(args)?;
+                args.run(cargo_near::commands::build_command::BuildContext::Build)?;
             },
             Some(_) => todo!(),
             None => ()
@@ -164,8 +159,8 @@ pub struct BuildResult {
 #[macro_export]
 macro_rules! build_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near build";
-        $(let opts = format!("cargo near build {}", $cli_opts);)?;
+        let opts = "cargo near build --no-docker";
+        $(let opts = format!("cargo near build --no-docker {}", $cli_opts);)?;
         let result_dir = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;
