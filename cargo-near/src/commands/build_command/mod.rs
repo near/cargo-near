@@ -10,6 +10,9 @@ pub const INSIDE_DOCKER_ENV_KEY: &str = "NEAR_BUILD_ENVIRONMENT_REF";
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = BuildCommandlContext)]
 pub struct BuildCommand {
+    /// Build contract on host system and without embedding SourceScan NEP-330 metadata
+    #[interactive_clap(long)]
+    no_docker: bool,
     /// Build contract in debug mode, without optimizations and bigger is size
     #[interactive_clap(long)]
     pub no_release: bool,
@@ -55,14 +58,29 @@ impl BuildCommand {
         Ok(contract_path)
     }
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<util::CompilationArtifact> {
-        if Self::no_docker() {
+        if self.no_docker() {
             self::build::run(self)
         } else {
             self.docker_run(context)
         }
     }
-    pub fn no_docker() -> bool {
-        std::env::var(INSIDE_DOCKER_ENV_KEY).is_ok()
+    pub fn no_docker(&self) -> bool {
+        std::env::var(INSIDE_DOCKER_ENV_KEY).is_ok() || self.no_docker
+    }
+}
+
+impl From<CliBuildCommand> for BuildCommand {
+    fn from(value: CliBuildCommand) -> Self {
+        Self {
+            no_docker: value.no_docker,
+            no_release: value.no_release,
+            no_abi: value.no_abi,
+            no_embed_abi: value.no_embed_abi,
+            no_doc: value.no_doc,
+            out_dir: value.out_dir,
+            manifest_path: value.manifest_path,
+            color: value.color,
+        }
     }
 }
 
@@ -75,6 +93,7 @@ impl BuildCommandlContext {
         scope: &<BuildCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = BuildCommand {
+            no_docker: scope.no_docker,
             no_release: scope.no_release,
             no_abi: scope.no_abi,
             no_embed_abi: scope.no_embed_abi,

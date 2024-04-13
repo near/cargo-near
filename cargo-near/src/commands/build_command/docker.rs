@@ -114,7 +114,7 @@ impl super::BuildCommand {
             println!(
                 "{}",
                 format!(
-                    "You can choose to opt out into non-docker build behaviour by `export NEAR_BUILD_ENVIRONMENT_REF=old`",
+                    "You can choose to opt out into non-docker build behaviour by using `--no-docker` flag.",
                 ).cyan()
             );
 
