@@ -4,7 +4,7 @@ use crate::{types::manifest::CargoManifestPath, util};
 
 mod build;
 mod docker;
-pub const INSIDE_DOCKER_ENV_KEY: &str = "NEAR_BUILD_ENVIRONMENT_REF";
+pub const INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
