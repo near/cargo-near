@@ -21,7 +21,7 @@ pub enum NearCommand {
     #[strum_discriminants(strum(
         message = "build               -  Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)"
     ))]
-    /// Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)
+    /// Build a NEAR contract with embed ABI in a docker container (opt out into non-docker behaviour by `export NEAR_BUILD_ENVIRONMENT_REF=old`).
     Build(self::build_command::BuildCommand),
     #[strum_discriminants(strum(
         message = "abi                 -  Generates ABI for the contract"

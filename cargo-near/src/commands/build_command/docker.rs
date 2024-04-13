@@ -111,6 +111,12 @@ impl super::BuildCommand {
                     docker_cmd
                 ).yellow()
             );
+            println!(
+                "{}",
+                format!(
+                    "You can choose to opt out into non-docker build behaviour by `export NEAR_BUILD_ENVIRONMENT_REF=old`",
+                ).cyan()
+            );
 
             Err(color_eyre::eyre::eyre!(
                 "Reproducible build in docker container failed"
