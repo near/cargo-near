@@ -113,9 +113,7 @@ impl super::BuildCommand {
             );
             println!(
                 "{}",
-                format!(
-                    "You can choose to opt out into non-docker build behaviour by using `--no-docker` flag.",
-                ).cyan()
+                "You can choose to opt out into non-docker build behaviour by using `--no-docker` flag.".cyan()
             );
 
             Err(color_eyre::eyre::eyre!(
