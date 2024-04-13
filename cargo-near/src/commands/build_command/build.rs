@@ -4,6 +4,7 @@ use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
+use crate::commands::cargo_locked;
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
@@ -41,9 +42,12 @@ pub(super) fn run(
         })?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
-    let mut cargo_args = vec!["--target", COMPILATION_TARGET, "--locked"];
+    let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     if !args.no_release {
         cargo_args.push("--release");
+    }
+    if cargo_locked() {
+        cargo_args.push("--locked");
     }
 
     let mut abi = None;

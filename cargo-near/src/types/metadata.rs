@@ -1,5 +1,5 @@
-use crate::types::manifest::CargoManifestPath;
 use crate::util;
+use crate::{commands::cargo_locked, types::manifest::CargoManifestPath};
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
 use color_eyre::eyre::{ContextCompat, WrapErr};
@@ -51,6 +51,9 @@ fn get_cargo_metadata(
 ) -> color_eyre::eyre::Result<(cargo_metadata::Metadata, Package)> {
     log::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
+    if cargo_locked() {
+        cmd.other_options(["--locked".to_string()]);
+    }
     let metadata = cmd
         .manifest_path(&manifest_path.path)
         .exec()

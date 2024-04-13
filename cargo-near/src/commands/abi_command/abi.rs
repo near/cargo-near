@@ -6,6 +6,7 @@ use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
 
+use crate::commands::cargo_locked;
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
@@ -83,10 +84,16 @@ pub(crate) fn generate_abi(
         color_eyre::eyre::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
 
+    let mut cargo_args = vec!["--features", "near-sdk/__abi-generate"];
+
+    if cargo_locked() {
+        cargo_args.push("--locked");
+    }
     util::print_step("Generating ABI");
+
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
-        &["--features", "near-sdk/__abi-generate"],
+        &cargo_args,
         vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),

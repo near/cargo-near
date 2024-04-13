@@ -6,6 +6,8 @@ pub mod create_dev_account;
 pub mod deploy;
 pub mod new;
 
+pub const CARGO_NEAR_UNLOCKED: &str = "CARGO_NEAR_UNLOCKED";
+
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
@@ -38,4 +40,11 @@ pub enum NearCommand {
     #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
     /// Add a new contract code
     Deploy(self::deploy::Contract),
+}
+
+/// By default, all cargo commands, besides ones, run by `cargo near check`,
+/// should be run with `--locked` enabled, unless `CARGO_NEAR_UNLOCKED`
+/// ENV variable is set
+pub fn cargo_locked() -> bool {
+    std::env::var(CARGO_NEAR_UNLOCKED).is_err()
 }

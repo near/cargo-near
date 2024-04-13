@@ -60,6 +60,7 @@ macro_rules! invoke_cargo_near {
 
         let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts)?;
 
+        std::env::set_var(cargo_near::commands::CARGO_NEAR_UNLOCKED, "yes");
         match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
                 let args = cargo_near::commands::abi_command::AbiCommand {
