@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2](https://github.com/near/cargo-near/compare/cargo-near-v0.6.1...cargo-near-v0.6.2) - 2024-04-14
+
+### Added
+- Updated new project template with near-sdk-rs 5.1.0 ([#143](https://github.com/near/cargo-near/pull/143))
+
+### Fixed
+- Support nixOS - decouple cargo-near from rustup ([#146](https://github.com/near/cargo-near/pull/146))
+
 ## [0.6.1](https://github.com/near/cargo-near/compare/cargo-near-v0.6.0...cargo-near-v0.6.1) - 2024-02-23
 
 ### Other
