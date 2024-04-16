@@ -2,13 +2,12 @@ use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
-use std::io::BufRead;
 
-use crate::commands::abi_command::abi;
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
+use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -19,10 +18,7 @@ pub(super) fn run(
     color.apply();
 
     util::handle_step("Checking the host environment...", || {
-        if !util::invoke_rustup(["target", "list", "--installed"])?
-            .lines()
-            .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
-        {
+        if !wasm32_target_libdir_exists() {
             color_eyre::eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
