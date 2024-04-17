@@ -3,7 +3,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::types::manifest::CargoManifestPath;
+use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, types::manifest::CargoManifestPath};
 use crate::{types::metadata::CrateMetadata, util};
 
 use color_eyre::{
@@ -165,7 +165,7 @@ impl super::BuildCommand {
         );
         let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
         let docker_image = docker_build_meta.concat_image();
-        let near_build_env_ref = format!("NEAR_BUILD_ENVIRONMENT_REF={}", docker_image);
+        let near_build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
 
         // Platform-specific UID/GID retrieval
         #[cfg(unix)]
