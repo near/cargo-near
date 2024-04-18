@@ -10,6 +10,9 @@ pub const INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = BuildCommandlContext)]
 pub struct BuildCommand {
+    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    #[interactive_clap(long)]
+    pub no_locked: bool,
     /// Build contract on host system and without embedding SourceScan NEP-330 metadata
     #[interactive_clap(long)]
     no_docker: bool,
@@ -72,6 +75,7 @@ impl BuildCommand {
 impl From<CliBuildCommand> for BuildCommand {
     fn from(value: CliBuildCommand) -> Self {
         Self {
+            no_locked: value.no_locked,
             no_docker: value.no_docker,
             no_release: value.no_release,
             no_abi: value.no_abi,
@@ -93,6 +97,7 @@ impl BuildCommandlContext {
         scope: &<BuildCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = BuildCommand {
+            no_locked: scope.no_locked,
             no_docker: scope.no_docker,
             no_release: scope.no_release,
             no_abi: scope.no_abi,

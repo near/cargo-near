@@ -1,5 +1,5 @@
+use crate::types::manifest::CargoManifestPath;
 use crate::util;
-use crate::{commands::cargo_locked, types::manifest::CargoManifestPath};
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
 use color_eyre::eyre::{ContextCompat, WrapErr};
@@ -15,8 +15,11 @@ pub(crate) struct CrateMetadata {
 
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
-    pub fn collect(manifest_path: CargoManifestPath) -> color_eyre::eyre::Result<Self> {
-        let (mut metadata, root_package) = get_cargo_metadata(&manifest_path)?;
+    pub fn collect(
+        manifest_path: CargoManifestPath,
+        no_locked: bool,
+    ) -> color_eyre::eyre::Result<Self> {
+        let (mut metadata, root_package) = get_cargo_metadata(&manifest_path, no_locked)?;
 
         metadata.target_directory = util::force_canonicalize_dir(&metadata.target_directory)?;
         metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
@@ -48,15 +51,26 @@ impl CrateMetadata {
 /// Get the result of `cargo metadata`, together with the root package id.
 fn get_cargo_metadata(
     manifest_path: &CargoManifestPath,
+    no_locked: bool,
 ) -> color_eyre::eyre::Result<(cargo_metadata::Metadata, Package)> {
     log::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
-    if cargo_locked() {
+    if !no_locked {
         cmd.other_options(["--locked".to_string()]);
     }
-    let metadata = cmd
-        .manifest_path(&manifest_path.path)
-        .exec()
+    let metadata = cmd.manifest_path(&manifest_path.path).exec();
+    match metadata.as_ref() {
+        Err(cargo_metadata::Error::CargoMetadata { stderr }) => {
+            if stderr.contains("remove the --locked flag") {
+                return Err(cargo_metadata::Error::CargoMetadata {
+                    stderr: stderr.clone(),
+                })
+                .wrap_err("Cargo.lock is absent");
+            }
+        }
+        _ => {}
+    }
+    let metadata = metadata
         .wrap_err("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
     let root_package = metadata
         .root_package()

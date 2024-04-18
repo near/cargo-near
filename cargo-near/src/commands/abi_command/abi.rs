@@ -6,7 +6,6 @@ use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
 
-use crate::commands::cargo_locked;
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
@@ -31,6 +30,7 @@ pub(crate) enum AbiCompression {
 
 pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
+    no_locked: bool,
     generate_docs: bool,
     hide_warnings: bool,
     color: ColorPreference,
@@ -86,7 +86,7 @@ pub(crate) fn generate_abi(
 
     let mut cargo_args = vec!["--features", "near-sdk/__abi-generate"];
 
-    if cargo_locked() {
+    if !no_locked {
         cargo_args.push("--locked");
     }
     util::print_step("Generating ABI");
@@ -193,7 +193,15 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked).map_err(|err| {
+            if !args.no_locked && err.to_string().contains("Cargo.lock is absent") {
+                println!(
+                    "{}",
+                    " You can choose to disable `--locked` flag for downstream `cargo` command with `--no-locked` flag.".cyan()
+                );
+            }
+            err
+        })
     })?;
 
     let out_dir = args
@@ -208,7 +216,7 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, !args.no_doc, false, color)?;
+    let contract_abi = generate_abi(&crate_metadata, args.no_locked, !args.no_doc, false, color)?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
