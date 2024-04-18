@@ -63,6 +63,7 @@ macro_rules! invoke_cargo_near {
         match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
                 let args = cargo_near::commands::abi_command::AbiCommand {
+                    no_locked: cmd.no_locked,
                     no_doc: cmd.no_doc,
                     compact_abi: cmd.compact_abi,
                     out_dir: cmd.out_dir,
@@ -90,8 +91,8 @@ macro_rules! invoke_cargo_near {
 #[macro_export]
 macro_rules! generate_abi_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near abi";
-        $(let opts = format!("cargo near abi {}", $cli_opts);)?;
+        let opts = "cargo near abi --no-locked";
+        $(let opts = format!("cargo near abi --no-locked {}", $cli_opts);)?;
         let result_dir = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;
@@ -159,8 +160,8 @@ pub struct BuildResult {
 #[macro_export]
 macro_rules! build_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near build --no-docker";
-        $(let opts = format!("cargo near build --no-docker {}", $cli_opts);)?;
+        let opts = "cargo near build --no-docker --no-locked";
+        $(let opts = format!("cargo near build --no-docker --no-locked {}", $cli_opts);)?;
         let result_dir = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;

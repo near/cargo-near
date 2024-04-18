@@ -52,7 +52,7 @@ impl super::BuildCommand {
                     cloned_path.push("Cargo.toml");
                     cloned_path.try_into()?
                 };
-                CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?)
+                CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)
             },
         )?;
 
@@ -130,13 +130,19 @@ impl super::BuildCommand {
         let mut cargo_args = vec![];
 
         if self.no_abi {
-            cargo_args.push("--no-abi")
+            cargo_args.push("--no-abi");
         }
         if self.no_embed_abi {
-            cargo_args.push("--no-embed-abi")
+            cargo_args.push("--no-embed-abi");
         }
         if self.no_doc {
-            cargo_args.push("--no-doc")
+            cargo_args.push("--no-doc");
+        }
+        if self.no_locked {
+            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
+        }
+        if self.no_release {
+            cargo_args.push("--no-release");
         }
 
         let color = self
@@ -195,6 +201,10 @@ impl super::BuildCommand {
 
         let mut cargo_cmd_list = vec!["cargo", "near", "build"];
         cargo_cmd_list.extend(&cargo_args);
+        println!(
+            " {}",
+            format!("build command in container: {}", cargo_cmd_list.join(" ")).green()
+        );
 
         let cargo_cmd = cargo_cmd_list.join(" ");
 

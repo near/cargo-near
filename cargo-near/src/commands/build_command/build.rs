@@ -30,7 +30,15 @@ pub(super) fn run(
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked).map_err(|err| {
+            if !args.no_locked && err.to_string().contains("Cargo.lock is absent") {
+                println!(
+                    "{}",
+                    " You can choose to disable `--locked` flag for downstream `cargo` command with `--no-locked` flag.".cyan()
+                );
+            }
+            err
+        })
     })?;
 
     let out_dir = args
@@ -41,16 +49,24 @@ pub(super) fn run(
         })?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
-    let mut cargo_args = vec!["--target", COMPILATION_TARGET, "--locked"];
+    let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     if !args.no_release {
         cargo_args.push("--release");
+    }
+    if !args.no_locked {
+        cargo_args.push("--locked");
     }
 
     let mut abi = None;
     let mut min_abi_path = None;
     if !args.no_abi {
-        let mut contract_abi =
-            abi::generate_abi(&crate_metadata, !args.no_doc, true, color.clone())?;
+        let mut contract_abi = abi::generate_abi(
+            &crate_metadata,
+            args.no_locked,
+            !args.no_doc,
+            true,
+            color.clone(),
+        )?;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
             builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
