@@ -59,16 +59,13 @@ fn get_cargo_metadata(
         cmd.other_options(["--locked".to_string()]);
     }
     let metadata = cmd.manifest_path(&manifest_path.path).exec();
-    match metadata.as_ref() {
-        Err(cargo_metadata::Error::CargoMetadata { stderr }) => {
-            if stderr.contains("remove the --locked flag") {
-                return Err(cargo_metadata::Error::CargoMetadata {
-                    stderr: stderr.clone(),
-                })
-                .wrap_err("Cargo.lock is absent");
-            }
+    if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
+        if stderr.contains("remove the --locked flag") {
+            return Err(cargo_metadata::Error::CargoMetadata {
+                stderr: stderr.clone(),
+            })
+            .wrap_err("Cargo.lock is absent");
         }
-        _ => {}
     }
     let metadata = metadata
         .wrap_err("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
