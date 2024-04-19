@@ -3,13 +3,10 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, types::manifest::CargoManifestPath};
-use crate::{types::metadata::CrateMetadata, util};
+use crate::commands::build_command::INSIDE_DOCKER_ENV_KEY;
+use crate::util;
 
-use color_eyre::{
-    eyre::{ContextCompat, WrapErr},
-    owo_colors::OwoColorize,
-};
+use color_eyre::{eyre::ContextCompat, owo_colors::OwoColorize};
 
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
@@ -39,69 +36,25 @@ impl super::BuildCommand {
                 BuildContext::Build => Ok(()),
             }
         })?;
-        let mut cloned_repo = util::handle_step(
+        let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
             || cloned_repo::ClonedRepo::clone(&self),
         )?;
 
-        let crate_metadata = util::handle_step(
-            "Collecting cargo project metadata from temporary build site...",
-            || {
-                let cargo_toml_path: camino::Utf8PathBuf = {
-                    let mut cloned_path: std::path::PathBuf = cloned_repo.tmp_contract_path.clone();
-                    cloned_path.push("Cargo.toml");
-                    cloned_path.try_into()?
-                };
-                CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)
-            },
-        )?;
-
         let docker_build_meta =
             util::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
-                metadata::ReproducibleBuild::parse(&crate_metadata)
+                metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
             })?;
 
         util::print_step("Running docker command step...");
+        let out_dir_arg = self.out_dir.clone();
         let (status, docker_cmd) = self.docker_subprocess_step(docker_build_meta, &cloned_repo)?;
 
         if status.success() {
             util::print_success("Running docker command step (finished)");
-            // TODO: make this a `ClonedRepo` `copy_artifact` method
-            cloned_repo.tmp_contract_path.push("target");
-            cloned_repo.tmp_contract_path.push("near");
-
-            let dir = cloned_repo.tmp_contract_path.read_dir().wrap_err_with(|| {
-                format!(
-                    "No artifacts directory found: `{:?}`.",
-                    cloned_repo.tmp_contract_path
-                )
-            })?;
-
-            for entry in dir.flatten() {
-                if entry.path().extension().unwrap().to_str().unwrap() == "wasm" {
-                    let wasm_path = {
-                        let mut contract_path = cloned_repo.contract_path.clone();
-                        contract_path.push("contract.wasm");
-                        contract_path
-                    };
-                    std::fs::copy::<std::path::PathBuf, camino::Utf8PathBuf>(
-                        entry.path(),
-                        wasm_path.clone(),
-                    )?;
-
-                    // TODO: ensure fresh
-                    return Ok(util::CompilationArtifact {
-                        path: wasm_path,
-                        fresh: true,
-                        from_docker: true,
-                    });
-                }
-            }
-
-            Err(color_eyre::eyre::eyre!(
-                "Wasm file not found in directory: `{:?}`.",
-                cloned_repo.tmp_contract_path
-            ))
+            util::handle_step("Copying artifact from temporary build site...", || {
+                cloned_repo.copy_artifact(out_dir_arg)
+            })
         } else {
             println!();
             println!(
@@ -203,7 +156,11 @@ impl super::BuildCommand {
         cargo_cmd_list.extend(&cargo_args);
         println!(
             " {}",
-            format!("build command in container: {}", cargo_cmd_list.join(" ")).green()
+            format!(
+                "{} {}",
+                "build command in container:".green(),
+                cargo_cmd_list.join(" ")
+            )
         );
 
         let cargo_cmd = cargo_cmd_list.join(" ");

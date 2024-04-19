@@ -1,6 +1,11 @@
 use std::ops::Deref;
 
-use crate::{types::manifest::CargoManifestPath, util};
+use colored::{ColoredString, Colorize};
+
+use crate::{
+    types::manifest::CargoManifestPath,
+    util::{self, CompilationArtifact},
+};
 
 mod build;
 mod docker;
@@ -69,6 +74,31 @@ impl BuildCommand {
     }
     pub fn no_docker(&self) -> bool {
         std::env::var(INSIDE_DOCKER_ENV_KEY).is_ok() || self.no_docker
+    }
+}
+
+pub struct ArtifactMessages<'a> {
+    messages: Vec<(&'a str, ColoredString)>,
+}
+
+impl<'a> ArtifactMessages<'a> {
+    pub fn new() -> Self {
+        Self { messages: vec![] }
+    }
+    pub fn push_binary(&mut self, wasm_artifact: &CompilationArtifact) {
+        self.messages.push((
+            "Binary",
+            wasm_artifact.path.to_string().bright_yellow().bold(),
+        ));
+    }
+    pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
+        self.messages.push(msg);
+    }
+    pub fn pretty_print(self) {
+        let max_width = self.messages.iter().map(|(h, _)| h.len()).max().unwrap();
+        for (header, message) in self.messages {
+            eprintln!("     - {:>width$}: {}", header, message, width = max_width);
+        }
     }
 }
 

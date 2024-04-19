@@ -34,7 +34,7 @@ impl CrateMetadata {
         if absolute_manifest_dir != metadata.workspace_root {
             // If the contract is a package in a workspace, we use the package name
             // as the name of the sub-folder where we put the `.contract` bundle.
-            target_directory = target_directory.join(package_name);
+            target_directory = util::force_canonicalize_dir(&target_directory.join(package_name))?;
         }
 
         let crate_metadata = CrateMetadata {
@@ -45,6 +45,18 @@ impl CrateMetadata {
         };
         log::trace!("crate metadata : {:#?}", crate_metadata);
         Ok(crate_metadata)
+    }
+
+    pub fn resolve_output_dir(
+        &self,
+        cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    ) -> color_eyre::eyre::Result<Utf8PathBuf> {
+        if let Some(cli_override) = cli_override {
+            let out_dir = Utf8PathBuf::from(cli_override);
+            return util::force_canonicalize_dir(&out_dir);
+        }
+
+        Ok(self.target_directory.clone())
     }
 }
 

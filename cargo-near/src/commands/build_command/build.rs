@@ -5,9 +5,12 @@ use sha2::{Digest, Sha256};
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::common::ColorPreference;
+use crate::types::manifest::MANIFEST_FILE_NAME;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
+
+use super::ArtifactMessages;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -28,7 +31,7 @@ pub(super) fn run(
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
             manifest_path.into()
         } else {
-            "Cargo.toml".into()
+            MANIFEST_FILE_NAME.into()
         };
         CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked).map_err(|err| {
             if !args.no_locked && err.to_string().contains("Cargo.lock is absent") {
@@ -41,12 +44,7 @@ pub(super) fn run(
         })
     })?;
 
-    let out_dir = args
-        .out_dir
-        .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
-            let out_dir = Utf8PathBuf::from(out_dir);
-            util::force_canonicalize_dir(&out_dir)
-        })?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -105,10 +103,8 @@ pub(super) fn run(
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
     util::print_success("Contract successfully built!");
-    let mut messages = vec![(
-        "Binary",
-        wasm_artifact.path.to_string().bright_yellow().bold(),
-    )];
+    let mut messages = ArtifactMessages::new();
+    messages.push_binary(&wasm_artifact);
     if let Some(mut abi) = abi {
         let mut hasher = Sha256::new();
         hasher.update(std::fs::read(&wasm_artifact.path)?);
@@ -119,16 +115,12 @@ pub(super) fn run(
         let AbiResult { path } =
             abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
         let pretty_abi_path = util::copy(&path, &out_dir)?;
-        messages.push(("ABI", pretty_abi_path.to_string().yellow().bold()));
+        messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {
-        messages.push(("Embedded ABI", abi_path.to_string().yellow().bold()));
+        messages.push_free(("Embedded ABI", abi_path.to_string().yellow().bold()));
     }
 
-    let max_width = messages.iter().map(|(h, _)| h.len()).max().unwrap();
-    for (header, message) in messages {
-        eprintln!("     - {:>width$}: {}", header, message, width = max_width);
-    }
-
+    messages.pretty_print();
     Ok(wasm_artifact)
 }
