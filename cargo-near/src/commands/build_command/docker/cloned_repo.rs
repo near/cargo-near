@@ -20,7 +20,7 @@ pub(super) struct ClonedRepo {
 }
 
 impl ClonedRepo {
-    pub(super) fn clone(args: &BuildCommand) -> color_eyre::eyre::Result<Self> {
+    pub(super) fn git_clone(args: &BuildCommand) -> color_eyre::eyre::Result<Self> {
         let contract_path: camino::Utf8PathBuf = args.contract_path()?;
         log::info!("ClonedRepo.contract_path: {:?}", contract_path,);
 

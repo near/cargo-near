@@ -1,4 +1,4 @@
-use color_eyre::owo_colors::OwoColorize;
+use colored::Colorize;
 use serde::Deserialize;
 
 use crate::{types::metadata::CrateMetadata, util};
@@ -7,6 +7,7 @@ use crate::{types::metadata::CrateMetadata, util};
 pub(super) struct ReproducibleBuild {
     image: String,
     image_digest: String,
+    pub build_command: Option<String>,
 }
 impl ReproducibleBuild {
     pub(super) fn parse(cargo_metadata: &CrateMetadata) -> color_eyre::eyre::Result<Self> {
@@ -40,6 +41,11 @@ impl ReproducibleBuild {
                 build_meta
             ))
         );
+        if build_meta.build_command.is_some() {
+            println!(
+                " {}", "using `build_command` in container from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
+            );
+        }
         Ok(build_meta)
     }
     pub(super) fn concat_image(&self) -> String {
