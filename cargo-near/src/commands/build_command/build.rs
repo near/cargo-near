@@ -103,7 +103,7 @@ pub(super) fn run(
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
     util::print_success("Contract successfully built!");
-    let mut messages = ArtifactMessages::new();
+    let mut messages = ArtifactMessages::default();
     messages.push_binary(&wasm_artifact);
     if let Some(mut abi) = abi {
         let mut hasher = Sha256::new();

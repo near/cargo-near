@@ -77,14 +77,12 @@ impl BuildCommand {
     }
 }
 
+#[derive(Default)]
 pub struct ArtifactMessages<'a> {
     messages: Vec<(&'a str, ColoredString)>,
 }
 
 impl<'a> ArtifactMessages<'a> {
-    pub fn new() -> Self {
-        Self { messages: vec![] }
-    }
     pub fn push_binary(&mut self, wasm_artifact: &CompilationArtifact) {
         self.messages.push((
             "Binary",

@@ -155,12 +155,9 @@ impl super::BuildCommand {
         let mut cargo_cmd_list = vec!["cargo", "near", "build"];
         cargo_cmd_list.extend(&cargo_args);
         println!(
-            " {}",
-            format!(
-                "{} {}",
-                "build command in container:".green(),
-                cargo_cmd_list.join(" ")
-            )
+            " {} {}",
+            "build command in container:".green(),
+            cargo_cmd_list.join(" ")
         );
 
         let cargo_cmd = cargo_cmd_list.join(" ");

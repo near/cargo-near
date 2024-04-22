@@ -60,7 +60,7 @@ impl ClonedRepo {
             let cargo_toml_path: camino::Utf8PathBuf = {
                 let mut cloned_path = self.contract_path.clone();
                 cloned_path.push(MANIFEST_FILE_NAME);
-                cloned_path.try_into()?
+                cloned_path
             };
             CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
         };
@@ -76,12 +76,9 @@ fn search_and_copy(
     mut destination_dir: Utf8PathBuf,
 ) -> color_eyre::eyre::Result<CompilationArtifact> {
     println!(
-        " {}",
-        format!(
-            "{} {}",
-            "artifact search location in temporary build site:".green(),
-            tmp_out_dir
-        )
+        " {} {}",
+        "artifact search location in temporary build site:".green(),
+        tmp_out_dir
     );
 
     let dir = tmp_out_dir
@@ -120,7 +117,7 @@ fn search_and_copy(
                 fresh: true,
                 from_docker: true,
             };
-            let mut messages = ArtifactMessages::new();
+            let mut messages = ArtifactMessages::default();
             messages.push_binary(&result);
             messages.pretty_print();
 
