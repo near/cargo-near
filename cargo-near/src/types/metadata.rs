@@ -76,7 +76,7 @@ fn get_cargo_metadata(
             return Err(cargo_metadata::Error::CargoMetadata {
                 stderr: stderr.clone(),
             })
-            .wrap_err("Cargo.lock is absent");
+            .wrap_err("Cargo.lock is absent or not up-to-date");
         }
     }
     let metadata = metadata
