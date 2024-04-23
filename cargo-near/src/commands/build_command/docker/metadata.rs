@@ -9,7 +9,7 @@ use std::collections::BTreeMap as Map;
 pub(super) struct ReproducibleBuild {
     image: String,
     image_digest: String,
-    pub build_command: Option<String>,
+    pub container_build_command: Option<String>,
 
     #[serde(flatten)]
     unknown_keys: Map<String, Value>,
@@ -59,9 +59,9 @@ impl ReproducibleBuild {
                 build_meta
             ))
         );
-        if build_meta.build_command.is_some() {
+        if build_meta.container_build_command.is_some() {
             println!(
-                " {}", "using `build_command` in container from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
+                " {}", "using `container_build_command` from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
             );
         }
         Ok(build_meta)

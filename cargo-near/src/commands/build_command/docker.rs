@@ -131,7 +131,8 @@ impl super::BuildCommand {
             "-c",
         ];
 
-        let cargo_cmd = self.compute_build_command(docker_build_meta.build_command.clone())?;
+        let cargo_cmd =
+            self.compute_build_command(docker_build_meta.container_build_command.clone())?;
         println!(" {} {}", "build command in container:".green(), cargo_cmd);
 
         docker_args.push(&cargo_cmd);
@@ -162,7 +163,7 @@ impl super::BuildCommand {
         Ok((status, docker_cmd))
     }
 
-    const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "cannot be used, when `build_command` in container is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
+    const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "cannot be used, when `container_build_command` is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
 
     fn compute_build_command(
         &self,
@@ -208,8 +209,7 @@ impl super::BuildCommand {
         }
         println!(
             " {}",
-            "configuring `build_command` in container from cli args, passed to current command"
-                .cyan()
+            "configuring `container_build_command` from cli args, passed to current command".cyan()
         );
         let mut cargo_args = vec![];
 
