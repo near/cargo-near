@@ -34,7 +34,11 @@ impl ReproducibleBuild {
 
         println!(
             "{}",
-            util::indent_string(&format!("reproducible build metadata: {:#?}", build_meta)).green()
+            util::indent_string(&format!(
+                "{} {:#?}",
+                "reproducible build metadata:".green(),
+                build_meta
+            ))
         );
         Ok(build_meta)
     }
@@ -49,10 +53,7 @@ impl ReproducibleBuild {
             .filter(|c| !c.is_ascii_control())
             .filter(|c| !c.is_ascii_whitespace())
             .collect();
-        println!(
-            "{}",
-            format!(" docker image to be used: {}", result).green()
-        );
+        println!(" {} {}", "docker image to be used:".green(), result,);
         result
     }
 }

@@ -1,7 +1,7 @@
 use camino::{Utf8Path, Utf8PathBuf};
 use color_eyre::eyre::ContextCompat;
 
-const MANIFEST_FILE_NAME: &str = "Cargo.toml";
+pub const MANIFEST_FILE_NAME: &str = "Cargo.toml";
 
 /// Path to a `Cargo.toml` file
 #[derive(Clone, Debug)]

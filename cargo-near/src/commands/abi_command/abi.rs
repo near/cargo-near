@@ -135,8 +135,6 @@ pub(crate) fn write_to_file(
         )?,
     };
 
-    fs::create_dir_all(&crate_metadata.target_directory)?;
-
     let out_path_abi = crate_metadata.target_directory.join(format!(
         "{}_abi.{}",
         crate_metadata.root_package.name.replace('-', "_"),
@@ -204,12 +202,7 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
         })
     })?;
 
-    let out_dir = args
-        .out_dir
-        .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
-            let out_dir = Utf8PathBuf::from(out_dir);
-            util::force_canonicalize_dir(&out_dir)
-        })?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
 
     let format = if args.compact_abi {
         AbiFormat::JsonMin
