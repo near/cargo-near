@@ -58,6 +58,10 @@ impl CrateMetadata {
 
         Ok(self.target_directory.clone())
     }
+
+    pub fn formatted_package_name(&self) -> String {
+        self.root_package.name.replace('-', "_")
+    }
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
