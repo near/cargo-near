@@ -36,7 +36,7 @@ zstd = "0.11"
 atty = "0.2.14"
 
 color-eyre = "0.6"
-inquire = "0.6"
+inquire = "0.7"
 strum = { version = "0.24", features = ["derive"] }
 strum_macros = "0.24"
 linked-hash-map = { version = "0.5", features = ["serde_impl"] }
