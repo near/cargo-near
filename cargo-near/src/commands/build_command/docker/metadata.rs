@@ -2,13 +2,19 @@ use colored::Colorize;
 use serde::Deserialize;
 
 use crate::{types::metadata::CrateMetadata, util};
+use serde_json::Value;
+use std::collections::BTreeMap as Map;
 
 #[derive(Deserialize, Debug)]
 pub(super) struct ReproducibleBuild {
     image: String,
     image_digest: String,
     pub build_command: Option<String>,
+
+    #[serde(flatten)]
+    unknown_keys: Map<String, Value>,
 }
+
 impl ReproducibleBuild {
     pub(super) fn parse(cargo_metadata: &CrateMetadata) -> color_eyre::eyre::Result<Self> {
         let build_meta_value = cargo_metadata
@@ -32,6 +38,18 @@ impl ReproducibleBuild {
                 })?
             }
         };
+
+        if !build_meta.unknown_keys.is_empty() {
+            let keys = build_meta
+                .unknown_keys
+                .keys()
+                .map(|element| element.as_str())
+                .collect::<Vec<_>>();
+            return Err(color_eyre::eyre::eyre!(
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml, contains unknown keys: `{}`",
+                keys.join(",")
+            ));
+        }
 
         println!(
             "{}",
