@@ -7,7 +7,6 @@ use crate::commands::build_command;
 #[interactive_clap(output_context = ContractContext)]
 #[interactive_clap(skip_default_from_cli)]
 pub struct Contract {
-    #[interactive_clap(skip_default_input_arg)]
     #[interactive_clap(flatten)]
     /// Specify a build command args:
     build_command_args: build_command::BuildCommand,
