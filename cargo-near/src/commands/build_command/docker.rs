@@ -229,12 +229,11 @@ impl super::BuildCommand {
             cargo_args.push("--no-release");
         }
 
-        let color = self
-            .color
-            .clone()
-            .unwrap_or(crate::common::ColorPreference::Auto)
-            .to_string();
-        cargo_args.extend(&["--color", &color]);
+        let color;
+        if let Some(ref color_arg) = self.color {
+            color = color_arg.to_string();
+            cargo_args.extend(&["--color", &color]);
+        }
         let mut cargo_cmd_list = vec!["cargo", "near", "build"];
         cargo_cmd_list.extend(&cargo_args);
         let cargo_cmd = cargo_cmd_list.join(" ");
