@@ -7,7 +7,7 @@ use crate::{
     util::{self, CompilationArtifact},
 };
 use camino::Utf8PathBuf;
-use color_eyre::owo_colors::OwoColorize;
+use colored::Colorize;
 
 pub(super) struct ClonedRepo {
     pub tmp_repo: git2::Repository,
