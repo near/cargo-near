@@ -25,18 +25,30 @@ impl super::BuildCommand {
     ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         let color = self.color.clone().unwrap_or(ColorPreference::Auto);
         color.apply();
-        util::handle_step("Performing git checks...", || {
-            match context {
-                BuildContext::Deploy => {
-                    let contract_path: camino::Utf8PathBuf = self.contract_path()?;
-                    // TODO: clone to tmp folder and checkout specific revision must be separate steps
-                    eprintln!(
-                        "\n The URL of the remote repository:\n {}\n",
-                        git_checks::remote_repo_url(&contract_path)?
+        util::handle_step("Checking if git is dirty...", || {
+            let contract_path: camino::Utf8PathBuf = self.contract_path()?;
+            let result = git_checks::dirty::check(&contract_path);
+            match (result, context) {
+                (Err(err), BuildContext::Deploy) => {
+                    println!(
+                        " {}",
+                        "commit or revert following changes to continue deployment:".yellow()
                     );
+                    Err(err)
+                }
+                (Err(err), BuildContext::Build) => {
+                    println!(
+                        "{}",
+                        util::indent_string(&format!("{}: {}", "WARNING".yellow(), err))
+                    );
+                    println!(
+                        " {}",
+                        "This WARNING becomes a hard ERROR when deploying!".yellow(),
+                    );
+
                     Ok(())
                 }
-                BuildContext::Build => Ok(()),
+                _ => Ok(()),
             }
         })?;
         let cloned_repo = util::handle_step(
@@ -48,6 +60,8 @@ impl super::BuildCommand {
             util::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
                 metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
             })?;
+        // TODO: git push check for `cargo near deploy` command
+        // TODO: clone to tmp folder and checkout specific revision must be separate steps
 
         util::print_step("Running docker command step...");
         let out_dir_arg = self.out_dir.clone();
