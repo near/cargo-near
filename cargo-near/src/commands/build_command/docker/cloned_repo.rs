@@ -109,5 +109,5 @@ fn copy(
     messages.push_binary(&result);
     messages.pretty_print();
 
-    return Ok(result);
+    Ok(result)
 }
