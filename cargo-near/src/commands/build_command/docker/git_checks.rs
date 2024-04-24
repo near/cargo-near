@@ -113,7 +113,7 @@ fn collect_statuses(
     let workdir = repo.workdir().unwrap();
     let this_dirty = repo_statuses.iter().filter_map(|entry| {
         let path = entry.path().expect("valid utf-8 path");
-        if path.ends_with("Cargo.lock") || entry.status() == git2::Status::IGNORED {
+        if entry.status() == git2::Status::IGNORED {
             return None;
         }
         Some(workdir.join(path))
