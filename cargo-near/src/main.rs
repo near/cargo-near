@@ -1,4 +1,4 @@
-use cargo_near::commands::build_command::{BUILD_CMD_ENV_KEY, INSIDE_DOCKER_ENV_KEY};
+use cargo_near::commands::build_command::INSIDE_DOCKER_ENV_KEY;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 use log::Level;
@@ -67,7 +67,6 @@ fn main() -> CliResult {
     } else {
         env::args().next().unwrap_or("./cargo".to_string())
     };
-    export_nep_330_build_command();
 
     loop {
         match <Cmd as interactive_clap::FromCli>::from_cli(
@@ -98,14 +97,4 @@ fn main() -> CliResult {
             }
         }
     }
-}
-
-fn export_nep_330_build_command() {
-    let mut cmd: Vec<String> = vec!["cargo".into(), "near".into()];
-    cmd.extend(std::env::args().skip(2));
-
-    let cmd = cmd.join(" ");
-
-    std::env::set_var(BUILD_CMD_ENV_KEY, cmd.clone());
-    log::info!("exported: {}='{}'", BUILD_CMD_ENV_KEY, cmd);
 }
