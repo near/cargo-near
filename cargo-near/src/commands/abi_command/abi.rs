@@ -137,7 +137,7 @@ pub(crate) fn write_to_file(
 
     let out_path_abi = crate_metadata.target_directory.join(format!(
         "{}_abi.{}",
-        crate_metadata.root_package.name.replace('-', "_"),
+        crate_metadata.formatted_package_name(),
         abi_file_extension(format, compression)
     ));
     fs::write(&out_path_abi, near_abi_compressed)?;

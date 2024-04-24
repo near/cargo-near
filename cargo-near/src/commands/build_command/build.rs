@@ -11,7 +11,7 @@ use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
-use super::ArtifactMessages;
+use super::{ArtifactMessages, INSIDE_DOCKER_ENV_KEY};
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -105,7 +105,11 @@ pub(super) fn run(
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
-    util::print_success("Contract successfully built!");
+
+    util::print_success(&format!(
+        "Contract successfully built! (in CARGO_NEAR_BUILD_ENVIRONMENT={})",
+        std::env::var(INSIDE_DOCKER_ENV_KEY).unwrap_or("host".into())
+    ));
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&wasm_artifact);
     if let Some(mut abi) = abi {

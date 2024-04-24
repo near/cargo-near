@@ -51,12 +51,18 @@ impl CrateMetadata {
         &self,
         cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
     ) -> color_eyre::eyre::Result<Utf8PathBuf> {
-        if let Some(cli_override) = cli_override {
+        let result = if let Some(cli_override) = cli_override {
             let out_dir = Utf8PathBuf::from(cli_override);
-            return util::force_canonicalize_dir(&out_dir);
-        }
+            util::force_canonicalize_dir(&out_dir)?
+        } else {
+            self.target_directory.clone()
+        };
+        log::debug!("resolved output directory: {}", result);
+        Ok(result)
+    }
 
-        Ok(self.target_directory.clone())
+    pub fn formatted_package_name(&self) -> String {
+        self.root_package.name.replace('-', "_")
     }
 }
 

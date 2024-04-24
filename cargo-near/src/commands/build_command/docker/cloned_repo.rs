@@ -1,5 +1,3 @@
-use std::ffi::OsStr;
-
 use crate::{
     commands::build_command::{ArtifactMessages, BuildCommand},
     types::{
@@ -9,7 +7,7 @@ use crate::{
     util::{self, CompilationArtifact},
 };
 use camino::Utf8PathBuf;
-use color_eyre::{eyre::WrapErr, owo_colors::OwoColorize};
+use colored::Colorize;
 
 pub(super) struct ClonedRepo {
     pub tmp_repo: git2::Repository,
@@ -67,12 +65,13 @@ impl ClonedRepo {
 
         let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;
 
-        search_and_copy(tmp_out_dir, destination_dir)
+        copy(tmp_out_dir, self.tmp_crate_metadata, destination_dir)
     }
 }
 
-fn search_and_copy(
+fn copy(
     tmp_out_dir: Utf8PathBuf,
+    tmp_crate_metadata: CrateMetadata,
     mut destination_dir: Utf8PathBuf,
 ) -> color_eyre::eyre::Result<CompilationArtifact> {
     println!(
@@ -81,52 +80,34 @@ fn search_and_copy(
         tmp_out_dir
     );
 
-    let dir = tmp_out_dir
-        .read_dir()
-        .wrap_err_with(|| format!("No artifacts directory found: `{:?}`.", tmp_out_dir))?;
+    let filename = format!("{}.wasm", tmp_crate_metadata.formatted_package_name());
 
-    for entry in dir.flatten() {
-        if entry
-            .path()
-            .extension()
-            .unwrap_or(OsStr::new("not_wasm"))
-            .to_str()
-            .unwrap_or("not_wasm")
-            == "wasm"
-        {
-            let out_wasm_path = {
-                let filename = entry
-                    .path()
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy()
-                    .into_owned();
-                destination_dir.push(filename);
-                destination_dir
-            };
-            if out_wasm_path.exists() {
-                println!(" {}", "removing previous artifact".cyan());
-                std::fs::remove_file(&out_wasm_path)?;
-            }
-            std::fs::copy::<std::path::PathBuf, camino::Utf8PathBuf>(
-                entry.path(),
-                out_wasm_path.clone(),
-            )?;
-            let result = CompilationArtifact {
-                path: out_wasm_path,
-                fresh: true,
-                from_docker: true,
-            };
-            let mut messages = ArtifactMessages::default();
-            messages.push_binary(&result);
-            messages.pretty_print();
+    let in_wasm_path = tmp_out_dir.join(filename.clone());
 
-            return Ok(result);
-        }
+    if !in_wasm_path.exists() {
+        return Err(color_eyre::eyre::eyre!(
+            "Temporary build site result wasm file not found: `{:?}`.",
+            in_wasm_path
+        ));
     }
 
-    Err(color_eyre::eyre::eyre!(
-        "Wasm file not found in directory: `{:?}`.",
-        tmp_out_dir
-    ))
+    let out_wasm_path = {
+        destination_dir.push(filename);
+        destination_dir
+    };
+    if out_wasm_path.exists() {
+        println!(" {}", "removing previous artifact".cyan());
+        std::fs::remove_file(&out_wasm_path)?;
+    }
+    std::fs::copy::<camino::Utf8PathBuf, camino::Utf8PathBuf>(in_wasm_path, out_wasm_path.clone())?;
+    let result = CompilationArtifact {
+        path: out_wasm_path,
+        fresh: true,
+        from_docker: true,
+    };
+    let mut messages = ArtifactMessages::default();
+    messages.push_binary(&result);
+    messages.pretty_print();
+
+    Ok(result)
 }
