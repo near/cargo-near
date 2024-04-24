@@ -4,6 +4,7 @@ use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
+use crate::commands::build_command::BUILD_CMD_ENV_KEY;
 use crate::common::ColorPreference;
 use crate::types::manifest::MANIFEST_FILE_NAME;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
@@ -19,6 +20,8 @@ pub(super) fn run(
 ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
+
+    export_nep_330_build_command();
 
     util::handle_step("Checking the host environment...", || {
         if !wasm32_target_libdir_exists() {
@@ -123,4 +126,14 @@ pub(super) fn run(
 
     messages.pretty_print();
     Ok(wasm_artifact)
+}
+
+fn export_nep_330_build_command() {
+    let mut cmd: Vec<String> = vec!["cargo".into(), "near".into()];
+    cmd.extend(std::env::args().skip(2));
+
+    let cmd = cmd.join(" ");
+
+    std::env::set_var(BUILD_CMD_ENV_KEY, cmd.clone());
+    log::info!("exported: {}='{}'", BUILD_CMD_ENV_KEY, cmd);
 }

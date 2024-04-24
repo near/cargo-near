@@ -3,11 +3,12 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::commands::build_command::INSIDE_DOCKER_ENV_KEY;
 use crate::util;
+use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
 
-use color_eyre::{eyre::ContextCompat, owo_colors::OwoColorize};
+use color_eyre::eyre::ContextCompat;
 
+use colored::Colorize;
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
 
@@ -22,6 +23,8 @@ impl super::BuildCommand {
         self,
         context: BuildContext,
     ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+        let color = self.color.clone().unwrap_or(ColorPreference::Auto);
+        color.apply();
         util::handle_step("Performing git checks...", || {
             match context {
                 BuildContext::Deploy => {
@@ -38,7 +41,7 @@ impl super::BuildCommand {
         })?;
         let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
-            || cloned_repo::ClonedRepo::clone(&self),
+            || cloned_repo::ClonedRepo::git_clone(&self),
         )?;
 
         let docker_build_meta =
@@ -80,30 +83,6 @@ impl super::BuildCommand {
         docker_build_meta: metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
-        let mut cargo_args = vec![];
-
-        if self.no_abi {
-            cargo_args.push("--no-abi");
-        }
-        if self.no_embed_abi {
-            cargo_args.push("--no-embed-abi");
-        }
-        if self.no_doc {
-            cargo_args.push("--no-doc");
-        }
-        if self.no_locked {
-            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
-        }
-        if self.no_release {
-            cargo_args.push("--no-release");
-        }
-
-        let color = self
-            .color
-            .clone()
-            .unwrap_or(crate::common::ColorPreference::Auto)
-            .to_string();
-        cargo_args.extend(&["--color", &color]);
         // Cross-platform process ID and timestamp
         let pid = id().to_string();
         let timestamp = SystemTime::now()
@@ -152,15 +131,9 @@ impl super::BuildCommand {
             "-c",
         ];
 
-        let mut cargo_cmd_list = vec!["cargo", "near", "build"];
-        cargo_cmd_list.extend(&cargo_args);
-        println!(
-            " {} {}",
-            "build command in container:".green(),
-            cargo_cmd_list.join(" ")
-        );
-
-        let cargo_cmd = cargo_cmd_list.join(" ");
+        let cargo_cmd =
+            self.compute_build_command(docker_build_meta.container_build_command.clone())?;
+        println!(" {} {}", "build command in container:".green(), cargo_cmd);
 
         docker_args.push(&cargo_cmd);
         log::debug!("docker command : {:?}", docker_args);
@@ -188,5 +161,82 @@ impl super::BuildCommand {
             }
         };
         Ok((status, docker_cmd))
+    }
+
+    const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "cannot be used, when `container_build_command` is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
+
+    fn compute_build_command(
+        &self,
+        manifest_command: Option<String>,
+    ) -> color_eyre::eyre::Result<String> {
+        if let Some(cargo_cmd) = manifest_command {
+            if self.no_abi {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-abi",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            if self.no_embed_abi {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-embed-abi",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            if self.no_doc {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-doc",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            if self.no_locked {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-locked",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            if self.no_release {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-release",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            return Ok(cargo_cmd);
+        }
+        println!(
+            " {}",
+            "configuring `container_build_command` from cli args, passed to current command".cyan()
+        );
+        let mut cargo_args = vec![];
+
+        if self.no_abi {
+            cargo_args.push("--no-abi");
+        }
+        if self.no_embed_abi {
+            cargo_args.push("--no-embed-abi");
+        }
+        if self.no_doc {
+            cargo_args.push("--no-doc");
+        }
+        if self.no_locked {
+            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
+        }
+        if self.no_release {
+            cargo_args.push("--no-release");
+        }
+
+        let color;
+        if let Some(ref color_arg) = self.color {
+            color = color_arg.to_string();
+            cargo_args.extend(&["--color", &color]);
+        }
+        let mut cargo_cmd_list = vec!["cargo", "near", "build"];
+        cargo_cmd_list.extend(&cargo_args);
+        let cargo_cmd = cargo_cmd_list.join(" ");
+        Ok(cargo_cmd)
     }
 }
