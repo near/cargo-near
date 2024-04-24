@@ -65,11 +65,11 @@ impl ClonedRepo {
 
         let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;
 
-        search_and_copy(tmp_out_dir, self.tmp_crate_metadata, destination_dir)
+        copy(tmp_out_dir, self.tmp_crate_metadata, destination_dir)
     }
 }
 
-fn search_and_copy(
+fn copy(
     tmp_out_dir: Utf8PathBuf,
     tmp_crate_metadata: CrateMetadata,
     mut destination_dir: Utf8PathBuf,
