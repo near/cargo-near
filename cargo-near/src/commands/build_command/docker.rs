@@ -26,31 +26,7 @@ impl super::BuildCommand {
         let color = self.color.clone().unwrap_or(ColorPreference::Auto);
         color.apply();
         util::handle_step("Checking if git is dirty...", || {
-            let contract_path: camino::Utf8PathBuf = self.contract_path()?;
-            let result = git_checks::dirty::check(&contract_path);
-            match (result, context) {
-                (Err(err), BuildContext::Deploy) => {
-                    println!(
-                        " {}",
-                        "Commit and push or revert following changes to continue deployment:"
-                            .yellow()
-                    );
-                    Err(err)
-                }
-                (Err(err), BuildContext::Build) => {
-                    println!(
-                        "{}",
-                        util::indent_string(&format!("{}: {}", "WARNING".yellow(), err))
-                    );
-                    println!(
-                        " {}",
-                        "This WARNING becomes a hard ERROR when deploying!".yellow(),
-                    );
-
-                    Ok(())
-                }
-                _ => Ok(()),
-            }
+            self.git_dirty_check(context)
         })?;
         let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
@@ -253,5 +229,33 @@ impl super::BuildCommand {
         cargo_cmd_list.extend(&cargo_args);
         let cargo_cmd = cargo_cmd_list.join(" ");
         Ok(cargo_cmd)
+    }
+
+    fn git_dirty_check(&self, context: BuildContext) -> color_eyre::eyre::Result<()> {
+        let contract_path: camino::Utf8PathBuf = self.contract_path()?;
+        let result = git_checks::dirty::check(&contract_path);
+        match (result, context) {
+            (Err(err), BuildContext::Deploy) => {
+                println!(
+                    " {}",
+                    "Either commit and push, or revert following changes to continue deployment:"
+                        .yellow()
+                );
+                Err(err)
+            }
+            (Err(err), BuildContext::Build) => {
+                println!(
+                    "{}",
+                    util::indent_string(&format!("{}: {}", "WARNING".yellow(), err))
+                );
+                println!(
+                    " {}",
+                    "This WARNING becomes a hard ERROR when deploying!".yellow(),
+                );
+
+                Ok(())
+            }
+            _ => Ok(()),
+        }
     }
 }
