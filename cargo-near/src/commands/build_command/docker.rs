@@ -1,5 +1,6 @@
 use std::{
     process::{id, Command, ExitStatus},
+    str::FromStr,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -15,6 +16,7 @@ use nix::unistd::{getgid, getuid};
 use super::BuildContext;
 
 mod cloned_repo;
+mod crate_in_repo;
 mod git_checks;
 mod metadata;
 
@@ -25,26 +27,16 @@ impl super::BuildCommand {
     ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         let color = self.color.clone().unwrap_or(ColorPreference::Auto);
         color.apply();
-        util::handle_step("Checking if git is dirty...", || {
-            self.git_dirty_check(context)
-        })?;
-        let commit_id = util::handle_step(
+        let crate_in_repo = util::handle_step(
             "Opening repo and determining HEAD and relative path of contract...",
-            || {
-                let repo = git2::Repository::open(self.contract_path()?)?;
-
-                let oid = repo.revparse_single("HEAD")?.id();
-                println!(
-                    " {} {:?}",
-                    format!("Current HEAD ({}):", repo.path().display()).green(),
-                    oid
-                );
-                Ok(oid)
-            },
+            || crate_in_repo::Crate::find(&self.contract_path()?),
         )?;
+        util::handle_step("Checking if git is dirty...", || {
+            Self::git_dirty_check(context, &crate_in_repo.repo_root)
+        })?;
         let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
-            || cloned_repo::ClonedRepo::git_clone(&self),
+            || cloned_repo::ClonedRepo::git_clone(crate_in_repo.clone()),
         )?;
 
         let docker_build_meta =
@@ -58,7 +50,7 @@ impl super::BuildCommand {
                 || {
                     git_checks::pushed_to_remote::check(
                         &docker_build_meta.source_code_git_url,
-                        commit_id,
+                        crate_in_repo.head,
                     )
                 },
             )?;
@@ -106,7 +98,7 @@ impl super::BuildCommand {
             .as_secs()
             .to_string();
 
-        let container_code_path = "/home/near/code".to_string();
+        let container_mounted_repo_path = "/home/near/code".to_string();
         let volume = format!(
             "{}:{}",
             cloned_repo
@@ -114,8 +106,14 @@ impl super::BuildCommand {
                 .workdir()
                 .wrap_err("Could not get the working directory for the repository")?
                 .to_string_lossy(),
-            &container_code_path
+            &container_mounted_repo_path
         );
+        let container_crate_path = {
+            let mut repo_path = camino::Utf8PathBuf::from_str(&container_mounted_repo_path)?;
+            repo_path.push(cloned_repo.initial_crate_in_repo.relative_path()?);
+            // TODO
+            repo_path
+        };
         let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
         let docker_image = docker_build_meta.concat_image();
         let near_build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
@@ -136,7 +134,7 @@ impl super::BuildCommand {
             &volume,
             "--rm",
             "--workdir",
-            &container_code_path,
+            &container_crate_path.as_str(),
             "--env",
             &near_build_env_ref,
             "--env",
@@ -255,9 +253,11 @@ impl super::BuildCommand {
         Ok(cargo_cmd)
     }
 
-    fn git_dirty_check(&self, context: BuildContext) -> color_eyre::eyre::Result<()> {
-        let contract_path: camino::Utf8PathBuf = self.contract_path()?;
-        let result = git_checks::dirty::check(&contract_path);
+    fn git_dirty_check(
+        context: BuildContext,
+        repo_root: &camino::Utf8PathBuf,
+    ) -> color_eyre::eyre::Result<()> {
+        let result = git_checks::dirty::check(repo_root);
         match (result, context) {
             (Err(err), BuildContext::Deploy) => {
                 println!(

@@ -1,5 +1,5 @@
 use crate::{
-    commands::build_command::{ArtifactMessages, BuildCommand},
+    commands::build_command::ArtifactMessages,
     types::{
         manifest::{CargoManifestPath, MANIFEST_FILE_NAME},
         metadata::CrateMetadata,
@@ -9,43 +9,43 @@ use crate::{
 use camino::Utf8PathBuf;
 use colored::Colorize;
 
+use super::crate_in_repo;
+
 pub(super) struct ClonedRepo {
     pub tmp_repo: git2::Repository,
-    pub contract_path: camino::Utf8PathBuf,
+    pub initial_crate_in_repo: crate_in_repo::Crate,
     #[allow(unused)]
-    tmp_contract_dir: tempfile::TempDir,
+    tmp_repo_dir: tempfile::TempDir,
     tmp_crate_metadata: CrateMetadata,
 }
 
 impl ClonedRepo {
-    pub(super) fn git_clone(args: &BuildCommand) -> color_eyre::eyre::Result<Self> {
-        let contract_path: camino::Utf8PathBuf = args.contract_path()?;
-        log::info!("ClonedRepo.contract_path: {:?}", contract_path,);
-
-        let tmp_contract_dir = tempfile::tempdir()?;
-        let tmp_contract_path = tmp_contract_dir.path().to_path_buf();
-        log::info!("ClonedRepo.tmp_contract_path: {:?}", tmp_contract_path);
-        let tmp_repo = git2::Repository::clone_recurse(contract_path.as_str(), &tmp_contract_path)?;
+    pub(super) fn git_clone(crate_in_repo: crate_in_repo::Crate) -> color_eyre::eyre::Result<Self> {
+        let tmp_repo_dir = tempfile::tempdir()?;
+        let tmp_repo_path = tmp_repo_dir.path().to_path_buf();
+        let tmp_repo =
+            git2::Repository::clone_recurse(crate_in_repo.repo_root.as_str(), &tmp_repo_path)?;
         println!(
             " {} {:?}",
-            format!("Current HEAD ({}):", tmp_repo.path().display()).green(),
+            format!("current HEAD ({}):", tmp_repo.path().display()).green(),
             tmp_repo.revparse_single("HEAD")?.id()
         );
 
         util::print_step("Collecting cargo project metadata from temporary build site...");
         let tmp_crate_metadata = {
             let cargo_toml_path: camino::Utf8PathBuf = {
-                let mut cloned_path: std::path::PathBuf = tmp_contract_path.clone();
-                cloned_path.push(MANIFEST_FILE_NAME);
-                cloned_path.try_into()?
+                let mut path: camino::Utf8PathBuf = tmp_repo_path.clone().try_into()?;
+                path.push(crate_in_repo.relative_path()?);
+                path.push(MANIFEST_FILE_NAME);
+                path
             };
             CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
         };
 
         Ok(ClonedRepo {
             tmp_repo,
-            tmp_contract_dir,
-            contract_path,
+            tmp_repo_dir,
+            initial_crate_in_repo: crate_in_repo,
             tmp_crate_metadata,
         })
     }
@@ -61,9 +61,9 @@ impl ClonedRepo {
 
         let destination_crate_metadata = {
             let cargo_toml_path: camino::Utf8PathBuf = {
-                let mut cloned_path = self.contract_path.clone();
-                cloned_path.push(MANIFEST_FILE_NAME);
-                cloned_path
+                let mut path = self.initial_crate_in_repo.crate_root.clone();
+                path.push(MANIFEST_FILE_NAME);
+                path
             };
             CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
         };

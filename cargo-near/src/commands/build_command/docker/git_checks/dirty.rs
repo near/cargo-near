@@ -2,8 +2,8 @@ use color_eyre::eyre::{ContextCompat, WrapErr};
 
 use serde_json::to_string;
 
-pub fn check(contract_path: &camino::Utf8PathBuf) -> color_eyre::Result<()> {
-    let repo = git2::Repository::open(contract_path)?;
+pub fn check(repo_root: &camino::Utf8PathBuf) -> color_eyre::Result<()> {
+    let repo = git2::Repository::open(repo_root)?;
     let mut dirty_files = Vec::new();
     // Include each submodule so that the error message can provide
     // specifically *which* files in a submodule are modified.

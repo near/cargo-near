@@ -50,10 +50,8 @@ near-cli-rs = { version = "0.9.0", default-features = false }
 dunce = "1"
 tempfile = "3.10.1"
 git2 = "0.18"
-# TODO: use `home`
 home = "0.5.9"
-# TODO: use `pathdiff`
-pathdiff = "0.2.1"
+pathdiff = { version = "0.2.1", features = ["camino"]}
 
 [target.'cfg(unix)'.dependencies]
 nix = { version = "0.28.0", features = ["user", "process"] }

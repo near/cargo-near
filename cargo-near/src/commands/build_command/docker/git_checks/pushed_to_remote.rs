@@ -11,7 +11,7 @@ pub fn check(git_url: &str, commit_id: git2::Oid) -> color_eyre::Result<()> {
             git_url,
             tmp_clone_destination
         );
-        let repo = git2::Repository::clone_recurse(git_url, tmp_clone_destination);
+        let repo = git2::Repository::clone_recurse(git_url, tmp_clone_destination.path());
 
         match repo {
             Ok(repo) => {
@@ -27,11 +27,7 @@ pub fn check(git_url: &str, commit_id: git2::Oid) -> color_eyre::Result<()> {
                 return Ok(());
             }
             Err(err) => {
-                println!(
-                    " {} {}",
-                    "Encountered error:".yellow(),
-                    format!("{:?}", err)
-                );
+                println!(" {} {:?}", "Encountered error:".yellow(), err,);
                 std::thread::sleep(BETWEEN_ATTEMPTS_SLEEP);
             }
         }
