@@ -32,7 +32,8 @@ impl super::BuildCommand {
                 (Err(err), BuildContext::Deploy) => {
                     println!(
                         " {}",
-                        "commit or revert following changes to continue deployment:".yellow()
+                        "Commit and push or revert following changes to continue deployment:"
+                            .yellow()
                     );
                     Err(err)
                 }
