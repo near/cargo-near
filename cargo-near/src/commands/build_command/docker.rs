@@ -37,8 +37,19 @@ impl super::BuildCommand {
             util::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
                 metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
             })?;
-        // TODO: git push check for `cargo near deploy` command
-        // TODO: clone to tmp folder and checkout specific revision must be separate steps
+
+        let commit_id = git2::Oid::from_str("dc981501b85ab4f8e56b4d3d5e19b2ac38edf8f7").unwrap();
+        if let BuildContext::Deploy = context {
+            util::handle_step(
+                "Performing check that current HEAD has been pushed to remote...",
+                || {
+                    git_checks::pushed_to_remote::check(
+                        &docker_build_meta.source_code_git_url,
+                        commit_id,
+                    )
+                },
+            )?;
+        }
 
         util::print_step("Running docker command step...");
         let out_dir_arg = self.out_dir.clone();

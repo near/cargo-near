@@ -49,7 +49,7 @@ pub struct BuildCommand {
     pub color: Option<crate::common::ColorPreference>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum BuildContext {
     Build,
     Deploy,

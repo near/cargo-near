@@ -10,6 +10,9 @@ pub(super) struct ReproducibleBuild {
     image: String,
     image_digest: String,
     pub container_build_command: Option<String>,
+    /// a string, containing https://git-scm.com/docs/git-clone#URLS,
+    /// currently, only ones, starting with `https://`, and ending in `.git` are supported
+    pub source_code_git_url: String,
 
     #[serde(flatten)]
     unknown_keys: Map<String, Value>,
@@ -48,6 +51,17 @@ impl ReproducibleBuild {
             return Err(color_eyre::eyre::eyre!(
                 "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml, contains unknown keys: `{}`",
                 keys.join(",")
+            ));
+        }
+
+        if !build_meta.source_code_git_url.ends_with(".git")
+            || !build_meta.source_code_git_url.starts_with("https://")
+        {
+            return Err(color_eyre::eyre::eyre!(
+                "{}: {}\n{}",
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                build_meta.source_code_git_url,
+                "`source_code_git_url` should start with `https://` and end with `.git`",
             ));
         }
 
