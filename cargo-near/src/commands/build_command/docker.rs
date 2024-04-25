@@ -28,6 +28,20 @@ impl super::BuildCommand {
         util::handle_step("Checking if git is dirty...", || {
             self.git_dirty_check(context)
         })?;
+        let commit_id = util::handle_step(
+            "Opening repo and determining HEAD and relative path of contract...",
+            || {
+                let repo = git2::Repository::open(self.contract_path()?)?;
+
+                let oid = repo.revparse_single("HEAD")?.id();
+                println!(
+                    " {} {:?}",
+                    format!("Current HEAD ({}):", repo.path().display()).green(),
+                    oid
+                );
+                Ok(oid)
+            },
+        )?;
         let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
             || cloned_repo::ClonedRepo::git_clone(&self),
@@ -38,7 +52,6 @@ impl super::BuildCommand {
                 metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
             })?;
 
-        let commit_id = git2::Oid::from_str("dc981501b85ab4f8e56b4d3d5e19b2ac38edf8f7").unwrap();
         if let BuildContext::Deploy = context {
             util::handle_step(
                 "Performing check that current HEAD has been pushed to remote...",

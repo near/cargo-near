@@ -26,6 +26,11 @@ impl ClonedRepo {
         let tmp_contract_path = tmp_contract_dir.path().to_path_buf();
         log::info!("ClonedRepo.tmp_contract_path: {:?}", tmp_contract_path);
         let tmp_repo = git2::Repository::clone_recurse(contract_path.as_str(), &tmp_contract_path)?;
+        println!(
+            " {} {:?}",
+            format!("Current HEAD ({}):", tmp_repo.path().display()).green(),
+            tmp_repo.revparse_single("HEAD")?.id()
+        );
 
         util::print_step("Collecting cargo project metadata from temporary build site...");
         let tmp_crate_metadata = {
