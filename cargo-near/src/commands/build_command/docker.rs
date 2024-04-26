@@ -98,24 +98,10 @@ impl super::BuildCommand {
             .as_secs()
             .to_string();
 
-        let container_mounted_repo_path = "/home/near/code".to_string();
-        let volume = format!(
-            "{}:{}",
-            cloned_repo
-                .tmp_repo
-                .workdir()
-                .wrap_err("Could not get the working directory for the repository")?
-                .to_string_lossy(),
-            &container_mounted_repo_path
-        );
-        let container_crate_path = {
-            let mut repo_path = camino::Utf8PathBuf::from_str(&container_mounted_repo_path)?;
-            repo_path.push(cloned_repo.initial_crate_in_repo.relative_path()?);
-            // TODO
-            repo_path
-        };
         let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
         let docker_image = docker_build_meta.concat_image();
+        let container_paths = ContainerPaths::compute(cloned_repo)?;
+
         let near_build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
 
         // Platform-specific UID/GID retrieval
@@ -131,10 +117,10 @@ impl super::BuildCommand {
             "--name",
             &docker_container_name,
             "--volume",
-            &volume,
+            &container_paths.host_volume_arg,
             "--rm",
             "--workdir",
-            &container_crate_path.as_str(),
+            &container_paths.crate_path,
             "--env",
             &near_build_env_ref,
             "--env",
@@ -281,5 +267,37 @@ impl super::BuildCommand {
             }
             _ => Ok(()),
         }
+    }
+}
+
+struct ContainerPaths {
+    host_volume_arg: String,
+    crate_path: String,
+}
+
+const NEP330_REPO_MOUNT: &str = "/home/near/code";
+
+impl ContainerPaths {
+    fn compute(cloned_repo: &cloned_repo::ClonedRepo) -> color_eyre::eyre::Result<Self> {
+        let mounted_repo = NEP330_REPO_MOUNT.to_string();
+        let host_volume_arg = format!(
+            "{}:{}",
+            cloned_repo
+                .tmp_repo
+                .workdir()
+                .wrap_err("Could not get the working directory for the repository")?
+                .to_string_lossy(),
+            &mounted_repo
+        );
+        let crate_path = {
+            let mut repo_path = camino::Utf8PathBuf::from_str(&mounted_repo)?;
+            repo_path.push(cloned_repo.initial_crate_in_repo.relative_path()?);
+            // TODO
+            repo_path.to_string()
+        };
+        Ok(Self {
+            host_volume_arg,
+            crate_path,
+        })
     }
 }
