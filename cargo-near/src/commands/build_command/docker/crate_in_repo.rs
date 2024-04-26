@@ -51,11 +51,6 @@ impl Crate {
                     head,
                 };
                 log::debug!("crate in repo: {:?}", result);
-                println!(
-                    " {} {:?}",
-                    "crate's relative path:".green(),
-                    result.relative_path()?
-                );
                 Ok(result)
             }
         }

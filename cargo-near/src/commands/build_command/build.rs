@@ -4,7 +4,9 @@ use near_abi::BuildInfo;
 use sha2::{Digest, Sha256};
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
-use crate::commands::build_command::BUILD_CMD_ENV_KEY;
+use crate::commands::build_command::{
+    BUILD_CMD_ENV_KEY, CONTRACT_PATH_ENV_KEY, SOURCE_COMMIT_ENV_KEY, SOURCE_GIT_URL_ENV_KEY,
+};
 use crate::common::ColorPreference;
 use crate::types::manifest::MANIFEST_FILE_NAME;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
@@ -22,6 +24,7 @@ pub(super) fn run(
     color.apply();
 
     export_nep_330_build_command();
+    print_nep_330_env();
 
     util::handle_step("Checking the host environment...", || {
         if !wasm32_target_libdir_exists() {
@@ -139,5 +142,20 @@ fn export_nep_330_build_command() {
     let cmd = cmd.join(" ");
 
     std::env::set_var(BUILD_CMD_ENV_KEY, cmd.clone());
-    log::info!("exported: {}='{}'", BUILD_CMD_ENV_KEY, cmd);
+}
+
+fn print_nep_330_env() {
+    log::info!("Variables, relevant for reproducible builds:");
+    for key in [
+        INSIDE_DOCKER_ENV_KEY,
+        BUILD_CMD_ENV_KEY,
+        CONTRACT_PATH_ENV_KEY,
+        SOURCE_COMMIT_ENV_KEY,
+        SOURCE_GIT_URL_ENV_KEY,
+    ] {
+        let value = std::env::var(key)
+            .map(|val| format!("'{}'", val))
+            .unwrap_or("unset".to_string());
+        log::info!("{}={}", key, value);
+    }
 }

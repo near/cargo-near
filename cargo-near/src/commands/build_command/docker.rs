@@ -4,7 +4,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::util;
+use crate::{commands::build_command::CONTRACT_PATH_ENV_KEY, util};
 use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
 
 use color_eyre::eyre::ContextCompat;
@@ -13,7 +13,7 @@ use colored::Colorize;
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
 
-use super::BuildContext;
+use super::{BuildContext, SOURCE_COMMIT_ENV_KEY, SOURCE_GIT_URL_ENV_KEY};
 
 mod cloned_repo;
 mod crate_in_repo;
@@ -90,25 +90,27 @@ impl super::BuildCommand {
         docker_build_meta: metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
-        // Cross-platform process ID and timestamp
-        let pid = id().to_string();
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
-            .to_string();
-
-        let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
-        let docker_image = docker_build_meta.concat_image();
-        let container_paths = ContainerPaths::compute(cloned_repo)?;
-
-        let near_build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
-
         // Platform-specific UID/GID retrieval
         #[cfg(unix)]
         let uid_gid = format!("{}:{}", getuid(), getgid());
         #[cfg(not(unix))]
         let uid_gid = "1000:1000".to_string();
+
+        let docker_container_name = {
+            // Cross-platform process ID and timestamp
+            let pid = id().to_string();
+            let timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                .to_string();
+            format!("cargo-near-{}-{}", timestamp, pid)
+        };
+        let container_paths = ContainerPaths::compute(cloned_repo)?;
+        let docker_image = docker_build_meta.concat_image();
+        println!(" {} {}", "docker image to be used:".green(), docker_image);
+
+        let env = Nep330EnvVars::new(&docker_build_meta, cloned_repo)?;
 
         let mut docker_args = vec![
             "-u",
@@ -122,9 +124,15 @@ impl super::BuildCommand {
             "--workdir",
             &container_paths.crate_path,
             "--env",
-            &near_build_env_ref,
+            &env.build_env_ref,
             "--env",
-            "RUST_LOG=cargo_near=info",
+            &env.source_git_url,
+            "--env",
+            &env.contract_path,
+            "--env",
+            &env.source_commit,
+            "--env",
+            &env.rust_log,
             &docker_image,
             "/bin/bash",
             "-c",
@@ -298,6 +306,48 @@ impl ContainerPaths {
         Ok(Self {
             host_volume_arg,
             crate_path,
+        })
+    }
+}
+
+const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
+
+struct Nep330EnvVars {
+    build_env_ref: String,
+    rust_log: String,
+    contract_path: String,
+    source_git_url: String,
+    source_commit: String,
+}
+
+impl Nep330EnvVars {
+    fn new(
+        docker_build_meta: &metadata::ReproducibleBuild,
+        cloned_repo: &cloned_repo::ClonedRepo,
+    ) -> color_eyre::eyre::Result<Self> {
+        let docker_image = docker_build_meta.concat_image();
+
+        let build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
+
+        let contract_path = format!(
+            "{}={}",
+            CONTRACT_PATH_ENV_KEY,
+            cloned_repo.initial_crate_in_repo.relative_path()?.as_str()
+        );
+        let source_git_url = format!(
+            "{}={}",
+            SOURCE_GIT_URL_ENV_KEY, docker_build_meta.source_code_git_url
+        );
+        let source_commit = format!(
+            "{}={}",
+            SOURCE_COMMIT_ENV_KEY, cloned_repo.initial_crate_in_repo.head
+        );
+        Ok(Self {
+            build_env_ref,
+            rust_log: RUST_LOG_EXPORT.to_string(),
+            source_git_url,
+            contract_path,
+            source_commit,
         })
     }
 }

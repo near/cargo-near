@@ -91,7 +91,6 @@ impl ReproducibleBuild {
             .filter(|c| !c.is_ascii_control())
             .filter(|c| !c.is_ascii_whitespace())
             .collect();
-        println!(" {} {}", "docker image to be used:".green(), result,);
         result
     }
 }
