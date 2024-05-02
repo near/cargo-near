@@ -2,7 +2,7 @@ use colored::Colorize;
 
 const BETWEEN_ATTEMPTS_SLEEP: std::time::Duration = std::time::Duration::from_millis(100);
 
-pub fn check(git_url: &str, commit_id: git2::Oid) -> color_eyre::Result<()> {
+pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> color_eyre::Result<()> {
     for attempt in 1..=5 {
         let tmp_clone_destination = tempfile::tempdir()?;
         println!(
@@ -11,7 +11,7 @@ pub fn check(git_url: &str, commit_id: git2::Oid) -> color_eyre::Result<()> {
             git_url,
             tmp_clone_destination
         );
-        let repo = git2::Repository::clone_recurse(git_url, tmp_clone_destination.path());
+        let repo = git2::Repository::clone_recurse(git_url.as_str(), tmp_clone_destination.path());
 
         match repo {
             Ok(repo) => {

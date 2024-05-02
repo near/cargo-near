@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
-    BUILD_CMD_ENV_KEY, CONTRACT_PATH_ENV_KEY, SOURCE_COMMIT_ENV_KEY, SOURCE_GIT_URL_ENV_KEY,
+    BUILD_CMD_ENV_KEY, CONTRACT_PATH_ENV_KEY, SOURCE_CODE_SNAPSHOT,
 };
 use crate::common::ColorPreference;
 use crate::types::manifest::MANIFEST_FILE_NAME;
@@ -150,8 +150,7 @@ fn print_nep_330_env() {
         INSIDE_DOCKER_ENV_KEY,
         BUILD_CMD_ENV_KEY,
         CONTRACT_PATH_ENV_KEY,
-        SOURCE_COMMIT_ENV_KEY,
-        SOURCE_GIT_URL_ENV_KEY,
+        SOURCE_CODE_SNAPSHOT,
     ] {
         let value = std::env::var(key)
             .map(|val| format!("'{}'", val))

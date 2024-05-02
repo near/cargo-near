@@ -13,12 +13,13 @@ use colored::Colorize;
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
 
-use super::{BuildContext, SOURCE_COMMIT_ENV_KEY, SOURCE_GIT_URL_ENV_KEY};
+use super::{BuildContext, SOURCE_CODE_SNAPSHOT};
 
 mod cloned_repo;
 mod crate_in_repo;
 mod git_checks;
 mod metadata;
+pub mod source_id;
 
 impl super::BuildCommand {
     pub(super) fn docker_run(
@@ -313,8 +314,7 @@ struct Nep330BuildInfo {
     build_env_ref: String,
     rust_log: String,
     contract_path: Option<String>,
-    source_git_url: String,
-    source_commit: String,
+    source_code_snapshot: source_id::SourceId,
 }
 
 impl Nep330BuildInfo {
@@ -333,14 +333,17 @@ impl Nep330BuildInfo {
         } else {
             Some(contract_path)
         };
-        let source_git_url = docker_build_meta.source_code_git_url.clone();
-        let source_commit = cloned_repo.initial_crate_in_repo.head.to_string();
+
+        let source_code_snapshot = source_id::SourceId::for_git(
+            &docker_build_meta.source_code_git_url,
+            source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
+        )
+        .map_err(|err| color_eyre::eyre::eyre!("compute SourceId {}", err))?;
         Ok(Self {
             build_env_ref,
             rust_log: RUST_LOG_EXPORT.to_string(),
-            source_git_url,
+            source_code_snapshot,
             contract_path,
-            source_commit,
         })
     }
 
@@ -358,9 +361,11 @@ impl Nep330BuildInfo {
         }
         result.extend(vec![
             "--env".to_string(),
-            format!("{}={}", SOURCE_GIT_URL_ENV_KEY, self.source_git_url),
-            "--env".to_string(),
-            format!("{}={}", SOURCE_COMMIT_ENV_KEY, self.source_commit),
+            format!(
+                "{}={}",
+                SOURCE_CODE_SNAPSHOT,
+                self.source_code_snapshot.as_url()
+            ),
             "--env".to_string(),
             self.rust_log.clone(),
         ]);

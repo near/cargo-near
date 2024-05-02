@@ -12,13 +12,68 @@ pub(super) struct ReproducibleBuild {
     pub container_build_command: Option<String>,
     /// a string, containing https://git-scm.com/docs/git-clone#URLS,
     /// currently, only ones, starting with `https://`, and ending in `.git` are supported
-    pub source_code_git_url: String,
+    pub source_code_git_url: url::Url,
 
     #[serde(flatten)]
     unknown_keys: Map<String, Value>,
 }
 
+impl std::fmt::Display for ReproducibleBuild {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f)?;
+
+        writeln!(f, "    {}: {}", "image", self.image)?;
+        writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
+        if let Some(ref cmd) = self.container_build_command {
+            writeln!(f, "    {}: {}", "container build command", cmd)?;
+        } else {
+            writeln!(
+                f,
+                "    {}: {}",
+                "container build command",
+                "ABSENT".yellow()
+            )?;
+        }
+        writeln!(
+            f,
+            "    {}: {}",
+            "source code git url", self.source_code_git_url
+        )?;
+        Ok(())
+    }
+}
+
 impl ReproducibleBuild {
+    fn validate(&self) -> color_eyre::eyre::Result<()> {
+        if !self.unknown_keys.is_empty() {
+            let keys = self
+                .unknown_keys
+                .keys()
+                .map(|element| element.as_str())
+                .collect::<Vec<_>>();
+            return Err(color_eyre::eyre::eyre!(
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml, contains unknown keys: `{}`",
+                keys.join(",")
+            ));
+        }
+        if self.source_code_git_url.scheme() != "https" {
+            return Err(color_eyre::eyre::eyre!(
+                "{}: {}\n{}",
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                self.source_code_git_url,
+                "`source_code_git_url`: only `https` scheme is supported at the moment",
+            ));
+        }
+        if !self.source_code_git_url.path().ends_with(".git") {
+            return Err(color_eyre::eyre::eyre!(
+                "{}: {}\n{}",
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                self.source_code_git_url,
+                "`source_code_git_url`: must end with `.git`",
+            ));
+        }
+        Ok(())
+    }
     pub(super) fn parse(cargo_metadata: &CrateMetadata) -> color_eyre::eyre::Result<Self> {
         let build_meta_value = cargo_metadata
             .root_package
@@ -41,34 +96,11 @@ impl ReproducibleBuild {
                 })?
             }
         };
-
-        if !build_meta.unknown_keys.is_empty() {
-            let keys = build_meta
-                .unknown_keys
-                .keys()
-                .map(|element| element.as_str())
-                .collect::<Vec<_>>();
-            return Err(color_eyre::eyre::eyre!(
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml, contains unknown keys: `{}`",
-                keys.join(",")
-            ));
-        }
-
-        if !build_meta.source_code_git_url.ends_with(".git")
-            || !build_meta.source_code_git_url.starts_with("https://")
-        {
-            return Err(color_eyre::eyre::eyre!(
-                "{}: {}\n{}",
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
-                build_meta.source_code_git_url,
-                "`source_code_git_url` should start with `https://` and end with `.git`",
-            ));
-        }
-
+        build_meta.validate()?;
         println!(
             "{}",
             util::indent_string(&format!(
-                "{} {:#?}",
+                "{} {}",
                 "reproducible build metadata:".green(),
                 build_meta
             ))

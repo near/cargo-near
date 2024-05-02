@@ -13,8 +13,7 @@ pub const INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
 pub const BUILD_CMD_ENV_KEY: &str = "CARGO_NEAR_BUILD_COMMAND";
 pub const CONTRACT_PATH_ENV_KEY: &str = "CARGO_NEAR_CONTRACT_PATH";
 
-pub const SOURCE_COMMIT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_COMMIT";
-pub const SOURCE_GIT_URL_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_GIT_URL";
+pub const SOURCE_CODE_SNAPSHOT: &str = "CARGO_NEAR_SOURCE_CODE_SNAPSHOT";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
