@@ -90,64 +90,61 @@ impl super::BuildCommand {
         docker_build_meta: metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
-        // Platform-specific UID/GID retrieval
-        #[cfg(unix)]
-        let uid_gid = format!("{}:{}", getuid(), getgid());
-        #[cfg(not(unix))]
-        let uid_gid = "1000:1000".to_string();
+        let mut docker_cmd: Command = {
+            // Platform-specific UID/GID retrieval
+            #[cfg(unix)]
+            let uid_gid = format!("{}:{}", getuid(), getgid());
+            #[cfg(not(unix))]
+            let uid_gid = "1000:1000".to_string();
 
-        let docker_container_name = {
-            // Cross-platform process ID and timestamp
-            let pid = id().to_string();
-            let timestamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
-                .to_string();
-            format!("cargo-near-{}-{}", timestamp, pid)
+            let docker_container_name = {
+                // Cross-platform process ID and timestamp
+                let pid = id().to_string();
+                let timestamp = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs()
+                    .to_string();
+                format!("cargo-near-{}-{}", timestamp, pid)
+            };
+            let container_paths = ContainerPaths::compute(cloned_repo)?;
+            let docker_image = docker_build_meta.concat_image();
+            println!(" {} {}", "docker image to be used:".green(), docker_image);
+
+            let env = Nep330BuildInfo::new(&docker_build_meta, cloned_repo)?;
+            let env_args = env.docker_args();
+            let cargo_cmd =
+                self.compute_build_command(docker_build_meta.container_build_command.clone())?;
+            println!(" {} {}", "build command in container:".green(), cargo_cmd);
+
+            let docker_args = {
+                let mut docker_args = vec![
+                    "-u",
+                    &uid_gid,
+                    "-it",
+                    "--name",
+                    &docker_container_name,
+                    "--volume",
+                    &container_paths.host_volume_arg,
+                    "--rm",
+                    "--workdir",
+                    &container_paths.crate_path,
+                ];
+
+                docker_args.extend(env_args.iter().map(|string| string.as_str()));
+
+                docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
+
+                docker_args.push(&cargo_cmd);
+                log::debug!("docker command : {:?}", docker_args);
+                docker_args
+            };
+
+            let mut docker_cmd = Command::new("docker");
+            docker_cmd.arg("run");
+            docker_cmd.args(docker_args);
+            docker_cmd
         };
-        let container_paths = ContainerPaths::compute(cloned_repo)?;
-        let docker_image = docker_build_meta.concat_image();
-        println!(" {} {}", "docker image to be used:".green(), docker_image);
-
-        let env = Nep330EnvVars::new(&docker_build_meta, cloned_repo)?;
-
-        let mut docker_args = vec![
-            "-u",
-            &uid_gid,
-            "-it",
-            "--name",
-            &docker_container_name,
-            "--volume",
-            &container_paths.host_volume_arg,
-            "--rm",
-            "--workdir",
-            &container_paths.crate_path,
-            "--env",
-            &env.build_env_ref,
-            "--env",
-            &env.source_git_url,
-            "--env",
-            &env.contract_path,
-            "--env",
-            &env.source_commit,
-            "--env",
-            &env.rust_log,
-            &docker_image,
-            "/bin/bash",
-            "-c",
-        ];
-
-        let cargo_cmd =
-            self.compute_build_command(docker_build_meta.container_build_command.clone())?;
-        println!(" {} {}", "build command in container:".green(), cargo_cmd);
-
-        docker_args.push(&cargo_cmd);
-        log::debug!("docker command : {:?}", docker_args);
-
-        let mut docker_cmd = Command::new("docker");
-        docker_cmd.arg("run");
-        docker_cmd.args(docker_args);
 
         let status = match docker_cmd.status() {
             Ok(exit_status) => exit_status,
@@ -312,36 +309,32 @@ impl ContainerPaths {
 
 const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
 
-struct Nep330EnvVars {
+struct Nep330BuildInfo {
     build_env_ref: String,
     rust_log: String,
-    contract_path: String,
+    contract_path: Option<String>,
     source_git_url: String,
     source_commit: String,
 }
 
-impl Nep330EnvVars {
+impl Nep330BuildInfo {
     fn new(
         docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<Self> {
-        let docker_image = docker_build_meta.concat_image();
-
-        let build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
-
-        let contract_path = format!(
-            "{}={}",
-            CONTRACT_PATH_ENV_KEY,
-            cloned_repo.initial_crate_in_repo.relative_path()?.as_str()
-        );
-        let source_git_url = format!(
-            "{}={}",
-            SOURCE_GIT_URL_ENV_KEY, docker_build_meta.source_code_git_url
-        );
-        let source_commit = format!(
-            "{}={}",
-            SOURCE_COMMIT_ENV_KEY, cloned_repo.initial_crate_in_repo.head
-        );
+        let build_env_ref = docker_build_meta.concat_image();
+        let contract_path = cloned_repo
+            .initial_crate_in_repo
+            .relative_path()?
+            .as_str()
+            .to_string();
+        let contract_path = if contract_path.is_empty() {
+            None
+        } else {
+            Some(contract_path)
+        };
+        let source_git_url = docker_build_meta.source_code_git_url.clone();
+        let source_commit = cloned_repo.initial_crate_in_repo.head.to_string();
         Ok(Self {
             build_env_ref,
             rust_log: RUST_LOG_EXPORT.to_string(),
@@ -349,5 +342,28 @@ impl Nep330EnvVars {
             contract_path,
             source_commit,
         })
+    }
+
+    fn docker_args(&self) -> Vec<String> {
+        let mut result = vec![
+            "--env".to_string(),
+            format!("{}={}", INSIDE_DOCKER_ENV_KEY, self.build_env_ref),
+        ];
+
+        if let Some(ref contract_path) = self.contract_path {
+            result.extend(vec![
+                "--env".to_string(),
+                format!("{}={}", CONTRACT_PATH_ENV_KEY, contract_path),
+            ]);
+        }
+        result.extend(vec![
+            "--env".to_string(),
+            format!("{}={}", SOURCE_GIT_URL_ENV_KEY, self.source_git_url),
+            "--env".to_string(),
+            format!("{}={}", SOURCE_COMMIT_ENV_KEY, self.source_commit),
+            "--env".to_string(),
+            self.rust_log.clone(),
+        ]);
+        result
     }
 }
