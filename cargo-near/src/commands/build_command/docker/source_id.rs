@@ -92,9 +92,8 @@ impl GitReference {
         let mut reference = GitReference::Rev("WRONG_REV".to_string());
         for (k, v) in query_pairs {
             let v = v.as_ref();
-            match k.as_ref() {
-                "rev" => reference = GitReference::Rev(v.to_owned()),
-                _ => {}
+            if k.as_ref() == "rev" {
+                reference = GitReference::Rev(v.to_owned());
             }
         }
         reference
@@ -102,12 +101,10 @@ impl GitReference {
     /// Returns a `Display`able view of this git reference, or None if using
     /// the head of the default branch
     pub fn pretty_ref(&self, url_encoded: bool) -> Option<PrettyRef<'_>> {
-        match self {
-            _ => Some(PrettyRef {
-                inner: self,
-                url_encoded,
-            }),
-        }
+        Some(PrettyRef {
+            inner: self,
+            url_encoded,
+        })
     }
 }
 
@@ -141,6 +138,8 @@ impl Ord for SourceKind {
     }
 }
 
+/// this type is adaptation of [cargo::core::SourceId](https://docs.rs/cargo/latest/cargo/core/struct.SourceId.html)  
+/// with number of `SourceKind` variants reduced to 1 currently: `Git(GitReference)`
 impl SourceId {
     /// Creates a `SourceId` object from the kind and URL.
     ///
@@ -155,16 +154,6 @@ impl SourceId {
         Ok(source_id)
     }
 
-    /// Parses a source URL and returns the corresponding ID.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use cargo::core::SourceId;
-    /// SourceId::from_url("git+https://github.com/alexcrichton/\
-    ///                     libssh2-static-sys#80e71a3021618eb05\
-    ///                     656c58fb7c5ef5f12bc747f");
-    /// ```
     #[allow(unused)]
     pub fn from_url(string: &str) -> color_eyre::eyre::Result<SourceId> {
         let (kind, url) = string
@@ -191,7 +180,7 @@ impl SourceId {
     #[allow(unused)]
     pub fn with_git_precise(self, fragment: Option<String>) -> SourceId {
         SourceId {
-            precise: fragment.map(|f| Precise::GitUrlFragment(f)),
+            precise: fragment.map(Precise::GitUrlFragment),
             ..self
         }
     }
@@ -265,13 +254,12 @@ pub struct PrettyRef<'a> {
 
 impl<'a> std::fmt::Display for PrettyRef<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let value: &str;
-        match self.inner {
+        let value: &str = match self.inner {
             GitReference::Rev(s) => {
                 write!(f, "rev=")?;
-                value = s;
+                s
             }
-        }
+        };
         if self.url_encoded {
             for value in url::form_urlencoded::byte_serialize(value.as_bytes()) {
                 write!(f, "{value}")?;
@@ -292,7 +280,7 @@ mod tests {
     #[test]
     fn test_source_id_from_url() {
         let cargo_source_id = SourceId::from_url(
-            "git+https://github.com/dj8yfo/sample_no_workspace.git?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d"
+            "git+https://github.com/repo/sample_no_workspace.git?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d"
         ).unwrap();
 
         let kind = cargo_source_id.kind();
@@ -301,7 +289,7 @@ mod tests {
         );
 
         assert_eq!(
-            "/dj8yfo/sample_no_workspace.git",
+            "/repo/sample_no_workspace.git",
             cargo_source_id.url().path()
         );
     }
