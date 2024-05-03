@@ -31,7 +31,7 @@ pub struct BuildCommand {
     /// Disables default feature flags.
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
-    pub no_default_features: Option<bool>,
+    pub no_default_features: bool,
     /// Coloring: auto, always, never
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]

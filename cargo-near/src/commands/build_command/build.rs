@@ -86,7 +86,7 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
         cargo_args.push(&cargo_feature_flags);
     }
 
-    if args.no_default_features.unwrap_or(false) {
+    if args.no_default_features {
         cargo_args.push("--no-default-features");
     }
 
