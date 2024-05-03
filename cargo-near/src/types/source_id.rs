@@ -273,7 +273,7 @@ impl<'a> std::fmt::Display for PrettyRef<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::commands::build_command::docker::source_id::{GitReference, SourceKind};
+    use crate::types::source_id::{GitReference, SourceKind};
 
     use super::SourceId;
 

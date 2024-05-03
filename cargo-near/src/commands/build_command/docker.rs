@@ -4,7 +4,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{commands::build_command::CONTRACT_PATH_ENV_KEY, util};
+use crate::{commands::build_command::CONTRACT_PATH_ENV_KEY, types::source_id, util};
 use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
 
 use color_eyre::eyre::ContextCompat;
@@ -19,7 +19,6 @@ mod cloned_repo;
 mod crate_in_repo;
 mod git_checks;
 mod metadata;
-pub mod source_id;
 
 impl super::BuildCommand {
     pub(super) fn docker_run(
