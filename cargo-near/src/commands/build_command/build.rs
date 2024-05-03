@@ -40,6 +40,8 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
+    let mut cargo_feature_flags = Vec::<&str>::new();
+
     if !args.no_release {
         cargo_args.push("--release");
     }
@@ -70,9 +72,24 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
     }
 
     if let (false, Some(abi_path)) = (args.no_embed_abi, &min_abi_path) {
-        cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
+        cargo_feature_flags.push("near-sdk/__abi-embed");
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
     }
+
+    if let Some(features) = args.features.as_ref() {
+        cargo_feature_flags.push(features);
+    }
+
+    let cargo_feature_flags = cargo_feature_flags.join(",");
+    if !cargo_feature_flags.is_empty() {
+        cargo_args.push("--features");
+        cargo_args.push(&cargo_feature_flags);
+    }
+
+    if args.no_default_features {
+        cargo_args.push("--no-default-features");
+    }
+
     util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
         &crate_metadata.manifest_path,

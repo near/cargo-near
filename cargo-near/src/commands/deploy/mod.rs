@@ -67,6 +67,8 @@ impl interactive_clap::FromCli for Contract {
                     no_doc: cli_build_command_args.no_doc,
                     out_dir: cli_build_command_args.out_dir.clone(),
                     manifest_path: cli_build_command_args.manifest_path.clone(),
+                    features: cli_build_command_args.features.clone(),
+                    no_default_features: cli_build_command_args.no_default_features,
                     color: cli_build_command_args.color.clone(),
                 }
             } else {

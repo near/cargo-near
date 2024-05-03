@@ -79,6 +79,8 @@ macro_rules! invoke_cargo_near {
                     no_doc: cmd.no_doc,
                     out_dir: cmd.out_dir,
                     manifest_path: Some(cargo_path.into()),
+                    features: cmd.features,
+                    no_default_features: cmd.no_default_features,
                     color: cmd.color,
                 };
                 cargo_near::commands::build_command::build::run(args)?;
