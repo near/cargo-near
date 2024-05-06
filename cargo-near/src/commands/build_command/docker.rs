@@ -286,11 +286,7 @@ impl ContainerPaths {
         let mounted_repo = NEP330_REPO_MOUNT.to_string();
         let host_volume_arg = format!(
             "{}:{}",
-            cloned_repo
-                .tmp_repo
-                .workdir()
-                .wrap_err("Could not get the working directory for the repository")?
-                .to_string_lossy(),
+            cloned_repo.tmp_repo_dir.path().to_string_lossy(),
             &mounted_repo
         );
         let crate_path = {

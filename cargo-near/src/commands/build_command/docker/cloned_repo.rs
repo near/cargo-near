@@ -12,10 +12,9 @@ use colored::Colorize;
 use super::crate_in_repo;
 
 pub(super) struct ClonedRepo {
-    pub tmp_repo: git2::Repository,
     pub initial_crate_in_repo: crate_in_repo::Crate,
     #[allow(unused)]
-    tmp_repo_dir: tempfile::TempDir,
+    pub tmp_repo_dir: tempfile::TempDir,
     tmp_crate_metadata: CrateMetadata,
 }
 
@@ -43,7 +42,6 @@ impl ClonedRepo {
         };
 
         Ok(ClonedRepo {
-            tmp_repo,
             tmp_repo_dir,
             initial_crate_in_repo: crate_in_repo,
             tmp_crate_metadata,
