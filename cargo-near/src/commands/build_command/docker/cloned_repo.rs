@@ -35,7 +35,7 @@ impl ClonedRepo {
         let tmp_crate_metadata = {
             let cargo_toml_path: camino::Utf8PathBuf = {
                 let mut path: camino::Utf8PathBuf = tmp_repo_path.clone().try_into()?;
-                path.push(crate_in_repo.relative_path()?);
+                path.push(crate_in_repo.host_relative_path()?);
                 path.push(MANIFEST_FILE_NAME);
                 path
             };

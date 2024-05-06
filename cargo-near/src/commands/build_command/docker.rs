@@ -1,6 +1,5 @@
 use std::{
     process::{id, Command, ExitStatus},
-    str::FromStr,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -295,10 +294,13 @@ impl ContainerPaths {
             &mounted_repo
         );
         let crate_path = {
-            let mut repo_path = camino::Utf8PathBuf::from_str(&mounted_repo)?;
-            repo_path.push(cloned_repo.initial_crate_in_repo.relative_path()?);
-            // TODO
-            repo_path.to_string()
+            let mut repo_path = unix_path::Path::new(NEP330_REPO_MOUNT).to_path_buf();
+            repo_path.push(cloned_repo.initial_crate_in_repo.unix_relative_path()?);
+
+            repo_path
+                .to_str()
+                .wrap_err("non UTF-8 unix path computed as crate path")?
+                .to_string()
         };
         Ok(Self {
             host_volume_arg,
@@ -323,8 +325,9 @@ impl Nep330BuildInfo {
         let build_environment = docker_build_meta.concat_image();
         let contract_path = cloned_repo
             .initial_crate_in_repo
-            .relative_path()?
-            .as_str()
+            .unix_relative_path()?
+            .to_str()
+            .wrap_err("non UTF-8 unix path computed as contract path")?
             .to_string();
         let contract_path = if contract_path.is_empty() {
             None

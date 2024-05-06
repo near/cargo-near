@@ -55,8 +55,27 @@ impl Crate {
             }
         }
     }
-    pub fn relative_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+    pub fn host_relative_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
         pathdiff::diff_utf8_paths(&self.crate_root, &self.repo_root)
             .wrap_err("cannot compute crate's relative path in repo")
+    }
+    pub fn unix_relative_path(&self) -> color_eyre::eyre::Result<unix_path::PathBuf> {
+        let host_relative: camino::Utf8PathBuf = self.host_relative_path()?;
+
+        let path_buf = {
+            let iter = host_relative
+                .components()
+                .map(|component| component.as_str());
+            unix_path::PathBuf::from_iter(iter.map(unix_path::Path::new))
+        };
+
+        if !path_buf.as_path().is_relative() {
+            return Err(color_eyre::eyre::eyre!(
+                "crate's path in repo, expressed as a unix path, isn't relative : {:?}",
+                path_buf.to_str()
+            ));
+        }
+
+        Ok(path_buf)
     }
 }
