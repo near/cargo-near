@@ -314,7 +314,7 @@ const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
 
 struct Nep330BuildInfo {
     build_environment: String,
-    contract_path: Option<String>,
+    contract_path: String,
     source_code_snapshot: source_id::SourceId,
 }
 
@@ -330,11 +330,6 @@ impl Nep330BuildInfo {
             .to_str()
             .wrap_err("non UTF-8 unix path computed as contract path")?
             .to_string();
-        let contract_path = if contract_path.is_empty() {
-            None
-        } else {
-            Some(contract_path)
-        };
 
         let source_code_snapshot = source_id::SourceId::for_git(
             &docker_build_meta.source_code_git_url,
@@ -360,12 +355,10 @@ impl Nep330BuildInfo {
             ),
         ];
 
-        if let Some(ref contract_path) = self.contract_path {
-            result.extend(vec![
-                "--env".to_string(),
-                format!("{}={}", CONTRACT_PATH_ENV_KEY, contract_path),
-            ]);
-        }
+        result.extend(vec![
+            "--env".to_string(),
+            format!("{}={}", CONTRACT_PATH_ENV_KEY, self.contract_path),
+        ]);
 
         result
     }
