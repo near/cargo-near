@@ -406,21 +406,17 @@ impl EnvVars {
         result
     }
     fn compute_repo_link_hint(&self) -> Option<String> {
-        let url = self
-            .repo_link
-            .clone()
-            .and_then(|repo_link| url::Url::parse(&repo_link).ok());
+        let url = url::Url::parse(&self.repo_link.clone()?).ok()?;
 
-        let url = url
-            .clone()
-            .and_then(|url| url.host_str().map(ToString::to_string))
-            .filter(|host| *host == "github.com")
-            .and(url);
-        let commit_hint = url.and_then(|url| {
+        if url.host_str() == Some("github.com") {
             let existing_path = url.path();
-            url.join(&format!("{}/tree/{}", existing_path, self.revision))
-                .ok()
-        });
-        commit_hint.map(|url| url.to_string())
+            Some(
+                url.join(&format!("{}/tree/{}", existing_path, self.revision))
+                    .ok()?
+                    .to_string(),
+            )
+        } else {
+            None
+        }
     }
 }
