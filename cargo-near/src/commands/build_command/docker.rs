@@ -91,9 +91,14 @@ impl super::BuildCommand {
     ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
         let mut docker_cmd: Command = {
             // Platform-specific UID/GID retrieval
-            #[cfg(unix)]
+
+            // reason for this mapping is that on Linux the volume is mounted natively,
+            // and thus the unprivileged user inside Docker container should be able to write
+            // to the mounted folder that has the host user permissions,
+            // not specifying this mapping results in UID=Docker-User owned files created in host system
+            #[cfg(target_os = "linux")]
             let uid_gid = format!("{}:{}", getuid(), getgid());
-            #[cfg(not(unix))]
+            #[cfg(not(target_os = "linux"))]
             let uid_gid = "1000:1000".to_string();
 
             let docker_container_name = {
