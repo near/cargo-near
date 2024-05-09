@@ -152,12 +152,15 @@ pub(super) fn run(
 }
 
 fn export_nep_330_build_command() {
-    let mut cmd: Vec<String> = vec!["cargo".into(), "near".into()];
-    cmd.extend(std::env::args().skip(2));
+    // only attempt to set by self, if not set extenally
+    if std::env::var(BUILD_CMD_ENV_KEY).is_err() {
+        let mut cmd: Vec<String> = vec!["cargo".into(), "near".into()];
+        cmd.extend(std::env::args().skip(2));
 
-    let cmd = cmd.join(" ");
+        let cmd = cmd.join(" ");
 
-    std::env::set_var(BUILD_CMD_ENV_KEY, cmd.clone());
+        std::env::set_var(BUILD_CMD_ENV_KEY, cmd.clone());
+    }
 }
 
 fn print_nep_330_env() {
