@@ -98,11 +98,17 @@ pub struct ArtifactMessages<'a> {
 }
 
 impl<'a> ArtifactMessages<'a> {
-    pub fn push_binary(&mut self, wasm_artifact: &CompilationArtifact) {
+    pub fn push_binary(
+        &mut self,
+        wasm_artifact: &CompilationArtifact,
+    ) -> color_eyre::eyre::Result<()> {
         self.messages.push((
             "Binary",
             wasm_artifact.path.to_string().bright_yellow().bold(),
         ));
+        self.messages
+            .push(("Hashsum", wasm_artifact.compute_hash()?.green().dimmed()));
+        Ok(())
     }
     pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
         self.messages.push(msg);

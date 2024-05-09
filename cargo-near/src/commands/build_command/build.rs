@@ -1,7 +1,6 @@
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
-use sha2::{Digest, Sha256};
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
@@ -130,13 +129,9 @@ pub(super) fn run(
         std::env::var(INSIDE_DOCKER_ENV_KEY).unwrap_or("host".into())
     ));
     let mut messages = ArtifactMessages::default();
-    messages.push_binary(&wasm_artifact);
+    messages.push_binary(&wasm_artifact)?;
     if let Some(mut abi) = abi {
-        let mut hasher = Sha256::new();
-        hasher.update(std::fs::read(&wasm_artifact.path)?);
-        let hash = hasher.finalize();
-        let hash = bs58::encode(hash).into_string();
-        abi.metadata.wasm_hash = Some(hash);
+        abi.metadata.wasm_hash = Some(wasm_artifact.compute_hash()?);
 
         let AbiResult { path } =
             abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;

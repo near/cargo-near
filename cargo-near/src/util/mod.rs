@@ -15,6 +15,7 @@ use log::{error, info};
 
 use crate::common::ColorPreference;
 use crate::types::manifest::CargoManifestPath;
+use sha2::{Digest, Sha256};
 
 mod print;
 pub(crate) use print::*;
@@ -165,6 +166,15 @@ pub struct CompilationArtifact {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,
+}
+
+impl CompilationArtifact {
+    pub fn compute_hash(&self) -> color_eyre::eyre::Result<String> {
+        let mut hasher = Sha256::new();
+        hasher.update(std::fs::read(&self.path)?);
+        let hash = hasher.finalize();
+        Ok(bs58::encode(hash).into_string())
+    }
 }
 
 /// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated artifact.

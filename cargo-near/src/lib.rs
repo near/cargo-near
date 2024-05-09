@@ -6,7 +6,7 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 pub mod commands;
 mod common;
 pub mod types;
-mod util;
+pub mod util;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]

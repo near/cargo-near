@@ -109,7 +109,7 @@ fn copy(
         from_docker: true,
     };
     let mut messages = ArtifactMessages::default();
-    messages.push_binary(&result);
+    messages.push_binary(&result)?;
     messages.pretty_print();
 
     Ok(result)
