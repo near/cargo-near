@@ -76,7 +76,9 @@ fn get_cargo_metadata(
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
     }
-    let metadata = cmd.manifest_path(&manifest_path.path).exec();
+    let cmd = cmd.manifest_path(&manifest_path.path);
+    log::debug!("metadata command: {:#?}", cmd.cargo_command());
+    let metadata = cmd.exec();
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {
             return Err(cargo_metadata::Error::CargoMetadata {
