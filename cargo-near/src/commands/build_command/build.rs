@@ -54,6 +54,18 @@ pub(super) fn run(
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
+    let cargo_feature_args = {
+        let mut feat_args = vec![];
+        if let Some(features) = args.features.as_ref() {
+            feat_args.extend(&["--features", features]);
+        }
+
+        if args.no_default_features {
+            feat_args.push("--no-default-features");
+        }
+        feat_args
+    };
+
     if !args.no_release {
         cargo_args.push("--release");
     }
@@ -69,6 +81,7 @@ pub(super) fn run(
             args.no_locked,
             !args.no_doc,
             true,
+            &cargo_feature_args,
             color.clone(),
         )?;
         contract_abi.metadata.build = Some(BuildInfo {
@@ -91,10 +104,13 @@ pub(super) fn run(
         abi = Some(contract_abi);
     }
 
+    cargo_args.extend(cargo_feature_args);
+
     if let (false, Some(abi_path)) = (args.no_embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
     }
+
     util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
         &crate_metadata.manifest_path,

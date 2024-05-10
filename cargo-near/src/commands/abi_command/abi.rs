@@ -33,6 +33,7 @@ pub(crate) fn generate_abi(
     no_locked: bool,
     generate_docs: bool,
     hide_warnings: bool,
+    cargo_feature_args: &[&str],
     color: ColorPreference,
 ) -> color_eyre::eyre::Result<AbiRoot> {
     let root_node = crate_metadata
@@ -84,16 +85,21 @@ pub(crate) fn generate_abi(
         color_eyre::eyre::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
 
-    let mut cargo_args = vec!["--features", "near-sdk/__abi-generate"];
+    let cargo_args = {
+        let mut args = vec!["--features", "near-sdk/__abi-generate"];
+        args.extend_from_slice(cargo_feature_args);
+        if !no_locked {
+            args.push("--locked");
+        }
 
-    if !no_locked {
-        cargo_args.push("--locked");
-    }
+        args
+    };
+
     util::print_step("Generating ABI");
 
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
-        &cargo_args,
+        cargo_args.as_slice(),
         vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
@@ -209,7 +215,14 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, args.no_locked, !args.no_doc, false, color)?;
+    let contract_abi = generate_abi(
+        &crate_metadata,
+        args.no_locked,
+        !args.no_doc,
+        false,
+        &[],
+        color,
+    )?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
