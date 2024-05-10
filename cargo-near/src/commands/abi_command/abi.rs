@@ -63,26 +63,15 @@ pub(crate) fn generate_abi(
 
     for required_feature in ["__abi-generate", "__abi-embed"] {
         if !near_sdk_dep.features.contains_key(required_feature) {
-            color_eyre::eyre::bail!("unsupported `near-sdk` version. expected 4.1.* or higher");
+            color_eyre::eyre::bail!(
+                "{}: {}",
+                format!(
+                    "missing `{}` required feature for `near-sdk` dependency",
+                    required_feature
+                ),
+                "probably unsupported `near-sdk` version. expected 4.1.* or higher"
+            );
         }
-    }
-
-    let near_sdk_metadata = crate_metadata
-        .root_package
-        .dependencies
-        .iter()
-        .find(|dep| dep.name == "near-sdk")
-        .wrap_err("`near-sdk` dependency not found")?;
-
-    // `Dependency::features` return value does not contain default features, so we have to check
-    // for default features separately.
-    if !near_sdk_metadata.uses_default_features
-        && !near_sdk_metadata
-            .features
-            .iter()
-            .any(|feature| feature == "abi")
-    {
-        color_eyre::eyre::bail!("`near-sdk` dependency must have the `abi` feature enabled")
     }
 
     let cargo_args = {
