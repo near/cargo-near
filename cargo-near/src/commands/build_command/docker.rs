@@ -178,6 +178,20 @@ impl super::BuildCommand {
         manifest_command: Option<String>,
     ) -> color_eyre::eyre::Result<String> {
         if let Some(cargo_cmd) = manifest_command {
+            if self.no_default_features {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-default-features",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            if self.features.is_some() {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--features",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
             if self.no_abi {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
@@ -221,6 +235,12 @@ impl super::BuildCommand {
         );
         let mut cargo_args = vec![];
 
+        if self.no_default_features {
+            cargo_args.push("--no-default-features");
+        }
+        if let Some(ref features) = self.features {
+            cargo_args.extend(&["--features", features]);
+        }
         if self.no_abi {
             cargo_args.push("--no-abi");
         }
