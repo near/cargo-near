@@ -9,8 +9,14 @@ use crate::{
 
 mod build;
 mod docker;
+
+// ====================== NEP-330 Build Details Extension section ===========
 pub const INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
 pub const BUILD_CMD_ENV_KEY: &str = "CARGO_NEAR_BUILD_COMMAND";
+pub const CONTRACT_PATH_ENV_KEY: &str = "CARGO_NEAR_CONTRACT_PATH";
+pub const SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_SNAPSHOT";
+// ====================== End section =======================================
+pub const REPO_LINK_HINT_ENV_KEY: &str = "CARGO_NEAR_REPO_LINK_HINT";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -49,7 +55,7 @@ pub struct BuildCommand {
     pub color: Option<crate::common::ColorPreference>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum BuildContext {
     Build,
     Deploy,

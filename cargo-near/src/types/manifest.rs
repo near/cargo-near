@@ -36,7 +36,17 @@ impl TryFrom<Utf8PathBuf> for CargoManifestPath {
             .kind()
         {
             std::io::ErrorKind::NotFound => {
-                color_eyre::eyre::eyre!("manifest path `{manifest_path}` does not exist")
+                match std::env::current_dir() {
+                    Ok(pwd ) => {
+                        let pwd = pwd.to_string_lossy();
+                        color_eyre::eyre::eyre!("manifest path `{manifest_path}` in `{pwd}` does not exist")
+                    },
+                    Err(err) => {
+                        color_eyre::eyre::eyre!("manifest path `{manifest_path}` in `workdir not determined: {:?}` does not exist",
+                            err
+                        )
+                    }
+                }
             }
             _ => color_eyre::eyre::eyre!("manifest_path.canonicalize_utf8() error: {err}"),
         })?;

@@ -3,7 +3,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::util;
+use crate::{commands::build_command::CONTRACT_PATH_ENV_KEY, types::source_id, util};
 use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
 
 use color_eyre::eyre::ContextCompat;
@@ -12,9 +12,10 @@ use colored::Colorize;
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
 
-use super::BuildContext;
+use super::{BuildContext, REPO_LINK_HINT_ENV_KEY, SOURCE_CODE_SNAPSHOT_ENV_KEY};
 
 mod cloned_repo;
+mod crate_in_repo;
 mod git_checks;
 mod metadata;
 
@@ -25,29 +26,34 @@ impl super::BuildCommand {
     ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         let color = self.color.clone().unwrap_or(ColorPreference::Auto);
         color.apply();
-        util::handle_step("Performing git checks...", || {
-            match context {
-                BuildContext::Deploy => {
-                    let contract_path: camino::Utf8PathBuf = self.contract_path()?;
-                    // TODO: clone to tmp folder and checkout specific revision must be separate steps
-                    eprintln!(
-                        "\n The URL of the remote repository:\n {}\n",
-                        git_checks::remote_repo_url(&contract_path)?
-                    );
-                    Ok(())
-                }
-                BuildContext::Build => Ok(()),
-            }
+        let crate_in_repo = util::handle_step(
+            "Opening repo and determining HEAD and relative path of contract...",
+            || crate_in_repo::Crate::find(&self.contract_path()?),
+        )?;
+        util::handle_step("Checking if git is dirty...", || {
+            Self::git_dirty_check(context, &crate_in_repo.repo_root)
         })?;
         let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
-            || cloned_repo::ClonedRepo::git_clone(&self),
+            || cloned_repo::ClonedRepo::git_clone(crate_in_repo.clone()),
         )?;
 
         let docker_build_meta =
             util::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
                 metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
             })?;
+
+        if let BuildContext::Deploy = context {
+            util::handle_step(
+                "Performing check that current HEAD has been pushed to remote...",
+                || {
+                    git_checks::pushed_to_remote::check(
+                        &docker_build_meta.source_code_git_url,
+                        crate_in_repo.head,
+                    )
+                },
+            )?;
+        }
 
         util::print_step("Running docker command step...");
         let out_dir_arg = self.out_dir.clone();
@@ -83,64 +89,66 @@ impl super::BuildCommand {
         docker_build_meta: metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
-        // Cross-platform process ID and timestamp
-        let pid = id().to_string();
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
-            .to_string();
+        let mut docker_cmd: Command = {
+            // Platform-specific UID/GID retrieval
 
-        let container_code_path = "/home/near/code".to_string();
-        let volume = format!(
-            "{}:{}",
-            cloned_repo
-                .tmp_repo
-                .workdir()
-                .wrap_err("Could not get the working directory for the repository")?
-                .to_string_lossy(),
-            &container_code_path
-        );
-        let docker_container_name = format!("cargo-near-{}-{}", timestamp, pid);
-        let docker_image = docker_build_meta.concat_image();
-        let near_build_env_ref = format!("{}={}", INSIDE_DOCKER_ENV_KEY, docker_image);
+            // reason for this mapping is that on Linux the volume is mounted natively,
+            // and thus the unprivileged user inside Docker container should be able to write
+            // to the mounted folder that has the host user permissions,
+            // not specifying this mapping results in UID=Docker-User owned files created in host system
+            #[cfg(target_os = "linux")]
+            let uid_gid = format!("{}:{}", getuid(), getgid());
+            #[cfg(not(target_os = "linux"))]
+            let uid_gid = "1000:1000".to_string();
 
-        // Platform-specific UID/GID retrieval
-        #[cfg(unix)]
-        let uid_gid = format!("{}:{}", getuid(), getgid());
-        #[cfg(not(unix))]
-        let uid_gid = "1000:1000".to_string();
+            let docker_container_name = {
+                // Cross-platform process ID and timestamp
+                let pid = id().to_string();
+                let timestamp = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs()
+                    .to_string();
+                format!("cargo-near-{}-{}", timestamp, pid)
+            };
+            let container_paths = ContainerPaths::compute(cloned_repo)?;
+            let docker_image = docker_build_meta.concat_image();
+            println!(" {} {}", "docker image to be used:".green(), docker_image);
 
-        let mut docker_args = vec![
-            "-u",
-            &uid_gid,
-            "-it",
-            "--name",
-            &docker_container_name,
-            "--volume",
-            &volume,
-            "--rm",
-            "--workdir",
-            &container_code_path,
-            "--env",
-            &near_build_env_ref,
-            "--env",
-            "RUST_LOG=cargo_near=info",
-            &docker_image,
-            "/bin/bash",
-            "-c",
-        ];
+            let env = EnvVars::new(&docker_build_meta, cloned_repo)?;
+            let env_args = env.docker_args();
+            let cargo_cmd =
+                self.compute_build_command(docker_build_meta.container_build_command.clone())?;
+            println!(" {} {}", "build command in container:".green(), cargo_cmd);
 
-        let cargo_cmd =
-            self.compute_build_command(docker_build_meta.container_build_command.clone())?;
-        println!(" {} {}", "build command in container:".green(), cargo_cmd);
+            let docker_args = {
+                let mut docker_args = vec![
+                    "-u",
+                    &uid_gid,
+                    "-it",
+                    "--name",
+                    &docker_container_name,
+                    "--volume",
+                    &container_paths.host_volume_arg,
+                    "--rm",
+                    "--workdir",
+                    &container_paths.crate_path,
+                ];
 
-        docker_args.push(&cargo_cmd);
-        log::debug!("docker command : {:?}", docker_args);
+                docker_args.extend(env_args.iter().map(|string| string.as_str()));
 
-        let mut docker_cmd = Command::new("docker");
-        docker_cmd.arg("run");
-        docker_cmd.args(docker_args);
+                docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
+
+                docker_args.push(&cargo_cmd);
+                log::debug!("docker command : {:?}", docker_args);
+                docker_args
+            };
+
+            let mut docker_cmd = Command::new("docker");
+            docker_cmd.arg("run");
+            docker_cmd.args(docker_args);
+            docker_cmd
+        };
 
         let status = match docker_cmd.status() {
             Ok(exit_status) => exit_status,
@@ -238,5 +246,177 @@ impl super::BuildCommand {
         cargo_cmd_list.extend(&cargo_args);
         let cargo_cmd = cargo_cmd_list.join(" ");
         Ok(cargo_cmd)
+    }
+
+    fn git_dirty_check(
+        context: BuildContext,
+        repo_root: &camino::Utf8PathBuf,
+    ) -> color_eyre::eyre::Result<()> {
+        let result = git_checks::dirty::check(repo_root);
+        match (result, context) {
+            (Err(err), BuildContext::Deploy) => {
+                println!(
+                    " {}",
+                    "Either commit and push, or revert following changes to continue deployment:"
+                        .yellow()
+                );
+                Err(err)
+            }
+            (Err(err), BuildContext::Build) => {
+                println!(
+                    "{}",
+                    util::indent_string(&format!("{}: {}", "WARNING".yellow(), err))
+                );
+                println!(
+                    " {}",
+                    "This WARNING becomes a hard ERROR when deploying!".yellow(),
+                );
+
+                Ok(())
+            }
+            _ => Ok(()),
+        }
+    }
+}
+
+struct ContainerPaths {
+    host_volume_arg: String,
+    crate_path: String,
+}
+
+const NEP330_REPO_MOUNT: &str = "/home/near/code";
+
+impl ContainerPaths {
+    fn compute(cloned_repo: &cloned_repo::ClonedRepo) -> color_eyre::eyre::Result<Self> {
+        let mounted_repo = NEP330_REPO_MOUNT.to_string();
+        let host_volume_arg = format!(
+            "{}:{}",
+            cloned_repo.tmp_repo_dir.path().to_string_lossy(),
+            &mounted_repo
+        );
+        let crate_path = {
+            let mut repo_path = unix_path::Path::new(NEP330_REPO_MOUNT).to_path_buf();
+            repo_path.push(cloned_repo.initial_crate_in_repo.unix_relative_path()?);
+
+            repo_path
+                .to_str()
+                .wrap_err("non UTF-8 unix path computed as crate path")?
+                .to_string()
+        };
+        Ok(Self {
+            host_volume_arg,
+            crate_path,
+        })
+    }
+}
+
+const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
+
+struct Nep330BuildInfo {
+    build_environment: String,
+    contract_path: Option<String>,
+    source_code_snapshot: source_id::SourceId,
+}
+
+impl Nep330BuildInfo {
+    fn new(
+        docker_build_meta: &metadata::ReproducibleBuild,
+        cloned_repo: &cloned_repo::ClonedRepo,
+    ) -> color_eyre::eyre::Result<Self> {
+        let build_environment = docker_build_meta.concat_image();
+        let contract_path = cloned_repo
+            .initial_crate_in_repo
+            .unix_relative_path()?
+            .to_str()
+            .wrap_err("non UTF-8 unix path computed as contract path")?
+            .to_string();
+        let contract_path = if contract_path.is_empty() {
+            None
+        } else {
+            Some(contract_path)
+        };
+
+        let source_code_snapshot = source_id::SourceId::for_git(
+            &docker_build_meta.source_code_git_url,
+            source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
+        )
+        .map_err(|err| color_eyre::eyre::eyre!("compute SourceId {}", err))?;
+        Ok(Self {
+            build_environment,
+            contract_path,
+            source_code_snapshot,
+        })
+    }
+
+    fn docker_args(&self) -> Vec<String> {
+        let mut result = vec![
+            "--env".to_string(),
+            format!("{}={}", INSIDE_DOCKER_ENV_KEY, self.build_environment),
+            "--env".to_string(),
+            format!(
+                "{}={}",
+                SOURCE_CODE_SNAPSHOT_ENV_KEY,
+                self.source_code_snapshot.as_url()
+            ),
+        ];
+
+        if let Some(ref contract_path) = self.contract_path {
+            result.extend(vec![
+                "--env".to_string(),
+                format!("{}={}", CONTRACT_PATH_ENV_KEY, contract_path),
+            ]);
+        }
+
+        result
+    }
+}
+struct EnvVars {
+    build_info: Nep330BuildInfo,
+    rust_log: String,
+    repo_link: Option<String>,
+    revision: String,
+}
+
+impl EnvVars {
+    fn new(
+        docker_build_meta: &metadata::ReproducibleBuild,
+        cloned_repo: &cloned_repo::ClonedRepo,
+    ) -> color_eyre::eyre::Result<Self> {
+        let build_info = Nep330BuildInfo::new(docker_build_meta, cloned_repo)?;
+        let repo_link = cloned_repo.crate_metadata().root_package.repository.clone();
+        let revision = cloned_repo.initial_crate_in_repo.head.to_string();
+        Ok(Self {
+            build_info,
+            rust_log: RUST_LOG_EXPORT.to_string(),
+            repo_link,
+            revision,
+        })
+    }
+
+    fn docker_args(&self) -> Vec<String> {
+        let mut result = self.build_info.docker_args();
+
+        if let Some(repo_link_hint) = self.compute_repo_link_hint() {
+            result.extend(vec![
+                "--env".to_string(),
+                format!("{}={}", REPO_LINK_HINT_ENV_KEY, repo_link_hint,),
+            ]);
+        }
+        result.extend(vec!["--env".to_string(), self.rust_log.clone()]);
+        result
+    }
+    fn compute_repo_link_hint(&self) -> Option<String> {
+        let url = url::Url::parse(&self.repo_link.clone()?).ok()?;
+
+        if url.host_str() == Some("github.com") {
+            let existing_path = url.path();
+            Some(
+                url.join(&format!("{}/tree/{}", existing_path, self.revision))
+                    .ok()?
+                    .to_string(),
+            )
+        } else {
+            None
+        }
     }
 }
