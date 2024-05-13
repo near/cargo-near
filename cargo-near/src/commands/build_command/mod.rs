@@ -48,6 +48,14 @@ pub struct BuildCommand {
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    /// Set compile-time feature flags.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    pub features: Option<String>,
+    /// Disables default feature flags.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    pub no_default_features: bool,
     /// Coloring: auto, always, never
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
@@ -116,6 +124,8 @@ impl From<CliBuildCommand> for BuildCommand {
             no_abi: value.no_abi,
             no_embed_abi: value.no_embed_abi,
             no_doc: value.no_doc,
+            features: value.features,
+            no_default_features: value.no_default_features,
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
             color: value.color,
@@ -140,6 +150,8 @@ impl BuildCommandlContext {
             no_doc: scope.no_doc,
             out_dir: scope.out_dir.clone(),
             manifest_path: scope.manifest_path.clone(),
+            features: scope.features.clone(),
+            no_default_features: scope.no_default_features,
             color: scope.color.clone(),
         };
         args.run(BuildContext::Build)?;

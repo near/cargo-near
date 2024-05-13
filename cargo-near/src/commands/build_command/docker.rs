@@ -178,6 +178,20 @@ impl super::BuildCommand {
         manifest_command: Option<String>,
     ) -> color_eyre::eyre::Result<String> {
         if let Some(cargo_cmd) = manifest_command {
+            if self.no_default_features {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--no-default-features",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
+            if self.features.is_some() {
+                return Err(color_eyre::eyre::eyre!(format!(
+                    "`{}` {}",
+                    "--features",
+                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                )));
+            }
             if self.no_abi {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
@@ -221,6 +235,12 @@ impl super::BuildCommand {
         );
         let mut cargo_args = vec![];
 
+        if self.no_default_features {
+            cargo_args.push("--no-default-features");
+        }
+        if let Some(ref features) = self.features {
+            cargo_args.extend(&["--features", features]);
+        }
         if self.no_abi {
             cargo_args.push("--no-abi");
         }
@@ -314,7 +334,7 @@ const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
 
 struct Nep330BuildInfo {
     build_environment: String,
-    contract_path: Option<String>,
+    contract_path: String,
     source_code_snapshot: source_id::SourceId,
 }
 
@@ -330,11 +350,6 @@ impl Nep330BuildInfo {
             .to_str()
             .wrap_err("non UTF-8 unix path computed as contract path")?
             .to_string();
-        let contract_path = if contract_path.is_empty() {
-            None
-        } else {
-            Some(contract_path)
-        };
 
         let source_code_snapshot = source_id::SourceId::for_git(
             &docker_build_meta.source_code_git_url,
@@ -360,12 +375,10 @@ impl Nep330BuildInfo {
             ),
         ];
 
-        if let Some(ref contract_path) = self.contract_path {
-            result.extend(vec![
-                "--env".to_string(),
-                format!("{}={}", CONTRACT_PATH_ENV_KEY, contract_path),
-            ]);
-        }
+        result.extend(vec![
+            "--env".to_string(),
+            format!("{}={}", CONTRACT_PATH_ENV_KEY, self.contract_path),
+        ]);
 
         result
     }
