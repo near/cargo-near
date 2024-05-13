@@ -7,17 +7,17 @@ use crate::{
     util::{self, CompilationArtifact},
 };
 
-mod build;
+pub(crate) mod build;
 mod docker;
 
 // ====================== NEP-330 Build Details Extension section ===========
-pub const INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
-pub const BUILD_CMD_ENV_KEY: &str = "CARGO_NEAR_BUILD_COMMAND";
-pub const CONTRACT_PATH_ENV_KEY: &str = "CARGO_NEAR_CONTRACT_PATH";
-pub const SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_SNAPSHOT";
+pub const NEP330_INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
+pub const NEP330_BUILD_CMD_ENV_KEY: &str = "CARGO_NEAR_BUILD_COMMAND";
+pub const NEP330_CONTRACT_PATH_ENV_KEY: &str = "CARGO_NEAR_CONTRACT_PATH";
+pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_SNAPSHOT";
 // ====================== End section =======================================
 pub const REPO_LINK_HINT_ENV_KEY: &str = "CARGO_NEAR_REPO_LINK_HINT";
-pub const ABI_GENERATION_STEP_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
+pub const BUILD_RS_ABI_STEP_HINT_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -70,6 +70,32 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
+    pub fn new(
+        no_locked: bool,
+        no_release: bool,
+        no_abi: bool,
+        no_embed_abi: bool,
+        no_doc: bool,
+        out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+        manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+        features: Option<String>,
+        no_default_features: bool,
+        color: Option<crate::common::ColorPreference>,
+    ) -> Self {
+        Self {
+            no_locked,
+            no_docker: true,
+            no_release,
+            no_abi,
+            no_embed_abi,
+            no_doc,
+            features,
+            no_default_features,
+            out_dir,
+            manifest_path,
+            color,
+        }
+    }
     pub fn contract_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
         let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
             let manifest_path = CargoManifestPath::try_from(manifest_path.deref().clone())?;
@@ -89,7 +115,7 @@ impl BuildCommand {
         }
     }
     pub fn no_docker(&self) -> bool {
-        std::env::var(INSIDE_DOCKER_ENV_KEY).is_ok() || self.no_docker
+        std::env::var(NEP330_INSIDE_DOCKER_ENV_KEY).is_ok() || self.no_docker
     }
 }
 

@@ -4,9 +4,12 @@ pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 pub mod commands;
-mod common;
+pub mod common;
 pub mod types;
 pub mod util;
+
+pub use commands::build_command::build::run as run_build;
+pub use commands::build_command::BuildCommand as BuildArgs;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]

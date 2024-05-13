@@ -4,7 +4,7 @@ use near_abi::BuildInfo;
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
-    BUILD_CMD_ENV_KEY, CONTRACT_PATH_ENV_KEY, SOURCE_CODE_SNAPSHOT_ENV_KEY,
+    NEP330_BUILD_CMD_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
 use crate::common::ColorPreference;
 use crate::types::manifest::MANIFEST_FILE_NAME;
@@ -12,13 +12,11 @@ use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
-use super::{ArtifactMessages, INSIDE_DOCKER_ENV_KEY};
+use super::{ArtifactMessages, NEP330_INSIDE_DOCKER_ENV_KEY};
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub(super) fn run(
-    args: super::BuildCommand,
-) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
@@ -126,7 +124,7 @@ pub(super) fn run(
 
     util::print_success(&format!(
         "Contract successfully built! (in CARGO_NEAR_BUILD_ENVIRONMENT={})",
-        std::env::var(INSIDE_DOCKER_ENV_KEY).unwrap_or("host".into())
+        std::env::var(NEP330_INSIDE_DOCKER_ENV_KEY).unwrap_or("host".into())
     ));
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&wasm_artifact)?;
@@ -148,23 +146,23 @@ pub(super) fn run(
 
 fn export_nep_330_build_command() {
     // only attempt to set by self, if not set extenally
-    if std::env::var(BUILD_CMD_ENV_KEY).is_err() {
+    if std::env::var(NEP330_BUILD_CMD_ENV_KEY).is_err() {
         let mut cmd: Vec<String> = vec!["cargo".into(), "near".into()];
         cmd.extend(std::env::args().skip(2));
 
         let cmd = cmd.join(" ");
 
-        std::env::set_var(BUILD_CMD_ENV_KEY, cmd.clone());
+        std::env::set_var(NEP330_BUILD_CMD_ENV_KEY, cmd.clone());
     }
 }
 
 fn print_nep_330_env() {
     log::info!("Variables, relevant for reproducible builds:");
     for key in [
-        INSIDE_DOCKER_ENV_KEY,
-        BUILD_CMD_ENV_KEY,
-        CONTRACT_PATH_ENV_KEY,
-        SOURCE_CODE_SNAPSHOT_ENV_KEY,
+        NEP330_INSIDE_DOCKER_ENV_KEY,
+        NEP330_BUILD_CMD_ENV_KEY,
+        NEP330_CONTRACT_PATH_ENV_KEY,
+        NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
     ] {
         let value = std::env::var(key)
             .map(|val| format!("'{}'", val))

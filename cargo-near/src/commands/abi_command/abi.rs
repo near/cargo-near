@@ -6,7 +6,7 @@ use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
 
-use crate::commands::build_command::ABI_GENERATION_STEP_ENV_KEY;
+use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
@@ -94,7 +94,7 @@ pub(crate) fn generate_abi(
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
-            (ABI_GENERATION_STEP_ENV_KEY, "true"),
+            (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
         ],
         util::dylib_extension(),
         hide_warnings,

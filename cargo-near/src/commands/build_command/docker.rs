@@ -3,8 +3,8 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{commands::build_command::CONTRACT_PATH_ENV_KEY, types::source_id, util};
-use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
+use crate::{commands::build_command::NEP330_CONTRACT_PATH_ENV_KEY, types::source_id, util};
+use crate::{commands::build_command::NEP330_INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
 
 use color_eyre::eyre::ContextCompat;
 
@@ -12,7 +12,7 @@ use colored::Colorize;
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
 
-use super::{BuildContext, REPO_LINK_HINT_ENV_KEY, SOURCE_CODE_SNAPSHOT_ENV_KEY};
+use super::{BuildContext, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY, REPO_LINK_HINT_ENV_KEY};
 
 mod cloned_repo;
 mod crate_in_repo;
@@ -366,18 +366,21 @@ impl Nep330BuildInfo {
     fn docker_args(&self) -> Vec<String> {
         let mut result = vec![
             "--env".to_string(),
-            format!("{}={}", INSIDE_DOCKER_ENV_KEY, self.build_environment),
+            format!(
+                "{}={}",
+                NEP330_INSIDE_DOCKER_ENV_KEY, self.build_environment
+            ),
             "--env".to_string(),
             format!(
                 "{}={}",
-                SOURCE_CODE_SNAPSHOT_ENV_KEY,
+                NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
                 self.source_code_snapshot.as_url()
             ),
         ];
 
         result.extend(vec![
             "--env".to_string(),
-            format!("{}={}", CONTRACT_PATH_ENV_KEY, self.contract_path),
+            format!("{}={}", NEP330_CONTRACT_PATH_ENV_KEY, self.contract_path),
         ]);
 
         result
