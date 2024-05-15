@@ -70,6 +70,7 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         no_locked: bool,
         no_release: bool,
