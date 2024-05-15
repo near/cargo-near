@@ -1,3 +1,4 @@
+use color_eyre::eyre::WrapErr;
 use colored::Colorize;
 
 const BETWEEN_ATTEMPTS_SLEEP: std::time::Duration = std::time::Duration::from_millis(100);
@@ -16,7 +17,8 @@ pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> color_eyre::Result<()>
         match repo {
             Ok(repo) => {
                 println!(" {}", "Checking if HEAD is present...".green());
-                repo.find_commit(commit_id)?;
+                repo.find_commit(commit_id)
+                    .wrap_err("commit wasn't found in remote repo")?;
                 println!(
                     " {} {} in `{}` -> `{}`",
                     "commit was found in repo:".green(),
