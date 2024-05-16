@@ -117,8 +117,9 @@ impl super::BuildCommand {
 
             let env = EnvVars::new(&docker_build_meta, cloned_repo)?;
             let env_args = env.docker_args();
-            let cargo_cmd =
-                self.compute_build_command(docker_build_meta.container_build_command.clone())?;
+            let cargo_cmd = self.get_cli_build_command_in_docker(
+                docker_build_meta.container_build_command.clone(),
+            )?;
             println!(" {} {}", "build command in container:".green(), cargo_cmd);
 
             let docker_args = {
@@ -173,22 +174,22 @@ impl super::BuildCommand {
 
     const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "cannot be used, when `container_build_command` is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
 
-    fn compute_build_command(
+    fn get_cli_build_command_in_docker(
         &self,
         manifest_command: Option<String>,
     ) -> color_eyre::eyre::Result<String> {
         if let Some(cargo_cmd) = manifest_command {
-            if self.no_default_features {
+            if self.no_locked {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--no-default-features",
+                    "--no-locked",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            if self.features.is_some() {
+            if self.no_release {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--features",
+                    "--no-release",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
@@ -213,17 +214,17 @@ impl super::BuildCommand {
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            if self.no_locked {
+            if self.features.is_some() {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--no-locked",
+                    "--features",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            if self.no_release {
+            if self.no_default_features {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--no-release",
+                    "--no-default-features",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
@@ -234,12 +235,11 @@ impl super::BuildCommand {
             "configuring `container_build_command` from cli args, passed to current command".cyan()
         );
         let mut cargo_args = vec![];
-
-        if self.no_default_features {
-            cargo_args.push("--no-default-features");
+        if self.no_locked {
+            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
         }
-        if let Some(ref features) = self.features {
-            cargo_args.extend(&["--features", features]);
+        if self.no_release {
+            cargo_args.push("--no-release");
         }
         if self.no_abi {
             cargo_args.push("--no-abi");
@@ -250,11 +250,11 @@ impl super::BuildCommand {
         if self.no_doc {
             cargo_args.push("--no-doc");
         }
-        if self.no_locked {
-            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
+        if let Some(ref features) = self.features {
+            cargo_args.extend(&["--features", features]);
         }
-        if self.no_release {
-            cargo_args.push("--no-release");
+        if self.no_default_features {
+            cargo_args.push("--no-default-features");
         }
 
         let color;

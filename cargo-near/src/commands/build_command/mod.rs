@@ -70,33 +70,6 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        no_locked: bool,
-        no_release: bool,
-        no_abi: bool,
-        no_embed_abi: bool,
-        no_doc: bool,
-        out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-        manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-        features: Option<String>,
-        no_default_features: bool,
-        color: Option<crate::common::ColorPreference>,
-    ) -> Self {
-        Self {
-            no_locked,
-            no_docker: true,
-            no_release,
-            no_abi,
-            no_embed_abi,
-            no_doc,
-            features,
-            no_default_features,
-            out_dir,
-            manifest_path,
-            color,
-        }
-    }
     pub fn contract_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
         let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
             let manifest_path = CargoManifestPath::try_from(manifest_path.deref().clone())?;
@@ -110,7 +83,7 @@ impl BuildCommand {
     }
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         if self.no_docker() {
-            self::build::run(self)
+            self::build::run(self.into())
         } else {
             self.docker_run(context)
         }

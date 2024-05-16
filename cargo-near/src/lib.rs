@@ -3,13 +3,15 @@
 pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
+pub mod build_extended;
 pub mod commands;
 pub mod common;
 pub mod types;
 pub mod util;
 
-pub use commands::build_command::build::run as run_build;
-pub use commands::build_command::BuildCommand as BuildArgs;
+pub use build_extended::{build as build_extended, OptsExtended as BuildOptsExtended};
+pub use commands::build_command::build::run as build;
+pub use commands::build_command::build::Opts as BuildOpts;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
