@@ -167,13 +167,20 @@ pub struct CompilationArtifact {
     pub fresh: bool,
     pub from_docker: bool,
 }
+pub struct SHA256Checksum {
+    pub hex: String,
+    pub base58: String,
+}
 
 impl CompilationArtifact {
-    pub fn compute_hash(&self) -> color_eyre::eyre::Result<String> {
+    pub fn compute_hash(&self) -> color_eyre::eyre::Result<SHA256Checksum> {
         let mut hasher = Sha256::new();
         hasher.update(std::fs::read(&self.path)?);
         let hash = hasher.finalize();
-        Ok(bs58::encode(hash).into_string())
+        Ok(SHA256Checksum {
+            hex: hex::encode(hash),
+            base58: bs58::encode(hash).into_string(),
+        })
     }
 }
 

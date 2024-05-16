@@ -19,6 +19,7 @@ eula = false
 
 [dependencies]
 bs58 = "0.4"
+hex = "0.4.3"
 camino = "1.1.1"
 cargo_metadata = "0.18.1"
 clap = { version = "4.0.18", features = ["derive", "env"] }

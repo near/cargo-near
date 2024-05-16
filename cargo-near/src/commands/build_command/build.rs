@@ -129,7 +129,7 @@ pub fn run(args: super::BuildCommand) -> color_eyre::eyre::Result<util::Compilat
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&wasm_artifact)?;
     if let Some(mut abi) = abi {
-        abi.metadata.wasm_hash = Some(wasm_artifact.compute_hash()?);
+        abi.metadata.wasm_hash = Some(wasm_artifact.compute_hash()?.base58);
 
         let AbiResult { path } =
             abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;

@@ -782,6 +782,7 @@ dependencies = [
  "dunce",
  "env_logger",
  "git2",
+ "hex 0.4.3",
  "home",
  "inquire",
  "interactive-clap",
