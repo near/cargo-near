@@ -17,10 +17,9 @@ pub struct SubBuildOpts<'a> {
     /// the desired value of `contract_path` from `BuildInfo`
     /// <https://github.com/near/NEPs/blob/master/neps/nep-0330.md?plain=1#L155>
     pub metadata_contract_path: &'a str,
-    /// the first of element in tuple `cargo near build...` command must correspond to 2nd element,
-    /// the first element is used as an override for contract metadata field
+    /// command used as an override for contract metadata field
     /// <https://github.com/near/NEPs/blob/master/neps/nep-0330.md?plain=1#L156>
-    pub build_command: (String, BuildOpts),
+    pub build_command: String,
     /// substitution export of `CARGO_TARGET_DIR`,
     /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938>
     /// should be a subfolder of `CARGO_TARGET_DIR` of package being built to work normally in
@@ -116,10 +115,12 @@ fn compile_near_artifact(
 
     let _tmp_contract_path_env =
         tmp_env::set_var(NEP330_CONTRACT_PATH_ENV_KEY, args.metadata_contract_path);
-    let _tmp_build_cmd_env = tmp_env::set_var(NEP330_BUILD_CMD_ENV_KEY, &args.build_command.0);
+    let _tmp_build_cmd_env = tmp_env::set_var(NEP330_BUILD_CMD_ENV_KEY, &args.build_command);
 
     let _tmp_cargo_target_env = tmp_env::set_var("CARGO_TARGET_DIR", args.distinct_target_dir);
-    let artifact = crate::run_build(args.build_command.1.clone())?;
+
+    let build_opts = BuildOpts::from_cli_command(&args.build_command)?;
+    let artifact = crate::run_build(build_opts)?;
 
     Ok(artifact)
 }

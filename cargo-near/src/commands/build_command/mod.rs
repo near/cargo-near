@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use color_eyre::eyre::ContextCompat;
 use colored::{ColoredString, Colorize};
 
 use crate::{
@@ -69,6 +70,8 @@ pub enum BuildContext {
     Build,
     Deploy,
 }
+
+// NOTE:: this impl block corresponds to `cargo_near_lib::BuildOpts` type
 impl BuildCommand {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -97,6 +100,60 @@ impl BuildCommand {
             color,
         }
     }
+
+    pub fn from_cli_command(cmd: &str) -> color_eyre::eyre::Result<Self> {
+        let cmd = cmd
+            .strip_prefix("cargo near build")
+            .wrap_err("doesn't start with `cargo near build`")?;
+        let mut tokens = cmd.split_whitespace();
+
+        let allowed_opts = [
+            "--no-locked",
+            "--no-release",
+            "--no-abi",
+            "--no-embed-abi",
+            "--no-doc",
+            "--features",
+            "--no-default-features",
+        ];
+
+        let mut result = Self {
+            no_docker: true,
+            ..Default::default()
+        };
+
+        while let Some(token) = tokens.next() {
+            if !allowed_opts.contains(&token) {
+                return Err(color_eyre::eyre::eyre!("disallowed opt: `{}`", token));
+            }
+            if token == "--no-locked" {
+                result.no_locked = true;
+            }
+            if token == "--no-release" {
+                result.no_release = true;
+            }
+            if token == "--no-abi" {
+                result.no_abi = true;
+            }
+            if token == "--no-embed-abi" {
+                result.no_embed_abi = true;
+            }
+            if token == "--no-doc" {
+                result.no_doc = true;
+            }
+            if token == "--features" {
+                let features_token = tokens.next().wrap_err("empty `--features` arg")?;
+                result.features = Some(features_token.to_string());
+            }
+            if token == "--no-default-features" {
+                result.no_default_features = true;
+            }
+        }
+        Ok(result)
+    }
+}
+
+impl BuildCommand {
     pub fn contract_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
         let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
             let manifest_path = CargoManifestPath::try_from(manifest_path.deref().clone())?;
