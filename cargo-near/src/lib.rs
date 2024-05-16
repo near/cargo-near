@@ -3,13 +3,16 @@
 pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
+/// module with common code to write
+/// build-scripts, utilizing [commands::build_command::build::run]
+pub mod build_rs;
 pub mod commands;
 pub mod common;
 pub mod types;
 pub mod util;
 
 pub use commands::build_command::build::run as run_build;
-pub use commands::build_command::BuildCommand as BuildArgs;
+pub use commands::build_command::BuildCommand as BuildOpts;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
