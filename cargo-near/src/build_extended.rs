@@ -1,7 +1,6 @@
 use crate::{
     commands::build_command::{BUILD_RS_ABI_STEP_HINT_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY},
-    util::CompilationArtifact,
-    BuildOpts,
+    BuildArtifact, BuildOpts,
 };
 
 macro_rules! print_warn {
@@ -35,14 +34,17 @@ pub struct OptsExtended<'a> {
     pub rerun_if_changed_list: Vec<&'a str>,
 }
 
-pub fn build(args: OptsExtended, result_env_key: String) -> Result<(), Box<dyn std::error::Error>> {
-    skip_or_compile(&args, &result_env_key)?;
+pub fn build(
+    args: OptsExtended,
+    result_env_key: String,
+) -> Result<BuildArtifact, Box<dyn std::error::Error>> {
+    let (artifact, skipped) = skip_or_compile(&args, &result_env_key)?;
     print_warn!(
         "Path to result artifact of build in `{}` is exported to `{}`",
         &args.workdir,
         result_env_key,
     );
-    Ok(())
+    Ok(artifact)
 }
 
 // TODO: replace `cargo:` -> `cargo::`, as the former is being deprecated since rust 1.77
@@ -50,10 +52,20 @@ pub fn build(args: OptsExtended, result_env_key: String) -> Result<(), Box<dyn s
 fn skip_or_compile(
     args: &OptsExtended,
     result_env_key: &String,
-) -> Result<(), Box<dyn std::error::Error>> {
-    if skip(args) {
+) -> Result<(BuildArtifact, bool), Box<dyn std::error::Error>> {
+    let result = if skip(args) {
         let stub_path = std::path::Path::new(&args.stub_path);
         create_stub_file(stub_path)?;
+
+        let artifact = {
+            let stub_path = camino::Utf8PathBuf::from_path_buf(stub_path.to_path_buf())
+                .map_err(|err| format!("`{}` isn't a valid UTF-8 path", err.to_string_lossy()))?;
+            BuildArtifact {
+                path: stub_path,
+                fresh: true,
+                from_docker: false,
+            }
+        };
         let stub_path = stub_path
             .canonicalize()
             .unwrap()
@@ -61,19 +73,21 @@ fn skip_or_compile(
             .to_string();
         print_warn!("Sub-build empty artifact stub written to: `{}`", stub_path);
         println!("cargo:rustc-env={}={}", result_env_key, stub_path);
+        (artifact, true)
     } else {
         let artifact = compile_near_artifact(args)?;
         pretty_print(&artifact)?;
         println!(
             "cargo:rustc-env={}={}",
             result_env_key,
-            artifact.path.into_string()
+            artifact.path.clone().into_string()
         );
         for path in args.rerun_if_changed_list.iter() {
             println!("cargo:rerun-if-changed={}", path);
         }
-    }
-    Ok(())
+        (artifact, false)
+    };
+    Ok(result)
 }
 
 fn skip(args: &OptsExtended) -> bool {
@@ -101,9 +115,7 @@ fn skip(args: &OptsExtended) -> bool {
 ///
 /// `CARGO_TARGET_DIR` export is needed to avoid attempt to acquire same `target/<profile-path>/.cargo-lock`
 /// as the `cargo` process, which is running the build-script
-fn compile_near_artifact(
-    args: &OptsExtended,
-) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
+fn compile_near_artifact(args: &OptsExtended) -> Result<BuildArtifact, Box<dyn std::error::Error>> {
     let _tmp_workdir = tmp_env::set_current_dir(args.workdir)?;
 
     let _tmp_contract_path_env =
@@ -124,7 +136,7 @@ fn create_stub_file(out_path: &std::path::Path) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
-fn pretty_print(artifact: &CompilationArtifact) -> Result<(), Box<dyn std::error::Error>> {
+fn pretty_print(artifact: &BuildArtifact) -> Result<(), Box<dyn std::error::Error>> {
     let hash = artifact.compute_hash()?;
 
     print_warn!("");
