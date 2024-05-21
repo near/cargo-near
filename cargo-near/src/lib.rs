@@ -9,7 +9,9 @@ pub mod common;
 pub mod types;
 pub mod util;
 
-pub use build_extended::{build as build_extended, OptsExtended as BuildOptsExtended};
+pub use build_extended::{
+    build as build_extended, BuildScriptOpts, OptsExtended as BuildOptsExtended,
+};
 pub use commands::build_command::build::run as build;
 pub use commands::build_command::build::Opts as BuildOpts;
 pub use util::CompilationArtifact as BuildArtifact;
