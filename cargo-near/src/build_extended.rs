@@ -6,7 +6,7 @@ pub use build_script::BuildScriptOpts;
 #[derive(Debug, Clone)]
 pub struct OptsExtended<'a> {
     pub workdir: &'a str,
-    /// vector of key-value pairs of for temporary env overrides during build process
+    /// vector of key-value pairs of temporary env overrides during build process
     pub env: Vec<(&'a str, &'a str)>,
     pub build_opts: BuildOpts,
     pub build_script_opts: BuildScriptOpts<'a>,
