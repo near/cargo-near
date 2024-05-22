@@ -239,7 +239,9 @@ fn export_nep_330_build_command(args: &Opts) {
     );
     let env_value = match std::env::args().next() {
         // this is for cli context, being called from `cargo-near` bin
-        Some(cli_arg_0) if cli_arg_0.contains("cargo-near") => {
+        Some(cli_arg_0)
+            if cli_arg_0.ends_with("cargo-near") || cli_arg_0.ends_with("cargo-near.exe") =>
+        {
             let mut cmd: Vec<String> = vec!["cargo".into()];
             // skipping `cargo-near`
             cmd.extend(std::env::args().skip(1));
