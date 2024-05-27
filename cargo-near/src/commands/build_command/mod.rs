@@ -18,6 +18,7 @@ pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_SN
 // ====================== End section =======================================
 pub const REPO_LINK_HINT_ENV_KEY: &str = "CARGO_NEAR_REPO_LINK_HINT";
 pub const BUILD_RS_ABI_STEP_HINT_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
+pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]

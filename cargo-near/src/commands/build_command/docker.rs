@@ -3,8 +3,12 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{commands::build_command::NEP330_CONTRACT_PATH_ENV_KEY, types::source_id, util};
 use crate::{commands::build_command::NEP330_INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
+use crate::{
+    commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
+    types::source_id,
+    util,
+};
 
 use color_eyre::eyre::ContextCompat;
 
@@ -126,7 +130,6 @@ impl super::BuildCommand {
                 let mut docker_args = vec![
                     "-u",
                     &uid_gid,
-                    "-it",
                     "--name",
                     &docker_container_name,
                     "--volume",
@@ -135,6 +138,10 @@ impl super::BuildCommand {
                     "--workdir",
                     &container_paths.crate_path,
                 ];
+
+                if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
+                    docker_args.push("-it");
+                }
 
                 docker_args.extend(env_args.iter().map(|string| string.as_str()));
 
