@@ -1,7 +1,7 @@
 use colored::Colorize;
 use serde::Deserialize;
 
-use crate::{types::metadata::CrateMetadata, util};
+use crate::types::metadata::CrateMetadata;
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 
@@ -98,17 +98,10 @@ impl ReproducibleBuild {
             }
         };
         build_meta.validate()?;
-        println!(
-            "{}",
-            util::indent_string(&format!(
-                "{} {}",
-                "reproducible build metadata:".green(),
-                build_meta
-            ))
-        );
+        println!("{} {}", "reproducible build metadata:".green(), build_meta);
         if build_meta.container_build_command.is_some() {
             println!(
-                " {}", "using `container_build_command` from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
+                "{}", "using `container_build_command` from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
             );
         }
         Ok(build_meta)

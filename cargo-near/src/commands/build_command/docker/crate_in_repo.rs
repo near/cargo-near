@@ -41,7 +41,7 @@ impl Crate {
 
                 let head = repo.revparse_single("HEAD")?.id();
                 println!(
-                    " {} {:?}",
+                    "{} {:?}",
                     format!("current HEAD ({}):", repo.path().display()).green(),
                     head
                 );
