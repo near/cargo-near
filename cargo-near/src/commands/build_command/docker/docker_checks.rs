@@ -16,7 +16,7 @@ pub(super) fn handle_command_io_error<T>(
         Err(io_err) if io_err.kind() == std::io::ErrorKind::NotFound => {
             println!();
             println!("{}", "`docker` executable isn't available".yellow());
-            print_installation_links();
+            print_installation_links(false);
             print_non_docker_suggestion();
             Err(report)
         }
@@ -37,30 +37,37 @@ pub(super) fn handle_command_io_error<T>(
     }
 }
 
-fn print_installation_links() {
+fn print_installation_links(permission_denied: bool) {
     match std::env::consts::OS {
         "linux" => {
             println!(
                 "{} {}",
-                "Please, make sure to follow instructions to correctly install Docker Engine on"
-                    .cyan(),
+                "Please, follow instructions to correctly install Docker Engine on".cyan(),
                 "https://docs.docker.com/engine/install/".magenta()
             );
+            if permission_denied {
+                println!(
+                    "{} {} {} `{}` {}",
+                    "Please, pay special attention to".cyan(),
+                    "https://docs.docker.com/engine/install/linux-postinstall/".magenta(),
+                    "section regarding your".cyan(),
+                    "permission denied".magenta(),
+                    "problem".cyan(),
+                );
+            }
         }
 
         "macos" => {
             println!(
                 "{} {}",
-                "Please, make sure to follow instructions to correctly install Docker Desktop on"
-                    .cyan(),
+                "Please, follow instructions to correctly install Docker Desktop on".cyan(),
                 "https://docs.docker.com/desktop/install/mac-install/".magenta()
             );
         }
         "windows" => {
             println!(
                 "{} {}",
-                "Please, make sure to follow instructions to correctly install Docker Desktop on"
-                    .cyan(),
+                "Please, follow instructions to correctly install Docker Desktop on".cyan(),
                 "https://docs.docker.com/desktop/install/windows-install/".magenta()
             );
         }
