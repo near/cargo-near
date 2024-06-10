@@ -20,9 +20,10 @@ pub fn check() -> color_eyre::eyre::Result<()> {
         println!("{}", stderr.yellow());
         if permission_denied(&output.status, stderr)? {
             println!("{}", "Permission denied!".cyan());
-            super::print_installation_links(true);
+            super::print_installation_links();
+            super::print_linux_postinstall_steps();
         } else {
-            super::print_installation_links(false);
+            super::print_installation_links();
         }
         super::print_command_status(output.status, docker_cmd);
         return Err(color_eyre::eyre::eyre!(ERR_SANITY));

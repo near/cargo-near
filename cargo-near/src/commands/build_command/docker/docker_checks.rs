@@ -16,7 +16,7 @@ pub(super) fn handle_command_io_error<T>(
         Err(io_err) if io_err.kind() == std::io::ErrorKind::NotFound => {
             println!();
             println!("{}", "`docker` executable isn't available".yellow());
-            print_installation_links(false);
+            print_installation_links();
             print_non_docker_suggestion();
             Err(report)
         }
@@ -37,7 +37,7 @@ pub(super) fn handle_command_io_error<T>(
     }
 }
 
-fn print_installation_links(permission_denied: bool) {
+fn print_installation_links() {
     match std::env::consts::OS {
         "linux" => {
             println!(
@@ -45,16 +45,6 @@ fn print_installation_links(permission_denied: bool) {
                 "Please, follow instructions to correctly install Docker Engine on".cyan(),
                 "https://docs.docker.com/engine/install/".magenta()
             );
-            if permission_denied {
-                println!(
-                    "{} {} {} `{}` {}",
-                    "Please, pay special attention to".cyan(),
-                    "https://docs.docker.com/engine/install/linux-postinstall/".magenta(),
-                    "section regarding your".cyan(),
-                    "permission denied".magenta(),
-                    "problem".cyan(),
-                );
-            }
         }
 
         "macos" => {
@@ -78,6 +68,17 @@ fn print_installation_links(permission_denied: bool) {
             );
         }
     }
+}
+
+fn print_linux_postinstall_steps() {
+    println!(
+        "{} {} {} `{}` {}",
+        "Please, pay special attention to".cyan(),
+        "https://docs.docker.com/engine/install/linux-postinstall/".magenta(),
+        "section regarding your".cyan(),
+        "permission denied".magenta(),
+        "problem".cyan(),
+    );
 }
 
 pub(super) fn print_command_status(
