@@ -130,8 +130,14 @@ fn pretty_print(skipped: bool, artifact: &BuildArtifact) -> Result<(), Box<dyn s
         "Build artifact path: {}",
         artifact.path.clone().into_string()
     );
-    print_warn!("Sub-build artifact SHA-256 checksum hex: {}", hash.hex);
-    print_warn!("Sub-build artifact SHA-256 checksum bs58: {}", hash.base58);
+    print_warn!(
+        "Sub-build artifact SHA-256 checksum hex: {}",
+        hash.to_hex_string()
+    );
+    print_warn!(
+        "Sub-build artifact SHA-256 checksum bs58: {}",
+        hash.to_base58_string()
+    );
     print_warn!("");
     print_warn!("");
     Ok(())

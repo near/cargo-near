@@ -109,10 +109,14 @@ impl<'a> ArtifactMessages<'a> {
             wasm_artifact.path.to_string().bright_yellow().bold(),
         ));
         let checksum = wasm_artifact.compute_hash()?;
-        self.messages
-            .push(("SHA-256 checksum hex ", checksum.hex.green().dimmed()));
-        self.messages
-            .push(("SHA-256 checksum bs58", checksum.base58.green().dimmed()));
+        self.messages.push((
+            "SHA-256 checksum hex ",
+            checksum.to_hex_string().green().dimmed(),
+        ));
+        self.messages.push((
+            "SHA-256 checksum bs58",
+            checksum.to_base58_string().green().dimmed(),
+        ));
         Ok(())
     }
     pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
