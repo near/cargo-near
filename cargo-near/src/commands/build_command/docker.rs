@@ -3,7 +3,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{commands::build_command::NEP330_INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
+use crate::{commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY, common::ColorPreference};
 use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
     types::source_id,
@@ -16,7 +16,7 @@ use colored::Colorize;
 #[cfg(unix)]
 use nix::unistd::{getgid, getuid};
 
-use super::{BuildContext, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY, REPO_LINK_HINT_ENV_KEY};
+use super::{BuildContext, NEP330_LINK_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY};
 
 mod cloned_repo;
 mod crate_in_repo;
@@ -367,7 +367,7 @@ impl Nep330BuildInfo {
             "--env".to_string(),
             format!(
                 "{}={}",
-                NEP330_INSIDE_DOCKER_ENV_KEY, self.build_environment
+                NEP330_BUILD_ENVIRONMENT_ENV_KEY, self.build_environment
             ),
             "--env".to_string(),
             format!(
@@ -414,7 +414,7 @@ impl EnvVars {
         if let Some(repo_link_hint) = self.compute_repo_link_hint() {
             result.extend(vec![
                 "--env".to_string(),
-                format!("{}={}", REPO_LINK_HINT_ENV_KEY, repo_link_hint,),
+                format!("{}={}", NEP330_LINK_ENV_KEY, repo_link_hint,),
             ]);
         }
         result.extend(vec!["--env".to_string(), self.rust_log.clone()]);

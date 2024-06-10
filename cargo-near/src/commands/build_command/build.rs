@@ -4,7 +4,7 @@ use near_abi::BuildInfo;
 
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
-    NEP330_BUILD_CMD_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
+    NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
 use crate::common::ColorPreference;
 use crate::types::manifest::MANIFEST_FILE_NAME;
@@ -12,7 +12,7 @@ use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
-use super::{ArtifactMessages, NEP330_INSIDE_DOCKER_ENV_KEY};
+use super::{ArtifactMessages, NEP330_BUILD_ENVIRONMENT_ENV_KEY};
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -210,7 +210,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
 
     util::print_success(&format!(
         "Contract successfully built! (in CARGO_NEAR_BUILD_ENVIRONMENT={})",
-        std::env::var(NEP330_INSIDE_DOCKER_ENV_KEY).unwrap_or("host".into())
+        std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).unwrap_or("host".into())
     ));
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&wasm_artifact)?;
@@ -253,14 +253,14 @@ fn export_nep_330_build_command(args: &Opts) {
             args.get_cli_build_command()
         }
     };
-    std::env::set_var(NEP330_BUILD_CMD_ENV_KEY, env_value);
+    std::env::set_var(NEP330_BUILD_COMMAND_ENV_KEY, env_value);
 }
 
 fn print_nep_330_env() {
     log::info!("Variables, relevant for reproducible builds:");
     for key in [
-        NEP330_INSIDE_DOCKER_ENV_KEY,
-        NEP330_BUILD_CMD_ENV_KEY,
+        NEP330_BUILD_ENVIRONMENT_ENV_KEY,
+        NEP330_BUILD_COMMAND_ENV_KEY,
         NEP330_CONTRACT_PATH_ENV_KEY,
         NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
     ] {

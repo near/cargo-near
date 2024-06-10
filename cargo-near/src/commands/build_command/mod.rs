@@ -11,12 +11,12 @@ pub(crate) mod build;
 mod docker;
 
 // ====================== NEP-330 Build Details Extension section ===========
-pub const NEP330_INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
-pub const NEP330_BUILD_CMD_ENV_KEY: &str = "CARGO_NEAR_BUILD_COMMAND";
-pub const NEP330_CONTRACT_PATH_ENV_KEY: &str = "CARGO_NEAR_CONTRACT_PATH";
-pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_SNAPSHOT";
+pub const NEP330_BUILD_ENVIRONMENT_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
+pub const NEP330_BUILD_COMMAND_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_COMMAND";
+pub const NEP330_CONTRACT_PATH_ENV_KEY: &str = "NEP330_BUILD_INFO_CONTRACT_PATH";
+pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT";
 // ====================== End section =======================================
-pub const REPO_LINK_HINT_ENV_KEY: &str = "CARGO_NEAR_REPO_LINK_HINT";
+pub const NEP330_LINK_ENV_KEY: &str = "NEP330_LINK";
 pub const BUILD_RS_ABI_STEP_HINT_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
 pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
 
@@ -90,7 +90,7 @@ impl BuildCommand {
         }
     }
     pub fn no_docker(&self) -> bool {
-        std::env::var(NEP330_INSIDE_DOCKER_ENV_KEY).is_ok() || self.no_docker
+        std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() || self.no_docker
     }
 }
 
