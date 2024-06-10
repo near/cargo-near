@@ -47,7 +47,7 @@ impl Opts {
     /// in order of fields, as specified in struct's definition.
     /// `Default` implementation corresponds to plain `cargo near build` command without any args
     fn get_cli_build_command(&self) -> String {
-        let mut cargo_args = vec![];
+        let mut cargo_args = vec!["cargo", "near", "build"];
         if self.no_locked {
             cargo_args.push("--no-locked");
         }
@@ -81,9 +81,7 @@ impl Opts {
             color = color_arg.to_string();
             cargo_args.extend(&["--color", &color]);
         }
-        let mut cargo_cmd_list = vec!["cargo", "near", "build"];
-        cargo_cmd_list.extend(&cargo_args);
-        cargo_cmd_list.join(" ")
+        cargo_args.join(" ")
     }
 }
 
