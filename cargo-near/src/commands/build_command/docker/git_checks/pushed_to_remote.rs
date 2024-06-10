@@ -18,7 +18,8 @@ pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> color_eyre::Result<()>
             Ok(repo) => {
                 println!(" {}", "Checking if HEAD is present...".green());
                 repo.find_commit(commit_id)
-                    .wrap_err("commit wasn't found in remote repo")?;
+                    .wrap_err("commit wasn't found in remote repo. \
+                        Please, push the changes to the remote repository so reproducible builds become possible")?;
                 println!(
                     " {} {} in `{}` -> `{}`",
                     "commit was found in repo:".green(),
