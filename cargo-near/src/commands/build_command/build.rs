@@ -12,7 +12,7 @@ use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
-use super::{ArtifactMessages, NEP330_BUILD_ENVIRONMENT_ENV_KEY};
+use super::{ArtifactMessages, NEP330_BUILD_ENVIRONMENT_ENV_KEY, NEP330_VERSION_ENV_KEY};
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -193,6 +193,9 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
         build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
     }
+
+    let version = crate_metadata.root_package.version.to_string();
+    build_env.push((NEP330_VERSION_ENV_KEY, &version));
 
     util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
