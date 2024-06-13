@@ -178,7 +178,7 @@ impl super::BuildCommand {
 
     fn get_cli_build_command_in_docker(
         &self,
-        manifest_command: Option<String>,
+        manifest_command: Option<Vec<String>>,
     ) -> color_eyre::eyre::Result<String> {
         if let Some(cargo_cmd) = manifest_command {
             if self.no_locked {
@@ -230,7 +230,7 @@ impl super::BuildCommand {
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            return Ok(cargo_cmd);
+            return Ok(cargo_cmd.join(" "));
         }
         println!(
             "{}",

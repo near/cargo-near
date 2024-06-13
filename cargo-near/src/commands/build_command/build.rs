@@ -48,7 +48,7 @@ impl Opts {
     /// this is just 1-to-1 mapping of each struct's field to a cli flag
     /// in order of fields, as specified in struct's definition.
     /// `Default` implementation corresponds to plain `cargo near build` command without any args
-    fn get_cli_build_command(&self) -> String {
+    fn get_cli_build_command(&self) -> Vec<String> {
         let mut cargo_args = vec!["cargo", "near", "build"];
         if self.no_locked {
             cargo_args.push("--no-locked");
@@ -83,7 +83,10 @@ impl Opts {
             color = color_arg.to_string();
             cargo_args.extend(&["--color", &color]);
         }
-        cargo_args.join(" ")
+        cargo_args
+            .into_iter()
+            .map(|el| el.to_string())
+            .collect::<Vec<_>>()
     }
 }
 
@@ -105,7 +108,7 @@ impl From<super::BuildCommand> for Opts {
 }
 
 pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
-    export_nep_330_build_command(&args);
+    export_nep_330_build_command(&args)?;
     print_nep_330_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
@@ -241,12 +244,12 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     Ok(wasm_artifact)
 }
 
-fn export_nep_330_build_command(args: &Opts) {
+fn export_nep_330_build_command(args: &Opts) -> color_eyre::eyre::Result<()> {
     log::debug!(
         "compute `CARGO_NEAR_BUILD_COMMAND`,  current executable: {:?}",
         std::env::args().collect::<Vec<_>>()
     );
-    let env_value = match std::env::args().next() {
+    let env_value: Vec<String> = match std::env::args().next() {
         // this is for cli context, being called from `cargo-near` bin
         Some(cli_arg_0)
             if cli_arg_0.ends_with("cargo-near") || cli_arg_0.ends_with("cargo-near.exe") =>
@@ -254,7 +257,7 @@ fn export_nep_330_build_command(args: &Opts) {
             let mut cmd: Vec<String> = vec!["cargo".into()];
             // skipping `cargo-near`
             cmd.extend(std::env::args().skip(1));
-            cmd.join(" ")
+            cmd
         }
         // this is for lib context, when build method is called from code
         // where `cargo-near` is an unlikely name to be chosen for executable
@@ -264,7 +267,12 @@ fn export_nep_330_build_command(args: &Opts) {
             args.get_cli_build_command()
         }
     };
-    std::env::set_var(NEP330_BUILD_COMMAND_ENV_KEY, env_value);
+
+    std::env::set_var(
+        NEP330_BUILD_COMMAND_ENV_KEY,
+        serde_json::to_string(&env_value)?,
+    );
+    Ok(())
 }
 
 fn print_nep_330_env() {

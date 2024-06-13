@@ -9,7 +9,7 @@ use std::collections::BTreeMap as Map;
 pub(super) struct ReproducibleBuild {
     image: String,
     image_digest: String,
-    pub container_build_command: Option<String>,
+    pub container_build_command: Option<Vec<String>>,
     /// a string, containing https://git-scm.com/docs/git-clone#URLS,
     /// currently, only ones, starting with `https://`, and ending in `.git` are supported
     pub source_code_git_url: url::Url,
@@ -26,7 +26,7 @@ impl std::fmt::Display for ReproducibleBuild {
         writeln!(f, "    {}: {}", "image", self.image)?;
         writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
         if let Some(ref cmd) = self.container_build_command {
-            writeln!(f, "    {}: {}", "container build command", cmd)?;
+            writeln!(f, "    {}: {:?}", "container build command", cmd)?;
         } else {
             writeln!(
                 f,
@@ -46,6 +46,43 @@ impl std::fmt::Display for ReproducibleBuild {
 
 impl ReproducibleBuild {
     fn validate(&self) -> color_eyre::eyre::Result<()> {
+        if self
+            .image
+            .chars()
+            .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
+        {
+            return Err(color_eyre::eyre::eyre!(
+                "{}: `{}`\n{}",
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                self.image,
+                "`image`: string contains invalid characters",
+            ));
+        }
+        if self
+            .image_digest
+            .chars()
+            .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
+        {
+            return Err(color_eyre::eyre::eyre!(
+                "{}: `{}`\n{}",
+                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                self.image_digest,
+                "`image_digest`: string contains invalid characters",
+            ));
+        }
+        for command_token in self.container_build_command.clone().unwrap_or(vec![]) {
+            if command_token
+                .chars()
+                .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
+            {
+                return Err(color_eyre::eyre::eyre!(
+                    "{}: `{}`\n{}",
+                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    command_token,
+                    "`container_build_command`: string token contains invalid characters",
+                ));
+            }
+        }
         if !self.unknown_keys.is_empty() {
             let keys = self
                 .unknown_keys
@@ -111,12 +148,6 @@ impl ReproducibleBuild {
         result.push_str(&self.image);
         result.push('@');
         result.push_str(&self.image_digest);
-        let result = result
-            .chars()
-            .filter(|c| c.is_ascii())
-            .filter(|c| !c.is_ascii_control())
-            .filter(|c| !c.is_ascii_whitespace())
-            .collect();
         result
     }
 }
