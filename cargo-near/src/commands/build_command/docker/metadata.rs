@@ -70,7 +70,7 @@ impl ReproducibleBuild {
                 "`image_digest`: string contains invalid characters",
             ));
         }
-        for command_token in self.container_build_command.clone().unwrap_or(vec![]) {
+        for command_token in self.container_build_command.clone().unwrap_or_default() {
             if command_token
                 .chars()
                 .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
