@@ -12,7 +12,9 @@ use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
-use super::{ArtifactMessages, NEP330_BUILD_ENVIRONMENT_ENV_KEY, NEP330_VERSION_ENV_KEY};
+use super::{
+    ArtifactMessages, NEP330_BUILD_ENVIRONMENT_ENV_KEY, NEP330_LINK_ENV_KEY, NEP330_VERSION_ENV_KEY,
+};
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -196,6 +198,12 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
 
     let version = crate_metadata.root_package.version.to_string();
     build_env.push((NEP330_VERSION_ENV_KEY, &version));
+    // this will be set in docker builds (externally to current process), having more info about git commit
+    if std::env::var(NEP330_LINK_ENV_KEY).is_err() {
+        if let Some(ref repository) = crate_metadata.root_package.repository {
+            build_env.push((NEP330_LINK_ENV_KEY, repository));
+        }
+    }
 
     util::print_step("Building contract");
     let mut wasm_artifact = util::compile_project(
