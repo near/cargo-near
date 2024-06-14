@@ -1,19 +1,29 @@
 //! TODO: replace `cargo:` -> `cargo::`, as the former is being deprecated since rust 1.77
 //! or handle both with `rustc_version`
 use crate::BuildArtifact;
+use rustc_version::Version;
+
+/// `cargo::` prefix for build script outputs, that `cargo` recognizes
+/// was implemented <https://github.com/rust-lang/cargo/pull/12201> since this version
+const DEPRECATE_SINGLE_COLON_SINCE: Version = Version::new(1, 77, 0);
 
 macro_rules! print_warn {
-    ($($tokens: tt)*) => {
-        println!("cargo:warning={}", format!($($tokens)*))
+    ($version: ident, $($tokens: tt)*) => {
+        let separator = if $version >= &DEPRECATE_SINGLE_COLON_SINCE {
+            "::"
+        } else {
+            ":"
+        };
+        println!("cargo{}warning={}", separator, format!($($tokens)*))
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct BuildScriptOpts<'a> {
-    /// environment variable name to export result `*.wasm` path to with [`cargo:rustc-env=`](https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-env)
+    /// environment variable name to export result `*.wasm` path to with [`cargo::rustc-env=`](https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-env)
     /// instruction
     pub result_env_key: Option<&'a str>,
-    /// list of paths for [`cargo:rerun-if-changed=`](https://doc.rust-lang.org/cargo/reference/build-scripts.html#rerun-if-changed)
+    /// list of paths for [`cargo::rerun-if-changed=`](https://doc.rust-lang.org/cargo/reference/build-scripts.html#rerun-if-changed)
     /// instruction
     ///
     /// if relative, it's relative to path of crate, where build.rs is compiled
@@ -39,13 +49,14 @@ pub struct BuildScriptOpts<'a> {
 }
 
 impl<'a> BuildScriptOpts<'a> {
-    pub fn should_skip(&self) -> bool {
+    pub fn should_skip(&self, version: &Version) -> bool {
         let mut return_bool = false;
         for (env_key, value_to_skip) in self.build_skipped_when_env_is.iter() {
             if let Ok(actual_value) = std::env::var(env_key) {
                 if actual_value == *value_to_skip {
                     return_bool = true;
                     print_warn!(
+                        version,
                         "`{}` env set to `{}`, build was configured to skip on this value",
                         env_key,
                         actual_value
@@ -84,22 +95,30 @@ impl<'a> BuildScriptOpts<'a> {
         skipped: bool,
         artifact: &BuildArtifact,
         workdir: &str,
+        version: &Version,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let colon_separator = if version >= &DEPRECATE_SINGLE_COLON_SINCE {
+            "::"
+        } else {
+            ":"
+        };
         if let Some(ref result_env_key) = self.result_env_key {
-            pretty_print(skipped, artifact)?;
+            pretty_print(skipped, artifact, version)?;
             println!(
-                "cargo:rustc-env={}={}",
+                "cargo{}rustc-env={}={}",
+                colon_separator,
                 result_env_key,
                 artifact.path.clone().into_string()
             );
             print_warn!(
+                version,
                 "Path to result artifact of build in `{}` is exported to `{}`",
                 workdir,
                 result_env_key,
             );
         }
         for path in self.rerun_if_changed_list.iter() {
-            println!("cargo:rerun-if-changed={}", path);
+            println!("cargo{}rerun-if-changed={}", colon_separator, path);
         }
         Ok(())
     }
@@ -114,9 +133,14 @@ fn create_stub_file(out_path: &std::path::Path) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
-fn pretty_print(skipped: bool, artifact: &BuildArtifact) -> Result<(), Box<dyn std::error::Error>> {
+fn pretty_print(
+    skipped: bool,
+    artifact: &BuildArtifact,
+    version: &Version,
+) -> Result<(), Box<dyn std::error::Error>> {
     if skipped {
         print_warn!(
+            version,
             "Build empty artifact stub-file written to: `{}`",
             artifact.path.clone().into_string()
         );
@@ -124,21 +148,24 @@ fn pretty_print(skipped: bool, artifact: &BuildArtifact) -> Result<(), Box<dyn s
     }
     let hash = artifact.compute_hash()?;
 
-    print_warn!("");
-    print_warn!("");
+    print_warn!(version, "");
+    print_warn!(version, "");
     print_warn!(
+        version,
         "Build artifact path: {}",
         artifact.path.clone().into_string()
     );
     print_warn!(
+        version,
         "Sub-build artifact SHA-256 checksum hex: {}",
         hash.to_hex_string()
     );
     print_warn!(
+        version,
         "Sub-build artifact SHA-256 checksum bs58: {}",
         hash.to_base58_string()
     );
-    print_warn!("");
-    print_warn!("");
+    print_warn!(version, "");
+    print_warn!(version, "");
     Ok(())
 }
