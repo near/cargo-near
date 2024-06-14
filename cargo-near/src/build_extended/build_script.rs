@@ -1,5 +1,3 @@
-//! TODO: replace `cargo:` -> `cargo::`, as the former is being deprecated since rust 1.77
-//! or handle both with `rustc_version`
 use crate::BuildArtifact;
 use rustc_version::Version;
 
