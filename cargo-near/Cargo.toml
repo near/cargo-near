@@ -57,7 +57,7 @@ unix_path = "1.0.1"
 url = { version = "2.5.0", features = ["serde"]}
 tmp_env = "0.1.1"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 nix = { version = "0.28.0", features = ["user", "process"] }
 
 [features]

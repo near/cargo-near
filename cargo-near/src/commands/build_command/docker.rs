@@ -13,7 +13,7 @@ use crate::{
 use color_eyre::eyre::ContextCompat;
 
 use colored::Colorize;
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
 use super::{BuildContext, NEP330_LINK_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY};
