@@ -50,14 +50,14 @@ npm install cargo-near
   <summary>Compile and install from source code (Cargo)</summary>
 
 ```sh
-cargo install cargo-near
+cargo install --locked cargo-near
 ```
 
 or, install the most recent version from git repository:
 
 ```sh
 $ git clone https://github.com/near/cargo-near
-$ cargo install --path cargo-near
+$ cargo install --locked --path cargo-near
 ```
 </details>
 
@@ -71,13 +71,25 @@ cargo near
 
 Starts interactive mode that will allow to explore all the available commands.
 
+---
+
+```console
+cargo near new
+```
+
+Initializes a new project skeleton to create a contract from a template.
+
+---
+
 ```console
 cargo near build
 ```
 
 Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
 
-You can also make this command embed ABI into your WASM artifact by adding `--embed-abi` parameter. Once deployed, this will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
+You can also make this command NOT embed ABI into your WASM artifact by adding `--no-embed-abi` parameter. 
+
+---
 
 ```console
 cargo near abi
@@ -85,11 +97,17 @@ cargo near abi
 
 Generates NEAR smart contract's [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
 
+Once contract is deployed, this will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
+
+---
+
 ```console
 cargo near create-dev-account
 ```
 
 Guides you through creation of a new NEAR account on [testnet](https://explorer.testnet.near.org).
+
+---
 
 ```console
 cargo near deploy
