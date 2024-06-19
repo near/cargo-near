@@ -50,14 +50,14 @@ npm install cargo-near
   <summary>Compile and install from source code (Cargo)</summary>
 
 ```sh
-cargo install cargo-near
+cargo install --locked cargo-near
 ```
 
 or, install the most recent version from git repository:
 
 ```sh
 $ git clone https://github.com/near/cargo-near
-$ cargo install --path cargo-near
+$ cargo install --locked --path cargo-near
 ```
 </details>
 
@@ -71,13 +71,33 @@ cargo near
 
 Starts interactive mode that will allow to explore all the available commands.
 
+---
+
+```console
+cargo near new
+```
+
+Initializes a new project skeleton to create a contract from a template.
+
+---
+
 ```console
 cargo near build
 ```
 
 Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
 
-You can also make this command embed ABI into your WASM artifact by adding `--embed-abi` parameter. Once deployed, this will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
+By default, this runs a reproducible build in a [Docker](https://docs.docker.com/) container, which:
+
+- runs against source code version, committed to git, ignoring any uncommitted changes
+- requires that `Cargo.lock` of project is created (e.g. via `cargo update`) and added to git 
+- will use configuration in `[package.metadata.near.reproducible_build]` section of contract's `Cargo.toml`
+
+`--no-docker` flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
+
+`--no-locked` flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
+
+---
 
 ```console
 cargo near abi
@@ -85,11 +105,17 @@ cargo near abi
 
 Generates NEAR smart contract's [ABI](https://github.com/near/abi) (while in the directory containing contract's Cargo.toml).
 
+Once contract is deployed, this will allow you to call a view function `__contract_abi` to retrieve a [ZST](https://facebook.github.io/zstd/)-compressed ABI.
+
+---
+
 ```console
 cargo near create-dev-account
 ```
 
 Guides you through creation of a new NEAR account on [testnet](https://explorer.testnet.near.org).
+
+---
 
 ```console
 cargo near deploy
@@ -97,6 +123,13 @@ cargo near deploy
 
 Builds the smart contract (equivalent to `cargo near build`) and guides you to deploy it to the blockchain.
 
+By default, this runs a reproducible build in a Docker container.
+
+`deploy` command from Docker build requires that contract's source code has been pushed to remote repository,
+doesn't have any modified tracked files, any staged changes or any untracked content. 
+
+`--no-docker` flag can be used to perform a regular *NO*-Docker build *and* deploy. Similar to `build` command, 
+in this case none of the git-related concerns and restrictions apply.
 
 ## Contribution
 

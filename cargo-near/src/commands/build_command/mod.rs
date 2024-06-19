@@ -7,16 +7,24 @@ use crate::{
     util::{self, CompilationArtifact},
 };
 
-mod build;
+pub(crate) mod build;
 mod docker;
 
-// ====================== NEP-330 Build Details Extension section ===========
-pub const INSIDE_DOCKER_ENV_KEY: &str = "CARGO_NEAR_BUILD_ENVIRONMENT";
-pub const BUILD_CMD_ENV_KEY: &str = "CARGO_NEAR_BUILD_COMMAND";
-pub const CONTRACT_PATH_ENV_KEY: &str = "CARGO_NEAR_CONTRACT_PATH";
-pub const SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "CARGO_NEAR_SOURCE_CODE_SNAPSHOT";
+// ====================== NEP-330 1.2.0 - Build Details Extension ===========
+pub const NEP330_BUILD_ENVIRONMENT_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
+pub const NEP330_BUILD_COMMAND_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_COMMAND";
+pub const NEP330_CONTRACT_PATH_ENV_KEY: &str = "NEP330_BUILD_INFO_CONTRACT_PATH";
+pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT";
 // ====================== End section =======================================
-pub const REPO_LINK_HINT_ENV_KEY: &str = "CARGO_NEAR_REPO_LINK_HINT";
+
+// ====================== NEP-330 1.1.0 - Contract Metadata Extension ===========
+pub const NEP330_LINK_ENV_KEY: &str = "NEP330_LINK";
+pub const NEP330_VERSION_ENV_KEY: &str = "NEP330_VERSION";
+// ====================== End section =======================================
+
+pub const BUILD_RS_ABI_STEP_HINT_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
+
+pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -82,13 +90,13 @@ impl BuildCommand {
     }
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         if self.no_docker() {
-            self::build::run(self)
+            self::build::run(self.into())
         } else {
             self.docker_run(context)
         }
     }
     pub fn no_docker(&self) -> bool {
-        std::env::var(INSIDE_DOCKER_ENV_KEY).is_ok() || self.no_docker
+        std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() || self.no_docker
     }
 }
 
@@ -98,11 +106,24 @@ pub struct ArtifactMessages<'a> {
 }
 
 impl<'a> ArtifactMessages<'a> {
-    pub fn push_binary(&mut self, wasm_artifact: &CompilationArtifact) {
+    pub fn push_binary(
+        &mut self,
+        wasm_artifact: &CompilationArtifact,
+    ) -> color_eyre::eyre::Result<()> {
         self.messages.push((
             "Binary",
             wasm_artifact.path.to_string().bright_yellow().bold(),
         ));
+        let checksum = wasm_artifact.compute_hash()?;
+        self.messages.push((
+            "SHA-256 checksum hex ",
+            checksum.to_hex_string().green().dimmed(),
+        ));
+        self.messages.push((
+            "SHA-256 checksum bs58",
+            checksum.to_base58_string().green().dimmed(),
+        ));
+        Ok(())
     }
     pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
         self.messages.push(msg);

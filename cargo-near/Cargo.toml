@@ -19,6 +19,7 @@ eula = false
 
 [dependencies]
 bs58 = "0.4"
+hex = "0.4.3"
 camino = "1.1.1"
 cargo_metadata = "0.18.1"
 clap = { version = "4.0.18", features = ["derive", "env"] }
@@ -54,8 +55,9 @@ home = "0.5.9"
 pathdiff = { version = "0.2.1", features = ["camino"]}
 unix_path = "1.0.1"
 url = { version = "2.5.0", features = ["serde"]}
+tmp_env = "0.1.1"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 nix = { version = "0.28.0", features = ["user", "process"] }
 
 [features]

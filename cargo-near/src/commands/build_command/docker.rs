@@ -3,21 +3,28 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{commands::build_command::CONTRACT_PATH_ENV_KEY, types::source_id, util};
-use crate::{commands::build_command::INSIDE_DOCKER_ENV_KEY, common::ColorPreference};
+use crate::{commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY, common::ColorPreference};
+use crate::{
+    commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
+    types::source_id,
+    util,
+};
 
 use color_eyre::eyre::ContextCompat;
 
 use colored::Colorize;
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
-use super::{BuildContext, REPO_LINK_HINT_ENV_KEY, SOURCE_CODE_SNAPSHOT_ENV_KEY};
+use super::{BuildContext, NEP330_LINK_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY};
 
 mod cloned_repo;
 mod crate_in_repo;
+mod docker_checks;
 mod git_checks;
 mod metadata;
+
+const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed";
 
 impl super::BuildCommand {
     pub(super) fn docker_run(
@@ -54,37 +61,25 @@ impl super::BuildCommand {
                 },
             )?;
         }
+        if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
+            util::handle_step("Performing `docker` sanity check...", || {
+                docker_checks::sanity_check()
+            })?;
 
-        util::print_step("Running docker command step...");
-        let out_dir_arg = self.out_dir.clone();
-        let (status, docker_cmd) = self.docker_subprocess_step(docker_build_meta, &cloned_repo)?;
-
-        if status.success() {
-            util::print_success("Running docker command step (finished)");
-            util::handle_step("Copying artifact from temporary build site...", || {
-                cloned_repo.copy_artifact(out_dir_arg)
-            })
-        } else {
-            println!();
-            println!(
-                "{}",
-                format!(
-                    "See output above ↑↑↑.\nSourceScan command `{:?}` failed with exit status: {status}.",
-                    docker_cmd
-                ).yellow()
-            );
-            println!(
-                "{}",
-                "You can choose to opt out into non-docker build behaviour by using `--no-docker` flag.".cyan()
-            );
-
-            Err(color_eyre::eyre::eyre!(
-                "Reproducible build in docker container failed"
-            ))
+            util::handle_step("Checking that specified image is available...", || {
+                docker_checks::pull_image(&docker_build_meta)
+            })?;
         }
+
+        util::print_step("Running build in docker command step...");
+        let out_dir_arg = self.out_dir.clone();
+        let (status, docker_cmd) =
+            self.docker_run_subprocess_step(docker_build_meta, &cloned_repo)?;
+
+        Self::handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
     }
 
-    fn docker_subprocess_step(
+    fn docker_run_subprocess_step(
         self,
         docker_build_meta: metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
@@ -113,19 +108,18 @@ impl super::BuildCommand {
             };
             let container_paths = ContainerPaths::compute(cloned_repo)?;
             let docker_image = docker_build_meta.concat_image();
-            println!(" {} {}", "docker image to be used:".green(), docker_image);
 
             let env = EnvVars::new(&docker_build_meta, cloned_repo)?;
             let env_args = env.docker_args();
-            let cargo_cmd =
-                self.compute_build_command(docker_build_meta.container_build_command.clone())?;
-            println!(" {} {}", "build command in container:".green(), cargo_cmd);
+            let cargo_cmd = self.get_cli_build_command_in_docker(
+                docker_build_meta.container_build_command.clone(),
+            )?;
+            println!("{} {}", "build command in container:".green(), cargo_cmd);
 
             let docker_args = {
                 let mut docker_args = vec![
                     "-u",
                     &uid_gid,
-                    "-it",
                     "--name",
                     &docker_container_name,
                     "--volume",
@@ -134,6 +128,10 @@ impl super::BuildCommand {
                     "--workdir",
                     &container_paths.crate_path,
                 ];
+
+                if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
+                    docker_args.push("-it");
+                }
 
                 docker_args.extend(env_args.iter().map(|string| string.as_str()));
 
@@ -149,46 +147,51 @@ impl super::BuildCommand {
             docker_cmd.args(docker_args);
             docker_cmd
         };
+        let status_result = docker_cmd.status();
+        let status = docker_checks::handle_command_io_error(
+            &docker_cmd,
+            status_result,
+            color_eyre::eyre::eyre!(ERR_REPRODUCIBLE),
+        )?;
 
-        let status = match docker_cmd.status() {
-            Ok(exit_status) => exit_status,
-            Err(io_err) => {
-                println!();
-                println!(
-                    "{}",
-                    format!(
-                        "Error obtaining status from executing SourceScan command `{:?}`",
-                        docker_cmd
-                    )
-                    .yellow()
-                );
-                println!("{}", format!("Error `{:?}`", io_err).yellow());
-                return Err(color_eyre::eyre::eyre!(
-                    "Reproducible build in docker container failed"
-                ));
-            }
-        };
         Ok((status, docker_cmd))
+    }
+
+    fn handle_docker_run_status(
+        status: ExitStatus,
+        command: Command,
+        cloned_repo: cloned_repo::ClonedRepo,
+        out_dir_arg: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+        if status.success() {
+            util::print_success("Running docker command step (finished)");
+            util::handle_step("Copying artifact from temporary build site...", || {
+                cloned_repo.copy_artifact(out_dir_arg)
+            })
+        } else {
+            docker_checks::print_command_status(status, command);
+            Err(color_eyre::eyre::eyre!(ERR_REPRODUCIBLE))
+        }
     }
 
     const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "cannot be used, when `container_build_command` is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
 
-    fn compute_build_command(
+    fn get_cli_build_command_in_docker(
         &self,
-        manifest_command: Option<String>,
+        manifest_command: Option<Vec<String>>,
     ) -> color_eyre::eyre::Result<String> {
         if let Some(cargo_cmd) = manifest_command {
-            if self.no_default_features {
+            if self.no_locked {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--no-default-features",
+                    "--no-locked",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            if self.features.is_some() {
+            if self.no_release {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--features",
+                    "--no-release",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
@@ -213,33 +216,32 @@ impl super::BuildCommand {
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            if self.no_locked {
+            if self.features.is_some() {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--no-locked",
+                    "--features",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            if self.no_release {
+            if self.no_default_features {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
-                    "--no-release",
+                    "--no-default-features",
                     Self::BUILD_COMMAND_CLI_CONFIG_ERR
                 )));
             }
-            return Ok(cargo_cmd);
+            return Ok(cargo_cmd.join(" "));
         }
         println!(
-            " {}",
+            "{}",
             "configuring `container_build_command` from cli args, passed to current command".cyan()
         );
         let mut cargo_args = vec![];
-
-        if self.no_default_features {
-            cargo_args.push("--no-default-features");
+        if self.no_locked {
+            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
         }
-        if let Some(ref features) = self.features {
-            cargo_args.extend(&["--features", features]);
+        if self.no_release {
+            cargo_args.push("--no-release");
         }
         if self.no_abi {
             cargo_args.push("--no-abi");
@@ -250,11 +252,11 @@ impl super::BuildCommand {
         if self.no_doc {
             cargo_args.push("--no-doc");
         }
-        if self.no_locked {
-            return Err(color_eyre::eyre::eyre!("`--no-locked` flag is forbidden for reproducible builds in containers, because a specific Cargo.lock is required"));
+        if let Some(ref features) = self.features {
+            cargo_args.extend(&["--features", features]);
         }
-        if self.no_release {
-            cargo_args.push("--no-release");
+        if self.no_default_features {
+            cargo_args.push("--no-default-features");
         }
 
         let color;
@@ -276,19 +278,16 @@ impl super::BuildCommand {
         match (result, context) {
             (Err(err), BuildContext::Deploy) => {
                 println!(
-                    " {}",
+                    "{}",
                     "Either commit and push, or revert following changes to continue deployment:"
                         .yellow()
                 );
                 Err(err)
             }
             (Err(err), BuildContext::Build) => {
+                println!("{}: {}", "WARNING".yellow(), err);
                 println!(
                     "{}",
-                    util::indent_string(&format!("{}: {}", "WARNING".yellow(), err))
-                );
-                println!(
-                    " {}",
                     "This WARNING becomes a hard ERROR when deploying!".yellow(),
                 );
 
@@ -366,18 +365,21 @@ impl Nep330BuildInfo {
     fn docker_args(&self) -> Vec<String> {
         let mut result = vec![
             "--env".to_string(),
-            format!("{}={}", INSIDE_DOCKER_ENV_KEY, self.build_environment),
+            format!(
+                "{}={}",
+                NEP330_BUILD_ENVIRONMENT_ENV_KEY, self.build_environment
+            ),
             "--env".to_string(),
             format!(
                 "{}={}",
-                SOURCE_CODE_SNAPSHOT_ENV_KEY,
+                NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
                 self.source_code_snapshot.as_url()
             ),
         ];
 
         result.extend(vec![
             "--env".to_string(),
-            format!("{}={}", CONTRACT_PATH_ENV_KEY, self.contract_path),
+            format!("{}={}", NEP330_CONTRACT_PATH_ENV_KEY, self.contract_path),
         ]);
 
         result
@@ -412,7 +414,7 @@ impl EnvVars {
         if let Some(repo_link_hint) = self.compute_repo_link_hint() {
             result.extend(vec![
                 "--env".to_string(),
-                format!("{}={}", REPO_LINK_HINT_ENV_KEY, repo_link_hint,),
+                format!("{}={}", NEP330_LINK_ENV_KEY, repo_link_hint,),
             ]);
         }
         result.extend(vec!["--env".to_string(), self.rust_log.clone()]);

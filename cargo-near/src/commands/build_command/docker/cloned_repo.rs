@@ -25,7 +25,7 @@ impl ClonedRepo {
         let tmp_repo =
             git2::Repository::clone_recurse(crate_in_repo.repo_root.as_str(), &tmp_repo_path)?;
         println!(
-            " {} {:?}",
+            "{} {:?}",
             format!("current HEAD ({}):", tmp_repo.path().display()).green(),
             tmp_repo.revparse_single("HEAD")?.id()
         );
@@ -109,7 +109,7 @@ fn copy(
         from_docker: true,
     };
     let mut messages = ArtifactMessages::default();
-    messages.push_binary(&result);
+    messages.push_binary(&result)?;
     messages.pretty_print();
 
     Ok(result)
