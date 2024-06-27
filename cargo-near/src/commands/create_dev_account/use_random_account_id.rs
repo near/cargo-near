@@ -28,12 +28,13 @@ impl RandomAccountContext {
 
         let on_before_creating_account_callback: network::OnBeforeCreatingAccountCallback =
             std::sync::Arc::new({
-                move |network_config, new_account_id, public_key| {
+                move |network_config, new_account_id, public_key, storage_message| {
                     before_creating_account(
                         network_config,
                         new_account_id,
                         public_key,
                         &credentials_home_dir,
+                        storage_message,
                     )
                 }
             });

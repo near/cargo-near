@@ -1,4 +1,5 @@
 use interactive_clap::ToCliArgs;
+use near_cli_rs::config::Config;
 pub use near_cli_rs::CliResult;
 use std::env;
 
@@ -12,7 +13,7 @@ fn main() -> CliResult {
         _ => colored::control::set_override(atty::is(atty::Stream::Stderr)),
     }
 
-    let config = near_cli_rs::common::get_config_toml()?;
+    let config = Config::get_config_toml()?;
 
     color_eyre::install()?;
 
