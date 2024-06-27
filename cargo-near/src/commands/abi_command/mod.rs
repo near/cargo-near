@@ -4,6 +4,9 @@ pub mod abi;
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = AbiCommandlContext)]
 pub struct AbiCommand {
+    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    #[interactive_clap(long)]
+    pub no_locked: bool,
     /// Include rustdocs in the ABI file
     #[interactive_clap(long)]
     pub no_doc: bool,
@@ -34,6 +37,7 @@ impl AbiCommandlContext {
         scope: &<AbiCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = AbiCommand {
+            no_locked: scope.no_locked,
             no_doc: scope.no_doc,
             compact_abi: scope.compact_abi,
             out_dir: scope.out_dir.clone(),

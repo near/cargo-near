@@ -1,7 +1,7 @@
 use camino::{Utf8Path, Utf8PathBuf};
 use color_eyre::eyre::ContextCompat;
 
-const MANIFEST_FILE_NAME: &str = "Cargo.toml";
+pub const MANIFEST_FILE_NAME: &str = "Cargo.toml";
 
 /// Path to a `Cargo.toml` file
 #[derive(Clone, Debug)]
@@ -23,18 +23,32 @@ impl TryFrom<Utf8PathBuf> for CargoManifestPath {
     type Error = color_eyre::eyre::ErrReport;
 
     fn try_from(manifest_path: Utf8PathBuf) -> Result<Self, Self::Error> {
-        if let Some(file_name) = manifest_path.file_name() {
-            if file_name != MANIFEST_FILE_NAME {
+        match manifest_path.file_name() {
+            None => {
                 color_eyre::eyre::bail!("the manifest-path must be a path to a Cargo.toml file")
             }
+            Some(file_name) if file_name != MANIFEST_FILE_NAME => {
+                color_eyre::eyre::bail!("the manifest-path must be a path to a Cargo.toml file")
+            }
+            _ => {}
         }
         let canonical_manifest_path = manifest_path.canonicalize_utf8().map_err(|err| match err
             .kind()
         {
             std::io::ErrorKind::NotFound => {
-                color_eyre::eyre::eyre!("manifest path `{manifest_path}` does not exist")
+                match std::env::current_dir() {
+                    Ok(pwd ) => {
+                        let pwd = pwd.to_string_lossy();
+                        color_eyre::eyre::eyre!("manifest path `{manifest_path}` in `{pwd}` does not exist")
+                    },
+                    Err(err) => {
+                        color_eyre::eyre::eyre!("manifest path `{manifest_path}` in `workdir not determined: {:?}` does not exist",
+                            err
+                        )
+                    }
+                }
             }
-            _ => color_eyre::eyre::eyre!("Failed to derive a key from the master key: {err}"),
+            _ => color_eyre::eyre::eyre!("manifest_path.canonicalize_utf8() error: {err}"),
         })?;
         Ok(CargoManifestPath {
             path: canonical_manifest_path,
