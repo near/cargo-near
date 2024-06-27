@@ -1,10 +1,12 @@
+use std::env;
+use std::io::Write;
+
 use cargo_near::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 use log::Level;
+
 pub use near_cli_rs::CliResult;
-use std::env;
-use std::io::Write;
 
 use cargo_near::Cmd;
 
@@ -46,7 +48,7 @@ fn main() -> CliResult {
         _ => colored::control::set_override(atty::is(atty::Stream::Stderr)),
     }
 
-    let config = near_cli_rs::common::get_config_toml()?;
+    let config = near_cli_rs::config::Config::get_config_toml()?;
 
     color_eyre::install()?;
 

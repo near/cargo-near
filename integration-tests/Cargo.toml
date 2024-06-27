@@ -9,12 +9,12 @@ const_format = "0.2"
 near-abi = "0.4.0"
 
 [dev-dependencies]
-borsh = { version = "1.0.0", features = ["derive", "unstable__schema"]}
+borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
 camino = "1.1.1"
 cargo-near = { path = "../cargo-near" }
 color-eyre = "0.6"
 function_name = "0.3"
-git2 = "0.18"
+git2 = "0.19"
 minifier = "0.3"
 prettyplease = "0.2"
 schemars = "0.8"
@@ -23,5 +23,5 @@ syn = "2"
 tempfile = "3.3"
 tokio = "1.0"
 quote = "1.0"
-near-workspaces = "0.10.0"
-zstd = "0.11"
+near-workspaces = "0.10.1"
+zstd = "0.13"
