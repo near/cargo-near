@@ -1,0 +1,34 @@
+[package]
+name = "cargo-near-docker-build-integration-test"
+description = "cargo-near-docker-build-integration-test"
+version = "0.1.0"
+edition = "2021"
+# TODO: Fill out the repository field to help NEAR ecosystem tools to discover your project.
+# NEP-0330 is automatically implemented for all contracts built with https://github.com/near/cargo-near.
+# Link to the repository will be available via `contract_source_metadata` view-function.
+#repository = "https://github.com/xxx/xxx"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+near-sdk = { version = "5.1.0", git= "https://github.com/near/near-sdk-rs.git", rev = "23f0545e5d2ca9f0fe2fa12ec6b9b5f00de4b528"}
+
+[package.metadata.near.reproducible_build]
+image = "dj8yfo/sourcescan:0.x.x-dev-cargo-near-finalization"
+image_digest = "sha256:f86a095cb3daed21d0b5f86a4b5d9da0c0e26835f85c42678e1d460c9caa2c12"
+container_build_command = ["cargo", "near", "build"]
+source_code_git_url = "https://github.com/xxx/xxx.git"
+
+[profile.release]
+codegen-units = 1
+# Tell `rustc` to optimize for small code size.
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+# Opt into extra safety checks on arithmetic operations https://stackoverflow.com/a/64136471/249801
+overflow-checks = true
+
+[workspace]

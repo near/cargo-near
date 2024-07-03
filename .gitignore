@@ -1,6 +1,6 @@
 # Build files
 /target
-
+/integration-tests/docker-build-template/target
 # Code Editor related files
 .idea
 .vscode
