@@ -1,3 +1,4 @@
+#[cfg(target_os = "linux")]
 #[test]
 fn test_docker_build() -> cargo_near::CliResult {
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
