@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3](https://github.com/near/cargo-near/compare/cargo-near-v0.6.2...cargo-near-v0.6.3) - 2024-07-03
+
+### Added
+- Support passing feature flags to `cargo` invocation ([#160](https://github.com/near/cargo-near/pull/160))
+
+### Fixed
+- Also pass feature flags to ABI build step ([#161](https://github.com/near/cargo-near/pull/161))
+
+### Other
+- Updates near-cli-rs and cargo-near in the new project template to latest versions ([#168](https://github.com/near/cargo-near/pull/168))
+- Updated dependencies to the latest versions ([#167](https://github.com/near/cargo-near/pull/167))
+- Updated "interactive_clap" to 0.2.10 (updated "flatten" parameter) ([#154](https://github.com/near/cargo-near/pull/154))
+
 ## [0.6.2](https://github.com/near/cargo-near/compare/cargo-near-v0.6.1...cargo-near-v0.6.2) - 2024-04-14
 
 ### Added
