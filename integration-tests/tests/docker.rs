@@ -1,6 +1,14 @@
 #[cfg(target_os = "linux")]
 #[test]
 fn test_docker_build() -> cargo_near::CliResult {
+    let github_ref = std::env::var("GITHUB_REF").unwrap_or("empty...".to_string());
+    let github_ref_name = std::env::var("GITHUB_REF_NAME").unwrap_or("empty...".to_string());
+
+    panic!(
+        "an unexpected problem occurred with github_ref and github_ref_name: `{}` and `{}`",
+        github_ref, github_ref_name
+    );
+
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
     let _e = builder.try_init();
     log::warn!("path {:?}", std::env::args().collect::<Vec<_>>());
