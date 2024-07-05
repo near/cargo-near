@@ -817,7 +817,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "atty",
  "bs58 0.5.1",
@@ -865,7 +865,7 @@ version = "0.1.0"
 dependencies = [
  "borsh",
  "camino",
- "cargo-near 0.6.2",
+ "cargo-near 0.6.3",
  "color-eyre",
  "const_format",
  "env_logger 0.11.3",
