@@ -7,9 +7,7 @@ use std::collections::BTreeMap;
 #[test]
 #[named]
 fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
-    let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
-    let _e = builder.try_init();
-    log::warn!("path {:?}", std::env::args().collect::<Vec<_>>());
+    let _e = env_logger::Builder::from_default_env().try_init();
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,

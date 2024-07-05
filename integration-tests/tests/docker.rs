@@ -1,9 +1,7 @@
 #[cfg(target_os = "linux")]
 #[test]
 fn test_docker_build() -> cargo_near::CliResult {
-    let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
-    let _e = builder.try_init();
-    log::warn!("path {:?}", std::env::args().collect::<Vec<_>>());
+    let _e = env_logger::Builder::from_default_env().try_init();
     let manifest_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
 
     let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from("cargo near build")?;

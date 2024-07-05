@@ -129,7 +129,7 @@ impl super::BuildCommand {
                     &container_paths.crate_path,
                 ];
 
-                log::info!("input device is a tty: {}", atty::is(atty::Stream::Stdin));
+                log::debug!("input device is a tty: {}", atty::is(atty::Stream::Stdin));
                 if atty::is(atty::Stream::Stdin)
                     && std::env::var(SERVER_DISABLE_INTERACTIVE).is_err()
                 {
