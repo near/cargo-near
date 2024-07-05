@@ -129,7 +129,10 @@ impl super::BuildCommand {
                     &container_paths.crate_path,
                 ];
 
-                if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
+                log::debug!("input device is a tty: {}", atty::is(atty::Stream::Stdin));
+                if atty::is(atty::Stream::Stdin)
+                    && std::env::var(SERVER_DISABLE_INTERACTIVE).is_err()
+                {
                     docker_args.push("-it");
                 }
 
