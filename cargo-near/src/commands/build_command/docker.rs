@@ -1,6 +1,7 @@
 use std::{
     process::{id, Command, ExitStatus},
-    time::{SystemTime, UNIX_EPOCH},
+    thread,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use crate::{commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY, common::ColorPreference};
@@ -288,11 +289,14 @@ impl super::BuildCommand {
                 Err(err)
             }
             (Err(err), BuildContext::Build) => {
-                println!("{}: {}", "WARNING".yellow(), err);
+                println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
+                thread::sleep(Duration::new(3, 0));
                 println!(
                     "{}",
-                    "This WARNING becomes a hard ERROR when deploying!".yellow(),
+                    "This WARNING becomes a hard ERROR when deploying contract.".red(),
                 );
+                // this is magic to help user notice:
+                thread::sleep(Duration::new(5, 0));
 
                 Ok(())
             }
