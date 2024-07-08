@@ -61,6 +61,17 @@ $ cargo install --locked --path cargo-near
 ```
 </details>
 
+## DISCLAIMER
+
+If you want a less stressful experience, and just want to run a regular once-used-to-be
+build, run 
+
+```bash
+# equivalent to behaviour of `cargo near build` of version < 0.7.0 
+cargo near build --no-docker --no-locked
+``` 
+instead of `cargo near build`.
+
 ## Usage
 
 See `cargo near --help` for a complete list of available commands or run `cargo near` to dive into interactive mode. Help is also available for each individual command with a `--help` flag, e.g. `cargo near build --help`.
@@ -93,9 +104,14 @@ By default, this runs a reproducible build in a [Docker](https://docs.docker.com
 - requires that `Cargo.lock` of project is created (e.g. via `cargo update`) and added to git 
 - will use configuration in `[package.metadata.near.reproducible_build]` section of contract's `Cargo.toml`
 
-`--no-docker` flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
+`--no-docker` flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. 
+  - *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
 
 `--no-locked` flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
+
+`--no-locked` flag is allowed in Docker builds, but 
+  - such builds are considered effectively DEMO-mode
+  - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result
 
 ---
 
@@ -130,6 +146,8 @@ doesn't have any modified tracked files, any staged changes or any untracked con
 
 `--no-docker` flag can be used to perform a regular *NO*-Docker build *and* deploy. Similar to `build` command, 
 in this case none of the git-related concerns and restrictions apply.
+
+`--no-locked` flag is declined for deploy, due to its effects on `build` result
 
 ## Contribution
 

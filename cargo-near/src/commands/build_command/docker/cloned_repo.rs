@@ -15,6 +15,7 @@ pub(super) struct ClonedRepo {
     pub initial_crate_in_repo: crate_in_repo::Crate,
     #[allow(unused)]
     pub tmp_repo_dir: tempfile::TempDir,
+    // TODO: add `no-locked` flag
     tmp_crate_metadata: CrateMetadata,
 }
 
@@ -39,6 +40,7 @@ impl ClonedRepo {
                 path
             };
             CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
+            // TODO: handle `no_locked_flag` from function args
         };
 
         Ok(ClonedRepo {
@@ -63,6 +65,7 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
+            //TODO: add `no_locked` field into self and handle it
             CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
         };
 
