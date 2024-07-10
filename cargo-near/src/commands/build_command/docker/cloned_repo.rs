@@ -52,6 +52,10 @@ impl ClonedRepo {
             err
         })?
         };
+        log::info!(
+            "obtained tmp_crate_metadata.target_directory: {}",
+            tmp_crate_metadata.target_directory
+        );
 
         Ok(ClonedRepo {
             tmp_repo_dir,

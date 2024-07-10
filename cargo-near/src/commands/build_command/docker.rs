@@ -189,14 +189,10 @@ impl super::BuildCommand {
         manifest_command: Option<Vec<String>>,
     ) -> color_eyre::eyre::Result<String> {
         if let Some(cargo_cmd) = manifest_command {
-            // TODO: remove this error condition
-            if self.no_locked {
-                return Err(color_eyre::eyre::eyre!(format!(
-                    "`{}` {}",
-                    "--no-locked",
-                    Self::BUILD_COMMAND_CLI_CONFIG_ERR
-                )));
-            }
+            // NOTE: `--no-locked` is allowed for docker builds
+            // if self.no_locked {
+            //     no-op
+            // }
             if self.no_release {
                 return Err(color_eyre::eyre::eyre!(format!(
                     "`{}` {}",
