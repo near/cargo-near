@@ -310,8 +310,10 @@ impl super::BuildCommand {
                 Err(err)
             }
             (Err(err), BuildContext::Build) => {
+                println!();
                 println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
                 thread::sleep(Duration::new(3, 0));
+                println!();
                 println!("{}", WARN_BECOMES_ERR.red(),);
                 // this is magic to help user notice:
                 thread::sleep(Duration::new(5, 0));
