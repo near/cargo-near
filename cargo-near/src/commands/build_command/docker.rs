@@ -25,7 +25,10 @@ mod docker_checks;
 mod git_checks;
 mod metadata;
 
-const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed";
+const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
+const ERR_NO_LOCKED_DEPLOY: &str = "`--no-locked` flag is forbidden for deploy with docker.";
+const WARN_BECOMES_ERR: &str =
+    "This WARNING becomes a hard ERROR when deploying contract with docker.";
 
 impl super::BuildCommand {
     pub(super) fn docker_run(
@@ -44,8 +47,23 @@ impl super::BuildCommand {
         let cloned_repo = util::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
             || {
-                // TODO: finish section with `--no-locked` decision dispatch
-                println!("enter section with `--no-locked` decision dispatch");
+                match (self.no_locked, context) {
+                    (false, _) => {}
+                    (true, BuildContext::Build) => {
+                        no_locked_warn_pause(true);
+                        println!();
+                        println!("{}", WARN_BECOMES_ERR.red(),);
+                        thread::sleep(Duration::new(5, 0));
+                    }
+                    (true, BuildContext::Deploy) => {
+                        println!(
+                            "{}",
+                            "Check in Cargo.lock for contract being built into source control."
+                                .yellow()
+                        );
+                        return Err(color_eyre::eyre::eyre!(ERR_NO_LOCKED_DEPLOY));
+                    }
+                }
                 cloned_repo::ClonedRepo::git_clone(crate_in_repo.clone(), self.no_locked)
             },
         )?;
@@ -294,10 +312,7 @@ impl super::BuildCommand {
             (Err(err), BuildContext::Build) => {
                 println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
                 thread::sleep(Duration::new(3, 0));
-                println!(
-                    "{}",
-                    "This WARNING becomes a hard ERROR when deploying contract.".red(),
-                );
+                println!("{}", WARN_BECOMES_ERR.red(),);
                 // this is magic to help user notice:
                 thread::sleep(Duration::new(5, 0));
 
@@ -446,10 +461,16 @@ impl EnvVars {
     }
 }
 
-fn no_locked_warn_pause() {
+fn no_locked_warn_pause(warning_red: bool) {
     println!();
+    let warning = if warning_red {
+        format!("{}", "WARNING: ".red())
+    } else {
+        "".to_string()
+    };
     println!(
-        "{}",
+        "{}{}",
+        warning,
         "Please mind that `--no-locked` flag is allowed in Docker builds, but:".cyan()
     );
     println!(
