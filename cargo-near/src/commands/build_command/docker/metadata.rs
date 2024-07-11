@@ -72,7 +72,7 @@ impl ReproducibleBuild {
         }
         let is_cargo_near = {
             let build_command = self.container_build_command.clone().unwrap_or_default();
-            Some("cargo") == build_command.get(0).map(AsRef::as_ref)
+            Some("cargo") == build_command.first().map(AsRef::as_ref)
                 && Some("near") == build_command.get(1).map(AsRef::as_ref)
         };
         for command_token in self.container_build_command.clone().unwrap_or_default() {
