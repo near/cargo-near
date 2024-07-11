@@ -61,16 +61,6 @@ $ cargo install --locked --path cargo-near
 ```
 </details>
 
-## TLDR: shortcut to pre-docker release behaviour
-
-If you want to run a pre-docker release `build` command, run 
-
-```bash
-# equivalent to behaviour of `cargo near build` of version < 0.7.0 
-cargo near build --no-docker --no-locked
-``` 
-instead of `cargo near build`.
-
 ## Usage
 
 See `cargo near --help` for a complete list of available commands or run `cargo near` to dive into interactive mode. Help is also available for each individual command with a `--help` flag, e.g. `cargo near build --help`.
@@ -99,17 +89,20 @@ Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (
 
 By default, this runs a reproducible build in a [Docker](https://docs.docker.com/) container, which:
 
-- runs against source code version, committed to git, ignoring any uncommitted changes
-- requires that `Cargo.lock` of project is created (e.g. via `cargo update`) and added to git 
-- will use configuration in `[package.metadata.near.reproducible_build]` section of contract's `Cargo.toml`
+1. runs against source code version, committed to git, ignoring any uncommitted changes
+2. requires that `Cargo.lock` of project is created (e.g. via `cargo update`) and added to git 
+3. will use configuration in `[package.metadata.near.reproducible_build]` section of contract's `Cargo.toml`
 
-`--no-docker` flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. 
-  - *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
+Important flags:
 
-`--no-locked` flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
+1. `--no-docker`
+    - flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. 
+    - *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
 
-`--no-locked` flag is allowed in Docker builds, but 
-  - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result
+2. `--no-locked` 
+    - flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
+    - flag is allowed in Docker builds, but 
+      - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result
 
 ---
 
