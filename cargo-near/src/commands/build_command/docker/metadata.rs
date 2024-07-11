@@ -70,6 +70,11 @@ impl ReproducibleBuild {
                 "`image_digest`: string contains invalid characters",
             ));
         }
+        let is_cargo_near = {
+            let build_command = self.container_build_command.clone().unwrap_or_default();
+            Some("cargo") == build_command.get(0).map(AsRef::as_ref)
+                && Some("near") == build_command.get(1).map(AsRef::as_ref)
+        };
         for command_token in self.container_build_command.clone().unwrap_or_default() {
             if command_token
                 .chars()
@@ -80,6 +85,13 @@ impl ReproducibleBuild {
                     "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
                     command_token,
                     "`container_build_command`: string token contains invalid characters",
+                ));
+            }
+            if is_cargo_near && command_token == "--no-locked" {
+                return Err(color_eyre::eyre::eyre!(
+                    "{}:\n{}",
+                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
                 ));
             }
         }
