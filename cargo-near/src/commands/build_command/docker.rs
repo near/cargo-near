@@ -475,10 +475,6 @@ fn no_locked_warn_pause(warning_red: bool) {
         warning,
         "Please mind that `--no-locked` flag is allowed in Docker builds, but:".cyan()
     );
-    println!(
-        "{}",
-        "  - such builds are considered effectively DEMO-mode".yellow()
-    );
     println!("{}", "  - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result".yellow());
     thread::sleep(Duration::new(12, 0));
 }

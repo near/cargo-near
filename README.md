@@ -61,10 +61,9 @@ $ cargo install --locked --path cargo-near
 ```
 </details>
 
-## DISCLAIMER
+## TLDR: shortcut to pre-docker release behaviour
 
-If you want a less stressful experience, and just want to run a regular once-used-to-be
-build, run 
+If you want to run a pre-docker release `build` command, run 
 
 ```bash
 # equivalent to behaviour of `cargo near build` of version < 0.7.0 
@@ -110,7 +109,6 @@ By default, this runs a reproducible build in a [Docker](https://docs.docker.com
 `--no-locked` flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
 
 `--no-locked` flag is allowed in Docker builds, but 
-  - such builds are considered effectively DEMO-mode
   - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result
 
 ---
