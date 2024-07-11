@@ -89,13 +89,20 @@ Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (
 
 By default, this runs a reproducible build in a [Docker](https://docs.docker.com/) container, which:
 
-- runs against source code version, committed to git, ignoring any uncommitted changes
-- requires that `Cargo.lock` of project is created (e.g. via `cargo update`) and added to git 
-- will use configuration in `[package.metadata.near.reproducible_build]` section of contract's `Cargo.toml`
+1. runs against source code version, committed to git, ignoring any uncommitted changes
+2. requires that `Cargo.lock` of project is created (e.g. via `cargo update`) and added to git 
+3. will use configuration in `[package.metadata.near.reproducible_build]` section of contract's `Cargo.toml`
 
-`--no-docker` flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
+Important flags:
 
-`--no-locked` flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
+1. `--no-docker`
+    - flag can be used to perform a regular build with rust toolchain installed onto host, running the `cargo-near` cli. 
+    - *NO*-Docker builds run against actual state of code in filesystem and not against a version, committed to source control.   
+
+2. `--no-locked` 
+    - flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
+    - flag is allowed in Docker builds, but 
+      - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result
 
 ---
 
@@ -130,6 +137,8 @@ doesn't have any modified tracked files, any staged changes or any untracked con
 
 `--no-docker` flag can be used to perform a regular *NO*-Docker build *and* deploy. Similar to `build` command, 
 in this case none of the git-related concerns and restrictions apply.
+
+`--no-locked` flag is declined for deploy, due to its effects on `build` result
 
 ## Contribution
 

@@ -1,8 +1,11 @@
+use std::{thread, time::Duration};
+
 use crate::types::manifest::CargoManifestPath;
 use crate::util;
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
 use color_eyre::eyre::{ContextCompat, WrapErr};
+use colored::Colorize;
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
@@ -81,6 +84,15 @@ fn get_cargo_metadata(
     let metadata = cmd.exec();
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {
+            println!(
+                "{}",
+                "An error with Cargo.lock has been encountered...".yellow()
+            );
+            println!(
+                "{}",
+                "You can choose to disable `--locked` flag for downstream `cargo` command with `--no-locked` flag.".cyan()
+            );
+            thread::sleep(Duration::new(5, 0));
             return Err(cargo_metadata::Error::CargoMetadata {
                 stderr: stderr.clone(),
             })

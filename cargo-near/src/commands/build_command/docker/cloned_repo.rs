@@ -15,11 +15,15 @@ pub(super) struct ClonedRepo {
     pub initial_crate_in_repo: crate_in_repo::Crate,
     #[allow(unused)]
     pub tmp_repo_dir: tempfile::TempDir,
+    no_locked: bool,
     tmp_crate_metadata: CrateMetadata,
 }
 
 impl ClonedRepo {
-    pub(super) fn git_clone(crate_in_repo: crate_in_repo::Crate) -> color_eyre::eyre::Result<Self> {
+    pub(super) fn git_clone(
+        crate_in_repo: crate_in_repo::Crate,
+        no_locked: bool,
+    ) -> color_eyre::eyre::Result<Self> {
         let tmp_repo_dir = tempfile::tempdir()?;
         let tmp_repo_path = tmp_repo_dir.path().to_path_buf();
         let tmp_repo =
@@ -38,11 +42,24 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
+            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, no_locked).map_err(|err| {
+            if !no_locked && err.to_string().contains("Cargo.lock is absent") {
+                super::no_locked_warn_pause(false);
+                println!();
+                println!("{}", "Cargo.lock check was performed against git version of code.".cyan());
+                println!("{}", "Don't forget to check in Cargo.lock into source code for deploy if it's git-ignored...".cyan());
+            }
+            err
+        })?
         };
+        log::info!(
+            "obtained tmp_crate_metadata.target_directory: {}",
+            tmp_crate_metadata.target_directory
+        );
 
         Ok(ClonedRepo {
             tmp_repo_dir,
+            no_locked,
             initial_crate_in_repo: crate_in_repo,
             tmp_crate_metadata,
         })
@@ -63,7 +80,10 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, false)?
+            CrateMetadata::collect(
+                CargoManifestPath::try_from(cargo_toml_path)?,
+                self.no_locked,
+            )?
         };
 
         let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;

@@ -188,15 +188,7 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked).map_err(|err| {
-            if !args.no_locked && err.to_string().contains("Cargo.lock is absent") {
-                println!(
-                    "{}",
-                    " You can choose to disable `--locked` flag for downstream `cargo` command with `--no-locked` flag.".cyan()
-                );
-            }
-            err
-        })
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
