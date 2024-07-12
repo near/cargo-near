@@ -1,3 +1,5 @@
+use std::process::Stdio;
+
 use color_eyre::eyre::{ContextCompat, WrapErr};
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
@@ -45,32 +47,58 @@ impl NewContext {
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }
 
-        std::process::Command::new("git")
+        let status = std::process::Command::new("git")
             .arg("init")
             .current_dir(project_dir)
-            .output()
-            .wrap_err("Failed to execute process: `git init`")?;
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()?;
+        if !status.success() {
+            return Err(color_eyre::eyre::eyre!(
+                "Failed to execute process: `git init`"
+            ));
+        }
 
-        std::process::Command::new("cargo")
+        let child = std::process::Command::new("cargo")
             .arg("update")
             .current_dir(project_dir)
-            .output()
-            .wrap_err("Failed to execute process: `cargo update`")?;
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+        let output = child.wait_with_output()?;
+        if !output.status.success() {
+            println!("{}", String::from_utf8_lossy(&output.stderr));
+            return Err(color_eyre::eyre::eyre!(
+                "Failed to execute process: `cargo update`"
+            ));
+        }
 
-        std::process::Command::new("git")
+        let status = std::process::Command::new("git")
             .arg("add")
             .arg("-A")
             .current_dir(project_dir)
-            .output()
-            .wrap_err("Failed to execute process: `git add -A`")?;
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()?;
+        if !status.success() {
+            return Err(color_eyre::eyre::eyre!(
+                "Failed to execute process: `git add -A`"
+            ));
+        }
 
-        std::process::Command::new("git")
+        let status = std::process::Command::new("git")
             .arg("commit")
             .arg("-m")
             .arg("init")
             .current_dir(project_dir)
-            .output()
-            .wrap_err("Failed to execute process: `git commit -m init`")?;
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()?;
+        if !status.success() {
+            return Err(color_eyre::eyre::eyre!(
+                "Failed to execute process: `git commit -m init`"
+            ));
+        }
 
         println!("New project is created at '{}'.\n", project_dir.display());
         println!("Now you can build, test, and deploy your project using cargo-near:");
