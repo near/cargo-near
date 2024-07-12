@@ -51,6 +51,27 @@ impl NewContext {
             .output()
             .wrap_err("Failed to execute process: `git init`")?;
 
+        std::process::Command::new("cargo")
+            .arg("update")
+            .current_dir(project_dir)
+            .output()
+            .wrap_err("Failed to execute process: `cargo update`")?;
+
+        std::process::Command::new("git")
+            .arg("add")
+            .arg("-A")
+            .current_dir(project_dir)
+            .output()
+            .wrap_err("Failed to execute process: `git add -A`")?;
+
+        std::process::Command::new("git")
+            .arg("commit")
+            .arg("-m")
+            .arg("init")
+            .current_dir(project_dir)
+            .output()
+            .wrap_err("Failed to execute process: `git commit -m init`")?;
+
         println!("New project is created at '{}'.\n", project_dir.display());
         println!("Now you can build, test, and deploy your project using cargo-near:");
         println!(" * `cargo near build`");
