@@ -106,7 +106,7 @@ Important flags:
 2. `--no-locked` 
     - flag is allowed in *NO*-Docker builds, e.g. to generate a `Cargo.lock` *and* simultaneously build the contract.
     - flag is allowed in Docker builds, but 
-      - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as a result
+      - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as the result.
 
 ---
 
