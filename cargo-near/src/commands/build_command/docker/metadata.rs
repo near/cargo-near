@@ -3,16 +3,19 @@ use serde::Deserialize;
 
 use crate::types::metadata::CrateMetadata;
 use serde_json::Value;
-use std::{collections::BTreeMap as Map, thread, time::Duration};
+use std::{collections::BTreeMap as Map, str::FromStr, thread, time::Duration};
 
 #[derive(Deserialize, Debug)]
+/// parsed from `[package.metadata.near.reproducible_build]` in Cargo.toml
 pub(super) struct ReproducibleBuild {
     image: String,
     image_digest: String,
     pub container_build_command: Option<Vec<String>>,
-    /// a string, containing https://git-scm.com/docs/git-clone#URLS,
-    /// currently, only ones, starting with `https://`, and ending in `.git` are supported
-    pub source_code_git_url: url::Url,
+    /// a clonable git remote url,
+    /// currently, only ones, starting with `https://`, are supported;
+    /// parsed from `package.repository`
+    #[serde(skip)]
+    pub repository: Option<url::Url>,
 
     #[serde(flatten)]
     unknown_keys: Map<String, Value>,
@@ -38,7 +41,11 @@ impl std::fmt::Display for ReproducibleBuild {
         writeln!(
             f,
             "    {}: {}",
-            "source code git url", self.source_code_git_url
+            "clonable remote of git repository:",
+            self.repository
+                .clone()
+                .map(|url| format!("{}", url))
+                .unwrap_or("<empty>".to_string())
         )?;
         Ok(())
     }
@@ -106,21 +113,24 @@ impl ReproducibleBuild {
                 keys.join(",")
             ));
         }
-        if self.source_code_git_url.scheme() != "https" {
-            return Err(color_eyre::eyre::eyre!(
-                "{}: {}\n{}",
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
-                self.source_code_git_url,
-                "`source_code_git_url`: only `https` scheme is supported at the moment",
-            ));
-        }
-        if !self.source_code_git_url.path().ends_with(".git") {
-            return Err(color_eyre::eyre::eyre!(
-                "{}: {}\n{}",
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
-                self.source_code_git_url,
-                "`source_code_git_url`: must end with `.git`",
-            ));
+        match self.repository {
+            Some(ref repository) => {
+                if repository.scheme() != "https" {
+                    return Err(color_eyre::eyre::eyre!(
+                        "{}: {}\n{}",
+                        "Malformed NEP330 metadata in Cargo.toml:",
+                        repository,
+                        "`[package.repository]`: only `https` scheme is supported at the moment",
+                    ));
+                }
+            }
+            None => {
+                return Err(color_eyre::eyre::eyre!(
+                    "{}: \n{}",
+                    "Malformed NEP330 metadata in Cargo.toml",
+                    "`[package.repository]`: should not be empty",
+                ));
+            }
         }
         Ok(())
     }
@@ -131,7 +141,7 @@ impl ReproducibleBuild {
             .get("near")
             .and_then(|value| value.get("reproducible_build"));
 
-        let build_meta: ReproducibleBuild = match build_meta_value {
+        let mut build_meta: ReproducibleBuild = match build_meta_value {
             None => {
                 println!(
                     "{}{}{}",
@@ -175,6 +185,12 @@ impl ReproducibleBuild {
                 })?
             }
         };
+        build_meta.repository = cargo_metadata
+            .root_package
+            .repository
+            .clone()
+            .map(|url| <url::Url as FromStr>::from_str(&url))
+            .transpose()?;
         build_meta.validate()?;
         println!("{} {}", "reproducible build metadata:".green(), build_meta);
         if build_meta.container_build_command.is_some() {

@@ -78,7 +78,8 @@ impl super::BuildCommand {
                 "Performing check that current HEAD has been pushed to remote...",
                 || {
                     git_checks::pushed_to_remote::check(
-                        &docker_build_meta.source_code_git_url,
+                        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+                        &docker_build_meta.repository.clone().unwrap(),
                         crate_in_repo.head,
                     )
                 },
@@ -378,7 +379,8 @@ impl Nep330BuildInfo {
             .to_string();
 
         let source_code_snapshot = source_id::SourceId::for_git(
-            &docker_build_meta.source_code_git_url,
+            // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+            docker_build_meta.repository.as_ref().unwrap(),
             source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
         )
         .map_err(|err| color_eyre::eyre::eyre!("compute SourceId {}", err))?;
@@ -415,7 +417,7 @@ impl Nep330BuildInfo {
 struct EnvVars {
     build_info: Nep330BuildInfo,
     rust_log: String,
-    repo_link: Option<String>,
+    repo_link: url::Url,
     revision: String,
 }
 
@@ -425,7 +427,8 @@ impl EnvVars {
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<Self> {
         let build_info = Nep330BuildInfo::new(docker_build_meta, cloned_repo)?;
-        let repo_link = cloned_repo.crate_metadata().root_package.repository.clone();
+        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+        let repo_link = docker_build_meta.repository.clone().unwrap();
         let revision = cloned_repo.initial_crate_in_repo.head.to_string();
         Ok(Self {
             build_info,
@@ -448,10 +451,16 @@ impl EnvVars {
         result
     }
     fn compute_repo_link_hint(&self) -> Option<String> {
-        let url = url::Url::parse(&self.repo_link.clone()?).ok()?;
+        let url = self.repo_link.clone();
 
         if url.host_str() == Some("github.com") {
             let existing_path = url.path();
+            let existing_path = if existing_path.ends_with(".git") {
+                existing_path.trim_end_matches(".git")
+            } else {
+                existing_path
+            };
+
             Some(
                 url.join(&format!("{}/tree/{}", existing_path, self.revision))
                     .ok()?
