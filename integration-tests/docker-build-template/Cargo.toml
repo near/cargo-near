@@ -6,7 +6,7 @@ edition = "2021"
 # TODO: Fill out the repository field to help NEAR ecosystem tools to discover your project.
 # NEP-0330 is automatically implemented for all contracts built with https://github.com/near/cargo-near.
 # Link to the repository will be available via `contract_source_metadata` view-function.
-#repository = "https://github.com/xxx/xxx"
+repository = "https://github.com/xxx/xxx.git"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -19,7 +19,6 @@ near-sdk = { version = "5.1.0", git= "https://github.com/near/near-sdk-rs.git", 
 image = "dj8yfo/sourcescan:0.x.x-dev-cargo-near-finalization"
 image_digest = "sha256:f86a095cb3daed21d0b5f86a4b5d9da0c0e26835f85c42678e1d460c9caa2c12"
 container_build_command = ["cargo", "near", "build"]
-source_code_git_url = "https://github.com/xxx/xxx.git"
 
 [profile.release]
 codegen-units = 1
