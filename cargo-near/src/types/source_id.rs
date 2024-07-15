@@ -279,18 +279,40 @@ mod tests {
 
     #[test]
     fn test_source_id_from_url() {
-        let cargo_source_id = SourceId::from_url(
-            "git+https://github.com/repo/sample_no_workspace.git?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d"
-        ).unwrap();
+        for (full_rev_url, remote_path_exp) in [("git+https://github.com/repo/sample_no_workspace.git?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d", "/repo/sample_no_workspace.git"),
+        ("git+https://github.com/repo/sample_no_workspace?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d", "/repo/sample_no_workspace")] {
+            println!("case, full_rev_url, path_exp: {} {}", full_rev_url, remote_path_exp);
+            let cargo_source_id = SourceId::from_url(
+                full_rev_url
+            ).unwrap();
 
-        let kind = cargo_source_id.kind();
-        assert!(
-            matches!(kind, SourceKind::Git(GitReference::Rev(rev)) if rev == "10415b1359c74b0d5774ce08b114f2bd1a85445d")
-        );
+            let kind = cargo_source_id.kind();
+            assert!(
+                matches!(kind, SourceKind::Git(GitReference::Rev(rev)) if rev == "10415b1359c74b0d5774ce08b114f2bd1a85445d")
+            );
 
-        assert_eq!(
-            "/repo/sample_no_workspace.git",
-            cargo_source_id.url().path()
-        );
+            assert_eq!(
+                remote_path_exp,
+                cargo_source_id.url().path()
+            );
+        }
+    }
+
+    #[test]
+    fn test_for_git() {
+        for (remote_url, full_rev_url_exp) in [("https://github.com/repo/sample_no_workspace.git", "git+https://github.com/repo/sample_no_workspace.git?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d"), 
+        ("https://github.com/repo/sample_no_workspace", "git+https://github.com/repo/sample_no_workspace?rev=10415b1359c74b0d5774ce08b114f2bd1a85445d")] {
+            println!("case, remote_url, full_rev_url_exp: {} {}", remote_url, full_rev_url_exp);
+            let url: url::Url = remote_url
+                .parse()
+                .unwrap();
+            let source_id = SourceId::for_git(
+                &url,
+                GitReference::Rev("10415b1359c74b0d5774ce08b114f2bd1a85445d".to_string()),
+            )
+            .unwrap();
+
+            assert_eq!(full_rev_url_exp.to_string(), format!("{}", source_id.as_url()))
+        }
     }
 }
