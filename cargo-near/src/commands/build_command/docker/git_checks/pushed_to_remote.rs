@@ -37,9 +37,9 @@ pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> color_eyre::Result<()>
     }
 
     Err(color_eyre::eyre::eyre!(
-        "Failed to verify that HEAD was pushed by cloning {}. Exceeded max attempts.\n \
-        Try setting `source_code_git_url` of `[package.metadata.near.reproducible_build]` \
-        of your contract to point to your repository",
+        "Failed to verify that HEAD was pushed by cloning {}. Exceeded max attempts.\n\
+        Try setting `package.repository` \
+        of your contract to point to the remote of your repository.",
         git_url
     ))
 }
