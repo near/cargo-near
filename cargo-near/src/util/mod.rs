@@ -162,10 +162,27 @@ where
     }
 }
 
+#[derive(Debug)]
+pub struct VersionMismatch {
+    pub environment: String,
+    pub current_process: String,
+}
+
+impl std::fmt::Display for VersionMismatch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "`cargo-near` version {} -> `cargo-near` environment version {}",
+            self.current_process, self.environment
+        )
+    }
+}
+
 pub struct CompilationArtifact {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,
+    pub cargo_near_version_mismatch: Option<VersionMismatch>,
 }
 pub struct SHA256Checksum {
     hash: Vec<u8>,
@@ -261,6 +278,7 @@ pub(crate) fn compile_project(
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
+            cargo_near_version_mismatch: None,
         }),
         _ => color_eyre::eyre::bail!(
             "Compilation resulted in more than one '.{}' target file: {:?}",

@@ -9,11 +9,12 @@ use crate::commands::build_command::{
 use crate::common::ColorPreference;
 use crate::types::manifest::MANIFEST_FILE_NAME;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
-use crate::util;
+use crate::util::{self, VersionMismatch};
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
 use super::{
-    ArtifactMessages, NEP330_BUILD_ENVIRONMENT_ENV_KEY, NEP330_LINK_ENV_KEY, NEP330_VERSION_ENV_KEY,
+    ArtifactMessages, CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY, CARGO_NEAR_VERSION_ENV_KEY,
+    NEP330_BUILD_ENVIRONMENT_ENV_KEY, NEP330_LINK_ENV_KEY, NEP330_VERSION_ENV_KEY,
 };
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
@@ -108,6 +109,7 @@ impl From<super::BuildCommand> for Opts {
 }
 
 pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+    export_cargo_near_abi_versions();
     export_nep_330_build_command(&args)?;
     print_nep_330_env();
 
@@ -155,6 +157,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
 
     let mut abi = None;
     let mut min_abi_path = None;
+    let (cargo_near_version, cargo_near_version_mismatch) = coerce_cargo_near_version()?;
     if !args.no_abi {
         let mut contract_abi = abi::generate_abi(
             &crate_metadata,
@@ -164,9 +167,10 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
             &cargo_feature_args,
             color.clone(),
         )?;
+
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
-            builder: format!("cargo-near {}", env!("CARGO_PKG_VERSION")),
+            builder: format!("cargo-near {}", cargo_near_version),
             image: None,
         });
         if !args.no_embed_abi {
@@ -211,6 +215,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     )?;
 
     wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
+    wasm_artifact.cargo_near_version_mismatch = cargo_near_version_mismatch;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
 
@@ -234,6 +239,18 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
 
     messages.pretty_print();
     Ok(wasm_artifact)
+}
+
+fn export_cargo_near_abi_versions() {
+    if std::env::var(CARGO_NEAR_VERSION_ENV_KEY).is_err() {
+        std::env::set_var(CARGO_NEAR_VERSION_ENV_KEY, env!("CARGO_PKG_VERSION"));
+    }
+    if std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY).is_err() {
+        std::env::set_var(
+            CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY,
+            near_abi::SCHEMA_VERSION,
+        );
+    }
 }
 
 fn export_nep_330_build_command(args: &Opts) -> color_eyre::eyre::Result<()> {
@@ -280,4 +297,36 @@ fn print_nep_330_env() {
             .unwrap_or("unset".to_string());
         log::info!("{}={}", key, value);
     }
+}
+
+fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, Option<VersionMismatch>)> {
+    match std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY) {
+        Ok(env_near_abi_schema_version) => {
+            if env_near_abi_schema_version != near_abi::SCHEMA_VERSION {
+                return Err(color_eyre::eyre::eyre!(
+                    "current process NEAR_ABI_SCHEMA_VERSION mismatch with env value: {} vs {}",
+                    near_abi::SCHEMA_VERSION,
+                    env_near_abi_schema_version,
+                ));
+            }
+        }
+        Err(_err) => {}
+    }
+    let current_version = env!("CARGO_PKG_VERSION");
+
+    let result = match std::env::var(CARGO_NEAR_VERSION_ENV_KEY) {
+        Err(_err) => (current_version.to_string(), None),
+        Ok(env_version) => match env_version == current_version {
+            true => (current_version.to_string(), None),
+            // coercing to env_version on mismatch
+            false => (
+                env_version.clone(),
+                Some(VersionMismatch {
+                    environment: env_version,
+                    current_process: current_version.to_string(),
+                }),
+            ),
+        },
+    };
+    Ok(result)
 }

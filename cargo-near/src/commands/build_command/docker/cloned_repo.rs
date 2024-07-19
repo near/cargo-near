@@ -127,6 +127,7 @@ fn copy(
         path: out_wasm_path,
         fresh: true,
         from_docker: true,
+        cargo_near_version_mismatch: None,
     };
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&result)?;

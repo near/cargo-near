@@ -83,6 +83,7 @@ impl<'a> BuildScriptOpts<'a> {
                 path: stub_path,
                 fresh: true,
                 from_docker: false,
+                cargo_near_version_mismatch: None,
             }
         };
         Ok(artifact)
@@ -100,6 +101,13 @@ impl<'a> BuildScriptOpts<'a> {
         } else {
             ":"
         };
+        if let Some(ref version_mismatch) = artifact.cargo_near_version_mismatch {
+            print_warn!(
+                version,
+                "WARNING: `cargo-near` version was coerced during build: {}",
+                version_mismatch
+            );
+        }
         if let Some(ref result_env_key) = self.result_env_key {
             pretty_print(skipped, artifact, version)?;
             println!(

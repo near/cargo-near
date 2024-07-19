@@ -22,6 +22,9 @@ pub const NEP330_LINK_ENV_KEY: &str = "NEP330_LINK";
 pub const NEP330_VERSION_ENV_KEY: &str = "NEP330_VERSION";
 // ====================== End section =======================================
 
+pub const CARGO_NEAR_VERSION_ENV_KEY: &str = "CARGO_NEAR_VERSION";
+pub const CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
+
 pub const BUILD_RS_ABI_STEP_HINT_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
 
 pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
