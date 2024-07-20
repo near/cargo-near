@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other
 - update Cargo.lock dependencies
-- update Cargo.toml.template dependencies
 
 ## [0.6.3](https://github.com/near/cargo-near/compare/cargo-near-v0.6.2...cargo-near-v0.6.3) - 2024-07-03
 
