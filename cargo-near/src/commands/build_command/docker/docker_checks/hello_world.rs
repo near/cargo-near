@@ -6,7 +6,7 @@ const PERM_DENIED_STATUS: i32 = 126;
 
 pub fn check() -> color_eyre::eyre::Result<()> {
     let mut docker_cmd = std::process::Command::new("docker");
-    docker_cmd.args(["run", "hello-world"]);
+    docker_cmd.args(["run", "--rm", "hello-world"]);
     let output_result = docker_cmd.output();
     let output = super::handle_command_io_error(
         &docker_cmd,
