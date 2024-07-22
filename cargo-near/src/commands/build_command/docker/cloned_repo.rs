@@ -4,7 +4,7 @@ use crate::{
         manifest::{CargoManifestPath, MANIFEST_FILE_NAME},
         metadata::CrateMetadata,
     },
-    util::{self, CompilationArtifact},
+    util::{self, CompilationArtifact, VersionMismatch},
 };
 use camino::Utf8PathBuf;
 use colored::Colorize;
@@ -127,7 +127,7 @@ fn copy(
         path: out_wasm_path,
         fresh: true,
         from_docker: true,
-        cargo_near_version_mismatch: None,
+        cargo_near_version_mismatch: VersionMismatch::UnknownFromDocker,
     };
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&result)?;

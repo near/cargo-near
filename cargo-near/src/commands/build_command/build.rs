@@ -299,7 +299,7 @@ fn print_nep_330_env() {
     }
 }
 
-fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, Option<VersionMismatch>)> {
+fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMismatch)> {
     match std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY) {
         Ok(env_near_abi_schema_version) => {
             if env_near_abi_schema_version != near_abi::SCHEMA_VERSION {
@@ -315,16 +315,16 @@ fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, Option<Versi
     let current_version = env!("CARGO_PKG_VERSION");
 
     let result = match std::env::var(CARGO_NEAR_VERSION_ENV_KEY) {
-        Err(_err) => (current_version.to_string(), None),
+        Err(_err) => (current_version.to_string(), VersionMismatch::None),
         Ok(env_version) => match env_version == current_version {
-            true => (current_version.to_string(), None),
+            true => (current_version.to_string(), VersionMismatch::None),
             // coercing to env_version on mismatch
             false => (
                 env_version.clone(),
-                Some(VersionMismatch {
+                VersionMismatch::Some {
                     environment: env_version,
                     current_process: current_version.to_string(),
-                }),
+                },
             ),
         },
     };

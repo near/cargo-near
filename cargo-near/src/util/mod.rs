@@ -163,18 +163,31 @@ where
 }
 
 #[derive(Debug)]
-pub struct VersionMismatch {
-    pub environment: String,
-    pub current_process: String,
+pub enum VersionMismatch {
+    Some {
+        environment: String,
+        current_process: String,
+    },
+    None,
+    UnknownFromDocker,
 }
 
 impl std::fmt::Display for VersionMismatch {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "`cargo-near` version {} -> `cargo-near` environment version {}",
-            self.current_process, self.environment
-        )
+        match self {
+            Self::Some {
+                environment,
+                current_process,
+            } => {
+                write!(
+                    f,
+                    "`cargo-near` version {} -> `cargo-near` environment version {}",
+                    current_process, environment
+                )
+            }
+            Self::None => write!(f, "no `cargo-near` version mismatch in nested builds detected",),
+            Self::UnknownFromDocker => write!(f, "it's unknown if `cargo-near` version mismatch has occured in docker build environment",),
+        }
     }
 }
 
@@ -182,7 +195,7 @@ pub struct CompilationArtifact {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,
-    pub cargo_near_version_mismatch: Option<VersionMismatch>,
+    pub cargo_near_version_mismatch: VersionMismatch,
 }
 pub struct SHA256Checksum {
     hash: Vec<u8>,
@@ -278,7 +291,7 @@ pub(crate) fn compile_project(
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
-            cargo_near_version_mismatch: None,
+            cargo_near_version_mismatch: VersionMismatch::None,
         }),
         _ => color_eyre::eyre::bail!(
             "Compilation resulted in more than one '.{}' target file: {:?}",
