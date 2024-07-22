@@ -1,4 +1,4 @@
-use crate::BuildArtifact;
+use crate::{util::VersionMismatch, BuildArtifact};
 use rustc_version::Version;
 
 /// `cargo::` prefix for build script outputs, that `cargo` recognizes
@@ -83,6 +83,7 @@ impl<'a> BuildScriptOpts<'a> {
                 path: stub_path,
                 fresh: true,
                 from_docker: false,
+                cargo_near_version_mismatch: VersionMismatch::None,
             }
         };
         Ok(artifact)
@@ -100,6 +101,25 @@ impl<'a> BuildScriptOpts<'a> {
         } else {
             ":"
         };
+        if let ref version_mismatch @ VersionMismatch::Some { .. } =
+            artifact.cargo_near_version_mismatch
+        {
+            print_warn!(
+                version,
+                "INFO: `cargo-near` version was coerced during build: {}.",
+                version_mismatch
+            );
+            print_warn!(version, "`cargo-near` crate version (used in `build.rs`) did not match `cargo-near` build environment.");
+            print_warn!(version, "You may consider to optionally make 2 following versions match exactly, if they're too far away:");
+            print_warn!(
+                version,
+                "1. `cargo-near` CLI version being run in docker container, OR version of `cargo-near` CLI on host for a NO-Docker build."
+            );
+            print_warn!(
+                version,
+                "2. `cargo-near` version in `[build-dependencies]` in Cargo.toml."
+            );
+        }
         if let Some(ref result_env_key) = self.result_env_key {
             pretty_print(skipped, artifact, version)?;
             println!(
