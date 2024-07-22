@@ -104,8 +104,17 @@ impl<'a> BuildScriptOpts<'a> {
         if let Some(ref version_mismatch) = artifact.cargo_near_version_mismatch {
             print_warn!(
                 version,
-                "WARNING: `cargo-near` version was coerced during build: {}",
+                "WARNING: `cargo-near` version was coerced during build: {}.",
                 version_mismatch
+            );
+            print_warn!(version, "`cargo-near` crate version (potentially used in `build.rs`) did not match `cargo-near` build environment.");
+            print_warn!(
+                version,
+                "1. Use the matching `cargo-near` CLI version in docker container or on host."
+            );
+            print_warn!(
+                version,
+                "2. Alternatively, update `cargo-near` in `[build-dependencies]` in Cargo.toml."
             );
         }
         if let Some(ref result_env_key) = self.result_env_key {
