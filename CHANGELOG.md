@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4](https://github.com/near/cargo-near/compare/cargo-near-v0.6.3...cargo-near-v0.6.4) - 2024-07-22
+
+### Other
+- Updated near-sdk and near-workspaces versions in the new project Cargo.toml.template ([#183](https://github.com/near/cargo-near/pull/183))
+
 ## [0.6.3](https://github.com/near/cargo-near/compare/cargo-near-v0.6.2...cargo-near-v0.6.3) - 2024-07-03
 
 ### Added
