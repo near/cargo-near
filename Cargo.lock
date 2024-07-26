@@ -748,42 +748,6 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8776b38372bc29e069d2797a9a6ebd7d55da456c5b3b3acf35b2a93ba8894b6"
-dependencies = [
- "atty",
- "bs58 0.5.1",
- "camino",
- "cargo_metadata",
- "clap",
- "color-eyre",
- "colored",
- "derive_more",
- "dunce",
- "env_logger",
- "inquire",
- "interactive-clap",
- "interactive-clap-derive",
- "libloading",
- "linked-hash-map",
- "log",
- "names",
- "near-abi",
- "near-cli-rs",
- "rustc_version",
- "schemars",
- "serde_json",
- "sha2 0.10.8",
- "shell-words",
- "strum",
- "strum_macros",
- "symbolic-debuginfo",
- "zstd 0.13.2",
-]
-
-[[package]]
-name = "cargo-near"
 version = "0.6.4"
 dependencies = [
  "atty",
@@ -823,6 +787,42 @@ dependencies = [
  "tmp_env",
  "unix_path",
  "url",
+ "zstd 0.13.2",
+]
+
+[[package]]
+name = "cargo-near"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e6951d3f90db15d9d68e4437b874688873ffee9473cb1da69e5644c5b550582"
+dependencies = [
+ "atty",
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "clap",
+ "color-eyre",
+ "colored",
+ "derive_more",
+ "dunce",
+ "env_logger",
+ "inquire",
+ "interactive-clap",
+ "interactive-clap-derive",
+ "libloading",
+ "linked-hash-map",
+ "log",
+ "names",
+ "near-abi",
+ "near-cli-rs",
+ "rustc_version",
+ "schemars",
+ "serde_json",
+ "sha2 0.10.8",
+ "shell-words",
+ "strum",
+ "strum_macros",
+ "symbolic-debuginfo",
  "zstd 0.13.2",
 ]
 
@@ -3420,7 +3420,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near 0.6.3",
+ "cargo-near 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "fs2",
  "json-patch",
