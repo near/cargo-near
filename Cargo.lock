@@ -748,9 +748,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8776b38372bc29e069d2797a9a6ebd7d55da456c5b3b3acf35b2a93ba8894b6"
+version = "0.6.4"
 dependencies = [
  "atty",
  "bs58 0.5.1",
@@ -795,6 +793,8 @@ dependencies = [
 [[package]]
 name = "cargo-near"
 version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e6951d3f90db15d9d68e4437b874688873ffee9473cb1da69e5644c5b550582"
 dependencies = [
  "atty",
  "bs58 0.5.1",
@@ -3420,7 +3420,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near 0.6.3",
+ "cargo-near 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "fs2",
  "json-patch",
