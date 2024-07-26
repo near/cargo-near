@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use colored::Colorize;
 
 pub use self::hello_world::check as sanity_check;
@@ -45,6 +47,14 @@ fn print_installation_links() {
                 "Please, follow instructions to correctly install Docker Engine on".cyan(),
                 "https://docs.docker.com/engine/install/".magenta()
             );
+            if is_wsl_linux() {
+                println!();
+                println!(
+                    "{} {}",
+                    "Also the following page may be helpful as you're running linux in WSL ".cyan(),
+                    "https://docs.docker.com/desktop/wsl".magenta(),
+                );
+            }
         }
 
         "macos" => {
@@ -68,6 +78,22 @@ fn print_installation_links() {
             );
         }
     }
+}
+
+fn is_wsl_linux() -> bool {
+    let mut uname_cmd = Command::new("uname");
+    uname_cmd.arg("-a");
+
+    let output = uname_cmd.output().ok();
+    if let Some(output) = output {
+        if output.status.success() {
+            let out = String::from_utf8_lossy(&output.stdout);
+            if out.contains("microsoft") || out.contains("Microsoft") {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 fn print_linux_postinstall_steps() {

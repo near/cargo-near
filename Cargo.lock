@@ -762,6 +762,40 @@ dependencies = [
  "derive_more",
  "dunce",
  "env_logger",
+ "inquire",
+ "interactive-clap",
+ "interactive-clap-derive",
+ "libloading",
+ "linked-hash-map",
+ "log",
+ "names",
+ "near-abi",
+ "near-cli-rs",
+ "rustc_version",
+ "schemars",
+ "serde_json",
+ "sha2 0.10.8",
+ "shell-words",
+ "strum",
+ "strum_macros",
+ "symbolic-debuginfo",
+ "zstd 0.13.2",
+]
+
+[[package]]
+name = "cargo-near"
+version = "0.6.4"
+dependencies = [
+ "atty",
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "clap",
+ "color-eyre",
+ "colored",
+ "derive_more",
+ "dunce",
+ "env_logger",
  "git2",
  "hex 0.4.3",
  "home",
@@ -789,40 +823,6 @@ dependencies = [
  "tmp_env",
  "unix_path",
  "url",
- "zstd 0.13.2",
-]
-
-[[package]]
-name = "cargo-near"
-version = "0.6.4"
-dependencies = [
- "atty",
- "bs58 0.5.1",
- "camino",
- "cargo_metadata",
- "clap",
- "color-eyre",
- "colored",
- "derive_more",
- "dunce",
- "env_logger",
- "inquire",
- "interactive-clap",
- "interactive-clap-derive",
- "libloading",
- "linked-hash-map",
- "log",
- "names",
- "near-abi",
- "near-cli-rs",
- "rustc_version",
- "schemars",
- "serde_json",
- "sha2 0.10.8",
- "shell-words",
- "strum",
- "strum_macros",
- "symbolic-debuginfo",
  "zstd 0.13.2",
 ]
 
