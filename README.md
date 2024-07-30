@@ -72,6 +72,7 @@ cargo near
 Starts interactive mode that will allow to explore all the available commands.
 
 ---
+Additionally depends on [Git](https://git-scm.com/) binary being installed, besides [cargo](https://github.com/rust-lang/cargo).
 
 ```console
 cargo near new
