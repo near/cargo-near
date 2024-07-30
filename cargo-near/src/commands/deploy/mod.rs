@@ -25,7 +25,12 @@ impl ContractContext {
         previous_context: near_cli_rs::GlobalContext,
         scope: &<Contract as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
-        let file_path = build_command::build::run(scope.build_command_args.clone())?.path;
+        let file_path = scope
+            .build_command_args
+            .clone()
+            .run(build_command::BuildContext::Deploy)?
+            .path;
+
         Ok(Self(
             near_cli_rs::commands::contract::deploy::ContractFileContext {
                 global_context: previous_context,
@@ -60,17 +65,7 @@ impl interactive_clap::FromCli for Contract {
 
         let build_command_args =
             if let Some(cli_build_command_args) = &clap_variant.build_command_args {
-                build_command::BuildCommand {
-                    no_release: cli_build_command_args.no_release,
-                    no_abi: cli_build_command_args.no_abi,
-                    no_embed_abi: cli_build_command_args.no_embed_abi,
-                    no_doc: cli_build_command_args.no_doc,
-                    out_dir: cli_build_command_args.out_dir.clone(),
-                    manifest_path: cli_build_command_args.manifest_path.clone(),
-                    features: cli_build_command_args.features.clone(),
-                    no_default_features: cli_build_command_args.no_default_features,
-                    color: cli_build_command_args.color.clone(),
-                }
+                build_command::BuildCommand::from(cli_build_command_args.clone())
             } else {
                 build_command::BuildCommand::default()
             };

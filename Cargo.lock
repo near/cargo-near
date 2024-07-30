@@ -748,9 +748,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8776b38372bc29e069d2797a9a6ebd7d55da456c5b3b3acf35b2a93ba8894b6"
+version = "0.6.4"
 dependencies = [
  "atty",
  "bs58 0.5.1",
@@ -762,6 +760,9 @@ dependencies = [
  "derive_more",
  "dunce",
  "env_logger",
+ "git2",
+ "hex 0.4.3",
+ "home",
  "inquire",
  "interactive-clap",
  "interactive-clap-derive",
@@ -771,20 +772,29 @@ dependencies = [
  "names",
  "near-abi",
  "near-cli-rs",
+ "nix 0.29.0",
+ "pathdiff",
  "rustc_version",
  "schemars",
+ "serde",
  "serde_json",
  "sha2 0.10.8",
  "shell-words",
  "strum",
  "strum_macros",
  "symbolic-debuginfo",
+ "tempfile",
+ "tmp_env",
+ "unix_path",
+ "url",
  "zstd 0.13.2",
 ]
 
 [[package]]
 name = "cargo-near"
 version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e6951d3f90db15d9d68e4437b874688873ffee9473cb1da69e5644c5b550582"
 dependencies = [
  "atty",
  "bs58 0.5.1",
@@ -825,8 +835,10 @@ dependencies = [
  "cargo-near 0.6.4",
  "color-eyre",
  "const_format",
+ "env_logger",
  "function_name",
  "git2",
+ "log",
  "minifier",
  "near-abi",
  "near-workspaces",
@@ -3408,7 +3420,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near 0.6.3",
+ "cargo-near 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "fs2",
  "json-patch",
@@ -3488,6 +3500,18 @@ dependencies = [
  "cfg-if",
  "libc",
  "memoffset 0.7.1",
+]
+
+[[package]]
+name = "nix"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
+dependencies = [
+ "bitflags 2.6.0",
+ "cfg-if",
+ "cfg_aliases",
+ "libc",
 ]
 
 [[package]]
@@ -3890,6 +3914,9 @@ name = "pathdiff"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8835116a5c179084a830efb3adc117ab007512b535bc1a21c991d3b32a6b44dd"
+dependencies = [
+ "camino",
+]
 
 [[package]]
 name = "pbkdf2"
@@ -5323,6 +5350,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
+name = "tmp_env"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a56eb9e5a28c3c4f0a6aa8ea70a8ad2d6c53e4bf364571ce78f57945b6766843"
+dependencies = [
+ "rand",
+]
+
+[[package]]
 name = "tokio"
 version = "1.38.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5725,6 +5761,21 @@ name = "unicode-xid"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
+
+[[package]]
+name = "unix_path"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af8e291873ae77c4c8d9c9b34d0bee68a35b048fb39c263a5155e0e353783eaf"
+dependencies = [
+ "unix_str",
+]
+
+[[package]]
+name = "unix_str"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ace0b4755d0a2959962769239d56267f8a024fef2d9b32666b3dcd0946b0906"
 
 [[package]]
 name = "unsafe-libyaml"
@@ -6264,7 +6315,7 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "hex 0.4.3",
- "nix",
+ "nix 0.26.4",
  "once_cell",
  "ordered-stream",
  "rand",

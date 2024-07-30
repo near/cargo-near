@@ -3,26 +3,6 @@ use function_name::named;
 
 #[test]
 #[named]
-fn test_abi_feature_not_enabled() -> cargo_near::CliResult {
-    fn run_test() -> cargo_near::CliResult {
-        generate_abi_fn_with! {
-            Cargo: "/templates/negative/_Cargo_no_abi_feature.toml";
-            Code:
-            pub fn foo(&self, a: u32, b: u32) {}
-        };
-        Ok(())
-    }
-
-    assert_eq!(
-        run_test().map_err(|e| e.to_string()),
-        Err("`near-sdk` dependency must have the `abi` feature enabled".to_string())
-    );
-
-    Ok(())
-}
-
-#[test]
-#[named]
 fn test_abi_old_sdk() -> cargo_near::CliResult {
     fn run_test() -> cargo_near::CliResult {
         generate_abi_fn_with! {
@@ -35,7 +15,7 @@ fn test_abi_old_sdk() -> cargo_near::CliResult {
 
     assert_eq!(
         run_test().map_err(|e| e.to_string()),
-        Err("unsupported `near-sdk` version. expected 4.1.* or higher".to_string())
+        Err("missing `__abi-generate` required feature for `near-sdk` dependency: probably unsupported `near-sdk` version. expected 4.1.* or higher".to_string())
     );
 
     Ok(())

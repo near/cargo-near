@@ -6,6 +6,7 @@ use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
 
+use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use crate::common::ColorPreference;
 use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
 use crate::util;
@@ -30,9 +31,10 @@ pub(crate) enum AbiCompression {
 
 pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
+    no_locked: bool,
     generate_docs: bool,
     hide_warnings: bool,
-    cargo_args: &[&str],
+    cargo_feature_args: &[&str],
     color: ColorPreference,
 ) -> color_eyre::eyre::Result<AbiRoot> {
     let root_node = crate_metadata
@@ -62,40 +64,37 @@ pub(crate) fn generate_abi(
 
     for required_feature in ["__abi-generate", "__abi-embed"] {
         if !near_sdk_dep.features.contains_key(required_feature) {
-            color_eyre::eyre::bail!("unsupported `near-sdk` version. expected 4.1.* or higher");
+            color_eyre::eyre::bail!(
+                "{}: {}",
+                format!(
+                    "missing `{}` required feature for `near-sdk` dependency",
+                    required_feature
+                ),
+                "probably unsupported `near-sdk` version. expected 4.1.* or higher"
+            );
         }
     }
 
-    let near_sdk_metadata = crate_metadata
-        .root_package
-        .dependencies
-        .iter()
-        .find(|dep| dep.name == "near-sdk")
-        .wrap_err("`near-sdk` dependency not found")?;
+    let cargo_args = {
+        let mut args = vec!["--features", "near-sdk/__abi-generate"];
+        args.extend_from_slice(cargo_feature_args);
+        if !no_locked {
+            args.push("--locked");
+        }
 
-    // `Dependency::features` return value does not contain default features, so we have to check
-    // for default features separately.
-    if !near_sdk_metadata.uses_default_features
-        && !near_sdk_metadata
-            .features
-            .iter()
-            .any(|feature| feature == "abi")
-    {
-        color_eyre::eyre::bail!("`near-sdk` dependency must have the `abi` feature enabled")
-    }
+        args
+    };
 
     util::print_step("Generating ABI");
+
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
-        &[
-            &["--features", "near-sdk/__abi-generate"] as &[&str],
-            cargo_args,
-        ]
-        .concat(),
+        cargo_args.as_slice(),
         vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
+            (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
         ],
         util::dylib_extension(),
         hide_warnings,
@@ -133,11 +132,9 @@ pub(crate) fn write_to_file(
         )?,
     };
 
-    fs::create_dir_all(&crate_metadata.target_directory)?;
-
     let out_path_abi = crate_metadata.target_directory.join(format!(
         "{}_abi.{}",
-        crate_metadata.root_package.name.replace('-', "_"),
+        crate_metadata.formatted_package_name(),
         abi_file_extension(format, compression)
     ));
     fs::write(&out_path_abi, near_abi_compressed)?;
@@ -191,22 +188,24 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?)
+        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
-    let out_dir = args
-        .out_dir
-        .map_or(Ok(crate_metadata.target_directory.clone()), |out_dir| {
-            let out_dir = Utf8PathBuf::from(out_dir);
-            util::force_canonicalize_dir(&out_dir)
-        })?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
 
     let format = if args.compact_abi {
         AbiFormat::JsonMin
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(&crate_metadata, !args.no_doc, false, &[], color)?;
+    let contract_abi = generate_abi(
+        &crate_metadata,
+        args.no_locked,
+        !args.no_doc,
+        false,
+        &[],
+        color,
+    )?;
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
