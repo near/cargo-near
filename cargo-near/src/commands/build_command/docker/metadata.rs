@@ -41,7 +41,7 @@ impl std::fmt::Display for ReproducibleBuild {
         writeln!(
             f,
             "    {}: {}",
-            "clonable remote of git repository:",
+            "clonable remote of git repository",
             self.repository
                 .clone()
                 .map(|url| format!("{}", url))
