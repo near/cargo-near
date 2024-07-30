@@ -186,7 +186,7 @@ impl std::fmt::Display for VersionMismatch {
                 )
             }
             Self::None => write!(f, "no `cargo-near` version mismatch in nested builds detected",),
-            Self::UnknownFromDocker => write!(f, "it's unknown if `cargo-near` version mismatch has occured in docker build environment",),
+            Self::UnknownFromDocker => write!(f, "it's unknown if `cargo-near` version mismatch has occurred in docker build environment",),
         }
     }
 }
