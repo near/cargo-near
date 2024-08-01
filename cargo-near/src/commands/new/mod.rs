@@ -2,6 +2,8 @@ use std::process::Stdio;
 
 use color_eyre::eyre::{ContextCompat, WrapErr};
 
+use crate::util;
+
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = NewContext)]
@@ -99,6 +101,8 @@ impl NewContext {
                 "Failed to execute process: `git commit -m init`"
             ));
         }
+
+        util::track_usage().await?;
 
         println!("New project is created at '{}'.\n", project_dir.display());
         println!("Now you can build, test, and deploy your project using cargo-near:");
