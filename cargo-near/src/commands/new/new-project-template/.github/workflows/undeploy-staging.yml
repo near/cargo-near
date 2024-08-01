@@ -1,6 +1,7 @@
 name: Undeploy staging
 on:
   pull_request:
+    # TODO: GitReference::RevPlusRef
     types: [closed]
 
 jobs:
