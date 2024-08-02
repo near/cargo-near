@@ -49,9 +49,9 @@ impl NewContext {
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }
 
-        let _detached_thread_handle = std::thread::Builder::new().spawn(|| {
-          util::track_usage()
-        }).unwrap();
+        let _detached_thread_handle = std::thread::Builder::new()
+            .spawn(|| util::track_usage())
+            .unwrap();
 
         let status = std::process::Command::new("git")
             .arg("init")
