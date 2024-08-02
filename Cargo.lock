@@ -788,6 +788,8 @@ dependencies = [
  "symbolic-debuginfo",
  "tempfile",
  "tmp_env",
+ "tokio",
+ "tracing",
  "unix_path",
  "url",
  "zstd 0.13.2",

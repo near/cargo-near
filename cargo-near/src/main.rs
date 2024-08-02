@@ -10,8 +10,7 @@ pub use near_cli_rs::CliResult;
 
 use cargo_near::Cmd;
 
-#[tokio::main]
-async fn main() -> CliResult {
+fn main() -> CliResult {
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
 
     let environment = if std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() {

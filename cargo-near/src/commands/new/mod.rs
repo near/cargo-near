@@ -102,7 +102,9 @@ impl NewContext {
             ));
         }
 
-        util::track_usage().await?;
+        let _detached_thread_handle = std::thread::Builder::new().spawn(|| {
+          util::track_usage()
+        }).unwrap(); //.join();
 
         println!("New project is created at '{}'.\n", project_dir.display());
         println!("Now you can build, test, and deploy your project using cargo-near:");
