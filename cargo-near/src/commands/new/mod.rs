@@ -49,6 +49,10 @@ impl NewContext {
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }
 
+        let _detached_thread_handle = std::thread::Builder::new().spawn(|| {
+          util::track_usage()
+        }).unwrap();
+
         let status = std::process::Command::new("git")
             .arg("init")
             .current_dir(project_dir)
@@ -101,10 +105,6 @@ impl NewContext {
                 "Failed to execute process: `git commit -m init`"
             ));
         }
-
-        let _detached_thread_handle = std::thread::Builder::new().spawn(|| {
-          util::track_usage()
-        }).unwrap(); //.join();
 
         println!("New project is created at '{}'.\n", project_dir.display());
         println!("Now you can build, test, and deploy your project using cargo-near:");
