@@ -28,6 +28,8 @@ pub const CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY: &str = "CARGO_NEAR_ABI_SCHEMA_V
 pub const BUILD_RS_ABI_STEP_HINT_ENV_KEY: &str = "CARGO_NEAR_ABI_GENERATION";
 
 pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
+pub const DISABLE_PUSHED_TO_REMOTE_CHECK: &str =
+    "CARGO_NEAR_REPRODUCIBLE_DISABLE_PUSHED_TO_REMOTE_GIT_CHECK";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]

@@ -17,7 +17,10 @@ use colored::Colorize;
 #[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
-use super::{BuildContext, NEP330_LINK_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY};
+use super::{
+    BuildContext, DISABLE_PUSHED_TO_REMOTE_CHECK, NEP330_LINK_ENV_KEY,
+    NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
+};
 
 mod cloned_repo;
 mod crate_in_repo;
@@ -74,16 +77,18 @@ impl super::BuildCommand {
             })?;
 
         if let BuildContext::Deploy = context {
-            util::handle_step(
-                "Performing check that current HEAD has been pushed to remote...",
-                || {
-                    git_checks::pushed_to_remote::check(
-                        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-                        &docker_build_meta.repository.clone().unwrap(),
-                        crate_in_repo.head,
-                    )
-                },
-            )?;
+            if std::env::var(DISABLE_PUSHED_TO_REMOTE_CHECK).is_err() {
+                util::handle_step(
+                    "Performing check that current HEAD has been pushed to remote...",
+                    || {
+                        git_checks::pushed_to_remote::check(
+                            // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+                            &docker_build_meta.repository.clone().unwrap(),
+                            crate_in_repo.head,
+                        )
+                    },
+                )?;
+            }
         }
         if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
             util::handle_step("Performing `docker` sanity check...", || {
