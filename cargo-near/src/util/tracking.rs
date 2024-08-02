@@ -75,12 +75,10 @@ mod tests {
 
     #[test]
     fn test_tracking() {
-      let thread_handle = std::thread::Builder::new()
-        .spawn(|| track_usage())
-        .unwrap();
+        let thread_handle = std::thread::Builder::new().spawn(|| track_usage()).unwrap();
 
-      if let Err(e) = thread_handle.join() {
-        panic!("{:?}", e);
-      }
+        if let Err(e) = thread_handle.join() {
+            panic!("{:?}", e);
+        }
     }
 }
