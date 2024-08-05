@@ -80,7 +80,7 @@ impl std::fmt::Display for Precise {
 /// Information to find a specific commit in a Git repository.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum GitReference {
-    /// From a specific revision. Can be a commit hash (either short or full)
+    /// From a specific revision. Can be a commit hash (only full form)
     Rev(String),
 }
 
