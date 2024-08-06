@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/near/cargo-near/compare/cargo-near-v0.6.4...cargo-near-v0.7.0) - 2024-08-06
+
+### Added
+- Added ability to use SourceScan ([#134](https://github.com/near/cargo-near/pull/134))
+
+### Fixed
+- Replacing atty unmaintained dependency ([#194](https://github.com/near/cargo-near/pull/194))
+
+### Other
+- update default docker images tags + digests ([#191](https://github.com/near/cargo-near/pull/191))
+
 ## [0.6.4](https://github.com/near/cargo-near/compare/cargo-near-v0.6.3...cargo-near-v0.6.4) - 2024-07-22
 
 ### Other
