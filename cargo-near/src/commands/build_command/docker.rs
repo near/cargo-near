@@ -3,7 +3,7 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-
+use std::io::{IsTerminal};
 use crate::{commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY, common::ColorPreference};
 use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
@@ -152,9 +152,9 @@ impl super::BuildCommand {
                     "--workdir",
                     &container_paths.crate_path,
                 ];
-
-                log::debug!("input device is a tty: {}", atty::is(atty::Stream::Stdin));
-                if atty::is(atty::Stream::Stdin)
+                let stdin_is_terminal = std::io::stdin().is_terminal();
+                log::debug!("input device is a tty: {}", stdin_is_terminal);
+                if stdin_is_terminal
                     && std::env::var(SERVER_DISABLE_INTERACTIVE).is_err()
                 {
                     docker_args.push("-it");

@@ -1,6 +1,6 @@
 [package]
 name = "cargo-near"
-version = "0.6.4"
+version = "0.6.5"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition = "2021"
 rust-version = "1.76.0"
@@ -29,7 +29,7 @@ camino = "1.1.1"
 cargo_metadata = "0.18.1"
 clap = { version = "4.0.18", features = ["derive", "env"] }
 colored = "2.0"
-env_logger = "0.11"
+env_logger = "0.11.5"
 log = "0.4"
 rustc_version = "0.4"
 serde = "1.0.197"
@@ -40,8 +40,6 @@ schemars = "0.8"
 near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
 libloading = "0.8.3"
 zstd = "0.13"
-atty = "0.2.14"
-
 color-eyre = "0.6"
 inquire = "0.7"
 strum = { version = "0.24", features = ["derive"] }

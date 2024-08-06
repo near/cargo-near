@@ -1,4 +1,5 @@
 use std::{env, str::FromStr};
+use std::io::{self, IsTerminal};
 
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
@@ -41,7 +42,8 @@ fn default_mode() -> ColorPreference {
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => ColorPreference::Never,
         _ => {
-            if atty::is(atty::Stream::Stderr) {
+            let stderr = io::stdin();
+            if stderr.is_terminal() {
                 ColorPreference::Always
             } else {
                 ColorPreference::Never
