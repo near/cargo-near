@@ -1,5 +1,5 @@
 use std::env;
-use std::io::{self, Write, IsTerminal};
+use std::io::{IsTerminal, Write};
 
 use cargo_near::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
 use colored::Colorize;
@@ -43,11 +43,9 @@ fn main() -> CliResult {
         })
         .init();
 
-    let stderr = io::stderr();
-    let is_terminal = stderr.is_terminal();
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => colored::control::set_override(false),
-        _ => colored::control::set_override(is_terminal),
+        _ => colored::control::set_override(std::io::stderr().is_terminal()),
     }
 
     let config = near_cli_rs::config::Config::get_config_toml()?;
