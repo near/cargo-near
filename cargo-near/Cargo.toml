@@ -66,6 +66,7 @@ tracing = "0.1.40"
 tokio = { version = "1.0", default-features = false, features = [
     "rt-multi-thread",
 ] }
+tracing-test = "0.2.5"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 nix = { version = "0.29.0", features = ["user", "process"] }

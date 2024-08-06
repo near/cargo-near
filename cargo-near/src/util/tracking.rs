@@ -2,6 +2,8 @@ use reqwest::Client;
 use std::{env, process::Command, str};
 use tracing::debug;
 
+const SEND_TRACKING_REQUEST_ERROR: &str = "Can't send tracking usage event";
+
 #[derive(Debug, serde::Serialize)]
 struct MixpanelProperties {
     token: String,
@@ -65,20 +67,19 @@ pub(crate) fn track_usage() {
             .json(&tracking_data)
             .send(),
     ) {
-        debug!("Can't send tracking usage event")
+        debug!(SEND_TRACKING_REQUEST_ERROR)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use tracing_test::traced_test;
     use super::*;
 
     #[test]
+    #[traced_test]
     fn test_tracking() {
-        let thread_handle = std::thread::Builder::new().spawn(|| track_usage()).unwrap();
-
-        if let Err(e) = thread_handle.join() {
-            panic!("{:?}", e);
-        }
+        track_usage();
+        assert!(!logs_contain(SEND_TRACKING_REQUEST_ERROR));
     }
 }
