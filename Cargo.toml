@@ -11,6 +11,10 @@ lto = true
 strip = true
 codegen-units = 1
 
+[profile.release]
+# needed for src line-info in `color-eyre` backtraces
+package.cargo-near.debug = true
+
 # The profile that 'cargo dist' will build with
 [profile.dist]
 inherits = "release"
