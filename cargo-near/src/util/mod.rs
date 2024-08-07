@@ -18,7 +18,9 @@ use crate::types::manifest::CargoManifestPath;
 use sha2::{Digest, Sha256};
 
 mod print;
+mod tracking;
 pub(crate) use print::*;
+pub(crate) use tracking::*;
 
 pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
