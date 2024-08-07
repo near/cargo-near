@@ -42,8 +42,8 @@ pub(crate) fn track_usage() {
 
 #[cfg(test)]
 mod tests {
-    use tracing_test::traced_test;
     use super::*;
+    use tracing_test::traced_test;
 
     #[test]
     #[traced_test]
