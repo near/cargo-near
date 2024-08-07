@@ -30,12 +30,16 @@ pub(crate) fn track_usage() {
 
     let client = Client::new();
 
-    if let Err(_) = tokio::runtime::Runtime::new().unwrap().block_on(
-        client
-            .post("https://api.mixpanel.com/track")
-            .json(&tracking_data)
-            .send(),
-    ) {
+    if tokio::runtime::Runtime::new()
+        .unwrap()
+        .block_on(
+            client
+                .post("https://api.mixpanel.com/track")
+                .json(&tracking_data)
+                .send(),
+        )
+        .is_err()
+    {
         debug!(SEND_TRACKING_REQUEST_ERROR)
     }
 }

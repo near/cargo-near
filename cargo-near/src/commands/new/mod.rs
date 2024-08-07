@@ -50,7 +50,7 @@ impl NewContext {
         }
 
         let _detached_thread_handle = std::thread::Builder::new()
-            .spawn(|| util::track_usage())
+            .spawn(util::track_usage)
             .unwrap();
 
         let status = std::process::Command::new("git")
