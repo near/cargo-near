@@ -1,5 +1,5 @@
 use std::env;
-use std::io::Write;
+use std::io::{IsTerminal, Write};
 
 use cargo_near::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
 use colored::Colorize;
@@ -45,13 +45,18 @@ fn main() -> CliResult {
 
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => colored::control::set_override(false),
-        _ => colored::control::set_override(atty::is(atty::Stream::Stderr)),
+        _ => colored::control::set_override(std::io::stderr().is_terminal()),
     }
 
     let config = near_cli_rs::config::Config::get_config_toml()?;
 
-    color_eyre::install()?;
-
+    #[cfg(not(debug_assertions))]
+    let display_env_section = false;
+    #[cfg(debug_assertions)]
+    let display_env_section = true;
+    color_eyre::config::HookBuilder::default()
+        .display_env_section(display_env_section)
+        .install()?;
     let cli = match Cmd::try_parse() {
         Ok(cli) => cli,
         Err(error) => error.exit(),
