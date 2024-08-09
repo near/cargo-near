@@ -75,6 +75,8 @@ fn main() -> CliResult {
         env::args().next().unwrap_or("./cargo".to_string())
     };
 
+    let console_command_path = console_command_path.yellow();
+
     loop {
         match <Cmd as interactive_clap::FromCli>::from_cli(
             Some(cli.clone()),
@@ -84,7 +86,7 @@ fn main() -> CliResult {
             | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
                 eprintln!(
                     "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}",
-                    shell_words::join(cli_cmd.to_cli_args())
+                    shell_words::join(cli_cmd.to_cli_args()).yellow()
                 );
                 return Ok(());
             }
@@ -97,7 +99,7 @@ fn main() -> CliResult {
                 if let Some(cli_cmd) = optional_cli_cmd {
                     eprintln!(
                         "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}\n",
-                        shell_words::join(cli_cmd.to_cli_args())
+                        shell_words::join(cli_cmd.to_cli_args()).yellow()
                     );
                 }
                 return Err(err);
