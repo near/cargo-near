@@ -2,13 +2,14 @@ use std::collections::HashMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
+use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use crate::common::ColorPreference;
-use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::types::metadata::CrateMetadata;
 use crate::util;
 
 /// ABI generation result.
@@ -188,7 +189,7 @@ pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked)
+        CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;

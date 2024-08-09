@@ -856,6 +856,7 @@ dependencies = [
 name = "cargo-near-lib"
 version = "0.7.0"
 dependencies = [
+ "camino",
  "eyre",
 ]
 

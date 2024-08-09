@@ -1,4 +1,5 @@
 use camino::Utf8PathBuf;
+use cargo_near_lib::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use colored::Colorize;
 use near_abi::BuildInfo;
 
@@ -7,8 +8,7 @@ use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
 use crate::common::ColorPreference;
-use crate::types::manifest::MANIFEST_FILE_NAME;
-use crate::types::{manifest::CargoManifestPath, metadata::CrateMetadata};
+use crate::types::metadata::CrateMetadata;
 use crate::util::{self, VersionMismatch};
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 
@@ -129,7 +129,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         } else {
             MANIFEST_FILE_NAME.into()
         };
-        CrateMetadata::collect(CargoManifestPath::try_from(manifest_path)?, args.no_locked)
+        CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;

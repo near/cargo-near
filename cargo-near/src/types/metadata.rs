@@ -1,9 +1,9 @@
 use std::{thread, time::Duration};
 
-use crate::types::manifest::CargoManifestPath;
 use crate::util;
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
+use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::{ContextCompat, WrapErr};
 use colored::Colorize;
 
@@ -12,16 +12,13 @@ use colored::Colorize;
 pub(crate) struct CrateMetadata {
     pub root_package: Package,
     pub target_directory: Utf8PathBuf,
-    pub manifest_path: CargoManifestPath,
+    pub manifest_path: ManifestPath,
     pub raw_metadata: cargo_metadata::Metadata,
 }
 
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
-    pub fn collect(
-        manifest_path: CargoManifestPath,
-        no_locked: bool,
-    ) -> color_eyre::eyre::Result<Self> {
+    pub fn collect(manifest_path: ManifestPath, no_locked: bool) -> color_eyre::eyre::Result<Self> {
         let (mut metadata, root_package) = get_cargo_metadata(&manifest_path, no_locked)?;
 
         metadata.target_directory = util::force_canonicalize_dir(&metadata.target_directory)?;
@@ -71,7 +68,7 @@ impl CrateMetadata {
 
 /// Get the result of `cargo metadata`, together with the root package id.
 fn get_cargo_metadata(
-    manifest_path: &CargoManifestPath,
+    manifest_path: &ManifestPath,
     no_locked: bool,
 ) -> color_eyre::eyre::Result<(cargo_metadata::Metadata, Package)> {
     log::info!("Fetching cargo metadata for {}", manifest_path.path);

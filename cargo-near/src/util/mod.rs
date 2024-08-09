@@ -10,11 +10,11 @@ use std::{env, thread};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
+use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::{ContextCompat, WrapErr};
 use log::{error, info};
 
 use crate::common::ColorPreference;
-use crate::types::manifest::CargoManifestPath;
 use sha2::{Digest, Sha256};
 
 mod print;
@@ -225,7 +225,7 @@ impl CompilationArtifact {
 
 /// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated artifact.
 pub(crate) fn compile_project(
-    manifest_path: &CargoManifestPath,
+    manifest_path: &ManifestPath,
     args: &[&str],
     mut env: Vec<(&str, &str)>,
     artifact_extension: &str,

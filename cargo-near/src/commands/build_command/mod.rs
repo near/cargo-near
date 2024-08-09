@@ -1,11 +1,9 @@
 use std::ops::Deref;
 
+use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
 use colored::{ColoredString, Colorize};
 
-use crate::{
-    types::manifest::CargoManifestPath,
-    util::{self, CompilationArtifact},
-};
+use crate::util::{self, CompilationArtifact};
 
 pub(crate) mod build;
 mod docker;
@@ -82,7 +80,7 @@ pub enum BuildContext {
 impl BuildCommand {
     pub fn contract_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
         let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
-            let manifest_path = CargoManifestPath::try_from(manifest_path.deref().clone())?;
+            let manifest_path = ManifestPath::try_from(manifest_path.deref().clone())?;
             manifest_path.directory()?.to_path_buf()
         } else {
             camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {

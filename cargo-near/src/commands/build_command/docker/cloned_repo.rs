@@ -1,12 +1,10 @@
 use crate::{
     commands::build_command::ArtifactMessages,
-    types::{
-        manifest::{CargoManifestPath, MANIFEST_FILE_NAME},
-        metadata::CrateMetadata,
-    },
+    types::metadata::CrateMetadata,
     util::{self, CompilationArtifact, VersionMismatch},
 };
 use camino::Utf8PathBuf;
+use cargo_near_lib::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use colored::Colorize;
 
 use super::crate_in_repo;
@@ -42,7 +40,7 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(CargoManifestPath::try_from(cargo_toml_path)?, no_locked).map_err(|err| {
+            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, no_locked).map_err(|err| {
             if !no_locked && err.to_string().contains("Cargo.lock is absent") {
                 super::no_locked_warn_pause(false);
                 println!();
@@ -80,10 +78,7 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(
-                CargoManifestPath::try_from(cargo_toml_path)?,
-                self.no_locked,
-            )?
+            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, self.no_locked)?
         };
 
         let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;
