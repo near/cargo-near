@@ -1,7 +1,5 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
-use super::color_preference::ColorPreference;
-
 #[derive(Debug, EnumDiscriminants, Clone, clap::ValueEnum)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
 pub enum ColorPreferenceCli {
@@ -14,7 +12,7 @@ impl interactive_clap::ToCli for ColorPreferenceCli {
     type CliVariant = ColorPreferenceCli;
 }
 
-impl From<ColorPreferenceCli> for ColorPreference {
+impl From<ColorPreferenceCli> for cargo_near_build::types::color_preference::ColorPreference {
     fn from(value: ColorPreferenceCli) -> Self {
         match value {
             ColorPreferenceCli::Auto => Self::Auto,

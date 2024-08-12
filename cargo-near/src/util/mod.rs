@@ -14,7 +14,7 @@ use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::{ContextCompat, WrapErr};
 use log::{error, info};
 
-use crate::types::color_preference::ColorPreference;
+use cargo_near_build::types::color_preference::ColorPreference;
 use sha2::{Digest, Sha256};
 
 mod print;

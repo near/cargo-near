@@ -8,9 +8,9 @@ use colored::Colorize;
 use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
-use crate::types::color_preference::ColorPreference;
 use crate::types::metadata::CrateMetadata;
 use crate::util;
+use cargo_near_build::types::color_preference::ColorPreference;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
@@ -190,7 +190,7 @@ pub struct Opts {
     /// Path to the `Cargo.toml` of the contract to build
     pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
     /// Coloring: auto, always, never
-    pub color: Option<crate::types::color_preference::ColorPreference>,
+    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
 }
 
 impl From<super::AbiCommand> for Opts {

@@ -1,11 +1,11 @@
 use crate::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
-use crate::types::color_preference::ColorPreference;
 use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
     types::source_id,
     util,
 };
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::color_preference::ColorPreference;
 use std::ops::Deref;
 use std::{
     io::IsTerminal,
@@ -53,7 +53,7 @@ pub struct Opts {
     /// Disables default feature flags.
     pub no_default_features: bool,
     /// Coloring: auto, always, never
-    pub color: Option<crate::types::color_preference::ColorPreference>,
+    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
 }
 
 impl From<super::BuildCommand> for Opts {
