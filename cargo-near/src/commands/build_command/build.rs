@@ -103,7 +103,7 @@ impl From<super::BuildCommand> for Opts {
             no_default_features: value.no_default_features,
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
-            color: value.color,
+            color: value.color.map(Into::into),
         }
     }
 }

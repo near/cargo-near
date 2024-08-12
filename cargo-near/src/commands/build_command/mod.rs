@@ -1,6 +1,3 @@
-use std::ops::Deref;
-
-use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use colored::{ColoredString, Colorize};
 
 use crate::util::{self, CompilationArtifact};
@@ -69,7 +66,7 @@ pub struct BuildCommand {
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
-    pub color: Option<crate::types::color_preference::ColorPreference>,
+    pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -78,22 +75,12 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
-    pub fn contract_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
-        let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
-            let manifest_path = ManifestPath::try_from(manifest_path.deref().clone())?;
-            manifest_path.directory()?.to_path_buf()
-        } else {
-            camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
-                color_eyre::eyre::eyre!("Failed to convert path {}", err.to_string_lossy())
-            })?
-        };
-        Ok(contract_path)
-    }
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         if self.no_docker() {
             self::build::run(self.into())
         } else {
-            self.docker_run(context)
+            let opts: docker::Opts = self.into();
+            opts.docker_run(context)
         }
     }
     pub fn no_docker(&self) -> bool {
