@@ -1,4 +1,5 @@
-use crate::{commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY, common::ColorPreference};
+use crate::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
+use crate::types::color_preference::ColorPreference;
 use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
     types::source_id,

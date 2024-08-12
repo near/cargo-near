@@ -25,7 +25,7 @@ pub struct AbiCommand {
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
-    pub color: Option<crate::common::ColorPreference>,
+    pub color: Option<crate::types::color_preference::ColorPreference>,
 }
 
 #[derive(Debug, Clone)]

@@ -8,7 +8,7 @@ use colored::Colorize;
 use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
-use crate::common::ColorPreference;
+use crate::types::color_preference::ColorPreference;
 use crate::types::metadata::CrateMetadata;
 use crate::util;
 

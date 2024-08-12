@@ -7,7 +7,7 @@ use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
-use crate::common::ColorPreference;
+use crate::types::color_preference::ColorPreference;
 use crate::types::metadata::CrateMetadata;
 use crate::util::{self, VersionMismatch};
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
@@ -42,7 +42,7 @@ pub struct Opts {
     /// Disables default feature flags.
     pub no_default_features: bool,
     /// Coloring: auto, always, never
-    pub color: Option<crate::common::ColorPreference>,
+    pub color: Option<crate::types::color_preference::ColorPreference>,
 }
 
 impl Opts {
