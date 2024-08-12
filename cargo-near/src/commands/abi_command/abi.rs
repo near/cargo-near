@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
-use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;

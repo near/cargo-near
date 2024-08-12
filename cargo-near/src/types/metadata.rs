@@ -3,7 +3,7 @@ use std::{thread, time::Duration};
 use crate::util;
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
-use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::{ContextCompat, WrapErr};
 use colored::Colorize;
 

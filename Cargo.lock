@@ -788,7 +788,7 @@ version = "0.7.0"
 dependencies = [
  "bs58 0.5.1",
  "camino",
- "cargo-near-lib",
+ "cargo-near-build",
  "cargo_metadata",
  "clap",
  "color-eyre",
@@ -827,6 +827,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-near-build"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "eyre",
+]
+
+[[package]]
 name = "cargo-near-integration-tests"
 version = "0.1.0"
 dependencies = [
@@ -850,14 +858,6 @@ dependencies = [
  "tempfile",
  "tokio",
  "zstd 0.13.2",
-]
-
-[[package]]
-name = "cargo-near-lib"
-version = "0.7.0"
-dependencies = [
- "camino",
- "eyre",
 ]
 
 [[package]]

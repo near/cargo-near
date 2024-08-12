@@ -2,16 +2,9 @@
 resolver = "2"
 members = [
     "cargo-near",
-    "cargo-near-lib",
+    "cargo-near-build",
     "integration-tests",
 ]
-
-[workspace.package]
-# shared version of all public crates in the workspace
-version = "0.7.0"
-
-[workspace.dependencies]
-cargo-near-lib = { version = "0.7.0", path = "./cargo-near-lib" }
 
 [profile.slim]
 inherits = "release"

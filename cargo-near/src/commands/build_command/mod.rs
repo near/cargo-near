@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use colored::{ColoredString, Colorize};
 
 use crate::util::{self, CompilationArtifact};

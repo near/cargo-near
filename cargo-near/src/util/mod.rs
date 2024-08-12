@@ -10,7 +10,7 @@ use std::{env, thread};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
-use cargo_near_lib::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::{ContextCompat, WrapErr};
 use log::{error, info};
 

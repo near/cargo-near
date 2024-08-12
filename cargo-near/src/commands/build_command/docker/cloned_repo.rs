@@ -4,7 +4,7 @@ use crate::{
     util::{self, CompilationArtifact, VersionMismatch},
 };
 use camino::Utf8PathBuf;
-use cargo_near_lib::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use colored::Colorize;
 
 use super::crate_in_repo;

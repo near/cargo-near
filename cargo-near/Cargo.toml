@@ -1,6 +1,6 @@
 [package]
 name = "cargo-near"
-version.workspace = true
+version = "0.7.0"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition = "2021"
 rust-version = "1.76.0"
@@ -23,7 +23,7 @@ license = false
 eula = false
 
 [dependencies]
-cargo-near-lib = { workspace = true}
+cargo-near-build = { version = "0.1.0", path = "../cargo-near-build" }
 bs58 = "0.5"
 hex = "0.4.3"
 camino = "1.1.1"
