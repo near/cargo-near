@@ -185,7 +185,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
                 )?;
                 Ok(path)
             })?;
-            min_abi_path.replace(util::copy(&path, &out_dir)?);
+            min_abi_path.replace(cargo_near_build::fs::copy(&path, &out_dir)?);
         }
         abi = Some(contract_abi);
     }
@@ -216,7 +216,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         color,
     )?;
 
-    wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
+    wasm_artifact.path = cargo_near_build::fs::copy(&wasm_artifact.path, &out_dir)?;
     wasm_artifact.cargo_near_version_mismatch = cargo_near_version_mismatch;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
@@ -232,7 +232,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
 
         let AbiResult { path } =
             abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
-        let pretty_abi_path = util::copy(&path, &out_dir)?;
+        let pretty_abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {

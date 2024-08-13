@@ -238,7 +238,7 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
-    let abi_path = util::copy(&path, &out_dir)?;
+    let abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
 
     pretty_print::success("ABI Successfully Generated!");
     eprintln!("     - ABI: {}", abi_path.to_string().yellow().bold());

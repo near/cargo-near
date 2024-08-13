@@ -1,6 +1,5 @@
 use std::{thread, time::Duration};
 
-use crate::util;
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
@@ -21,11 +20,12 @@ impl CrateMetadata {
     pub fn collect(manifest_path: ManifestPath, no_locked: bool) -> color_eyre::eyre::Result<Self> {
         let (mut metadata, root_package) = get_cargo_metadata(&manifest_path, no_locked)?;
 
-        metadata.target_directory = util::force_canonicalize_dir(&metadata.target_directory)?;
+        metadata.target_directory =
+            cargo_near_build::fs::force_canonicalize_dir(&metadata.target_directory)?;
         metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
 
         let mut target_directory =
-            util::force_canonicalize_dir(&metadata.target_directory.join("near"))?;
+            cargo_near_build::fs::force_canonicalize_dir(&metadata.target_directory.join("near"))?;
 
         // Normalize the package and lib name.
         let package_name = root_package.name.replace('-', "_");
@@ -34,7 +34,8 @@ impl CrateMetadata {
         if absolute_manifest_dir != metadata.workspace_root {
             // If the contract is a package in a workspace, we use the package name
             // as the name of the sub-folder where we put the `.contract` bundle.
-            target_directory = util::force_canonicalize_dir(&target_directory.join(package_name))?;
+            target_directory =
+                cargo_near_build::fs::force_canonicalize_dir(&target_directory.join(package_name))?;
         }
 
         let crate_metadata = CrateMetadata {
@@ -53,7 +54,7 @@ impl CrateMetadata {
     ) -> color_eyre::eyre::Result<Utf8PathBuf> {
         let result = if let Some(cli_override) = cli_override {
             let out_dir = Utf8PathBuf::from(cli_override);
-            util::force_canonicalize_dir(&out_dir)?
+            cargo_near_build::fs::force_canonicalize_dir(&out_dir)?
         } else {
             self.target_directory.clone()
         };

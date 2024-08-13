@@ -842,6 +842,7 @@ version = "0.1.0"
 dependencies = [
  "camino",
  "colored",
+ "dunce",
  "eyre",
 ]
 

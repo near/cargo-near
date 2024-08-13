@@ -57,7 +57,7 @@ where
     cmd.envs(env);
 
     if let Some(path) = working_dir {
-        let path = force_canonicalize_dir(path.as_ref())?;
+        let path = cargo_near_build::fs::force_canonicalize_dir(path.as_ref())?;
         log::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
@@ -296,31 +296,6 @@ pub(crate) fn compile_project(
             dylib_files_iter.as_slice()
         ),
     }
-}
-
-/// Create the directory if it doesn't exist, and return the absolute path to it.
-pub(crate) fn force_canonicalize_dir(dir: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
-    fs::create_dir_all(dir).wrap_err_with(|| format!("failed to create directory `{}`", dir))?;
-    // use canonicalize from `dunce` create instead of default one from std because it's compatible with Windows UNC paths
-    // and don't break cargo compilation on Windows
-    // https://github.com/rust-lang/rust/issues/42869
-    Utf8PathBuf::from_path_buf(
-        dunce::canonicalize(dir)
-            .wrap_err_with(|| format!("failed to canonicalize path: {} ", dir))?,
-    )
-    .map_err(|err| color_eyre::eyre::eyre!("failed to convert path {}", err.to_string_lossy()))
-}
-
-/// Copy a file to a destination.
-///
-/// Does nothing if the destination is the same as the source to avoid truncating the file.
-pub(crate) fn copy(from: &Utf8Path, to: &Utf8Path) -> color_eyre::eyre::Result<Utf8PathBuf> {
-    let out_path = to.join(from.file_name().unwrap());
-    if from != out_path {
-        fs::copy(from, &out_path)
-            .wrap_err_with(|| format!("failed to copy `{}` to `{}`", from, out_path))?;
-    }
-    Ok(out_path)
 }
 
 pub(crate) fn extract_abi_entries(
