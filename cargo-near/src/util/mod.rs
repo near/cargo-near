@@ -13,20 +13,6 @@ use color_eyre::eyre::{ContextCompat, WrapErr};
 use cargo_near_build::types::color_preference::ColorPreference;
 use sha2::{Digest, Sha256};
 
-pub(crate) const fn dylib_extension() -> &'static str {
-    #[cfg(target_os = "linux")]
-    return "so";
-
-    #[cfg(target_os = "macos")]
-    return "dylib";
-
-    #[cfg(target_os = "windows")]
-    return "dll";
-
-    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    compile_error!("Unsupported platform");
-}
-
 /// Invokes `cargo` with the subcommand `command`, the supplied `args` and set `env` variables.
 ///
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.

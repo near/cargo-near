@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
-use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::{cargo_native, pretty_print};
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
@@ -98,7 +98,7 @@ pub(crate) fn generate_abi(
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
         ],
-        util::dylib_extension(),
+        cargo_native::dylib_extension(),
         hide_warnings,
         color,
     )?;
