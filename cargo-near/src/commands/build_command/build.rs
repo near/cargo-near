@@ -1,6 +1,7 @@
 use camino::Utf8PathBuf;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use cargo_near_build::types::near::VersionMismatch;
 use colored::Colorize;
 use near_abi::BuildInfo;
 
@@ -10,7 +11,7 @@ use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
 use crate::types::metadata::CrateMetadata;
-use crate::util::{self, VersionMismatch};
+use crate::util;
 use crate::BuildArtifact;
 use cargo_near_build::types::color_preference::ColorPreference;
 

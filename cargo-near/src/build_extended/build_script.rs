@@ -1,4 +1,5 @@
-use crate::{util::VersionMismatch, BuildArtifact};
+use crate::BuildArtifact;
+use cargo_near_build::types::near::VersionMismatch;
 use rustc_version::Version;
 
 /// `cargo::` prefix for build script outputs, that `cargo` recognizes

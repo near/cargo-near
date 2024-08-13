@@ -1,6 +1,7 @@
 // TODO: make module non-pub
 pub mod target;
 
+// TODO: make non-pub
 pub const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
     return "so";

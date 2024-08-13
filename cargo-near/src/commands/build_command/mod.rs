@@ -1,6 +1,5 @@
+use cargo_near_build::types::near::CompilationArtifact;
 use colored::{ColoredString, Colorize};
-
-use crate::util::{self, CompilationArtifact};
 
 pub(crate) mod build;
 mod docker;
@@ -75,7 +74,7 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
-    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<CompilationArtifact> {
         if self.no_docker() {
             self::build::run(self.into())
         } else {

@@ -1,12 +1,11 @@
-use crate::{
-    commands::build_command::ArtifactMessages,
-    types::metadata::CrateMetadata,
-    util::{CompilationArtifact, VersionMismatch},
-};
+use crate::{commands::build_command::ArtifactMessages, types::metadata::CrateMetadata};
 use camino::Utf8PathBuf;
 use cargo_near_build::{
     pretty_print,
-    types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+    types::{
+        cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+        near::{CompilationArtifact, VersionMismatch},
+    },
 };
 use colored::Colorize;
 

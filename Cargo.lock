@@ -840,11 +840,14 @@ dependencies = [
 name = "cargo-near-build"
 version = "0.1.0"
 dependencies = [
+ "bs58 0.5.1",
  "camino",
  "colored",
  "dunce",
  "eyre",
+ "hex 0.4.3",
  "log",
+ "sha2 0.10.8",
 ]
 
 [[package]]
