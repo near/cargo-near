@@ -1,8 +1,8 @@
 use colored::Colorize;
 
-pub(crate) fn handle_step<F, T>(msg: &str, f: F) -> color_eyre::eyre::Result<T>
+pub fn handle_step<F, T>(msg: &str, f: F) -> eyre::Result<T>
 where
-    F: FnOnce() -> color_eyre::eyre::Result<T>,
+    F: FnOnce() -> eyre::Result<T>,
 {
     eprintln!("{} {}", "•".bold().cyan(), msg);
     let result = f();
@@ -14,10 +14,10 @@ where
     result
 }
 
-pub(crate) fn print_step(msg: &str) {
+pub fn step(msg: &str) {
     eprintln!("{} {}", "•".bold().cyan(), msg);
 }
 
-pub(crate) fn print_success(msg: &str) {
+pub fn success(msg: &str) {
     eprintln!("{} {}", "✓".bold().green(), msg);
 }

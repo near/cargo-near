@@ -17,9 +17,6 @@ use log::{error, info};
 use cargo_near_build::types::color_preference::ColorPreference;
 use sha2::{Digest, Sha256};
 
-mod print;
-pub(crate) use print::*;
-
 pub(crate) const fn dylib_extension() -> &'static str {
     #[cfg(target_os = "linux")]
     return "so";

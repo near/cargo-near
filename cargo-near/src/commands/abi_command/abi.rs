@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
+use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
@@ -86,7 +87,7 @@ pub(crate) fn generate_abi(
         args
     };
 
-    util::print_step("Generating ABI");
+    pretty_print::step("Generating ABI");
 
     let dylib_artifact = util::compile_project(
         &crate_metadata.manifest_path,
@@ -102,7 +103,7 @@ pub(crate) fn generate_abi(
         color,
     )?;
 
-    let mut contract_abi = util::handle_step("Extracting ABI...", || {
+    let mut contract_abi = pretty_print::handle_step("Extracting ABI...", || {
         let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
         Ok(near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
             .into_abi_root(extract_metadata(crate_metadata)))
@@ -210,7 +211,7 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
-    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+    let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
             manifest_path.into()
         } else {
@@ -239,7 +240,7 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
 
     let abi_path = util::copy(&path, &out_dir)?;
 
-    util::print_success("ABI Successfully Generated!");
+    pretty_print::success("ABI Successfully Generated!");
     eprintln!("     - ABI: {}", abi_path.to_string().yellow().bold());
 
     Ok(())

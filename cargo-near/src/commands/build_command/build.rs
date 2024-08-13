@@ -1,4 +1,5 @@
 use camino::Utf8PathBuf;
+use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use colored::Colorize;
 use near_abi::BuildInfo;
@@ -9,6 +10,7 @@ use crate::commands::build_command::{
 };
 use crate::types::metadata::CrateMetadata;
 use crate::util::{self, VersionMismatch};
+use crate::BuildArtifact;
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 use cargo_near_build::types::color_preference::ColorPreference;
 
@@ -108,7 +110,7 @@ impl From<super::BuildCommand> for Opts {
     }
 }
 
-pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     export_cargo_near_abi_versions();
     export_nep_330_build_command(&args)?;
     print_nep_330_env();
@@ -116,14 +118,14 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
-    util::handle_step("Checking the host environment...", || {
+    pretty_print::handle_step("Checking the host environment...", || {
         if !wasm32_target_libdir_exists() {
             color_eyre::eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
     })?;
 
-    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+    let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
             manifest_path.into()
         } else {
@@ -174,7 +176,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
             image: None,
         });
         if !args.no_embed_abi {
-            let path = util::handle_step("Compressing ABI to be embedded..", || {
+            let path = pretty_print::handle_step("Compressing ABI to be embedded..", || {
                 let AbiResult { path } = abi::write_to_file(
                     &contract_abi,
                     &crate_metadata,
@@ -204,7 +206,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         }
     }
 
-    util::print_step("Building contract");
+    pretty_print::step("Building contract");
     let mut wasm_artifact = util::compile_project(
         &crate_metadata.manifest_path,
         &cargo_args,
@@ -219,7 +221,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
 
-    util::print_success(&format!(
+    pretty_print::success(&format!(
         "Contract successfully built! (in CARGO_NEAR_BUILD_ENVIRONMENT={})",
         std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).unwrap_or("host".into())
     ));
