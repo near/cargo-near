@@ -8,9 +8,9 @@ use colored::Colorize;
 use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
-use crate::common::ColorPreference;
 use crate::types::metadata::CrateMetadata;
 use crate::util;
+use cargo_near_build::types::color_preference::ColorPreference;
 
 /// ABI generation result.
 pub(crate) struct AbiResult {
@@ -178,8 +178,35 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
         }
     }
 }
+pub struct Opts {
+    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    pub no_locked: bool,
+    /// Include rustdocs in the ABI file
+    pub no_doc: bool,
+    /// Generate compact (minified) JSON
+    pub compact_abi: bool,
+    /// Copy final artifacts to this directory
+    pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    /// Path to the `Cargo.toml` of the contract to build
+    pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    /// Coloring: auto, always, never
+    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
+}
 
-pub fn run(args: super::AbiCommand) -> near_cli_rs::CliResult {
+impl From<super::AbiCommand> for Opts {
+    fn from(value: super::AbiCommand) -> Self {
+        Self {
+            no_locked: value.no_locked,
+            no_doc: value.no_doc,
+            compact_abi: value.compact_abi,
+            out_dir: value.out_dir,
+            manifest_path: value.manifest_path,
+            color: value.color.map(Into::into),
+        }
+    }
+}
+
+pub fn run(args: Opts) -> near_cli_rs::CliResult {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 

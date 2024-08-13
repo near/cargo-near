@@ -5,7 +5,6 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 pub mod build_extended;
 pub mod commands;
-pub mod common;
 pub mod types;
 pub mod util;
 

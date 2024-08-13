@@ -7,10 +7,10 @@ use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
-use crate::common::ColorPreference;
 use crate::types::metadata::CrateMetadata;
 use crate::util::{self, VersionMismatch};
 use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
+use cargo_near_build::types::color_preference::ColorPreference;
 
 use super::{
     ArtifactMessages, CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY, CARGO_NEAR_VERSION_ENV_KEY,
@@ -42,7 +42,7 @@ pub struct Opts {
     /// Disables default feature flags.
     pub no_default_features: bool,
     /// Coloring: auto, always, never
-    pub color: Option<crate::common::ColorPreference>,
+    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
 }
 
 impl Opts {
@@ -103,7 +103,7 @@ impl From<super::BuildCommand> for Opts {
             no_default_features: value.no_default_features,
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
-            color: value.color,
+            color: value.color.map(Into::into),
         }
     }
 }

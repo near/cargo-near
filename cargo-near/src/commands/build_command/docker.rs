@@ -1,9 +1,12 @@
-use crate::{commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY, common::ColorPreference};
+use crate::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
 use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
     types::source_id,
     util,
 };
+use cargo_near_build::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::color_preference::ColorPreference;
+use std::ops::Deref;
 use std::{
     io::IsTerminal,
     process::{id, Command, ExitStatus},
@@ -30,7 +33,59 @@ const ERR_NO_LOCKED_DEPLOY: &str = "`--no-locked` flag is forbidden for deploy w
 const WARN_BECOMES_ERR: &str =
     "This WARNING becomes a hard ERROR when deploying contract with docker.";
 
-impl super::BuildCommand {
+pub struct Opts {
+    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    pub no_locked: bool,
+    /// Build contract in debug mode, without optimizations and bigger is size
+    pub no_release: bool,
+    /// Do not generate ABI for the contract
+    pub no_abi: bool,
+    /// Do not embed the ABI in the contract binary
+    pub no_embed_abi: bool,
+    /// Do not include rustdocs in the embedded ABI
+    pub no_doc: bool,
+    /// Copy final artifacts to this directory
+    pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    /// Path to the `Cargo.toml` of the contract to build
+    pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    /// Set compile-time feature flags.
+    pub features: Option<String>,
+    /// Disables default feature flags.
+    pub no_default_features: bool,
+    /// Coloring: auto, always, never
+    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
+}
+
+impl From<super::BuildCommand> for Opts {
+    fn from(value: super::BuildCommand) -> Self {
+        Self {
+            no_locked: value.no_locked,
+            no_release: value.no_release,
+            no_abi: value.no_abi,
+            no_embed_abi: value.no_embed_abi,
+            no_doc: value.no_doc,
+            features: value.features,
+            no_default_features: value.no_default_features,
+            out_dir: value.out_dir,
+            manifest_path: value.manifest_path,
+            color: value.color.map(Into::into),
+        }
+    }
+}
+
+impl Opts {
+    pub fn contract_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+        let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
+            let manifest_path = ManifestPath::try_from(manifest_path.deref().clone())?;
+            manifest_path.directory()?.to_path_buf()
+        } else {
+            camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).map_err(|err| {
+                color_eyre::eyre::eyre!("Failed to convert path {}", err.to_string_lossy())
+            })?
+        };
+        Ok(contract_path)
+    }
+
     pub(super) fn docker_run(
         self,
         context: BuildContext,

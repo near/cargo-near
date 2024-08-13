@@ -1,18 +1,11 @@
+use std::env;
 use std::io::IsTerminal;
-use std::{env, str::FromStr};
 
-use strum::{EnumDiscriminants, EnumIter, EnumMessage};
-
-#[derive(Debug, EnumDiscriminants, Clone, clap::ValueEnum)]
-#[strum_discriminants(derive(EnumMessage, EnumIter))]
+#[derive(Debug, Clone)]
 pub enum ColorPreference {
     Auto,
     Always,
     Never,
-}
-
-impl interactive_clap::ToCli for ColorPreference {
-    type CliVariant = ColorPreference;
 }
 
 impl std::fmt::Display for ColorPreference {
@@ -21,19 +14,6 @@ impl std::fmt::Display for ColorPreference {
             Self::Auto => write!(f, "auto"),
             Self::Always => write!(f, "always"),
             Self::Never => write!(f, "never"),
-        }
-    }
-}
-
-impl FromStr for ColorPreference {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "auto" => Ok(default_mode()),
-            "always" => Ok(ColorPreference::Always),
-            "never" => Ok(ColorPreference::Never),
-            _ => Err(format!("invalid color preference: {}", s)),
         }
     }
 }

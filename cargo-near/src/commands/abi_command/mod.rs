@@ -25,7 +25,7 @@ pub struct AbiCommand {
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
-    pub color: Option<crate::common::ColorPreference>,
+    pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +44,7 @@ impl AbiCommandlContext {
             manifest_path: scope.manifest_path.clone(),
             color: scope.color.clone(),
         };
-        self::abi::run(args)?;
+        self::abi::run(args.into())?;
         Ok(Self)
     }
 }
