@@ -844,6 +844,7 @@ dependencies = [
  "colored",
  "dunce",
  "eyre",
+ "log",
 ]
 
 [[package]]

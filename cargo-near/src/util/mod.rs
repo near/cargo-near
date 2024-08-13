@@ -1,18 +1,14 @@
+use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::process::Command;
-use std::{
-    collections::{BTreeMap, HashSet},
-    path::PathBuf,
-};
-use std::{env, thread};
+use std::thread;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use cargo_metadata::{Artifact, Message};
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::{ContextCompat, WrapErr};
-use log::{error, info};
 
 use cargo_near_build::types::color_preference::ColorPreference;
 use sha2::{Digest, Sha256};
@@ -127,35 +123,6 @@ where
         Ok(result?)
     } else {
         color_eyre::eyre::bail!("`{:?}` failed with exit code: {:?}", cmd, output.code());
-    }
-}
-
-pub(crate) fn invoke_rustup<I, S>(args: I) -> color_eyre::eyre::Result<Vec<u8>>
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
-{
-    let rustup = env::var("RUSTUP").unwrap_or_else(|_| "rustup".to_string());
-
-    let mut cmd = Command::new(rustup);
-    cmd.args(args);
-
-    log::info!("Invoking rustup: {:?}", cmd);
-
-    let child = cmd
-        .stdout(std::process::Stdio::piped())
-        .spawn()
-        .wrap_err_with(|| format!("Error executing `{:?}`", cmd))?;
-
-    let output = child.wait_with_output()?;
-    if output.status.success() {
-        Ok(output.stdout)
-    } else {
-        color_eyre::eyre::bail!(
-            "`{:?}` failed with exit code: {:?}",
-            cmd,
-            output.status.code()
-        );
     }
 }
 
@@ -349,54 +316,4 @@ pub(crate) fn extract_abi_entries(
         }
     }
     Ok(entries)
-}
-
-pub(crate) const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
-
-fn get_rustc_wasm32_unknown_unknown_target_libdir() -> color_eyre::eyre::Result<PathBuf> {
-    let command = Command::new("rustc")
-        .args(["--target", COMPILATION_TARGET, "--print", "target-libdir"])
-        .output()?;
-
-    if command.status.success() {
-        Ok(String::from_utf8(command.stdout)?.trim().into())
-    } else {
-        color_eyre::eyre::bail!(
-            "Getting rustc's wasm32-unknown-unknown target wasn't successful. Got {}",
-            command.status,
-        )
-    }
-}
-
-pub fn wasm32_target_libdir_exists() -> bool {
-    let result = get_rustc_wasm32_unknown_unknown_target_libdir();
-
-    match result {
-        Ok(wasm32_target_libdir_path) => {
-            if wasm32_target_libdir_path.exists() {
-                info!(
-                    "Found {COMPILATION_TARGET} in {:?}",
-                    wasm32_target_libdir_path
-                );
-                true
-            } else {
-                info!(
-                    "Failed to find {COMPILATION_TARGET} in {:?}",
-                    wasm32_target_libdir_path
-                );
-                false
-            }
-        }
-        Err(_) => {
-            error!("Some error in getting the target libdir, trying rustup..");
-
-            invoke_rustup(["target", "list", "--installed"])
-                .map(|stdout| {
-                    stdout
-                        .lines()
-                        .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
-                })
-                .is_ok()
-        }
-    }
 }

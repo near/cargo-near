@@ -4,6 +4,7 @@ use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_
 use colored::Colorize;
 use near_abi::BuildInfo;
 
+use crate::commands::abi_command::abi;
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
@@ -11,7 +12,6 @@ use crate::commands::build_command::{
 use crate::types::metadata::CrateMetadata;
 use crate::util::{self, VersionMismatch};
 use crate::BuildArtifact;
-use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
 use cargo_near_build::types::color_preference::ColorPreference;
 
 use super::{
@@ -119,7 +119,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     color.apply();
 
     pretty_print::handle_step("Checking the host environment...", || {
-        if !wasm32_target_libdir_exists() {
+        if !cargo_near_build::cargo_native::target::wasm32_exists() {
             color_eyre::eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
