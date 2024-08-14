@@ -3,6 +3,7 @@ use std::fs;
 
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native::{self, DYLIB};
+use cargo_near_build::near::abi::extract_abi_entries;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
@@ -11,7 +12,6 @@ use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use crate::types::metadata::CrateMetadata;
-use crate::util;
 use cargo_near_build::types::color_preference::ColorPreference;
 
 /// ABI generation result.
@@ -104,7 +104,7 @@ pub(crate) fn generate_abi(
     )?;
 
     let mut contract_abi = pretty_print::handle_step("Extracting ABI...", || {
-        let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
+        let abi_entries = extract_abi_entries(&dylib_artifact.path)?;
         Ok(near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
             .into_abi_root(extract_metadata(crate_metadata)))
     })?;

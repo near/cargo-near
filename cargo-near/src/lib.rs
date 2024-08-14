@@ -6,7 +6,6 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 pub mod build_extended;
 pub mod commands;
 pub mod types;
-pub mod util;
 
 pub use build_extended::{
     build as build_extended, BuildScriptOpts, OptsExtended as BuildOptsExtended,

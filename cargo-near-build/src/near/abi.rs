@@ -3,9 +3,10 @@ use std::fs;
 
 use camino::Utf8Path;
 
-pub(crate) fn extract_abi_entries(
+// TODO: make func non-pub
+pub fn extract_abi_entries(
     dylib_path: &Utf8Path,
-) -> color_eyre::eyre::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
+) -> eyre::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
     let dylib_file_contents = fs::read(dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
     log::debug!(
@@ -20,7 +21,7 @@ pub(crate) fn extract_abi_entries(
         .filter(|sym_name| sym_name.starts_with("__near_abi_"))
         .collect::<HashSet<_>>();
     if near_abi_symbols.is_empty() {
-        color_eyre::eyre::bail!("No NEAR ABI symbols found in the dylib");
+        eyre::bail!("No NEAR ABI symbols found in the dylib");
     }
     log::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
 
@@ -44,11 +45,11 @@ pub(crate) fn extract_abi_entries(
                             {
                                 err_str.truncate(msg.len());
                                 err_str.shrink_to_fit();
-                                color_eyre::eyre::bail!(err_str);
+                                eyre::bail!(err_str);
                             }
                         }
                     }
-                    color_eyre::eyre::bail!(err);
+                    eyre::bail!(err);
                 }
             };
         }
