@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use camino::Utf8PathBuf;
 use sha2::{Digest, Sha256};
 
-use crate::cargo_native::ArtifactType;
+use crate::ArtifactType;
 
 pub struct CompilationArtifact<T: ArtifactType> {
     pub path: Utf8PathBuf,
