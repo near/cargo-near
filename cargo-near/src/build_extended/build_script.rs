@@ -1,4 +1,7 @@
-use crate::{util::VersionMismatch, BuildArtifact};
+use std::marker::PhantomData;
+
+use crate::BuildArtifact;
+use cargo_near_build::types::near::VersionMismatch;
 use rustc_version::Version;
 
 /// `cargo::` prefix for build script outputs, that `cargo` recognizes
@@ -84,6 +87,7 @@ impl<'a> BuildScriptOpts<'a> {
                 fresh: true,
                 from_docker: false,
                 cargo_near_version_mismatch: VersionMismatch::None,
+                artifact_type: PhantomData,
             }
         };
         Ok(artifact)

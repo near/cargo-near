@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
+use cargo_near_build::cargo_native::{self, DYLIB};
+use cargo_near_build::near::abi::extract_abi_entries;
+use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
@@ -9,7 +12,6 @@ use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use crate::types::metadata::CrateMetadata;
-use crate::util;
 use cargo_near_build::types::color_preference::ColorPreference;
 
 /// ABI generation result.
@@ -86,9 +88,9 @@ pub(crate) fn generate_abi(
         args
     };
 
-    util::print_step("Generating ABI");
+    pretty_print::step("Generating ABI");
 
-    let dylib_artifact = util::compile_project(
+    let dylib_artifact = cargo_native::compile::run::<DYLIB>(
         &crate_metadata.manifest_path,
         cargo_args.as_slice(),
         vec![
@@ -97,13 +99,12 @@ pub(crate) fn generate_abi(
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
         ],
-        util::dylib_extension(),
         hide_warnings,
         color,
     )?;
 
-    let mut contract_abi = util::handle_step("Extracting ABI...", || {
-        let abi_entries = util::extract_abi_entries(&dylib_artifact.path)?;
+    let mut contract_abi = pretty_print::handle_step("Extracting ABI...", || {
+        let abi_entries = extract_abi_entries(&dylib_artifact.path)?;
         Ok(near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
             .into_abi_root(extract_metadata(crate_metadata)))
     })?;
@@ -210,7 +211,7 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
-    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+    let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
             manifest_path.into()
         } else {
@@ -237,9 +238,9 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
     let AbiResult { path } =
         write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
 
-    let abi_path = util::copy(&path, &out_dir)?;
+    let abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
 
-    util::print_success("ABI Successfully Generated!");
+    pretty_print::success("ABI Successfully Generated!");
     eprintln!("     - ABI: {}", abi_path.to_string().yellow().bold());
 
     Ok(())

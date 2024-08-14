@@ -796,7 +796,6 @@ dependencies = [
 name = "cargo-near"
 version = "0.8.0"
 dependencies = [
- "bs58 0.5.1",
  "camino",
  "cargo-near-build",
  "cargo_metadata",
@@ -807,12 +806,10 @@ dependencies = [
  "dunce",
  "env_logger",
  "git2",
- "hex 0.4.3",
  "home",
  "inquire",
  "interactive-clap 0.3.0",
  "interactive-clap-derive 0.3.0",
- "libloading",
  "linked-hash-map",
  "log",
  "names",
@@ -824,11 +821,9 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
- "sha2 0.10.8",
  "shell-words",
  "strum",
  "strum_macros",
- "symbolic-debuginfo",
  "tempfile",
  "tmp_env",
  "unix_path",
@@ -840,9 +835,19 @@ dependencies = [
 name = "cargo-near-build"
 version = "0.1.0"
 dependencies = [
+ "bs58 0.5.1",
  "camino",
+ "cargo_metadata",
  "colored",
+ "dunce",
  "eyre",
+ "hex 0.4.3",
+ "libloading",
+ "log",
+ "near-abi",
+ "serde_json",
+ "sha2 0.10.8",
+ "symbolic-debuginfo",
 ]
 
 [[package]]

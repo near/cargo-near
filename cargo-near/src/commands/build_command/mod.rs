@@ -1,6 +1,5 @@
+use cargo_near_build::types::near::CompilationArtifact;
 use colored::{ColoredString, Colorize};
-
-use crate::util::{self, CompilationArtifact};
 
 pub(crate) mod build;
 mod docker;
@@ -75,7 +74,7 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
-    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<CompilationArtifact> {
         if self.no_docker() {
             self::build::run(self.into())
         } else {
@@ -94,15 +93,10 @@ pub struct ArtifactMessages<'a> {
 }
 
 impl<'a> ArtifactMessages<'a> {
-    pub fn push_binary(
-        &mut self,
-        wasm_artifact: &CompilationArtifact,
-    ) -> color_eyre::eyre::Result<()> {
-        self.messages.push((
-            "Binary",
-            wasm_artifact.path.to_string().bright_yellow().bold(),
-        ));
-        let checksum = wasm_artifact.compute_hash()?;
+    pub fn push_binary(&mut self, artifact: &CompilationArtifact) -> color_eyre::eyre::Result<()> {
+        self.messages
+            .push(("Binary", artifact.path.to_string().bright_yellow().bold()));
+        let checksum = artifact.compute_hash()?;
         self.messages.push((
             "SHA-256 checksum hex ",
             checksum.to_hex_string().green().dimmed(),

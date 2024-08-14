@@ -1,9 +1,10 @@
 use crate::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
+use crate::BuildArtifact;
 use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
     types::source_id,
-    util,
 };
+use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use cargo_near_build::types::color_preference::ColorPreference;
 use std::ops::Deref;
@@ -89,17 +90,17 @@ impl Opts {
     pub(super) fn docker_run(
         self,
         context: BuildContext,
-    ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+    ) -> color_eyre::eyre::Result<BuildArtifact> {
         let color = self.color.clone().unwrap_or(ColorPreference::Auto);
         color.apply();
-        let crate_in_repo = util::handle_step(
+        let crate_in_repo = pretty_print::handle_step(
             "Opening repo and determining HEAD and relative path of contract...",
             || crate_in_repo::Crate::find(&self.contract_path()?),
         )?;
-        util::handle_step("Checking if git is dirty...", || {
+        pretty_print::handle_step("Checking if git is dirty...", || {
             Self::git_dirty_check(context, &crate_in_repo.repo_root)
         })?;
-        let cloned_repo = util::handle_step(
+        let cloned_repo = pretty_print::handle_step(
             "Cloning project repo to a temporary build site, removing uncommitted changes...",
             || {
                 match (self.no_locked, context) {
@@ -124,12 +125,12 @@ impl Opts {
         )?;
 
         let docker_build_meta =
-            util::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
+            pretty_print::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
                 metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
             })?;
 
         if let BuildContext::Deploy = context {
-            util::handle_step(
+            pretty_print::handle_step(
                 "Performing check that current HEAD has been pushed to remote...",
                 || {
                     git_checks::pushed_to_remote::check(
@@ -141,16 +142,16 @@ impl Opts {
             )?;
         }
         if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
-            util::handle_step("Performing `docker` sanity check...", || {
+            pretty_print::handle_step("Performing `docker` sanity check...", || {
                 docker_checks::sanity_check()
             })?;
 
-            util::handle_step("Checking that specified image is available...", || {
+            pretty_print::handle_step("Checking that specified image is available...", || {
                 docker_checks::pull_image(&docker_build_meta)
             })?;
         }
 
-        util::print_step("Running build in docker command step...");
+        pretty_print::step("Running build in docker command step...");
         let out_dir_arg = self.out_dir.clone();
         let (status, docker_cmd) =
             self.docker_run_subprocess_step(docker_build_meta, &cloned_repo)?;
@@ -242,10 +243,10 @@ impl Opts {
         command: Command,
         cloned_repo: cloned_repo::ClonedRepo,
         out_dir_arg: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    ) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+    ) -> color_eyre::eyre::Result<BuildArtifact> {
         if status.success() {
-            util::print_success("Running docker command step (finished)");
-            util::handle_step("Copying artifact from temporary build site...", || {
+            pretty_print::success("Running docker command step (finished)");
+            pretty_print::handle_step("Copying artifact from temporary build site...", || {
                 cloned_repo.copy_artifact(out_dir_arg)
             })
         } else {

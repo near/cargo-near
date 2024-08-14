@@ -1,10 +1,14 @@
-use crate::{
-    commands::build_command::ArtifactMessages,
-    types::metadata::CrateMetadata,
-    util::{self, CompilationArtifact, VersionMismatch},
-};
+use std::marker::PhantomData;
+
+use crate::{commands::build_command::ArtifactMessages, types::metadata::CrateMetadata};
 use camino::Utf8PathBuf;
-use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use cargo_near_build::{
+    pretty_print,
+    types::{
+        cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+        near::{CompilationArtifact, VersionMismatch},
+    },
+};
 use colored::Colorize;
 
 use super::crate_in_repo;
@@ -32,7 +36,7 @@ impl ClonedRepo {
             tmp_repo.revparse_single("HEAD")?.id()
         );
 
-        util::print_step("Collecting cargo project metadata from temporary build site...");
+        pretty_print::step("Collecting cargo project metadata from temporary build site...");
         let tmp_crate_metadata = {
             let cargo_toml_path: camino::Utf8PathBuf = {
                 let mut path: camino::Utf8PathBuf = tmp_repo_path.clone().try_into()?;
@@ -123,6 +127,7 @@ fn copy(
         fresh: true,
         from_docker: true,
         cargo_near_version_mismatch: VersionMismatch::UnknownFromDocker,
+        artifact_type: PhantomData,
     };
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&result)?;

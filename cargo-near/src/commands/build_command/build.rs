@@ -1,15 +1,19 @@
 use camino::Utf8PathBuf;
+use cargo_near_build::cargo_native;
+use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use cargo_near_build::types::near::VersionMismatch;
+use cargo_near_build::WASM;
 use colored::Colorize;
 use near_abi::BuildInfo;
 
+use crate::commands::abi_command::abi;
 use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
 use crate::types::metadata::CrateMetadata;
-use crate::util::{self, VersionMismatch};
-use crate::{commands::abi_command::abi, util::wasm32_target_libdir_exists};
+use crate::BuildArtifact;
 use cargo_near_build::types::color_preference::ColorPreference;
 
 use super::{
@@ -108,7 +112,7 @@ impl From<super::BuildCommand> for Opts {
     }
 }
 
-pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
+pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     export_cargo_near_abi_versions();
     export_nep_330_build_command(&args)?;
     print_nep_330_env();
@@ -116,14 +120,14 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
-    util::handle_step("Checking the host environment...", || {
-        if !wasm32_target_libdir_exists() {
+    pretty_print::handle_step("Checking the host environment...", || {
+        if !cargo_native::target::wasm32_exists() {
             color_eyre::eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
     })?;
 
-    let crate_metadata = util::handle_step("Collecting cargo project metadata...", || {
+    let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
             manifest_path.into()
         } else {
@@ -174,7 +178,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
             image: None,
         });
         if !args.no_embed_abi {
-            let path = util::handle_step("Compressing ABI to be embedded..", || {
+            let path = pretty_print::handle_step("Compressing ABI to be embedded..", || {
                 let AbiResult { path } = abi::write_to_file(
                     &contract_abi,
                     &crate_metadata,
@@ -183,7 +187,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
                 )?;
                 Ok(path)
             })?;
-            min_abi_path.replace(util::copy(&path, &out_dir)?);
+            min_abi_path.replace(cargo_near_build::fs::copy(&path, &out_dir)?);
         }
         abi = Some(contract_abi);
     }
@@ -204,22 +208,21 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
         }
     }
 
-    util::print_step("Building contract");
-    let mut wasm_artifact = util::compile_project(
+    pretty_print::step("Building contract");
+    let mut wasm_artifact = cargo_native::compile::run::<WASM>(
         &crate_metadata.manifest_path,
         &cargo_args,
         build_env,
-        "wasm",
         false,
         color,
     )?;
 
-    wasm_artifact.path = util::copy(&wasm_artifact.path, &out_dir)?;
+    wasm_artifact.path = cargo_near_build::fs::copy(&wasm_artifact.path, &out_dir)?;
     wasm_artifact.cargo_near_version_mismatch = cargo_near_version_mismatch;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
 
-    util::print_success(&format!(
+    pretty_print::success(&format!(
         "Contract successfully built! (in CARGO_NEAR_BUILD_ENVIRONMENT={})",
         std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).unwrap_or("host".into())
     ));
@@ -230,7 +233,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<util::CompilationArtifact> {
 
         let AbiResult { path } =
             abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
-        let pretty_abi_path = util::copy(&path, &out_dir)?;
+        let pretty_abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {
@@ -299,6 +302,7 @@ fn print_nep_330_env() {
     }
 }
 
+// TODO: make this an associated method for `VersionMismatch` type
 fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMismatch)> {
     match std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY) {
         Ok(env_near_abi_schema_version) => {
