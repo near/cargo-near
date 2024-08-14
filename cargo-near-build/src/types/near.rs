@@ -1,14 +1,19 @@
+use std::marker::PhantomData;
+
 use camino::Utf8PathBuf;
 use sha2::{Digest, Sha256};
 
-pub struct CompilationArtifact {
+use crate::cargo_native::ArtifactType;
+
+pub struct CompilationArtifact<T: ArtifactType> {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,
     pub cargo_near_version_mismatch: VersionMismatch,
+    pub artifact_type: PhantomData<T>,
 }
 
-impl CompilationArtifact {
+impl<T: ArtifactType> CompilationArtifact<T> {
     pub fn compute_hash(&self) -> eyre::Result<SHA256Checksum> {
         let mut hasher = Sha256::new();
         hasher.update(std::fs::read(&self.path)?);

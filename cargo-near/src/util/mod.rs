@@ -2,11 +2,13 @@ use std::collections::{BTreeMap, HashSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufRead, BufReader};
+use std::marker::PhantomData;
 use std::process::Command;
 use std::thread;
 
 use camino::Utf8Path;
 use cargo_metadata::{Artifact, Message};
+use cargo_near_build::cargo_native::ArtifactType;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use cargo_near_build::types::near::{CompilationArtifact, VersionMismatch};
 use color_eyre::eyre::{ContextCompat, WrapErr};
@@ -113,14 +115,16 @@ where
 }
 
 /// Builds the cargo project with manifest located at `manifest_path` and returns the path to the generated artifact.
-pub(crate) fn compile_project(
+pub(crate) fn compile_project<T>(
     manifest_path: &ManifestPath,
     args: &[&str],
     mut env: Vec<(&str, &str)>,
-    artifact_extension: &str,
     hide_warnings: bool,
     color: ColorPreference,
-) -> color_eyre::eyre::Result<CompilationArtifact> {
+) -> color_eyre::eyre::Result<CompilationArtifact<T>>
+where
+    T: ArtifactType,
+{
     let mut final_env = BTreeMap::new();
 
     if hide_warnings {
@@ -165,7 +169,7 @@ pub(crate) fn compile_project(
         .iter()
         .filter(|f| {
             f.extension()
-                .map(|e| e == artifact_extension)
+                .map(|e| e == <T as ArtifactType>::extension())
                 .unwrap_or(false)
         })
         .cloned()
@@ -173,18 +177,20 @@ pub(crate) fn compile_project(
     let mut dylib_files_iter = Vec::into_iter(dylib_files);
     match (dylib_files_iter.next(), dylib_files_iter.next()) {
         (None, None) => color_eyre::eyre::bail!(
-            "Compilation resulted in no '.{artifact_extension}' target files. \
-                 Please check that your project contains a NEAR smart contract."
+            "Compilation resulted in no '.{}' target files. \
+                 Please check that your project contains a NEAR smart contract.",
+            <T as ArtifactType>::extension(),
         ),
         (Some(path), None) => Ok(CompilationArtifact {
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
             cargo_near_version_mismatch: VersionMismatch::None,
+            artifact_type: PhantomData,
         }),
         _ => color_eyre::eyre::bail!(
             "Compilation resulted in more than one '.{}' target file: {:?}",
-            artifact_extension,
+            <T as ArtifactType>::extension(),
             dylib_files_iter.as_slice()
         ),
     }

@@ -1,4 +1,5 @@
 use camino::Utf8PathBuf;
+use cargo_near_build::cargo_native::WASM;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::near::VersionMismatch;
@@ -111,7 +112,7 @@ impl From<super::BuildCommand> for Opts {
     }
 }
 
-pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
+pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact<WASM>> {
     export_cargo_near_abi_versions();
     export_nep_330_build_command(&args)?;
     print_nep_330_env();
@@ -208,11 +209,10 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     }
 
     pretty_print::step("Building contract");
-    let mut wasm_artifact = util::compile_project(
+    let mut wasm_artifact = util::compile_project::<WASM>(
         &crate_metadata.manifest_path,
         &cargo_args,
         build_env,
-        "wasm",
         false,
         color,
     )?;
@@ -302,6 +302,7 @@ fn print_nep_330_env() {
     }
 }
 
+// TODO: make this an associated method for `VersionMismatch` type
 fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMismatch)> {
     match std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY) {
         Ok(env_near_abi_schema_version) => {

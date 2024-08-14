@@ -1,6 +1,9 @@
+use std::marker::PhantomData;
+
 use crate::{commands::build_command::ArtifactMessages, types::metadata::CrateMetadata};
 use camino::Utf8PathBuf;
 use cargo_near_build::{
+    cargo_native::WASM,
     pretty_print,
     types::{
         cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
@@ -71,7 +74,7 @@ impl ClonedRepo {
     pub(super) fn copy_artifact(
         self,
         cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    ) -> color_eyre::eyre::Result<CompilationArtifact> {
+    ) -> color_eyre::eyre::Result<CompilationArtifact<WASM>> {
         let tmp_out_dir = self.tmp_crate_metadata.resolve_output_dir(None)?;
 
         let destination_crate_metadata = {
@@ -93,7 +96,7 @@ fn copy(
     tmp_out_dir: Utf8PathBuf,
     tmp_crate_metadata: CrateMetadata,
     mut destination_dir: Utf8PathBuf,
-) -> color_eyre::eyre::Result<CompilationArtifact> {
+) -> color_eyre::eyre::Result<CompilationArtifact<WASM>> {
     println!(
         " {} {}",
         "artifact search location in temporary build site:".green(),
@@ -125,6 +128,7 @@ fn copy(
         fresh: true,
         from_docker: true,
         cargo_near_version_mismatch: VersionMismatch::UnknownFromDocker,
+        artifact_type: PhantomData,
     };
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&result)?;
