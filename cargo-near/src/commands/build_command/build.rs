@@ -121,7 +121,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     color.apply();
 
     pretty_print::handle_step("Checking the host environment...", || {
-        if !cargo_near_build::cargo_native::target::wasm32_exists() {
+        if !cargo_native::target::wasm32_exists() {
             color_eyre::eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
