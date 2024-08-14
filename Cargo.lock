@@ -842,6 +842,7 @@ version = "0.1.0"
 dependencies = [
  "bs58 0.5.1",
  "camino",
+ "cargo_metadata",
  "colored",
  "dunce",
  "eyre",

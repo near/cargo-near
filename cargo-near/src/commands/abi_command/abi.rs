@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
-use cargo_near_build::cargo_native::DYLIB;
+use cargo_near_build::cargo_native::{self, DYLIB};
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
@@ -90,7 +90,7 @@ pub(crate) fn generate_abi(
 
     pretty_print::step("Generating ABI");
 
-    let dylib_artifact = util::compile_project::<DYLIB>(
+    let dylib_artifact = cargo_native::compile::run::<DYLIB>(
         &crate_metadata.manifest_path,
         cargo_args.as_slice(),
         vec![
