@@ -4,7 +4,6 @@ use crate::{
     commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
     types::source_id,
 };
-use cargo_near_build::cargo_native::WASM;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use cargo_near_build::types::color_preference::ColorPreference;
@@ -91,7 +90,7 @@ impl Opts {
     pub(super) fn docker_run(
         self,
         context: BuildContext,
-    ) -> color_eyre::eyre::Result<BuildArtifact<WASM>> {
+    ) -> color_eyre::eyre::Result<BuildArtifact> {
         let color = self.color.clone().unwrap_or(ColorPreference::Auto);
         color.apply();
         let crate_in_repo = pretty_print::handle_step(
@@ -244,7 +243,7 @@ impl Opts {
         command: Command,
         cloned_repo: cloned_repo::ClonedRepo,
         out_dir_arg: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    ) -> color_eyre::eyre::Result<BuildArtifact<WASM>> {
+    ) -> color_eyre::eyre::Result<BuildArtifact> {
         if status.success() {
             pretty_print::success("Running docker command step (finished)");
             pretty_print::handle_step("Copying artifact from temporary build site...", || {

@@ -1,8 +1,9 @@
 use camino::Utf8PathBuf;
-use cargo_near_build::cargo_native::{self, WASM};
+use cargo_near_build::cargo_native;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::near::VersionMismatch;
+use cargo_near_build::WASM;
 use colored::Colorize;
 use near_abi::BuildInfo;
 
@@ -111,7 +112,7 @@ impl From<super::BuildCommand> for Opts {
     }
 }
 
-pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact<WASM>> {
+pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     export_cargo_near_abi_versions();
     export_nep_330_build_command(&args)?;
     print_nep_330_env();

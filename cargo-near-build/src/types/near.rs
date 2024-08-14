@@ -3,9 +3,9 @@ use std::marker::PhantomData;
 use camino::Utf8PathBuf;
 use sha2::{Digest, Sha256};
 
-use crate::ArtifactType;
+use crate::{ArtifactType, WASM};
 
-pub struct CompilationArtifact<T: ArtifactType> {
+pub struct CompilationArtifact<T: ArtifactType = WASM> {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,

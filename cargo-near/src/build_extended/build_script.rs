@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::BuildArtifact;
-use cargo_near_build::{cargo_native::WASM, types::near::VersionMismatch};
+use cargo_near_build::types::near::VersionMismatch;
 use rustc_version::Version;
 
 /// `cargo::` prefix for build script outputs, that `cargo` recognizes
@@ -68,7 +68,7 @@ impl<'a> BuildScriptOpts<'a> {
 
         return_bool
     }
-    pub fn create_empty_stub(&self) -> Result<BuildArtifact<WASM>, Box<dyn std::error::Error>> {
+    pub fn create_empty_stub(&self) -> Result<BuildArtifact, Box<dyn std::error::Error>> {
         if self.stub_path.is_none() {
             return Err(
                 "build must be skipped, but `BuildScriptOpts.stub_path` wasn't configured"
@@ -96,7 +96,7 @@ impl<'a> BuildScriptOpts<'a> {
     pub fn post_build(
         &self,
         skipped: bool,
-        artifact: &BuildArtifact<WASM>,
+        artifact: &BuildArtifact,
         workdir: &str,
         version: &Version,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -157,7 +157,7 @@ fn create_stub_file(out_path: &std::path::Path) -> Result<(), Box<dyn std::error
 
 fn pretty_print(
     skipped: bool,
-    artifact: &BuildArtifact<WASM>,
+    artifact: &BuildArtifact,
     version: &Version,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if skipped {
