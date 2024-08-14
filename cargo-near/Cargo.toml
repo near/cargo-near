@@ -48,16 +48,16 @@ linked-hash-map = { version = "0.5", features = ["serde_impl"] }
 names = { version = "0.14.0", default-features = false }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
-interactive-clap = "0.2.10"
-interactive-clap-derive = "0.2.10"
-near-cli-rs = { version = "0.11.0", default-features = false }
+interactive-clap = "0.3"
+interactive-clap-derive = "0.3"
+near-cli-rs = { version = "0.14.0", default-features = false }
 dunce = "1"
 tempfile = "3.10.1"
 git2 = "0.19"
 home = "0.5.9"
-pathdiff = { version = "0.2.1", features = ["camino"]}
+pathdiff = { version = "0.2.1", features = ["camino"] }
 unix_path = "1.0.1"
-url = { version = "2.5.0", features = ["serde"]}
+url = { version = "2.5.0", features = ["serde"] }
 tmp_env = "0.1.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
