@@ -64,6 +64,7 @@ fn main() -> CliResult {
 
     let global_context = near_cli_rs::GlobalContext {
         config,
+        teach_me: false,
         offline: false,
     };
 
