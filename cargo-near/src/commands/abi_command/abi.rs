@@ -104,7 +104,7 @@ pub(crate) fn generate_abi(
     )?;
 
     let mut contract_abi = pretty_print::handle_step("Extracting ABI...", || {
-        let abi_entries = extract_abi_entries(&dylib_artifact.path)?;
+        let abi_entries = extract_abi_entries(&dylib_artifact)?;
         Ok(near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
             .into_abi_root(extract_metadata(crate_metadata)))
     })?;
