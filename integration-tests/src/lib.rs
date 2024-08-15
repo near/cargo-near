@@ -58,7 +58,7 @@ macro_rules! invoke_cargo_near {
 
         std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
 
-        let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts)?;
+        let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts.split(" "))?;
 
         match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {

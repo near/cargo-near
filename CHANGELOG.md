@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1](https://github.com/near/cargo-near/compare/cargo-near-v0.8.0...cargo-near-v0.8.1) - 2024-08-15
+
+### Other
+- update Cargo.lock dependencies
+
+## [0.8.0](https://github.com/near/cargo-near/compare/cargo-near-v0.7.0...cargo-near-v0.8.0) - 2024-08-14
+
+### Other
+- [**breaking**] Updated near-* to 0.24, interactive clap to 0.3 ([#201](https://github.com/near/cargo-near/pull/201))
+- disable env section of `color_eyre` report ([#196](https://github.com/near/cargo-near/pull/196))
+
 ## [0.7.0](https://github.com/near/cargo-near/compare/cargo-near-v0.6.4...cargo-near-v0.7.0) - 2024-08-06
 
 ### Added
