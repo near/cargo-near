@@ -3,7 +3,7 @@ use std::fs;
 
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native::{self, DYLIB};
-use cargo_near_build::near::abi::extract_abi_entries;
+use cargo_near_build::near::abi;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use color_eyre::eyre::ContextCompat;
@@ -104,7 +104,7 @@ pub(crate) fn generate_abi(
     )?;
 
     let mut contract_abi = pretty_print::handle_step("Extracting ABI...", || {
-        let abi_entries = extract_abi_entries(&dylib_artifact)?;
+        let abi_entries = abi::dylib::extract_abi_entries(&dylib_artifact)?;
         Ok(near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
             .into_abi_root(extract_metadata(crate_metadata)))
     })?;
