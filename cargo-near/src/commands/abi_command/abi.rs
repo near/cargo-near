@@ -1,14 +1,11 @@
 use std::collections::HashMap;
-use std::fs;
 
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native::{self, DYLIB};
-use cargo_near_build::near::abi;
+use cargo_near_build::near::abi::{self, write_to_file};
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
-use cargo_near_build::types::near::abi::{
-    abi_file_extension, AbiCompression, AbiFormat, AbiResult,
-};
+use cargo_near_build::types::near::abi::{AbiCompression, AbiFormat, AbiResult};
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
@@ -99,34 +96,6 @@ pub(crate) fn generate_abi(
     }
 
     Ok(contract_abi)
-}
-
-pub(crate) fn write_to_file(
-    contract_abi: &AbiRoot,
-    crate_metadata: &CrateMetadata,
-    format: AbiFormat,
-    compression: AbiCompression,
-) -> color_eyre::eyre::Result<AbiResult> {
-    let near_abi_serialized = match format {
-        AbiFormat::Json => serde_json::to_vec_pretty(&contract_abi)?,
-        AbiFormat::JsonMin => serde_json::to_vec(&contract_abi)?,
-    };
-    let near_abi_compressed = match compression {
-        AbiCompression::NoOp => near_abi_serialized,
-        AbiCompression::Zstd => zstd::encode_all(
-            near_abi_serialized.as_slice(),
-            *zstd::compression_level_range().end(),
-        )?,
-    };
-
-    let out_path_abi = crate_metadata.target_directory.join(format!(
-        "{}_abi.{}",
-        crate_metadata.formatted_package_name(),
-        abi_file_extension(format, compression)
-    ));
-    fs::write(&out_path_abi, near_abi_compressed)?;
-
-    Ok(AbiResult { path: out_path_abi })
 }
 
 fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {

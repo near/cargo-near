@@ -18,7 +18,7 @@ pub enum AbiCompression {
     Zstd,
 }
 
-pub fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
+pub(crate) fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
     match compression {
         AbiCompression::NoOp => match format {
             AbiFormat::Json | AbiFormat::JsonMin => "json",

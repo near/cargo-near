@@ -1,5 +1,6 @@
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
+use cargo_near_build::near::abi::write_to_file;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
@@ -181,7 +182,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         });
         if !args.no_embed_abi {
             let path = pretty_print::handle_step("Compressing ABI to be embedded..", || {
-                let AbiResult { path } = abi::write_to_file(
+                let AbiResult { path } = write_to_file(
                     &contract_abi,
                     &crate_metadata,
                     AbiFormat::JsonMin,
@@ -234,7 +235,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         abi.metadata.wasm_hash = Some(wasm_artifact.compute_hash()?.to_base58_string());
 
         let AbiResult { path } =
-            abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
+            write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
         let pretty_abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }

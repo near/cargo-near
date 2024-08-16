@@ -828,7 +828,6 @@ dependencies = [
  "tmp_env",
  "unix_path",
  "url",
- "zstd 0.13.2",
 ]
 
 [[package]]
@@ -848,6 +847,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.8",
  "symbolic-debuginfo",
+ "zstd 0.13.2",
 ]
 
 [[package]]
