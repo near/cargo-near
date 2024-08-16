@@ -1,4 +1,4 @@
-pub mod abi;
+use cargo_near_build::AbiOpts;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -28,6 +28,19 @@ pub struct AbiCommand {
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
+impl From<AbiCommand> for AbiOpts {
+    fn from(value: AbiCommand) -> Self {
+        Self {
+            no_locked: value.no_locked,
+            no_doc: value.no_doc,
+            compact_abi: value.compact_abi,
+            out_dir: value.out_dir.map(Into::into),
+            manifest_path: value.manifest_path.map(Into::into),
+            color: value.color.map(Into::into),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AbiCommandlContext;
 
@@ -44,7 +57,7 @@ impl AbiCommandlContext {
             manifest_path: scope.manifest_path.clone(),
             color: scope.color.clone(),
         };
-        self::abi::run(args.into())?;
+        cargo_near_build::build_abi(args.into())?;
         Ok(Self)
     }
 }

@@ -857,6 +857,7 @@ dependencies = [
  "borsh",
  "camino",
  "cargo-near 0.8.1",
+ "cargo-near-build",
  "color-eyre",
  "const_format",
  "env_logger",
