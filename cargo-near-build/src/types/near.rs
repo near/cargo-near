@@ -5,6 +5,9 @@ use sha2::{Digest, Sha256};
 
 use crate::{ArtifactType, WASM};
 
+// TODO: make non-pub
+pub mod abi;
+
 pub struct CompilationArtifact<T: ArtifactType = WASM> {
     pub path: Utf8PathBuf,
     pub fresh: bool,

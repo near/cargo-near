@@ -6,6 +6,9 @@ use cargo_near_build::cargo_native::{self, DYLIB};
 use cargo_near_build::near::abi;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
+use cargo_near_build::types::near::abi::{
+    abi_file_extension, AbiCompression, AbiFormat, AbiResult,
+};
 use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
@@ -13,24 +16,6 @@ use near_abi::AbiRoot;
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::color_preference::ColorPreference;
-
-/// ABI generation result.
-pub(crate) struct AbiResult {
-    /// Path to the resulting ABI file.
-    pub path: Utf8PathBuf,
-}
-
-#[derive(Clone, Debug)]
-pub(crate) enum AbiFormat {
-    Json,
-    JsonMin,
-}
-
-#[derive(Clone, Debug)]
-pub(crate) enum AbiCompression {
-    NoOp,
-    Zstd,
-}
 
 pub(crate) fn generate_abi(
     crate_metadata: &CrateMetadata,
@@ -142,15 +127,6 @@ pub(crate) fn write_to_file(
     fs::write(&out_path_abi, near_abi_compressed)?;
 
     Ok(AbiResult { path: out_path_abi })
-}
-
-fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
-    match compression {
-        AbiCompression::NoOp => match format {
-            AbiFormat::Json | AbiFormat::JsonMin => "json",
-        },
-        AbiCompression::Zstd => "zst",
-    }
 }
 
 fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
