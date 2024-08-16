@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native::{self, DYLIB};
+use cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use cargo_near_build::near::abi::{self, write_to_file};
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
@@ -10,7 +11,6 @@ use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
 use near_abi::AbiRoot;
 
-use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::color_preference::ColorPreference;
 

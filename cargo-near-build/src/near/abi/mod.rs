@@ -5,6 +5,7 @@ use crate::types::{
 
 pub mod dylib;
 
+// TODO: make non-pub
 pub fn write_to_file(
     contract_abi: &near_abi::AbiRoot,
     crate_metadata: &CrateMetadata,
