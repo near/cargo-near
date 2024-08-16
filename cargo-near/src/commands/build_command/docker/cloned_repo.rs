@@ -1,11 +1,14 @@
 use std::marker::PhantomData;
 
-use crate::{commands::build_command::ArtifactMessages, types::metadata::CrateMetadata};
+use crate::commands::build_command::ArtifactMessages;
 use camino::Utf8PathBuf;
 use cargo_near_build::{
     pretty_print,
     types::{
-        cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+        cargo::{
+            manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+            metadata::CrateMetadata,
+        },
         near::{CompilationArtifact, VersionMismatch},
     },
 };
@@ -85,7 +88,8 @@ impl ClonedRepo {
             CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, self.no_locked)?
         };
 
-        let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;
+        let destination_dir =
+            destination_crate_metadata.resolve_output_dir(cli_override.map(Into::into))?;
 
         copy(tmp_out_dir, self.tmp_crate_metadata, destination_dir)
     }

@@ -1,18 +1,20 @@
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
+use cargo_near_build::near::abi;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use cargo_near_build::types::cargo::metadata::CrateMetadata;
+use cargo_near_build::types::near::abi::AbiCompression;
+use cargo_near_build::types::near::abi::AbiFormat;
+use cargo_near_build::types::near::abi::AbiResult;
 use cargo_near_build::types::near::VersionMismatch;
 use cargo_near_build::WASM;
 use colored::Colorize;
 use near_abi::BuildInfo;
 
-use crate::commands::abi_command::abi;
-use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
-use crate::types::metadata::CrateMetadata;
 use crate::BuildArtifact;
 use cargo_near_build::types::color_preference::ColorPreference;
 
@@ -136,7 +138,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -163,7 +165,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     let mut min_abi_path = None;
     let (cargo_near_version, cargo_near_version_mismatch) = coerce_cargo_near_version()?;
     if !args.no_abi {
-        let mut contract_abi = abi::generate_abi(
+        let mut contract_abi = abi::generate::procedure(
             &crate_metadata,
             args.no_locked,
             !args.no_doc,

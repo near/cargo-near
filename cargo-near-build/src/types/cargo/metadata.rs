@@ -2,13 +2,14 @@ use std::{thread, time::Duration};
 
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
-use cargo_near_build::types::cargo::manifest_path::ManifestPath;
-use color_eyre::eyre::{ContextCompat, WrapErr};
 use colored::Colorize;
+use eyre::{ContextCompat, WrapErr};
+
+use super::manifest_path::ManifestPath;
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
-pub(crate) struct CrateMetadata {
+pub struct CrateMetadata {
     pub root_package: Package,
     pub target_directory: Utf8PathBuf,
     pub manifest_path: ManifestPath,
@@ -17,15 +18,14 @@ pub(crate) struct CrateMetadata {
 
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
-    pub fn collect(manifest_path: ManifestPath, no_locked: bool) -> color_eyre::eyre::Result<Self> {
+    pub fn collect(manifest_path: ManifestPath, no_locked: bool) -> eyre::Result<Self> {
         let (mut metadata, root_package) = get_cargo_metadata(&manifest_path, no_locked)?;
 
-        metadata.target_directory =
-            cargo_near_build::fs::force_canonicalize_dir(&metadata.target_directory)?;
+        metadata.target_directory = crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
         metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
 
         let mut target_directory =
-            cargo_near_build::fs::force_canonicalize_dir(&metadata.target_directory.join("near"))?;
+            crate::fs::force_canonicalize_dir(&metadata.target_directory.join("near"))?;
 
         // Normalize the package and lib name.
         let package_name = root_package.name.replace('-', "_");
@@ -35,7 +35,7 @@ impl CrateMetadata {
             // If the contract is a package in a workspace, we use the package name
             // as the name of the sub-folder where we put the `.contract` bundle.
             target_directory =
-                cargo_near_build::fs::force_canonicalize_dir(&target_directory.join(package_name))?;
+                crate::fs::force_canonicalize_dir(&target_directory.join(package_name))?;
         }
 
         let crate_metadata = CrateMetadata {
@@ -50,11 +50,10 @@ impl CrateMetadata {
 
     pub fn resolve_output_dir(
         &self,
-        cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    ) -> color_eyre::eyre::Result<Utf8PathBuf> {
+        cli_override: Option<Utf8PathBuf>,
+    ) -> eyre::Result<Utf8PathBuf> {
         let result = if let Some(cli_override) = cli_override {
-            let out_dir = Utf8PathBuf::from(cli_override);
-            cargo_near_build::fs::force_canonicalize_dir(&out_dir)?
+            crate::fs::force_canonicalize_dir(&cli_override)?
         } else {
             self.target_directory.clone()
         };
@@ -71,7 +70,7 @@ impl CrateMetadata {
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
-) -> color_eyre::eyre::Result<(cargo_metadata::Metadata, Package)> {
+) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     log::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
     if !no_locked {

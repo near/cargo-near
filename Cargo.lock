@@ -818,7 +818,6 @@ dependencies = [
  "nix 0.29.0",
  "pathdiff",
  "rustc_version",
- "schemars",
  "serde",
  "serde_json",
  "shell-words",
@@ -828,7 +827,6 @@ dependencies = [
  "tmp_env",
  "unix_path",
  "url",
- "zstd 0.13.2",
 ]
 
 [[package]]
@@ -845,9 +843,11 @@ dependencies = [
  "libloading",
  "log",
  "near-abi",
+ "schemars",
  "serde_json",
  "sha2 0.10.8",
  "symbolic-debuginfo",
+ "zstd 0.13.2",
 ]
 
 [[package]]
@@ -857,6 +857,7 @@ dependencies = [
  "borsh",
  "camino",
  "cargo-near 0.8.1",
+ "cargo-near-build",
  "color-eyre",
  "const_format",
  "env_logger",
