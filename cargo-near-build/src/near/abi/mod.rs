@@ -18,7 +18,7 @@ pub fn build(args: Opts) -> eyre::Result<()> {
 
     let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
-            manifest_path.into()
+            manifest_path
         } else {
             "Cargo.toml".into()
         };
