@@ -220,7 +220,7 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
         CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
     let format = if args.compact_abi {
         AbiFormat::JsonMin

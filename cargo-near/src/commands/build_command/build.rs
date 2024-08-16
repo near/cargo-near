@@ -136,7 +136,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];

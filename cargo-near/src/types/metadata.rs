@@ -50,11 +50,10 @@ impl CrateMetadata {
 
     pub fn resolve_output_dir(
         &self,
-        cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+        cli_override: Option<Utf8PathBuf>,
     ) -> color_eyre::eyre::Result<Utf8PathBuf> {
         let result = if let Some(cli_override) = cli_override {
-            let out_dir = Utf8PathBuf::from(cli_override);
-            cargo_near_build::fs::force_canonicalize_dir(&out_dir)?
+            cargo_near_build::fs::force_canonicalize_dir(&cli_override)?
         } else {
             self.target_directory.clone()
         };
