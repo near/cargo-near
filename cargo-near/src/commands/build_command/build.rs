@@ -2,6 +2,7 @@ use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::near::VersionMismatch;
 use cargo_near_build::WASM;
 use colored::Colorize;
@@ -12,7 +13,6 @@ use crate::commands::abi_command::abi::{AbiCompression, AbiFormat, AbiResult};
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
-use crate::types::metadata::CrateMetadata;
 use crate::BuildArtifact;
 use cargo_near_build::types::color_preference::ColorPreference;
 

@@ -1,11 +1,14 @@
 use std::marker::PhantomData;
 
-use crate::{commands::build_command::ArtifactMessages, types::metadata::CrateMetadata};
+use crate::commands::build_command::ArtifactMessages;
 use camino::Utf8PathBuf;
 use cargo_near_build::{
     pretty_print,
     types::{
-        cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+        cargo::{
+            manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+            metadata::CrateMetadata,
+        },
         near::{CompilationArtifact, VersionMismatch},
     },
 };

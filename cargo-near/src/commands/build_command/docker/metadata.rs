@@ -1,7 +1,7 @@
+use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use colored::Colorize;
 use serde::Deserialize;
 
-use crate::types::metadata::CrateMetadata;
 use serde_json::Value;
 use std::{collections::BTreeMap as Map, str::FromStr, thread, time::Duration};
 

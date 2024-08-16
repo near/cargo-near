@@ -11,7 +11,7 @@ use colored::Colorize;
 use near_abi::AbiRoot;
 
 use crate::commands::build_command::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
-use crate::types::metadata::CrateMetadata;
+use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::color_preference::ColorPreference;
 
 /// ABI generation result.
