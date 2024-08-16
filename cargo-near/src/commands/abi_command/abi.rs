@@ -1,129 +1,13 @@
-use std::collections::HashMap;
-
 use camino::Utf8PathBuf;
-use cargo_near_build::cargo_native::{self, DYLIB};
-use cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT_ENV_KEY;
 use cargo_near_build::near::abi::{self, write_to_file};
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use cargo_near_build::types::near::abi::{AbiCompression, AbiFormat, AbiResult};
-use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
-use near_abi::AbiRoot;
 
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::color_preference::ColorPreference;
 
-pub(crate) fn generate_abi(
-    crate_metadata: &CrateMetadata,
-    no_locked: bool,
-    generate_docs: bool,
-    hide_warnings: bool,
-    cargo_feature_args: &[&str],
-    color: ColorPreference,
-) -> color_eyre::eyre::Result<AbiRoot> {
-    let root_node = crate_metadata
-        .raw_metadata
-        .resolve
-        .as_ref()
-        .and_then(|dep_graph| {
-            dep_graph
-            .nodes
-            .iter()
-            .find(|node| node.id == crate_metadata.root_package.id)
-        })
-        .wrap_err("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed")?;
-
-    let near_sdk_dep = root_node
-        .deps
-        .iter()
-        .find(|dep| dep.name == "near_sdk")
-        .and_then(|near_sdk| {
-            crate_metadata
-                .raw_metadata
-                .packages
-                .iter()
-                .find(|pkg| pkg.id == near_sdk.pkg)
-        })
-        .wrap_err("`near-sdk` dependency not found")?;
-
-    for required_feature in ["__abi-generate", "__abi-embed"] {
-        if !near_sdk_dep.features.contains_key(required_feature) {
-            color_eyre::eyre::bail!(
-                "{}: {}",
-                format!(
-                    "missing `{}` required feature for `near-sdk` dependency",
-                    required_feature
-                ),
-                "probably unsupported `near-sdk` version. expected 4.1.* or higher"
-            );
-        }
-    }
-
-    let cargo_args = {
-        let mut args = vec!["--features", "near-sdk/__abi-generate"];
-        args.extend_from_slice(cargo_feature_args);
-        if !no_locked {
-            args.push("--locked");
-        }
-
-        args
-    };
-
-    pretty_print::step("Generating ABI");
-
-    let dylib_artifact = cargo_native::compile::run::<DYLIB>(
-        &crate_metadata.manifest_path,
-        cargo_args.as_slice(),
-        vec![
-            ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
-            ("CARGO_PROFILE_DEV_DEBUG", "0"),
-            ("CARGO_PROFILE_DEV_LTO", "off"),
-            (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
-        ],
-        hide_warnings,
-        color,
-    )?;
-
-    let mut contract_abi = pretty_print::handle_step("Extracting ABI...", || {
-        let abi_entries = abi::dylib::extract_abi_entries(&dylib_artifact)?;
-        Ok(near_abi::__private::ChunkedAbiEntry::combine(abi_entries)?
-            .into_abi_root(extract_metadata(crate_metadata)))
-    })?;
-
-    if !generate_docs {
-        strip_docs(&mut contract_abi);
-    }
-
-    Ok(contract_abi)
-}
-
-fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
-    let package = &crate_metadata.root_package;
-    near_abi::AbiMetadata {
-        name: Some(package.name.clone()),
-        version: Some(package.version.to_string()),
-        authors: package.authors.clone(),
-        build: None,
-        wasm_hash: None,
-        other: HashMap::new(),
-    }
-}
-
-fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
-    for function in &mut abi_root.body.functions {
-        function.doc = None;
-    }
-    for schema in &mut abi_root.body.root_schema.definitions.values_mut() {
-        if let schemars::schema::Schema::Object(schemars::schema::SchemaObject {
-            metadata: Some(metadata),
-            ..
-        }) = schema
-        {
-            metadata.description = None;
-        }
-    }
-}
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
     pub no_locked: bool,
@@ -172,7 +56,7 @@ pub fn run(args: Opts) -> near_cli_rs::CliResult {
     } else {
         AbiFormat::Json
     };
-    let contract_abi = generate_abi(
+    let contract_abi = abi::generate::procedure(
         &crate_metadata,
         args.no_locked,
         !args.no_doc,

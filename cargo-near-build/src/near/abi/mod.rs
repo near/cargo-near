@@ -3,7 +3,7 @@ use crate::types::{
     near::abi::{abi_file_extension, AbiCompression, AbiFormat, AbiResult},
 };
 
-pub mod dylib;
+pub mod generate;
 
 // TODO: make non-pub
 pub fn write_to_file(

@@ -1,6 +1,6 @@
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
-use cargo_near_build::near::abi::write_to_file;
+use cargo_near_build::near::abi;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
@@ -12,7 +12,6 @@ use cargo_near_build::WASM;
 use colored::Colorize;
 use near_abi::BuildInfo;
 
-use crate::commands::abi_command::abi;
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
 };
@@ -166,7 +165,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     let mut min_abi_path = None;
     let (cargo_near_version, cargo_near_version_mismatch) = coerce_cargo_near_version()?;
     if !args.no_abi {
-        let mut contract_abi = abi::generate_abi(
+        let mut contract_abi = abi::generate::procedure(
             &crate_metadata,
             args.no_locked,
             !args.no_doc,
@@ -182,7 +181,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         });
         if !args.no_embed_abi {
             let path = pretty_print::handle_step("Compressing ABI to be embedded..", || {
-                let AbiResult { path } = write_to_file(
+                let AbiResult { path } = abi::write_to_file(
                     &contract_abi,
                     &crate_metadata,
                     AbiFormat::JsonMin,
@@ -235,7 +234,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         abi.metadata.wasm_hash = Some(wasm_artifact.compute_hash()?.to_base58_string());
 
         let AbiResult { path } =
-            write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
+            abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
         let pretty_abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }
