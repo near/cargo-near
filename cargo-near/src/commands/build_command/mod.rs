@@ -1,25 +1,8 @@
-use cargo_near_build::types::near::CompilationArtifact;
+use cargo_near_build::{env_keys, types::near::CompilationArtifact};
 use colored::{ColoredString, Colorize};
 
 pub(crate) mod build;
 mod docker;
-
-// ====================== NEP-330 1.2.0 - Build Details Extension ===========
-pub const NEP330_BUILD_ENVIRONMENT_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
-pub const NEP330_BUILD_COMMAND_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_COMMAND";
-pub const NEP330_CONTRACT_PATH_ENV_KEY: &str = "NEP330_BUILD_INFO_CONTRACT_PATH";
-pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT";
-// ====================== End section =======================================
-
-// ====================== NEP-330 1.1.0 - Contract Metadata Extension ===========
-pub const NEP330_LINK_ENV_KEY: &str = "NEP330_LINK";
-pub const NEP330_VERSION_ENV_KEY: &str = "NEP330_VERSION";
-// ====================== End section =======================================
-
-pub const CARGO_NEAR_VERSION_ENV_KEY: &str = "CARGO_NEAR_VERSION";
-pub const CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
-
-pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -81,7 +64,7 @@ impl BuildCommand {
         }
     }
     pub fn no_docker(&self) -> bool {
-        std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() || self.no_docker
+        std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() || self.no_docker
     }
 }
 

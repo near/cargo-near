@@ -1,5 +1,6 @@
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
+use cargo_near_build::env_keys;
 use cargo_near_build::near::abi;
 use cargo_near_build::near_abi::BuildInfo;
 use cargo_near_build::pretty_print;
@@ -10,16 +11,10 @@ use cargo_near_build::types::near::VersionMismatch;
 use cargo_near_build::WASM;
 use colored::Colorize;
 
-use crate::commands::build_command::{
-    NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
-};
 use crate::BuildArtifact;
 use cargo_near_build::types::color_preference::ColorPreference;
 
-use super::{
-    ArtifactMessages, CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY, CARGO_NEAR_VERSION_ENV_KEY,
-    NEP330_BUILD_ENVIRONMENT_ENV_KEY, NEP330_LINK_ENV_KEY, NEP330_VERSION_ENV_KEY,
-};
+use super::ArtifactMessages;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
@@ -115,7 +110,7 @@ impl From<super::BuildCommand> for Opts {
 pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     export_cargo_near_abi_versions();
     export_nep_330_build_command(&args)?;
-    print_nep_330_env();
+    env_keys::nep330::print_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
@@ -200,11 +195,11 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     }
 
     let version = crate_metadata.root_package.version.to_string();
-    build_env.push((NEP330_VERSION_ENV_KEY, &version));
+    build_env.push((env_keys::nep330::VERSION, &version));
     // this will be set in docker builds (externally to current process), having more info about git commit
-    if std::env::var(NEP330_LINK_ENV_KEY).is_err() {
+    if std::env::var(env_keys::nep330::LINK).is_err() {
         if let Some(ref repository) = crate_metadata.root_package.repository {
-            build_env.push((NEP330_LINK_ENV_KEY, repository));
+            build_env.push((env_keys::nep330::LINK, repository));
         }
     }
 
@@ -224,7 +219,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
 
     pretty_print::success(&format!(
         "Contract successfully built! (in CARGO_NEAR_BUILD_ENVIRONMENT={})",
-        std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).unwrap_or("host".into())
+        std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).unwrap_or("host".into())
     ));
     let mut messages = ArtifactMessages::default();
     messages.push_binary(&wasm_artifact)?;
@@ -249,12 +244,12 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
 }
 
 fn export_cargo_near_abi_versions() {
-    if std::env::var(CARGO_NEAR_VERSION_ENV_KEY).is_err() {
-        std::env::set_var(CARGO_NEAR_VERSION_ENV_KEY, env!("CARGO_PKG_VERSION"));
+    if std::env::var(env_keys::CARGO_NEAR_VERSION).is_err() {
+        std::env::set_var(env_keys::CARGO_NEAR_VERSION, env!("CARGO_PKG_VERSION"));
     }
-    if std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY).is_err() {
+    if std::env::var(env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION).is_err() {
         std::env::set_var(
-            CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY,
+            env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION,
             cargo_near_build::near_abi::SCHEMA_VERSION,
         );
     }
@@ -285,30 +280,15 @@ fn export_nep_330_build_command(args: &Opts) -> color_eyre::eyre::Result<()> {
     };
 
     std::env::set_var(
-        NEP330_BUILD_COMMAND_ENV_KEY,
+        env_keys::nep330::BUILD_COMMAND,
         serde_json::to_string(&env_value)?,
     );
     Ok(())
 }
 
-fn print_nep_330_env() {
-    log::info!("Variables, relevant for reproducible builds:");
-    for key in [
-        NEP330_BUILD_ENVIRONMENT_ENV_KEY,
-        NEP330_BUILD_COMMAND_ENV_KEY,
-        NEP330_CONTRACT_PATH_ENV_KEY,
-        NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
-    ] {
-        let value = std::env::var(key)
-            .map(|val| format!("'{}'", val))
-            .unwrap_or("unset".to_string());
-        log::info!("{}={}", key, value);
-    }
-}
-
 // TODO: make this an associated method for `VersionMismatch` type
 fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMismatch)> {
-    match std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY) {
+    match std::env::var(env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION) {
         Ok(env_near_abi_schema_version) => {
             if env_near_abi_schema_version != cargo_near_build::near_abi::SCHEMA_VERSION {
                 return Err(color_eyre::eyre::eyre!(
@@ -322,7 +302,7 @@ fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMisma
     }
     let current_version = env!("CARGO_PKG_VERSION");
 
-    let result = match std::env::var(CARGO_NEAR_VERSION_ENV_KEY) {
+    let result = match std::env::var(env_keys::CARGO_NEAR_VERSION) {
         Err(_err) => (current_version.to_string(), VersionMismatch::None),
         Ok(env_version) => match env_version == current_version {
             true => (current_version.to_string(), VersionMismatch::None),

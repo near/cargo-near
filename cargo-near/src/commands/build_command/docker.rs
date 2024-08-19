@@ -1,12 +1,8 @@
-use crate::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
+use crate::types::source_id;
 use crate::BuildArtifact;
-use crate::{
-    commands::build_command::{NEP330_CONTRACT_PATH_ENV_KEY, SERVER_DISABLE_INTERACTIVE},
-    types::source_id,
-};
-use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use cargo_near_build::types::color_preference::ColorPreference;
+use cargo_near_build::{env_keys, pretty_print};
 use std::ops::Deref;
 use std::{
     io::IsTerminal,
@@ -21,7 +17,7 @@ use colored::Colorize;
 #[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
-use super::{BuildContext, NEP330_LINK_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY};
+use super::BuildContext;
 
 mod cloned_repo;
 mod crate_in_repo;
@@ -141,7 +137,7 @@ impl Opts {
                 },
             )?;
         }
-        if std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
+        if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
             pretty_print::handle_step("Performing `docker` sanity check...", || {
                 docker_checks::sanity_check()
             })?;
@@ -210,7 +206,9 @@ impl Opts {
                 ];
                 let stdin_is_terminal = std::io::stdin().is_terminal();
                 log::debug!("input device is a tty: {}", stdin_is_terminal);
-                if stdin_is_terminal && std::env::var(SERVER_DISABLE_INTERACTIVE).is_err() {
+                if stdin_is_terminal
+                    && std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err()
+                {
                     docker_args.push("-it");
                 }
 
@@ -450,19 +448,20 @@ impl Nep330BuildInfo {
             "--env".to_string(),
             format!(
                 "{}={}",
-                NEP330_BUILD_ENVIRONMENT_ENV_KEY, self.build_environment
+                env_keys::nep330::BUILD_ENVIRONMENT,
+                self.build_environment
             ),
             "--env".to_string(),
             format!(
                 "{}={}",
-                NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
+                env_keys::nep330::SOURCE_CODE_SNAPSHOT,
                 self.source_code_snapshot.as_url()
             ),
         ];
 
         result.extend(vec![
             "--env".to_string(),
-            format!("{}={}", NEP330_CONTRACT_PATH_ENV_KEY, self.contract_path),
+            format!("{}={}", env_keys::nep330::CONTRACT_PATH, self.contract_path),
         ]);
 
         result
@@ -498,7 +497,7 @@ impl EnvVars {
         if let Some(repo_link_hint) = self.compute_repo_link_hint() {
             result.extend(vec![
                 "--env".to_string(),
-                format!("{}={}", NEP330_LINK_ENV_KEY, repo_link_hint,),
+                format!("{}={}", env_keys::nep330::LINK, repo_link_hint,),
             ]);
         }
         result.extend(vec!["--env".to_string(), self.rust_log.clone()]);

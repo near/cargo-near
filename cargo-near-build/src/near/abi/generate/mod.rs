@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    cargo_native,
-    env_keys::BUILD_RS_ABI_STEP_HINT_ENV_KEY,
-    pretty_print,
+    cargo_native, env_keys, pretty_print,
     types::{cargo::metadata::CrateMetadata, color_preference::ColorPreference},
     DYLIB,
 };
@@ -76,7 +74,7 @@ pub fn procedure(
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
-            (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
+            (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ],
         hide_warnings,
         color,
