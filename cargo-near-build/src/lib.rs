@@ -7,7 +7,7 @@ pub mod env_keys;
 pub mod near;
 // TODO: consider making mod non-pub
 pub mod pretty_print;
-// TODO: make mod non-pub, export `CompilationArtifact` with `pub use`
+// TODO: make mod non-pub, export `CompilationArtifact` and `VersionMismatch` with `pub use`
 pub mod types;
 
 // TODO: remove these exports, replace with `pub(crate)` visibility

@@ -7,7 +7,7 @@ use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::near::abi as abi_types;
-use cargo_near_build::types::near::VersionMismatch;
+use cargo_near_build::types::near::build::VersionMismatch;
 use cargo_near_build::WASM;
 use colored::Colorize;
 
@@ -108,7 +108,7 @@ impl From<super::BuildCommand> for Opts {
 }
 
 pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
-    export_cargo_near_abi_versions();
+    VersionMismatch::export_builder_and_near_abi_versions();
     export_nep_330_build_command(&args)?;
     env_keys::nep330::print_env();
 
@@ -156,7 +156,8 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
 
     let mut abi = None;
     let mut min_abi_path = None;
-    let (cargo_near_version, cargo_near_version_mismatch) = coerce_cargo_near_version()?;
+    let (cargo_near_version, cargo_near_version_mismatch) =
+        VersionMismatch::get_coerced_builder_version()?;
     if !args.no_abi {
         let mut contract_abi = abi::generate::procedure(
             &crate_metadata,
@@ -243,18 +244,6 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     Ok(wasm_artifact)
 }
 
-fn export_cargo_near_abi_versions() {
-    if std::env::var(env_keys::CARGO_NEAR_VERSION).is_err() {
-        std::env::set_var(env_keys::CARGO_NEAR_VERSION, env!("CARGO_PKG_VERSION"));
-    }
-    if std::env::var(env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION).is_err() {
-        std::env::set_var(
-            env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION,
-            cargo_near_build::near_abi::SCHEMA_VERSION,
-        );
-    }
-}
-
 fn export_nep_330_build_command(args: &Opts) -> color_eyre::eyre::Result<()> {
     log::debug!(
         "compute `CARGO_NEAR_BUILD_COMMAND`,  current executable: {:?}",
@@ -284,37 +273,4 @@ fn export_nep_330_build_command(args: &Opts) -> color_eyre::eyre::Result<()> {
         serde_json::to_string(&env_value)?,
     );
     Ok(())
-}
-
-// TODO: make this an associated method for `VersionMismatch` type
-fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMismatch)> {
-    match std::env::var(env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION) {
-        Ok(env_near_abi_schema_version) => {
-            if env_near_abi_schema_version != cargo_near_build::near_abi::SCHEMA_VERSION {
-                return Err(color_eyre::eyre::eyre!(
-                    "current process NEAR_ABI_SCHEMA_VERSION mismatch with env value: {} vs {}",
-                    cargo_near_build::near_abi::SCHEMA_VERSION,
-                    env_near_abi_schema_version,
-                ));
-            }
-        }
-        Err(_err) => {}
-    }
-    let current_version = env!("CARGO_PKG_VERSION");
-
-    let result = match std::env::var(env_keys::CARGO_NEAR_VERSION) {
-        Err(_err) => (current_version.to_string(), VersionMismatch::None),
-        Ok(env_version) => match env_version == current_version {
-            true => (current_version.to_string(), VersionMismatch::None),
-            // coercing to env_version on mismatch
-            false => (
-                env_version.clone(),
-                VersionMismatch::Some {
-                    environment: env_version,
-                    current_process: current_version.to_string(),
-                },
-            ),
-        },
-    };
-    Ok(result)
 }

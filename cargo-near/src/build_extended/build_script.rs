@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::BuildArtifact;
-use cargo_near_build::types::near::VersionMismatch;
+use cargo_near_build::types::near::build::VersionMismatch;
 use rustc_version::Version;
 
 /// `cargo::` prefix for build script outputs, that `cargo` recognizes

@@ -9,7 +9,7 @@ use cargo_near_build::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::{CompilationArtifact, VersionMismatch},
+        near::{build::VersionMismatch, CompilationArtifact},
     },
 };
 use colored::Colorize;
