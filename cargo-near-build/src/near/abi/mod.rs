@@ -6,13 +6,13 @@ use crate::{
     types::{
         cargo::{manifest_path::ManifestPath, metadata::CrateMetadata},
         color_preference::ColorPreference,
-        near::abi::{abi_file_extension, AbiCompression, AbiFormat, AbiResult, Opts},
+        near::abi as abi_types,
     },
 };
 
 pub mod generate;
 
-pub fn build(args: Opts) -> eyre::Result<()> {
+pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
@@ -28,9 +28,9 @@ pub fn build(args: Opts) -> eyre::Result<()> {
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
     let format = if args.compact_abi {
-        AbiFormat::JsonMin
+        abi_types::Format::JsonMin
     } else {
-        AbiFormat::Json
+        abi_types::Format::Json
     };
     let contract_abi = generate::procedure(
         &crate_metadata,
@@ -40,8 +40,12 @@ pub fn build(args: Opts) -> eyre::Result<()> {
         &[],
         color,
     )?;
-    let AbiResult { path } =
-        write_to_file(&contract_abi, &crate_metadata, format, AbiCompression::NoOp)?;
+    let abi_types::Result { path } = write_to_file(
+        &contract_abi,
+        &crate_metadata,
+        format,
+        abi_types::Compression::NoOp,
+    )?;
 
     let abi_path = crate::fs::copy(&path, &out_dir)?;
 
@@ -55,16 +59,16 @@ pub fn build(args: Opts) -> eyre::Result<()> {
 pub fn write_to_file(
     contract_abi: &near_abi::AbiRoot,
     crate_metadata: &CrateMetadata,
-    format: AbiFormat,
-    compression: AbiCompression,
-) -> eyre::Result<AbiResult> {
+    format: abi_types::Format,
+    compression: abi_types::Compression,
+) -> eyre::Result<abi_types::Result> {
     let near_abi_serialized = match format {
-        AbiFormat::Json => serde_json::to_vec_pretty(&contract_abi)?,
-        AbiFormat::JsonMin => serde_json::to_vec(&contract_abi)?,
+        abi_types::Format::Json => serde_json::to_vec_pretty(&contract_abi)?,
+        abi_types::Format::JsonMin => serde_json::to_vec(&contract_abi)?,
     };
     let near_abi_compressed = match compression {
-        AbiCompression::NoOp => near_abi_serialized,
-        AbiCompression::Zstd => zstd::encode_all(
+        abi_types::Compression::NoOp => near_abi_serialized,
+        abi_types::Compression::Zstd => zstd::encode_all(
             near_abi_serialized.as_slice(),
             *zstd::compression_level_range().end(),
         )?,
@@ -73,9 +77,9 @@ pub fn write_to_file(
     let out_path_abi = crate_metadata.target_directory.join(format!(
         "{}_abi.{}",
         crate_metadata.formatted_package_name(),
-        abi_file_extension(format, compression)
+        abi_types::file_extension(format, compression)
     ));
     std::fs::write(&out_path_abi, near_abi_compressed)?;
 
-    Ok(AbiResult { path: out_path_abi })
+    Ok(abi_types::Result { path: out_path_abi })
 }

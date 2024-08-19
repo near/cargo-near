@@ -4,9 +4,7 @@ use cargo_near_build::near::abi;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
-use cargo_near_build::types::near::abi::AbiCompression;
-use cargo_near_build::types::near::abi::AbiFormat;
-use cargo_near_build::types::near::abi::AbiResult;
+use cargo_near_build::types::near::abi as abi_types;
 use cargo_near_build::types::near::VersionMismatch;
 use cargo_near_build::WASM;
 use colored::Colorize;
@@ -181,11 +179,11 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
         });
         if !args.no_embed_abi {
             let path = pretty_print::handle_step("Compressing ABI to be embedded..", || {
-                let AbiResult { path } = abi::write_to_file(
+                let abi_types::Result { path } = abi::write_to_file(
                     &contract_abi,
                     &crate_metadata,
-                    AbiFormat::JsonMin,
-                    AbiCompression::Zstd,
+                    abi_types::Format::JsonMin,
+                    abi_types::Compression::Zstd,
                 )?;
                 Ok(path)
             })?;
@@ -233,8 +231,12 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     if let Some(mut abi) = abi {
         abi.metadata.wasm_hash = Some(wasm_artifact.compute_hash()?.to_base58_string());
 
-        let AbiResult { path } =
-            abi::write_to_file(&abi, &crate_metadata, AbiFormat::Json, AbiCompression::NoOp)?;
+        let abi_types::Result { path } = abi::write_to_file(
+            &abi,
+            &crate_metadata,
+            abi_types::Format::Json,
+            abi_types::Compression::NoOp,
+        )?;
         let pretty_abi_path = cargo_near_build::fs::copy(&path, &out_dir)?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }

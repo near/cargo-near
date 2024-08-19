@@ -18,29 +18,32 @@ pub struct Opts {
     pub color: Option<color_preference::ColorPreference>,
 }
 
+// TODO: make non-pub
 /// ABI generation result.
-pub struct AbiResult {
+pub struct Result {
     /// Path to the resulting ABI file.
     pub path: Utf8PathBuf,
 }
 
+// TODO: make non-pub
 #[derive(Clone, Debug)]
-pub enum AbiFormat {
+pub enum Format {
     Json,
     JsonMin,
 }
 
+// TODO: make non-pub
 #[derive(Clone, Debug)]
-pub enum AbiCompression {
+pub enum Compression {
     NoOp,
     Zstd,
 }
 
-pub(crate) fn abi_file_extension(format: AbiFormat, compression: AbiCompression) -> &'static str {
+pub(crate) fn file_extension(format: Format, compression: Compression) -> &'static str {
     match compression {
-        AbiCompression::NoOp => match format {
-            AbiFormat::Json | AbiFormat::JsonMin => "json",
+        Compression::NoOp => match format {
+            Format::Json | Format::JsonMin => "json",
         },
-        AbiCompression::Zstd => "zst",
+        Compression::Zstd => "zst",
     }
 }
