@@ -100,7 +100,7 @@ macro_rules! generate_abi_with {
             $($code)*
         };
 
-        let abi_root: near_abi::AbiRoot =
+        let abi_root: cargo_near_build::near_abi::AbiRoot =
             serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
         abi_root
     }};
@@ -152,7 +152,7 @@ macro_rules! generate_abi_fn {
 
 pub struct BuildResult {
     pub wasm: Vec<u8>,
-    pub abi_root: Option<near_abi::AbiRoot>,
+    pub abi_root: Option<cargo_near_build::near_abi::AbiRoot>,
     pub abi_compressed: Option<Vec<u8>>,
 }
 
@@ -186,7 +186,7 @@ macro_rules! build_with {
         };
 
         let abi_path = result_dir.join(format!("{}_abi.json", function_name!()));
-        let abi_root: Option<near_abi::AbiRoot> = if abi_path.exists() {
+        let abi_root: Option<cargo_near_build::near_abi::AbiRoot> = if abi_path.exists() {
             Some(serde_json::from_slice(&std::fs::read(abi_path)?)?)
         } else {
             None

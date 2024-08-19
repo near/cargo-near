@@ -1,6 +1,7 @@
 use camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
 use cargo_near_build::near::abi;
+use cargo_near_build::near_abi::BuildInfo;
 use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
@@ -8,7 +9,6 @@ use cargo_near_build::types::near::abi as abi_types;
 use cargo_near_build::types::near::VersionMismatch;
 use cargo_near_build::WASM;
 use colored::Colorize;
-use near_abi::BuildInfo;
 
 use crate::commands::build_command::{
     NEP330_BUILD_COMMAND_ENV_KEY, NEP330_CONTRACT_PATH_ENV_KEY, NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY,
@@ -255,7 +255,7 @@ fn export_cargo_near_abi_versions() {
     if std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY).is_err() {
         std::env::set_var(
             CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY,
-            near_abi::SCHEMA_VERSION,
+            cargo_near_build::near_abi::SCHEMA_VERSION,
         );
     }
 }
@@ -310,10 +310,10 @@ fn print_nep_330_env() {
 fn coerce_cargo_near_version() -> color_eyre::eyre::Result<(String, VersionMismatch)> {
     match std::env::var(CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY) {
         Ok(env_near_abi_schema_version) => {
-            if env_near_abi_schema_version != near_abi::SCHEMA_VERSION {
+            if env_near_abi_schema_version != cargo_near_build::near_abi::SCHEMA_VERSION {
                 return Err(color_eyre::eyre::eyre!(
                     "current process NEAR_ABI_SCHEMA_VERSION mismatch with env value: {} vs {}",
-                    near_abi::SCHEMA_VERSION,
+                    cargo_near_build::near_abi::SCHEMA_VERSION,
                     env_near_abi_schema_version,
                 ));
             }

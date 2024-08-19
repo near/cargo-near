@@ -14,3 +14,5 @@ pub use cargo_native::{ArtifactType, DYLIB, WASM};
 
 pub use near::abi::build as build_abi;
 pub use types::near::abi::Opts as AbiOpts;
+
+pub use near_abi;

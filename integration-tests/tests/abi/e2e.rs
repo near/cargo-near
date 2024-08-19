@@ -1,6 +1,8 @@
+use cargo_near_build::near_abi::{
+    AbiFunction, AbiFunctionKind, AbiJsonParameter, AbiParameters, AbiType,
+};
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_abi::{AbiFunction, AbiFunctionKind, AbiJsonParameter, AbiParameters, AbiType};
 use schemars::gen::SchemaGenerator;
 
 #[test]

@@ -1,6 +1,6 @@
+use cargo_near_build::near_abi::{AbiFunctionKind, AbiFunctionModifier};
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_abi::{AbiFunctionKind, AbiFunctionModifier};
 
 #[test]
 #[named]

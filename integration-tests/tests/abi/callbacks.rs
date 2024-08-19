@@ -1,6 +1,6 @@
+use cargo_near_build::near_abi::{AbiJsonParameter, AbiType};
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use near_abi::{AbiJsonParameter, AbiType};
 use schemars::gen::SchemaGenerator;
 
 use crate::util::AsJsonSchema;
