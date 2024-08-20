@@ -1,4 +1,5 @@
 mod build_script;
+mod tmp_env;
 pub use build_script::BuildScriptOpts;
 use cargo_near_build::{BuildArtifact, BuildOpts};
 use rustc_version::Version;

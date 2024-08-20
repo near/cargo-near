@@ -593,7 +593,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "tempfile",
- "tmp_env",
  "unix_path",
  "url",
 ]
