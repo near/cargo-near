@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
-use crate::commands::build_command::ArtifactMessages;
 use cargo_near_build::camino;
+use cargo_near_build::types::near::build::ArtifactMessages;
 use cargo_near_build::{
     pretty_print,
     types::cargo::{

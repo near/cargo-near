@@ -10,7 +10,6 @@ pub mod types;
 pub use build_extended::{
     build as build_extended, BuildScriptOpts, OptsExtended as BuildOptsExtended,
 };
-pub use commands::build_command::build::run as build;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]

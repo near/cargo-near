@@ -1,7 +1,5 @@
-// TODO: make mod non-pub
+pub(crate) mod cargo_native;
 pub mod fs;
-// TODO: make mod non-pub
-pub mod cargo_native;
 // TODO: make mod non-pub
 pub mod env_keys;
 pub mod near;
@@ -10,10 +8,6 @@ pub mod pretty_print;
 // TODO: make mod non-pub, export `CompilationArtifact` and `VersionMismatch` with `pub use`
 pub mod types;
 
-// TODO: remove these exports, replace with `pub(crate)` visibility
-pub use cargo_native::{ArtifactType, DYLIB, WASM};
-
-pub use near::abi::build as build_abi;
 // used in `AbiOpts` and `BuildOpts`
 pub use types::color_preference::ColorPreference;
 pub use types::near::abi::Opts as AbiOpts;
@@ -25,3 +19,6 @@ pub use types::near::build::CompilationArtifact as BuildArtifact;
 pub use near_abi;
 // used in `AbiOpts` and `BuildOpts`, and `BuildArtifact`
 pub use camino;
+
+pub use near::abi::build as build_abi;
+pub use near::build::run as build;

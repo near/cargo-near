@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    cargo_native, env_keys, pretty_print,
+    cargo_native::{self, DYLIB},
+    env_keys, pretty_print,
     types::{cargo::metadata::CrateMetadata, color_preference::ColorPreference},
-    DYLIB,
 };
 use eyre::ContextCompat;
 

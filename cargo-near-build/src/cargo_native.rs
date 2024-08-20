@@ -1,6 +1,4 @@
-// TODO: make module non-pub
 pub mod compile;
-// TODO: make module non-pub
 pub mod target;
 
 pub trait ArtifactType {

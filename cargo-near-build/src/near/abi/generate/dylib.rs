@@ -3,8 +3,8 @@ use std::fs;
 
 use camino::Utf8Path;
 
+use crate::cargo_native::DYLIB;
 use crate::types::near::build::CompilationArtifact;
-use crate::DYLIB;
 
 // TODO: make func non-pub
 pub fn extract_abi_entries(

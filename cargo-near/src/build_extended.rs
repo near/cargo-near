@@ -50,9 +50,9 @@ impl<'a> OptsExtended<'a> {
         {
             let _tmp_cargo_target_env = tmp_env::set_var("CARGO_TARGET_DIR", distinct_target_dir);
 
-            crate::build(self.build_opts.clone())?
+            cargo_near_build::build(self.build_opts.clone())?
         } else {
-            crate::build(self.build_opts.clone())?
+            cargo_near_build::build(self.build_opts.clone())?
         };
 
         Ok(artifact)

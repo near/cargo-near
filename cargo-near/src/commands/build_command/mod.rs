@@ -1,7 +1,5 @@
 use cargo_near_build::{env_keys, BuildArtifact, BuildOpts};
-use colored::{ColoredString, Colorize};
 
-pub(crate) mod build;
 mod docker;
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
@@ -57,7 +55,7 @@ pub enum BuildContext {
 impl BuildCommand {
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
         if self.no_docker() {
-            self::build::run(self.into())
+            cargo_near_build::build(self.into())
         } else {
             let opts: docker::Opts = self.into();
             opts.docker_run(context)
@@ -65,37 +63,6 @@ impl BuildCommand {
     }
     pub fn no_docker(&self) -> bool {
         std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() || self.no_docker
-    }
-}
-
-#[derive(Default)]
-pub struct ArtifactMessages<'a> {
-    messages: Vec<(&'a str, ColoredString)>,
-}
-
-impl<'a> ArtifactMessages<'a> {
-    pub fn push_binary(&mut self, artifact: &BuildArtifact) -> color_eyre::eyre::Result<()> {
-        self.messages
-            .push(("Binary", artifact.path.to_string().bright_yellow().bold()));
-        let checksum = artifact.compute_hash()?;
-        self.messages.push((
-            "SHA-256 checksum hex ",
-            checksum.to_hex_string().green().dimmed(),
-        ));
-        self.messages.push((
-            "SHA-256 checksum bs58",
-            checksum.to_base58_string().green().dimmed(),
-        ));
-        Ok(())
-    }
-    pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
-        self.messages.push(msg);
-    }
-    pub fn pretty_print(self) {
-        let max_width = self.messages.iter().map(|(h, _)| h.len()).max().unwrap();
-        for (header, message) in self.messages {
-            eprintln!("     - {:>width$}: {}", header, message, width = max_width);
-        }
     }
 }
 
