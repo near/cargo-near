@@ -586,7 +586,6 @@ dependencies = [
  "near-cli-rs",
  "nix",
  "pathdiff",
- "rustc_version",
  "serde",
  "serde_json",
  "shell-words",
