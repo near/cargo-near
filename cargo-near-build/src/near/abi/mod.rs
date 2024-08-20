@@ -55,7 +55,6 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
     Ok(())
 }
 
-// TODO: make non-pub
 pub fn write_to_file(
     contract_abi: &near_abi::AbiRoot,
     crate_metadata: &CrateMetadata,

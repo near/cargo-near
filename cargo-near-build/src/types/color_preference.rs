@@ -32,14 +32,7 @@ fn default_mode() -> ColorPreference {
 }
 
 impl ColorPreference {
-    pub fn as_str(&self) -> &str {
-        match self {
-            ColorPreference::Auto => "auto",
-            ColorPreference::Always => "always",
-            ColorPreference::Never => "never",
-        }
-    }
-
+    // TODO: replace `pub` with `pub(crate)` on docker logic moved
     pub fn apply(&self) {
         match self {
             ColorPreference::Auto => {

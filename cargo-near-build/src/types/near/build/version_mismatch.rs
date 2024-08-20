@@ -36,7 +36,7 @@ impl VersionMismatch {
         format!("{} {}", "cargo-near-build", env!("CARGO_PKG_VERSION"))
     }
 
-    pub fn export_builder_and_near_abi_versions() {
+    pub(crate) fn export_builder_and_near_abi_versions() {
         if std::env::var(env_keys::CARGO_NEAR_VERSION).is_err() {
             std::env::set_var(env_keys::CARGO_NEAR_VERSION, Self::current_version());
         }
@@ -48,7 +48,7 @@ impl VersionMismatch {
         }
     }
 
-    pub fn get_coerced_builder_version() -> eyre::Result<(Version, VersionMismatch)> {
+    pub(crate) fn get_coerced_builder_version() -> eyre::Result<(Version, VersionMismatch)> {
         match std::env::var(env_keys::CARGO_NEAR_ABI_SCHEMA_VERSION) {
             Ok(env_near_abi_schema_version) => {
                 if env_near_abi_schema_version != near_abi::SCHEMA_VERSION {

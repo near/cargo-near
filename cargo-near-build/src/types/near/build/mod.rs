@@ -19,7 +19,7 @@ pub struct CompilationArtifact<T: ArtifactType = WASM> {
     pub artifact_type: PhantomData<T>,
 }
 
-impl<T: ArtifactType> CompilationArtifact<T> {
+impl crate::BuildArtifact {
     pub fn compute_hash(&self) -> eyre::Result<SHA256Checksum> {
         let mut hasher = Sha256::new();
         hasher.update(std::fs::read(&self.path)?);
@@ -30,7 +30,7 @@ impl<T: ArtifactType> CompilationArtifact<T> {
         })
     }
 }
-// TODO: make non-pub
+
 pub struct SHA256Checksum {
     pub hash: Vec<u8>,
 }
@@ -73,8 +73,7 @@ impl Opts {
     /// this is just 1-to-1 mapping of each struct's field to a cli flag
     /// in order of fields, as specified in struct's definition.
     /// `Default` implementation corresponds to plain `cargo near build` command without any args
-    // TODO: make pub(crate)
-    pub fn get_cli_build_command(&self) -> Vec<String> {
+    pub(crate) fn get_cli_build_command(&self) -> Vec<String> {
         let mut cargo_args = vec!["cargo", "near", "build"];
         if self.no_locked {
             cargo_args.push("--no-locked");
@@ -116,7 +115,6 @@ impl Opts {
     }
 }
 
-// TODO: make non-pub
 #[derive(Default)]
 pub struct ArtifactMessages<'a> {
     messages: Vec<(&'a str, ColoredString)>,

@@ -14,7 +14,7 @@ pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error
 }
 
 impl<'a> OptsExtended<'a> {
-    pub fn skip_or_compile(
+    pub(crate) fn skip_or_compile(
         &self,
         version: &Version,
     ) -> Result<(CompilationArtifact, bool), Box<dyn std::error::Error>> {
@@ -31,7 +31,9 @@ impl<'a> OptsExtended<'a> {
 
     /// `CARGO_TARGET_DIR` export is needed to avoid attempt to acquire same `target/<profile-path>/.cargo-lock`
     /// as the `cargo` process, which is running the build-script
-    pub fn compile_near_artifact(&self) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
+    pub(crate) fn compile_near_artifact(
+        &self,
+    ) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
         let mut tmp_envs = vec![];
         for (env_key, value) in self.env.iter() {
             let tmp_env = tmp_env::set_var(env_key, value);

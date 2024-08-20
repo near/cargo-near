@@ -1,15 +1,9 @@
 use std::marker::PhantomData;
 
-use cargo_near_build::camino;
-use cargo_near_build::types::near::build::ArtifactMessages;
 use cargo_near_build::{
-    pretty_print,
-    types::cargo::{
-        manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
-        metadata::CrateMetadata,
-    },
-    BuildArtifact, VersionMismatch,
+    camino, ArtifactMessages, BuildArtifact, CrateMetadata, ManifestPath, MANIFEST_FILE_NAME,
 };
+use cargo_near_build::{pretty_print, VersionMismatch};
 use colored::Colorize;
 
 use super::crate_in_repo;

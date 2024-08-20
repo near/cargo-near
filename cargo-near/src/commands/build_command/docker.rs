@@ -1,7 +1,5 @@
 use crate::types::source_id;
-use cargo_near_build::camino;
-use cargo_near_build::types::cargo::manifest_path::ManifestPath;
-use cargo_near_build::types::color_preference::ColorPreference;
+use cargo_near_build::{camino, ManifestPath};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::ops::Deref;
 use std::{
@@ -50,7 +48,7 @@ pub struct Opts {
     /// Disables default feature flags.
     pub no_default_features: bool,
     /// Coloring: auto, always, never
-    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
+    pub color: Option<cargo_near_build::ColorPreference>,
 }
 
 impl From<super::BuildCommand> for Opts {
@@ -87,7 +85,10 @@ impl Opts {
         self,
         context: BuildContext,
     ) -> color_eyre::eyre::Result<BuildArtifact> {
-        let color = self.color.clone().unwrap_or(ColorPreference::Auto);
+        let color = self
+            .color
+            .clone()
+            .unwrap_or(cargo_near_build::ColorPreference::Auto);
         color.apply();
         let crate_in_repo = pretty_print::handle_step(
             "Opening repo and determining HEAD and relative path of contract...",

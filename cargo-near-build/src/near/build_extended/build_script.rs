@@ -21,7 +21,7 @@ macro_rules! print_warn {
 }
 
 impl<'a> Opts<'a> {
-    pub fn should_skip(&self, version: &Version) -> bool {
+    pub(crate) fn should_skip(&self, version: &Version) -> bool {
         let mut return_bool = false;
         for (env_key, value_to_skip) in self.build_skipped_when_env_is.iter() {
             if let Ok(actual_value) = std::env::var(env_key) {
@@ -39,7 +39,9 @@ impl<'a> Opts<'a> {
 
         return_bool
     }
-    pub fn create_empty_stub(&self) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
+    pub(crate) fn create_empty_stub(
+        &self,
+    ) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
         if self.stub_path.is_none() {
             return Err(
                 "build must be skipped, but `BuildScriptOpts.stub_path` wasn't configured"
@@ -64,7 +66,7 @@ impl<'a> Opts<'a> {
         Ok(artifact)
     }
 
-    pub fn post_build(
+    pub(crate) fn post_build(
         &self,
         skipped: bool,
         artifact: &CompilationArtifact,

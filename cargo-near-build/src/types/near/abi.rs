@@ -18,21 +18,18 @@ pub struct Opts {
     pub color: Option<color_preference::ColorPreference>,
 }
 
-// TODO: make non-pub
 /// ABI generation result.
 pub struct Result {
     /// Path to the resulting ABI file.
     pub path: Utf8PathBuf,
 }
 
-// TODO: make non-pub
 #[derive(Clone, Debug)]
 pub enum Format {
     Json,
     JsonMin,
 }
 
-// TODO: make non-pub
 #[derive(Clone, Debug)]
 pub enum Compression {
     NoOp,

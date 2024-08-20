@@ -6,7 +6,6 @@ use camino::Utf8Path;
 use crate::cargo_native::DYLIB;
 use crate::types::near::build::CompilationArtifact;
 
-// TODO: make func non-pub
 pub fn extract_abi_entries(
     artifact: &CompilationArtifact<DYLIB>,
 ) -> eyre::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
