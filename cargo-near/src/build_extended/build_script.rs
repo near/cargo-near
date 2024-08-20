@@ -86,7 +86,7 @@ impl<'a> BuildScriptOpts<'a> {
                 path: stub_path,
                 fresh: true,
                 from_docker: false,
-                cargo_near_version_mismatch: VersionMismatch::None,
+                builder_version_mismatch: VersionMismatch::None,
                 artifact_type: PhantomData,
             }
         };
@@ -106,7 +106,7 @@ impl<'a> BuildScriptOpts<'a> {
             ":"
         };
         if let ref version_mismatch @ VersionMismatch::Some { .. } =
-            artifact.cargo_near_version_mismatch
+            artifact.builder_version_mismatch
         {
             print_warn!(
                 version,

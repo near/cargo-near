@@ -126,7 +126,7 @@ pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     )?;
 
     wasm_artifact.path = cargo_near_build::fs::copy(&wasm_artifact.path, &out_dir)?;
-    wasm_artifact.cargo_near_version_mismatch = cargo_near_version_mismatch;
+    wasm_artifact.builder_version_mismatch = cargo_near_version_mismatch;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
 

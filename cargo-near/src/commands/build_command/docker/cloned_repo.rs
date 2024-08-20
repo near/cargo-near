@@ -128,7 +128,7 @@ fn copy(
         path: out_wasm_path,
         fresh: true,
         from_docker: true,
-        cargo_near_version_mismatch: VersionMismatch::UnknownFromDocker,
+        builder_version_mismatch: VersionMismatch::UnknownFromDocker,
         artifact_type: PhantomData,
     };
     let mut messages = ArtifactMessages::default();

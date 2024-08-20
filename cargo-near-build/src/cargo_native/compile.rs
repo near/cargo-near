@@ -84,7 +84,7 @@ where
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
-            cargo_near_version_mismatch: VersionMismatch::None,
+            builder_version_mismatch: VersionMismatch::None,
             artifact_type: PhantomData,
         }),
         _ => eyre::bail!(
