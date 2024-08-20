@@ -1,4 +1,4 @@
-use cargo_near_build::{env_keys, types::near::CompilationArtifact};
+use cargo_near_build::{env_keys, BuildArtifact, BuildOpts};
 use colored::{ColoredString, Colorize};
 
 pub(crate) mod build;
@@ -55,7 +55,7 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
-    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<CompilationArtifact> {
+    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
         if self.no_docker() {
             self::build::run(self.into())
         } else {
@@ -74,7 +74,7 @@ pub struct ArtifactMessages<'a> {
 }
 
 impl<'a> ArtifactMessages<'a> {
-    pub fn push_binary(&mut self, artifact: &CompilationArtifact) -> color_eyre::eyre::Result<()> {
+    pub fn push_binary(&mut self, artifact: &BuildArtifact) -> color_eyre::eyre::Result<()> {
         self.messages
             .push(("Binary", artifact.path.to_string().bright_yellow().bold()));
         let checksum = artifact.compute_hash()?;
@@ -117,6 +117,22 @@ impl From<CliBuildCommand> for BuildCommand {
     }
 }
 
+impl From<BuildCommand> for BuildOpts {
+    fn from(value: BuildCommand) -> Self {
+        Self {
+            no_locked: value.no_locked,
+            no_release: value.no_release,
+            no_abi: value.no_abi,
+            no_embed_abi: value.no_embed_abi,
+            no_doc: value.no_doc,
+            features: value.features,
+            no_default_features: value.no_default_features,
+            out_dir: value.out_dir.map(Into::into),
+            manifest_path: value.manifest_path.map(Into::into),
+            color: value.color.map(Into::into),
+        }
+    }
+}
 #[derive(Debug, Clone)]
 pub struct BuildCommandlContext;
 

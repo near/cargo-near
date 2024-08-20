@@ -3,7 +3,7 @@ use std::fs;
 
 use camino::Utf8Path;
 
-use crate::types::near::CompilationArtifact;
+use crate::types::near::build::CompilationArtifact;
 use crate::DYLIB;
 
 // TODO: make func non-pub

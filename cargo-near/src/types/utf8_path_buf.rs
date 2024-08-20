@@ -1,5 +1,6 @@
 use std::{ops::Deref, path::PathBuf};
 
+use cargo_near_build::camino;
 use color_eyre::eyre::Context;
 
 #[derive(

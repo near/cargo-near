@@ -14,6 +14,14 @@ pub mod types;
 pub use cargo_native::{ArtifactType, DYLIB, WASM};
 
 pub use near::abi::build as build_abi;
+// used in `AbiOpts` and `BuildOpts`
+pub use types::color_preference::ColorPreference;
 pub use types::near::abi::Opts as AbiOpts;
+pub use types::near::build::Opts as BuildOpts;
+
+pub use types::near::build::version_mismatch::VersionMismatch;
+pub use types::near::build::CompilationArtifact as BuildArtifact;
 
 pub use near_abi;
+// used in `AbiOpts` and `BuildOpts`, and `BuildArtifact`
+pub use camino;

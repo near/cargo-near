@@ -1,7 +1,6 @@
-use crate::{BuildArtifact, BuildOpts};
-
 mod build_script;
 pub use build_script::BuildScriptOpts;
+use cargo_near_build::{BuildArtifact, BuildOpts};
 use rustc_version::Version;
 
 #[derive(Debug, Clone)]

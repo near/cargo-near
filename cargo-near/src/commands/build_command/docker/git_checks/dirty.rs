@@ -1,5 +1,6 @@
 use color_eyre::eyre::{ContextCompat, WrapErr};
 
+use cargo_near_build::camino;
 use serde_json::to_string;
 
 pub fn check(repo_root: &camino::Utf8PathBuf) -> color_eyre::Result<()> {

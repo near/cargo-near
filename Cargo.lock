@@ -569,14 +569,11 @@ dependencies = [
 name = "cargo-near"
 version = "0.8.2"
 dependencies = [
- "camino",
  "cargo-near-build",
- "cargo_metadata",
  "clap",
  "color-eyre",
  "colored",
  "derive_more",
- "dunce",
  "env_logger",
  "git2",
  "home",

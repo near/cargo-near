@@ -8,7 +8,7 @@ use std::io::BufRead;
 use crate::types::{
     cargo::manifest_path::ManifestPath,
     color_preference::ColorPreference,
-    near::{build::VersionMismatch, CompilationArtifact},
+    near::build::{version_mismatch::VersionMismatch, CompilationArtifact},
 };
 
 use super::ArtifactType;

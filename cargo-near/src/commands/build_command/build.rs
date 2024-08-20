@@ -1,4 +1,4 @@
-use camino::Utf8PathBuf;
+use cargo_near_build::camino::Utf8PathBuf;
 use cargo_near_build::cargo_native;
 use cargo_near_build::env_keys;
 use cargo_near_build::near::abi;
@@ -7,105 +7,17 @@ use cargo_near_build::pretty_print;
 use cargo_near_build::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use cargo_near_build::types::cargo::metadata::CrateMetadata;
 use cargo_near_build::types::near::abi as abi_types;
-use cargo_near_build::types::near::build::VersionMismatch;
+use cargo_near_build::types::near::build::version_mismatch::VersionMismatch;
+use cargo_near_build::types::near::build::Opts;
+use cargo_near_build::BuildArtifact;
 use cargo_near_build::WASM;
 use colored::Colorize;
 
-use crate::BuildArtifact;
 use cargo_near_build::types::color_preference::ColorPreference;
 
 use super::ArtifactMessages;
 
 const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
-
-// These `Opts` have no `no_docker` flag, i.e., they are only indented for build
-// inside of a specific environment
-#[derive(Debug, Default, Clone)]
-pub struct Opts {
-    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
-    pub no_locked: bool,
-    /// Build contract in debug mode, without optimizations and bigger is size
-    pub no_release: bool,
-    /// Do not generate ABI for the contract
-    pub no_abi: bool,
-    /// Do not embed the ABI in the contract binary
-    pub no_embed_abi: bool,
-    /// Do not include rustdocs in the embedded ABI
-    pub no_doc: bool,
-    /// Copy final artifacts to this directory
-    pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Path to the `Cargo.toml` of the contract to build
-    pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Set compile-time feature flags.
-    pub features: Option<String>,
-    /// Disables default feature flags.
-    pub no_default_features: bool,
-    /// Coloring: auto, always, never
-    pub color: Option<cargo_near_build::types::color_preference::ColorPreference>,
-}
-
-impl Opts {
-    /// this is just 1-to-1 mapping of each struct's field to a cli flag
-    /// in order of fields, as specified in struct's definition.
-    /// `Default` implementation corresponds to plain `cargo near build` command without any args
-    fn get_cli_build_command(&self) -> Vec<String> {
-        let mut cargo_args = vec!["cargo", "near", "build"];
-        if self.no_locked {
-            cargo_args.push("--no-locked");
-        }
-        // `no_docker` field isn't present
-        if self.no_release {
-            cargo_args.push("--no-release");
-        }
-        if self.no_abi {
-            cargo_args.push("--no-abi");
-        }
-        if self.no_embed_abi {
-            cargo_args.push("--no-embed-abi");
-        }
-        if self.no_doc {
-            cargo_args.push("--no-doc");
-        }
-        if let Some(ref out_dir) = self.out_dir {
-            cargo_args.extend_from_slice(&["--out-dir", out_dir.as_str()]);
-        }
-        if let Some(ref manifest_path) = self.manifest_path {
-            cargo_args.extend_from_slice(&["--manifest-path", manifest_path.as_str()]);
-        }
-        if let Some(ref features) = self.features {
-            cargo_args.extend(&["--features", features]);
-        }
-        if self.no_default_features {
-            cargo_args.push("--no-default-features");
-        }
-        let color;
-        if let Some(ref color_arg) = self.color {
-            color = color_arg.to_string();
-            cargo_args.extend(&["--color", &color]);
-        }
-        cargo_args
-            .into_iter()
-            .map(|el| el.to_string())
-            .collect::<Vec<_>>()
-    }
-}
-
-impl From<super::BuildCommand> for Opts {
-    fn from(value: super::BuildCommand) -> Self {
-        Self {
-            no_locked: value.no_locked,
-            no_release: value.no_release,
-            no_abi: value.no_abi,
-            no_embed_abi: value.no_embed_abi,
-            no_doc: value.no_doc,
-            features: value.features,
-            no_default_features: value.no_default_features,
-            out_dir: value.out_dir,
-            manifest_path: value.manifest_path,
-            color: value.color.map(Into::into),
-        }
-    }
-}
 
 pub fn run(args: Opts) -> color_eyre::eyre::Result<BuildArtifact> {
     VersionMismatch::export_builder_and_near_abi_versions();

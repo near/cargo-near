@@ -1,8 +1,8 @@
 use crate::types::source_id;
-use crate::BuildArtifact;
+use cargo_near_build::camino;
 use cargo_near_build::types::cargo::manifest_path::ManifestPath;
 use cargo_near_build::types::color_preference::ColorPreference;
-use cargo_near_build::{env_keys, pretty_print};
+use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::ops::Deref;
 use std::{
     io::IsTerminal,
