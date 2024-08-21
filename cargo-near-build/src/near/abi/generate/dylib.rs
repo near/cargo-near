@@ -3,11 +3,11 @@ use std::fs;
 
 use camino::Utf8Path;
 
-use crate::cargo_native::DYLIB;
+use crate::cargo_native::Dylib;
 use crate::types::near::build::CompilationArtifact;
 
 pub fn extract_abi_entries(
-    artifact: &CompilationArtifact<DYLIB>,
+    artifact: &CompilationArtifact<Dylib>,
 ) -> eyre::Result<Vec<near_abi::__private::ChunkedAbiEntry>> {
     let dylib_path: &Utf8Path = &artifact.path;
     let dylib_file_contents = fs::read(dylib_path)?;

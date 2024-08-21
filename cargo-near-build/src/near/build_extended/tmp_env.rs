@@ -4,18 +4,6 @@ use std::path::Path;
 
 /// Memorize the current path and switch to the given path. Once the datastructure is
 /// dropped, switch back to the original path automatically.
-/// ```
-/// {
-///     let _tmp_current_dir = tmp_env::set_current_dir("src").expect("should set the new current_dir");
-///     let current_dir = std::env::current_dir().expect("cannot get current dir from std env");
-///     assert!(current_dir.ends_with("src"));
-/// }
-/// let current_dir = std::env::current_dir().expect("cannot get current dir from std env");
-/// assert!(!current_dir.ends_with("src"));
-/// // Because guard is dropped
-/// tmp_env::set_current_dir("target").expect("should set the new current_dir");
-/// assert!(!current_dir.ends_with("target"));
-/// ```
 pub fn set_current_dir<P: AsRef<Path>>(path: P) -> Result<CurrentDir, std::io::Error> {
     let current_dir = std::env::current_dir()?;
     std::env::set_current_dir(&path)?;
@@ -40,16 +28,6 @@ impl Drop for CurrentDir {
 
 /// Sets the environment variable k to the value v for the currently running process.
 /// It returns a datastructure to keep the environment variable set. When dropped the environment variable is restored
-/// ```
-/// {
-///     let _tmp_env = tmp_env::set_var("TEST_TMP_ENV", "myvalue");
-///     assert_eq!(std::env::var("TEST_TMP_ENV"), Ok(String::from("myvalue")));
-/// }
-/// assert!(std::env::var("TEST_TMP_ENV").is_err());
-/// // Because guard is dropped then the environment variable is also automatically unset (not restored because no previous value was set)
-/// tmp_env::set_var("TEST_TMP_ENV_DROPPED", "myvaluedropped");
-/// assert!(std::env::var("TEST_TMP_ENV_DROPPED").is_err());
-/// ```
 pub fn set_var<K: AsRef<OsStr>, V: AsRef<OsStr>>(key: K, value: V) -> CurrentEnv {
     let key = key.as_ref();
     let previous_val = std::env::var(key).ok();
@@ -82,6 +60,10 @@ mod tests {
 
     #[test]
     fn test_current_dir() {
+        println!(
+            "current dir: {:?}",
+            std::env::current_dir().expect("patronus")
+        );
         {
             let _tmp_current_dir = set_current_dir("src").expect("should set the new current_dir");
             let current_dir = std::env::current_dir().expect("cannot get current dir from std env");
@@ -90,8 +72,8 @@ mod tests {
         let current_dir = std::env::current_dir().expect("cannot get current dir from std env");
         assert!(!current_dir.ends_with("src"));
         // Because guard is dropped
-        set_current_dir("target").expect("should set the new current_dir");
-        assert!(!current_dir.ends_with("target"));
+        set_current_dir("src/near").expect("should set the new current_dir");
+        assert!(!current_dir.ends_with("src/near"));
     }
 
     #[test]

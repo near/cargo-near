@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    cargo_native::{self, DYLIB},
+    cargo_native::{self, Dylib},
     env_keys, pretty_print,
     types::{cargo::metadata::CrateMetadata, color_preference::ColorPreference},
 };
@@ -67,7 +67,7 @@ pub fn procedure(
 
     pretty_print::step("Generating ABI");
 
-    let dylib_artifact = cargo_native::compile::run::<DYLIB>(
+    let dylib_artifact = cargo_native::compile::run::<Dylib>(
         &crate_metadata.manifest_path,
         cargo_args.as_slice(),
         vec![

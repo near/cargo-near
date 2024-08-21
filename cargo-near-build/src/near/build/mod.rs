@@ -1,4 +1,4 @@
-use crate::cargo_native::WASM;
+use crate::cargo_native::Wasm;
 use crate::types::near::abi as abi_types;
 use camino::Utf8PathBuf;
 use colored::Colorize;
@@ -39,7 +39,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path {
-            manifest_path.into()
+            manifest_path
         } else {
             MANIFEST_FILE_NAME.into()
         };
@@ -120,7 +120,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     }
 
     pretty_print::step("Building contract");
-    let mut wasm_artifact = cargo_native::compile::run::<WASM>(
+    let mut wasm_artifact = cargo_native::compile::run::<Wasm>(
         &crate_metadata.manifest_path,
         &cargo_args,
         build_env,

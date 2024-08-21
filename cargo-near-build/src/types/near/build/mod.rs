@@ -5,13 +5,13 @@ use colored::{ColoredString, Colorize};
 use sha2::{Digest, Sha256};
 
 use crate::{
-    cargo_native::{ArtifactType, WASM},
+    cargo_native::{ArtifactType, Wasm},
     types::color_preference::ColorPreference,
 };
 
 pub mod version_mismatch;
 
-pub struct CompilationArtifact<T: ArtifactType = WASM> {
+pub struct CompilationArtifact<T: ArtifactType = Wasm> {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,

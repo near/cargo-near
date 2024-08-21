@@ -5,17 +5,17 @@ pub trait ArtifactType {
     fn extension() -> &'static str;
 }
 
-pub struct WASM;
+pub struct Wasm;
 
-impl ArtifactType for WASM {
+impl ArtifactType for Wasm {
     fn extension() -> &'static str {
         "wasm"
     }
 }
 
-pub struct DYLIB;
+pub struct Dylib;
 
-impl ArtifactType for DYLIB {
+impl ArtifactType for Dylib {
     fn extension() -> &'static str {
         #[cfg(target_os = "linux")]
         return "so";
