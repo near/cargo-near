@@ -1,7 +1,7 @@
 use std::env;
 use std::io::{IsTerminal, Write};
 
-use cargo_near::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
+use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 use log::Level;
@@ -13,7 +13,7 @@ use cargo_near::Cmd;
 fn main() -> CliResult {
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
 
-    let environment = if std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() {
+    let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
         "container".cyan()
     } else {
         "host".purple()

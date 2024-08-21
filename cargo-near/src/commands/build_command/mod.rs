@@ -1,25 +1,6 @@
-use cargo_near_build::types::near::CompilationArtifact;
-use colored::{ColoredString, Colorize};
+use cargo_near_build::{env_keys, BuildArtifact, BuildOpts};
 
-pub(crate) mod build;
 mod docker;
-
-// ====================== NEP-330 1.2.0 - Build Details Extension ===========
-pub const NEP330_BUILD_ENVIRONMENT_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
-pub const NEP330_BUILD_COMMAND_ENV_KEY: &str = "NEP330_BUILD_INFO_BUILD_COMMAND";
-pub const NEP330_CONTRACT_PATH_ENV_KEY: &str = "NEP330_BUILD_INFO_CONTRACT_PATH";
-pub const NEP330_SOURCE_CODE_SNAPSHOT_ENV_KEY: &str = "NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT";
-// ====================== End section =======================================
-
-// ====================== NEP-330 1.1.0 - Contract Metadata Extension ===========
-pub const NEP330_LINK_ENV_KEY: &str = "NEP330_LINK";
-pub const NEP330_VERSION_ENV_KEY: &str = "NEP330_VERSION";
-// ====================== End section =======================================
-
-pub const CARGO_NEAR_VERSION_ENV_KEY: &str = "CARGO_NEAR_VERSION";
-pub const CARGO_NEAR_ABI_SCHEMA_VERSION_ENV_KEY: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
-
-pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -72,47 +53,16 @@ pub enum BuildContext {
     Deploy,
 }
 impl BuildCommand {
-    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<CompilationArtifact> {
+    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
         if self.no_docker() {
-            self::build::run(self.into())
+            cargo_near_build::build(self.into())
         } else {
             let opts: docker::Opts = self.into();
             opts.docker_run(context)
         }
     }
     pub fn no_docker(&self) -> bool {
-        std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() || self.no_docker
-    }
-}
-
-#[derive(Default)]
-pub struct ArtifactMessages<'a> {
-    messages: Vec<(&'a str, ColoredString)>,
-}
-
-impl<'a> ArtifactMessages<'a> {
-    pub fn push_binary(&mut self, artifact: &CompilationArtifact) -> color_eyre::eyre::Result<()> {
-        self.messages
-            .push(("Binary", artifact.path.to_string().bright_yellow().bold()));
-        let checksum = artifact.compute_hash()?;
-        self.messages.push((
-            "SHA-256 checksum hex ",
-            checksum.to_hex_string().green().dimmed(),
-        ));
-        self.messages.push((
-            "SHA-256 checksum bs58",
-            checksum.to_base58_string().green().dimmed(),
-        ));
-        Ok(())
-    }
-    pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
-        self.messages.push(msg);
-    }
-    pub fn pretty_print(self) {
-        let max_width = self.messages.iter().map(|(h, _)| h.len()).max().unwrap();
-        for (header, message) in self.messages {
-            eprintln!("     - {:>width$}: {}", header, message, width = max_width);
-        }
+        std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() || self.no_docker
     }
 }
 
@@ -134,6 +84,23 @@ impl From<CliBuildCommand> for BuildCommand {
     }
 }
 
+impl From<BuildCommand> for BuildOpts {
+    fn from(value: BuildCommand) -> Self {
+        Self {
+            no_locked: value.no_locked,
+            no_release: value.no_release,
+            no_abi: value.no_abi,
+            no_embed_abi: value.no_embed_abi,
+            no_doc: value.no_doc,
+            features: value.features,
+            no_default_features: value.no_default_features,
+            out_dir: value.out_dir.map(Into::into),
+            manifest_path: value.manifest_path.map(Into::into),
+            color: value.color.map(Into::into),
+            cli_description: Default::default(),
+        }
+    }
+}
 #[derive(Debug, Clone)]
 pub struct BuildCommandlContext;
 

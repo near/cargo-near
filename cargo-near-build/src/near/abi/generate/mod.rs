@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    cargo_native,
-    env_keys::BUILD_RS_ABI_STEP_HINT_ENV_KEY,
-    pretty_print,
+    cargo_native::{self, Dylib},
+    env_keys, pretty_print,
     types::{cargo::metadata::CrateMetadata, color_preference::ColorPreference},
-    DYLIB,
 };
 use eyre::ContextCompat;
 
@@ -69,14 +67,14 @@ pub fn procedure(
 
     pretty_print::step("Generating ABI");
 
-    let dylib_artifact = cargo_native::compile::run::<DYLIB>(
+    let dylib_artifact = cargo_native::compile::run::<Dylib>(
         &crate_metadata.manifest_path,
         cargo_args.as_slice(),
         vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
-            (BUILD_RS_ABI_STEP_HINT_ENV_KEY, "true"),
+            (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ],
         hide_warnings,
         color,

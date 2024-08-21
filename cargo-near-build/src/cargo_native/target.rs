@@ -2,7 +2,7 @@ use std::{ffi::OsStr, io::BufRead, path::PathBuf, process::Command};
 
 use eyre::WrapErr;
 
-const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
+pub const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub fn wasm32_exists() -> bool {
     let result = get_rustc_wasm32_unknown_unknown_target_libdir();

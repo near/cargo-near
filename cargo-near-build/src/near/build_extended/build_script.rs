@@ -1,7 +1,8 @@
 use std::marker::PhantomData;
 
-use crate::BuildArtifact;
-use cargo_near_build::types::near::VersionMismatch;
+use crate::types::near::build::version_mismatch::VersionMismatch;
+use crate::types::near::build::CompilationArtifact;
+use crate::types::near::build_extended::build_script::Opts;
 use rustc_version::Version;
 
 /// `cargo::` prefix for build script outputs, that `cargo` recognizes
@@ -19,38 +20,8 @@ macro_rules! print_warn {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct BuildScriptOpts<'a> {
-    /// environment variable name to export result `*.wasm` path to with [`cargo::rustc-env=`](https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-env)
-    /// instruction
-    pub result_env_key: Option<&'a str>,
-    /// list of paths for [`cargo::rerun-if-changed=`](https://doc.rust-lang.org/cargo/reference/build-scripts.html#rerun-if-changed)
-    /// instruction
-    ///
-    /// if relative, it's relative to path of crate, where build.rs is compiled
-    pub rerun_if_changed_list: Vec<&'a str>,
-    /// vector of key-value pairs of environment variable name and its value,
-    /// when compilation should be skipped on a variable's value match;
-    /// e.g.
-    /// skipping emitting output `*.wasm` may be helpful when `PROFILE` is equal to `debug`
-    /// for using  `rust-analyzer/flycheck`, `cargo check`, `bacon` and other dev-tools
-    pub build_skipped_when_env_is: Vec<(&'a str, &'a str)>,
-    /// path of stub file, where a placeholder empty `wasm` output is emitted to, when
-    /// build is skipped due to match in [`Self::build_skipped_when_env_is`]
-    ///
-    /// if this path is relative, then the base is [`crate::BuildOptsExtended::workdir`]
-    pub stub_path: Option<&'a str>,
-    /// substitution export of [`CARGO_TARGET_DIR`](https://doc.rust-lang.org/cargo/reference/environment-variables.html),
-    /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938>;
-    /// should best be a subfolder of [`CARGO_TARGET_DIR`](https://doc.rust-lang.org/cargo/reference/environment-variables.html)
-    /// of crate being built to work normally in docker builds
-    ///
-    /// if this path is relative, then the base is [`crate::BuildOptsExtended::workdir`]
-    pub distinct_target_dir: Option<&'a str>,
-}
-
-impl<'a> BuildScriptOpts<'a> {
-    pub fn should_skip(&self, version: &Version) -> bool {
+impl<'a> Opts<'a> {
+    pub(crate) fn should_skip(&self, version: &Version) -> bool {
         let mut return_bool = false;
         for (env_key, value_to_skip) in self.build_skipped_when_env_is.iter() {
             if let Ok(actual_value) = std::env::var(env_key) {
@@ -68,7 +39,9 @@ impl<'a> BuildScriptOpts<'a> {
 
         return_bool
     }
-    pub fn create_empty_stub(&self) -> Result<BuildArtifact, Box<dyn std::error::Error>> {
+    pub(crate) fn create_empty_stub(
+        &self,
+    ) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
         if self.stub_path.is_none() {
             return Err(
                 "build must be skipped, but `BuildScriptOpts.stub_path` wasn't configured"
@@ -82,21 +55,21 @@ impl<'a> BuildScriptOpts<'a> {
         let artifact = {
             let stub_path = camino::Utf8PathBuf::from_path_buf(stub_path)
                 .map_err(|err| format!("`{}` isn't a valid UTF-8 path", err.to_string_lossy()))?;
-            BuildArtifact {
+            CompilationArtifact {
                 path: stub_path,
                 fresh: true,
                 from_docker: false,
-                cargo_near_version_mismatch: VersionMismatch::None,
+                builder_version_mismatch: VersionMismatch::None,
                 artifact_type: PhantomData,
             }
         };
         Ok(artifact)
     }
 
-    pub fn post_build(
+    pub(crate) fn post_build(
         &self,
         skipped: bool,
-        artifact: &BuildArtifact,
+        artifact: &CompilationArtifact,
         workdir: &str,
         version: &Version,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -106,7 +79,7 @@ impl<'a> BuildScriptOpts<'a> {
             ":"
         };
         if let ref version_mismatch @ VersionMismatch::Some { .. } =
-            artifact.cargo_near_version_mismatch
+            artifact.builder_version_mismatch
         {
             print_warn!(
                 version,
@@ -157,7 +130,7 @@ fn create_stub_file(out_path: &std::path::Path) -> Result<(), Box<dyn std::error
 
 fn pretty_print(
     skipped: bool,
-    artifact: &BuildArtifact,
+    artifact: &CompilationArtifact,
     version: &Version,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if skipped {

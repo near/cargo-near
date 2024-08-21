@@ -1,17 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::commands::build_command::ArtifactMessages;
-use camino::Utf8PathBuf;
 use cargo_near_build::{
-    pretty_print,
-    types::{
-        cargo::{
-            manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
-            metadata::CrateMetadata,
-        },
-        near::{CompilationArtifact, VersionMismatch},
-    },
+    camino, ArtifactMessages, BuildArtifact, CrateMetadata, ManifestPath, MANIFEST_FILE_NAME,
 };
+use cargo_near_build::{pretty_print, VersionMismatch};
 use colored::Colorize;
 
 use super::crate_in_repo;
@@ -76,7 +68,7 @@ impl ClonedRepo {
     pub(super) fn copy_artifact(
         self,
         cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    ) -> color_eyre::eyre::Result<CompilationArtifact> {
+    ) -> color_eyre::eyre::Result<BuildArtifact> {
         let tmp_out_dir = self.tmp_crate_metadata.resolve_output_dir(None)?;
 
         let destination_crate_metadata = {
@@ -96,10 +88,10 @@ impl ClonedRepo {
 }
 
 fn copy(
-    tmp_out_dir: Utf8PathBuf,
+    tmp_out_dir: camino::Utf8PathBuf,
     tmp_crate_metadata: CrateMetadata,
-    mut destination_dir: Utf8PathBuf,
-) -> color_eyre::eyre::Result<CompilationArtifact> {
+    mut destination_dir: camino::Utf8PathBuf,
+) -> color_eyre::eyre::Result<BuildArtifact> {
     println!(
         " {} {}",
         "artifact search location in temporary build site:".green(),
@@ -126,11 +118,11 @@ fn copy(
         std::fs::remove_file(&out_wasm_path)?;
     }
     std::fs::copy::<camino::Utf8PathBuf, camino::Utf8PathBuf>(in_wasm_path, out_wasm_path.clone())?;
-    let result = CompilationArtifact {
+    let result = BuildArtifact {
         path: out_wasm_path,
         fresh: true,
         from_docker: true,
-        cargo_near_version_mismatch: VersionMismatch::UnknownFromDocker,
+        builder_version_mismatch: VersionMismatch::UnknownFromDocker,
         artifact_type: PhantomData,
     };
     let mut messages = ArtifactMessages::default();

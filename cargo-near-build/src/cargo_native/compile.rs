@@ -8,7 +8,7 @@ use std::io::BufRead;
 use crate::types::{
     cargo::manifest_path::ManifestPath,
     color_preference::ColorPreference,
-    near::{CompilationArtifact, VersionMismatch},
+    near::build::{version_mismatch::VersionMismatch, CompilationArtifact},
 };
 
 use super::ArtifactType;
@@ -84,7 +84,7 @@ where
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
-            cargo_near_version_mismatch: VersionMismatch::None,
+            builder_version_mismatch: VersionMismatch::None,
             artifact_type: PhantomData,
         }),
         _ => eyre::bail!(

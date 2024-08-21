@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 const_format = "0.2"
-near-abi = "0.4.0"
+cargo-near-build = { path = "../cargo-near-build" }
 
 [dev-dependencies]
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }

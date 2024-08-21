@@ -12,7 +12,7 @@ impl interactive_clap::ToCli for ColorPreferenceCli {
     type CliVariant = ColorPreferenceCli;
 }
 
-impl From<ColorPreferenceCli> for cargo_near_build::types::color_preference::ColorPreference {
+impl From<ColorPreferenceCli> for cargo_near_build::ColorPreference {
     fn from(value: ColorPreferenceCli) -> Self {
         match value {
             ColorPreferenceCli::Auto => Self::Auto,

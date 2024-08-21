@@ -1,4 +1,4 @@
-use cargo_near_build::types::cargo::metadata::CrateMetadata;
+use cargo_near_build::CrateMetadata;
 use colored::Colorize;
 use serde::Deserialize;
 

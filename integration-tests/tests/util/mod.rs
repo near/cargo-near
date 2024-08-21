@@ -1,5 +1,5 @@
-use near_abi::AbiRoot;
-use near_abi::{AbiBorshParameter, AbiJsonParameter, AbiParameters};
+use cargo_near_build::near_abi::AbiRoot;
+use cargo_near_build::near_abi::{AbiBorshParameter, AbiJsonParameter, AbiParameters};
 use serde_json::json;
 
 /// Utility method to test that the `add` function is available and works as intended

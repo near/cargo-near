@@ -3,16 +3,8 @@
 pub use near_cli_rs::CliResult;
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
-pub mod build_extended;
 pub mod commands;
 pub mod types;
-
-pub use build_extended::{
-    build as build_extended, BuildScriptOpts, OptsExtended as BuildOptsExtended,
-};
-pub use cargo_near_build::types::near::CompilationArtifact as BuildArtifact;
-pub use commands::build_command::build::run as build;
-pub use commands::build_command::build::Opts as BuildOpts;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
