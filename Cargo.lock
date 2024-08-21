@@ -558,18 +558,16 @@ dependencies = [
 
 [[package]]
 name = "camino"
-version = "1.1.8"
+version = "1.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3054fea8a20d8ff3968d5b22cc27501d2b08dc4decdb31b184323f00c5ef23bb"
+checksum = "e0ec6b951b160caa93cc0c7b209e5a3bff7aae9062213451ac99493cd844c239"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "cargo-near"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b6679c4e4bd40fdac1bd6cc705f23b03f6a5a081db2ee8dcea06cc8c88ce8c2"
+version = "0.8.2"
 dependencies = [
  "bs58 0.5.1",
  "camino",
@@ -594,6 +592,7 @@ dependencies = [
  "near-cli-rs",
  "nix",
  "pathdiff",
+ "reqwest",
  "rustc_version",
  "schemars",
  "serde",
@@ -605,6 +604,9 @@ dependencies = [
  "symbolic-debuginfo",
  "tempfile",
  "tmp_env",
+ "tokio",
+ "tracing",
+ "tracing-test",
  "unix_path",
  "url",
  "zstd 0.13.2",
@@ -613,6 +615,8 @@ dependencies = [
 [[package]]
 name = "cargo-near"
 version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b7d99422c06c754d57a42c301f0d3d8a1c8e8d6d62799107bccf83f32e6571"
 dependencies = [
  "bs58 0.5.1",
  "camino",
@@ -727,9 +731,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.13"
+version = "1.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72db2f7947ecee9b03b510377e8bb9077afa27176fdbff55c51027e976fdcc48"
+checksum = "68064e60dbf1f17005c2fde4d07c16d8baa506fd7ffed8ccab702d93617975c7"
 dependencies = [
  "jobserver",
  "libc",
@@ -775,9 +779,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.16"
+version = "4.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed6719fffa43d0d87e5fd8caeab59be1554fb028cd30edc88fc4369b17971019"
+checksum = "11d8838454fda655dafd3accb2b6e2bea645b9e4078abe84a22ceb947235c5cc"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -3123,7 +3127,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near 0.8.1",
+ "cargo-near 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "fs2",
  "json-patch",
@@ -5282,6 +5286,27 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-log",
+]
+
+[[package]]
+name = "tracing-test"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "557b891436fe0d5e0e363427fc7f217abf9ccd510d5136549847bdcbcd011d68"
+dependencies = [
+ "tracing-core",
+ "tracing-subscriber",
+ "tracing-test-macro",
+]
+
+[[package]]
+name = "tracing-test-macro"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04659ddb06c87d233c566112c1c9c5b9e98256d9af50ec3bc9c8327f873a7568"
+dependencies = [
+ "quote",
+ "syn 2.0.74",
 ]
 
 [[package]]

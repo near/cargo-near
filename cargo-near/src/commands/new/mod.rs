@@ -2,6 +2,8 @@ use std::process::Stdio;
 
 use color_eyre::eyre::{ContextCompat, WrapErr};
 
+use crate::util;
+
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = NewContext)]
@@ -46,6 +48,10 @@ impl NewContext {
             )
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }
+
+        let _detached_thread_handle = std::thread::Builder::new()
+            .spawn(util::track_usage)
+            .unwrap();
 
         let status = std::process::Command::new("git")
             .arg("init")
