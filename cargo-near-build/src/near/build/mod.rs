@@ -71,7 +71,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let mut abi = None;
     let mut min_abi_path = None;
-    let (cargo_near_version, cargo_near_version_mismatch) =
+    let (builder_version, builder_version_mismatch) =
         VersionMismatch::get_coerced_builder_version()?;
     if !args.no_abi {
         let mut contract_abi = abi::generate::procedure(
@@ -85,7 +85,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
-            builder: format!("cargo-near {}", cargo_near_version),
+            builder: builder_version,
             image: None,
         });
         if !args.no_embed_abi {
@@ -129,7 +129,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     )?;
 
     wasm_artifact.path = crate::fs::copy(&wasm_artifact.path, &out_dir)?;
-    wasm_artifact.builder_version_mismatch = cargo_near_version_mismatch;
+    wasm_artifact.builder_version_mismatch = builder_version_mismatch;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
 

@@ -21,7 +21,7 @@ impl std::fmt::Display for VersionMismatch {
             } => {
                 write!(
                     f,
-                    "`cargo-near` version {} -> `cargo-near` environment version {}",
+                    "builder version `{}` -> builder environment version `{}`",
                     current_process, environment
                 )
             }
