@@ -16,7 +16,7 @@ pub use types::near::build::ArtifactMessages;
 // used in `AbiOpts` and `BuildOpts`
 pub use types::color_preference::ColorPreference;
 pub use types::near::abi::Opts as AbiOpts;
-pub use types::near::build::Opts as BuildOpts;
+pub use types::near::build::{CliDescription, Opts as BuildOpts};
 
 pub use types::near::build::version_mismatch::VersionMismatch;
 pub use types::near::build::CompilationArtifact as BuildArtifact;

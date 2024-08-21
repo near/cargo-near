@@ -97,6 +97,7 @@ impl From<BuildCommand> for BuildOpts {
             out_dir: value.out_dir.map(Into::into),
             manifest_path: value.manifest_path.map(Into::into),
             color: value.color.map(Into::into),
+            cli_description: Default::default(),
         }
     }
 }

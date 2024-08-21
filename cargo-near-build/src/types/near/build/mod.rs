@@ -67,6 +67,31 @@ pub struct Opts {
     pub no_default_features: bool,
     /// Coloring: auto, always, never
     pub color: Option<ColorPreference>,
+    /// description of cli command, where [crate::BuildOpts] are being used from, either real
+    /// or emulated
+    pub cli_description: CliDescription,
+}
+
+#[derive(Debug, Clone)]
+pub struct CliDescription {
+    /// binary name for builder field in ABI
+    ///
+    /// this is `"cargo-near"` in [std::default::Default] implementation
+    pub cli_name_abi: String,
+    /// cli command prefix for export of [crate::env_keys::nep330::BUILD_COMMAND] variable
+    /// when used as lib method
+    ///
+    /// this is `vec!["cargo", "near", "build"]` in [std::default::Default] implementation
+    pub cli_command_prefix: Vec<String>,
+}
+
+impl Default for CliDescription {
+    fn default() -> Self {
+        Self {
+            cli_name_abi: "cargo-near".into(),
+            cli_command_prefix: vec!["cargo".into(), "near".into(), "build".into()],
+        }
+    }
 }
 
 impl Opts {
@@ -74,7 +99,8 @@ impl Opts {
     /// in order of fields, as specified in struct's definition.
     /// `Default` implementation corresponds to plain `cargo near build` command without any args
     pub(crate) fn get_cli_build_command(&self) -> Vec<String> {
-        let mut cargo_args = vec!["cargo", "near", "build"];
+        let cargo_args = self.cli_description.cli_command_prefix.clone();
+        let mut cargo_args: Vec<&str> = cargo_args.iter().map(|ele| ele.as_str()).collect();
         if self.no_locked {
             cargo_args.push("--no-locked");
         }

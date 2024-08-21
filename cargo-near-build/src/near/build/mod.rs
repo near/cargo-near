@@ -83,9 +83,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             color.clone(),
         )?;
 
+        let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
-            builder: builder_version,
+            builder: format!("{} {}", embedding_binary, builder_version),
             image: None,
         });
         if !args.no_embed_abi {
