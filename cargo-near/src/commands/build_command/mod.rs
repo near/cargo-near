@@ -58,7 +58,7 @@ impl BuildCommand {
             cargo_near_build::build(self.into())
         } else {
             let opts: docker::Opts = self.into();
-            opts.docker_run(context)
+            docker::docker_run(opts, context)
         }
     }
     pub fn no_docker(&self) -> bool {

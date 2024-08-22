@@ -18,6 +18,7 @@ pub use types::color_preference::ColorPreference;
 pub use types::near::abi::Opts as AbiOpts;
 pub use types::near::build::{CliDescription, Opts as BuildOpts};
 
+// TODO: remove export
 pub use types::near::build::version_mismatch::VersionMismatch;
 pub use types::near::build::CompilationArtifact as BuildArtifact;
 pub use types::near::build::SHA256Checksum;

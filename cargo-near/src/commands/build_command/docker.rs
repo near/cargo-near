@@ -81,179 +81,6 @@ impl Opts {
         Ok(contract_path)
     }
 
-    pub(super) fn docker_run(
-        self,
-        context: BuildContext,
-    ) -> color_eyre::eyre::Result<BuildArtifact> {
-        let color = self
-            .color
-            .clone()
-            .unwrap_or(cargo_near_build::ColorPreference::Auto);
-        color.apply();
-        let crate_in_repo = pretty_print::handle_step(
-            "Opening repo and determining HEAD and relative path of contract...",
-            || crate_in_repo::Crate::find(&self.contract_path()?),
-        )?;
-        pretty_print::handle_step("Checking if git is dirty...", || {
-            Self::git_dirty_check(context, &crate_in_repo.repo_root)
-        })?;
-        let cloned_repo = pretty_print::handle_step(
-            "Cloning project repo to a temporary build site, removing uncommitted changes...",
-            || {
-                match (self.no_locked, context) {
-                    (false, _) => {}
-                    (true, BuildContext::Build) => {
-                        no_locked_warn_pause(true);
-                        println!();
-                        println!("{}", WARN_BECOMES_ERR.red(),);
-                        thread::sleep(Duration::new(5, 0));
-                    }
-                    (true, BuildContext::Deploy) => {
-                        println!(
-                            "{}",
-                            "Check in Cargo.lock for contract being built into source control."
-                                .yellow()
-                        );
-                        return Err(color_eyre::eyre::eyre!(ERR_NO_LOCKED_DEPLOY));
-                    }
-                }
-                cloned_repo::ClonedRepo::git_clone(crate_in_repo.clone(), self.no_locked)
-            },
-        )?;
-
-        let docker_build_meta =
-            pretty_print::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
-                metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
-            })?;
-
-        if let BuildContext::Deploy = context {
-            pretty_print::handle_step(
-                "Performing check that current HEAD has been pushed to remote...",
-                || {
-                    git_checks::pushed_to_remote::check(
-                        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-                        &docker_build_meta.repository.clone().unwrap(),
-                        crate_in_repo.head,
-                    )
-                },
-            )?;
-        }
-        if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
-            pretty_print::handle_step("Performing `docker` sanity check...", || {
-                docker_checks::sanity_check()
-            })?;
-
-            pretty_print::handle_step("Checking that specified image is available...", || {
-                docker_checks::pull_image(&docker_build_meta)
-            })?;
-        }
-
-        pretty_print::step("Running build in docker command step...");
-        let out_dir_arg = self.out_dir.clone();
-        let (status, docker_cmd) =
-            self.docker_run_subprocess_step(docker_build_meta, &cloned_repo)?;
-
-        Self::handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
-    }
-
-    fn docker_run_subprocess_step(
-        self,
-        docker_build_meta: metadata::ReproducibleBuild,
-        cloned_repo: &cloned_repo::ClonedRepo,
-    ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
-        let mut docker_cmd: Command = {
-            // Platform-specific UID/GID retrieval
-
-            // reason for this mapping is that on Linux the volume is mounted natively,
-            // and thus the unprivileged user inside Docker container should be able to write
-            // to the mounted folder that has the host user permissions,
-            // not specifying this mapping results in UID=Docker-User owned files created in host system
-            #[cfg(target_os = "linux")]
-            let uid_gid = format!("{}:{}", getuid(), getgid());
-            #[cfg(not(target_os = "linux"))]
-            let uid_gid = "1000:1000".to_string();
-
-            let docker_container_name = {
-                // Cross-platform process ID and timestamp
-                let pid = id().to_string();
-                let timestamp = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs()
-                    .to_string();
-                format!("cargo-near-{}-{}", timestamp, pid)
-            };
-            let container_paths = ContainerPaths::compute(cloned_repo)?;
-            let docker_image = docker_build_meta.concat_image();
-
-            let env = EnvVars::new(&docker_build_meta, cloned_repo)?;
-            let env_args = env.docker_args();
-            let cargo_cmd = self.get_cli_build_command_in_docker(
-                docker_build_meta.container_build_command.clone(),
-            )?;
-            println!("{} {}", "build command in container:".green(), cargo_cmd);
-
-            let docker_args = {
-                let mut docker_args = vec![
-                    "-u",
-                    &uid_gid,
-                    "--name",
-                    &docker_container_name,
-                    "--volume",
-                    &container_paths.host_volume_arg,
-                    "--rm",
-                    "--workdir",
-                    &container_paths.crate_path,
-                ];
-                let stdin_is_terminal = std::io::stdin().is_terminal();
-                log::debug!("input device is a tty: {}", stdin_is_terminal);
-                if stdin_is_terminal
-                    && std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err()
-                {
-                    docker_args.push("-it");
-                }
-
-                docker_args.extend(env_args.iter().map(|string| string.as_str()));
-
-                docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
-
-                docker_args.push(&cargo_cmd);
-                log::debug!("docker command : {:?}", docker_args);
-                docker_args
-            };
-
-            let mut docker_cmd = Command::new("docker");
-            docker_cmd.arg("run");
-            docker_cmd.args(docker_args);
-            docker_cmd
-        };
-        let status_result = docker_cmd.status();
-        let status = docker_checks::handle_command_io_error(
-            &docker_cmd,
-            status_result,
-            color_eyre::eyre::eyre!(ERR_REPRODUCIBLE),
-        )?;
-
-        Ok((status, docker_cmd))
-    }
-
-    fn handle_docker_run_status(
-        status: ExitStatus,
-        command: Command,
-        cloned_repo: cloned_repo::ClonedRepo,
-        out_dir_arg: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    ) -> color_eyre::eyre::Result<BuildArtifact> {
-        if status.success() {
-            pretty_print::success("Running docker command step (finished)");
-            pretty_print::handle_step("Copying artifact from temporary build site...", || {
-                cloned_repo.copy_artifact(out_dir_arg)
-            })
-        } else {
-            docker_checks::print_command_status(status, command);
-            Err(color_eyre::eyre::eyre!(ERR_REPRODUCIBLE))
-        }
-    }
-
     const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "cannot be used, when `container_build_command` is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
 
     fn get_cli_build_command_in_docker(
@@ -348,34 +175,205 @@ impl Opts {
         let cargo_cmd = cargo_cmd_list.join(" ");
         Ok(cargo_cmd)
     }
+}
 
-    fn git_dirty_check(
-        context: BuildContext,
-        repo_root: &camino::Utf8PathBuf,
-    ) -> color_eyre::eyre::Result<()> {
-        let result = git_checks::dirty::check(repo_root);
-        match (result, context) {
-            (Err(err), BuildContext::Deploy) => {
-                println!(
-                    "{}",
-                    "Either commit and push, or revert following changes to continue deployment:"
-                        .yellow()
-                );
-                Err(err)
+pub(super) fn docker_run(
+    opts: Opts,
+    context: BuildContext,
+) -> color_eyre::eyre::Result<BuildArtifact> {
+    let color = opts
+        .color
+        .clone()
+        .unwrap_or(cargo_near_build::ColorPreference::Auto);
+    color.apply();
+    let crate_in_repo = pretty_print::handle_step(
+        "Opening repo and determining HEAD and relative path of contract...",
+        || crate_in_repo::Crate::find(&opts.contract_path()?),
+    )?;
+    pretty_print::handle_step("Checking if git is dirty...", || {
+        git_dirty_check(context, &crate_in_repo.repo_root)
+    })?;
+    let cloned_repo = pretty_print::handle_step(
+        "Cloning project repo to a temporary build site, removing uncommitted changes...",
+        || {
+            match (opts.no_locked, context) {
+                (false, _) => {}
+                (true, BuildContext::Build) => {
+                    no_locked_warn_pause(true);
+                    println!();
+                    println!("{}", WARN_BECOMES_ERR.red(),);
+                    thread::sleep(Duration::new(5, 0));
+                }
+                (true, BuildContext::Deploy) => {
+                    println!(
+                        "{}",
+                        "Check in Cargo.lock for contract being built into source control."
+                            .yellow()
+                    );
+                    return Err(color_eyre::eyre::eyre!(ERR_NO_LOCKED_DEPLOY));
+                }
             }
-            (Err(err), BuildContext::Build) => {
-                println!();
-                println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
-                thread::sleep(Duration::new(3, 0));
-                println!();
-                println!("{}", WARN_BECOMES_ERR.red(),);
-                // this is magic to help user notice:
-                thread::sleep(Duration::new(5, 0));
+            cloned_repo::ClonedRepo::git_clone(crate_in_repo.clone(), opts.no_locked)
+        },
+    )?;
 
-                Ok(())
+    let docker_build_meta =
+        pretty_print::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
+            metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
+        })?;
+
+    if let BuildContext::Deploy = context {
+        pretty_print::handle_step(
+            "Performing check that current HEAD has been pushed to remote...",
+            || {
+                git_checks::pushed_to_remote::check(
+                    // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+                    &docker_build_meta.repository.clone().unwrap(),
+                    crate_in_repo.head,
+                )
+            },
+        )?;
+    }
+    if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
+        pretty_print::handle_step("Performing `docker` sanity check...", || {
+            docker_checks::sanity_check()
+        })?;
+
+        pretty_print::handle_step("Checking that specified image is available...", || {
+            docker_checks::pull_image(&docker_build_meta)
+        })?;
+    }
+
+    pretty_print::step("Running build in docker command step...");
+    let out_dir_arg = opts.out_dir.clone();
+    let (status, docker_cmd) = docker_run_subprocess_step(opts, docker_build_meta, &cloned_repo)?;
+
+    handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
+}
+
+fn docker_run_subprocess_step(
+    opts: Opts,
+    docker_build_meta: metadata::ReproducibleBuild,
+    cloned_repo: &cloned_repo::ClonedRepo,
+) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
+    let mut docker_cmd: Command = {
+        // Platform-specific UID/GID retrieval
+
+        // reason for this mapping is that on Linux the volume is mounted natively,
+        // and thus the unprivileged user inside Docker container should be able to write
+        // to the mounted folder that has the host user permissions,
+        // not specifying this mapping results in UID=Docker-User owned files created in host system
+        #[cfg(target_os = "linux")]
+        let uid_gid = format!("{}:{}", getuid(), getgid());
+        #[cfg(not(target_os = "linux"))]
+        let uid_gid = "1000:1000".to_string();
+
+        let docker_container_name = {
+            // Cross-platform process ID and timestamp
+            let pid = id().to_string();
+            let timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                .to_string();
+            format!("cargo-near-{}-{}", timestamp, pid)
+        };
+        let container_paths = ContainerPaths::compute(cloned_repo)?;
+        let docker_image = docker_build_meta.concat_image();
+
+        let env = EnvVars::new(&docker_build_meta, cloned_repo)?;
+        let env_args = env.docker_args();
+        let cargo_cmd = opts
+            .get_cli_build_command_in_docker(docker_build_meta.container_build_command.clone())?;
+        println!("{} {}", "build command in container:".green(), cargo_cmd);
+
+        let docker_args = {
+            let mut docker_args = vec![
+                "-u",
+                &uid_gid,
+                "--name",
+                &docker_container_name,
+                "--volume",
+                &container_paths.host_volume_arg,
+                "--rm",
+                "--workdir",
+                &container_paths.crate_path,
+            ];
+            let stdin_is_terminal = std::io::stdin().is_terminal();
+            log::debug!("input device is a tty: {}", stdin_is_terminal);
+            if stdin_is_terminal
+                && std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err()
+            {
+                docker_args.push("-it");
             }
-            _ => Ok(()),
+
+            docker_args.extend(env_args.iter().map(|string| string.as_str()));
+
+            docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
+
+            docker_args.push(&cargo_cmd);
+            log::debug!("docker command : {:?}", docker_args);
+            docker_args
+        };
+
+        let mut docker_cmd = Command::new("docker");
+        docker_cmd.arg("run");
+        docker_cmd.args(docker_args);
+        docker_cmd
+    };
+    let status_result = docker_cmd.status();
+    let status = docker_checks::handle_command_io_error(
+        &docker_cmd,
+        status_result,
+        color_eyre::eyre::eyre!(ERR_REPRODUCIBLE),
+    )?;
+
+    Ok((status, docker_cmd))
+}
+
+fn handle_docker_run_status(
+    status: ExitStatus,
+    command: Command,
+    cloned_repo: cloned_repo::ClonedRepo,
+    out_dir_arg: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+) -> color_eyre::eyre::Result<BuildArtifact> {
+    if status.success() {
+        pretty_print::success("Running docker command step (finished)");
+        pretty_print::handle_step("Copying artifact from temporary build site...", || {
+            cloned_repo.copy_artifact(out_dir_arg)
+        })
+    } else {
+        docker_checks::print_command_status(status, command);
+        Err(color_eyre::eyre::eyre!(ERR_REPRODUCIBLE))
+    }
+}
+
+fn git_dirty_check(
+    context: BuildContext,
+    repo_root: &camino::Utf8PathBuf,
+) -> color_eyre::eyre::Result<()> {
+    let result = git_checks::dirty::check(repo_root);
+    match (result, context) {
+        (Err(err), BuildContext::Deploy) => {
+            println!(
+                "{}",
+                "Either commit and push, or revert following changes to continue deployment:"
+                    .yellow()
+            );
+            Err(err)
         }
+        (Err(err), BuildContext::Build) => {
+            println!();
+            println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
+            thread::sleep(Duration::new(3, 0));
+            println!();
+            println!("{}", WARN_BECOMES_ERR.red(),);
+            // this is magic to help user notice:
+            thread::sleep(Duration::new(5, 0));
+
+            Ok(())
+        }
+        _ => Ok(()),
     }
 }
 

@@ -15,7 +15,9 @@ pub struct CompilationArtifact<T: ArtifactType = Wasm> {
     pub path: Utf8PathBuf,
     pub fresh: bool,
     pub from_docker: bool,
+    // TODO: make pub(crate)
     pub builder_version_mismatch: version_mismatch::VersionMismatch,
+    // TODO: make pub(crate)
     pub artifact_type: PhantomData<T>,
 }
 
