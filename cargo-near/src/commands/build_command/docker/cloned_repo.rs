@@ -67,7 +67,7 @@ impl ClonedRepo {
     }
     pub(super) fn copy_artifact(
         self,
-        cli_override: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+        cli_override: Option<camino::Utf8PathBuf>,
     ) -> color_eyre::eyre::Result<BuildArtifact> {
         let tmp_out_dir = self.tmp_crate_metadata.resolve_output_dir(None)?;
 
