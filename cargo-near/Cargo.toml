@@ -47,6 +47,14 @@ home = "0.5.9"
 pathdiff = { version = "0.2.1", features = ["camino"] }
 unix_path = "1.0.1"
 url = { version = "2.5.0", features = ["serde"] }
+reqwest = "0.12.5"
+tracing = "0.1.40"
+tokio = { version = "1.0", default-features = false, features = [
+    "rt-multi-thread",
+] }
+
+[dev-dependencies]
+tracing-test = "0.2.5"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 nix = { version = "0.29.0", features = ["user", "process"] }
