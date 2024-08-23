@@ -1,5 +1,4 @@
-use crate::types::source_id;
-use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
+use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts, GitReference, SourceId};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
     io::IsTerminal,
@@ -259,7 +258,7 @@ const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
 struct Nep330BuildInfo {
     build_environment: String,
     contract_path: String,
-    source_code_snapshot: source_id::SourceId,
+    source_code_snapshot: SourceId,
 }
 
 impl Nep330BuildInfo {
@@ -275,10 +274,10 @@ impl Nep330BuildInfo {
             .wrap_err("non UTF-8 unix path computed as contract path")?
             .to_string();
 
-        let source_code_snapshot = source_id::SourceId::for_git(
+        let source_code_snapshot = SourceId::for_git(
             // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
             docker_build_meta.repository.as_ref().unwrap(),
-            source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
+            GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
         )
         .map_err(|err| color_eyre::eyre::eyre!("compute SourceId {}", err))?;
         Ok(Self {

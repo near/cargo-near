@@ -20,8 +20,9 @@ near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
 zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
+url = { version = "2.5.0", features = ["serde"], optional = true }
 
 [features]
 default = []
-docker = []
+docker = ["dep:url"]
 

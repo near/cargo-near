@@ -1,5 +1,7 @@
 use crate::{BuildContext, BuildOpts};
 
+pub mod source_id;
+
 #[derive(Default, Debug, Clone)]
 pub struct Opts {
     pub build_opts: BuildOpts,
