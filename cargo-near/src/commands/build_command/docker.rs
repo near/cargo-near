@@ -1,5 +1,6 @@
 use cargo_near_build::{
-    camino, BuildContext, BuildOpts, DockerBuildOpts, GitReference, ReproducibleBuild, SourceId,
+    camino, BuildContext, BuildOpts, Crate, DockerBuildOpts, GitReference, ReproducibleBuild,
+    SourceId,
 };
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
@@ -16,7 +17,6 @@ use colored::Colorize;
 use nix::unistd::{getgid, getuid};
 
 mod cloned_repo;
-mod crate_in_repo;
 mod docker_checks;
 mod git_checks;
 
@@ -34,7 +34,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
     color.apply();
     let crate_in_repo = pretty_print::handle_step(
         "Opening repo and determining HEAD and relative path of contract...",
-        || crate_in_repo::Crate::find(&opts.contract_path()?),
+        || Crate::find(&opts.contract_path()?),
     )?;
     pretty_print::handle_step("Checking if git is dirty...", || {
         git_dirty_check(docker_opts.context, &crate_in_repo.repo_root)

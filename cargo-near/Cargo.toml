@@ -43,8 +43,6 @@ interactive-clap-derive = "0.3"
 near-cli-rs = { version = "0.14.0", default-features = false }
 tempfile = "3.10.1"
 git2 = "0.19"
-home = "0.5.9"
-pathdiff = { version = "0.2.1", features = ["camino"] }
 unix_path = "1.0.1"
 url = { version = "2.5.0", features = ["serde"] }
 reqwest = "0.12.5"

@@ -22,8 +22,12 @@ schemars = "0.8"
 rustc_version = "0.4"
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
+git2 = { version = "0.19", optional = true }
+home = { version = "0.5.9", optional = true }
+pathdiff = { version = "0.2.1", features = ["camino"], optional = true }
+unix_path = { version = "1.0.1", optional = true }
 
 [features]
 default = []
-docker = ["dep:url", "dep:serde"]
+docker = ["dep:url", "dep:serde", "dep:git2", "dep:home", "dep:pathdiff", "dep:unix_path"]
 

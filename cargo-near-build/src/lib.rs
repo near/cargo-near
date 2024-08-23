@@ -24,6 +24,9 @@ pub use types::near::docker_build::source_id::{GitReference, SourceId};
 // TODO: remove on docker logic moved
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::metadata::ReproducibleBuild;
+// TODO: remove on docker logic moved
+#[cfg(feature = "docker")]
+pub use types::near::docker_build::crate_in_repo::Crate;
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::Opts as DockerBuildOpts;
 
