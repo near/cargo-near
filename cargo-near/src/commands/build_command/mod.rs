@@ -1,4 +1,4 @@
-use cargo_near_build::{env_keys, BuildArtifact, BuildOpts};
+use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
 
 mod docker;
 
@@ -47,17 +47,15 @@ pub struct BuildCommand {
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum BuildContext {
-    Build,
-    Deploy,
-}
 impl BuildCommand {
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
         if self.no_docker() {
             cargo_near_build::build(self.into())
         } else {
-            docker::docker_run(self.into(), context)
+            docker::docker_run(cargo_near_build::DockerBuildOpts {
+                build_opts: self.into(),
+                context,
+            })
         }
     }
     pub fn no_docker(&self) -> bool {

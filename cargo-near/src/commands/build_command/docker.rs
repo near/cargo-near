@@ -1,5 +1,5 @@
 use crate::types::source_id;
-use cargo_near_build::{camino, BuildOpts};
+use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
     io::IsTerminal,
@@ -14,8 +14,6 @@ use colored::Colorize;
 #[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
-use super::BuildContext;
-
 mod cloned_repo;
 mod crate_in_repo;
 mod docker_checks;
@@ -27,10 +25,8 @@ const ERR_NO_LOCKED_DEPLOY: &str = "`--no-locked` flag is forbidden for deploy w
 const WARN_BECOMES_ERR: &str =
     "This WARNING becomes a hard ERROR when deploying contract with docker.";
 
-pub(super) fn docker_run(
-    opts: BuildOpts,
-    context: BuildContext,
-) -> color_eyre::eyre::Result<BuildArtifact> {
+pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Result<BuildArtifact> {
+    let opts = docker_opts.build_opts;
     let color = opts
         .color
         .clone()
@@ -41,12 +37,12 @@ pub(super) fn docker_run(
         || crate_in_repo::Crate::find(&opts.contract_path()?),
     )?;
     pretty_print::handle_step("Checking if git is dirty...", || {
-        git_dirty_check(context, &crate_in_repo.repo_root)
+        git_dirty_check(docker_opts.context, &crate_in_repo.repo_root)
     })?;
     let cloned_repo = pretty_print::handle_step(
         "Cloning project repo to a temporary build site, removing uncommitted changes...",
         || {
-            match (opts.no_locked, context) {
+            match (opts.no_locked, docker_opts.context) {
                 (false, _) => {}
                 (true, BuildContext::Build) => {
                     no_locked_warn_pause(true);
@@ -72,7 +68,7 @@ pub(super) fn docker_run(
             metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
         })?;
 
-    if let BuildContext::Deploy = context {
+    if let BuildContext::Deploy = docker_opts.context {
         pretty_print::handle_step(
             "Performing check that current HEAD has been pushed to remote...",
             || {

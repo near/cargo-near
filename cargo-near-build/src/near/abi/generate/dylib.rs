@@ -4,7 +4,7 @@ use std::fs;
 use camino::Utf8Path;
 
 use crate::cargo_native::Dylib;
-use crate::types::near::build::CompilationArtifact;
+use crate::types::near::build::output::CompilationArtifact;
 
 pub fn extract_abi_entries(
     artifact: &CompilationArtifact<Dylib>,

@@ -11,17 +11,20 @@ pub use types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 // TODO: remove on docker logic moved
 pub use types::cargo::metadata::CrateMetadata;
 // TODO: remove on docker logic moved
-pub use types::near::build::ArtifactMessages;
+pub use types::near::build::side_effects::ArtifactMessages;
 
 // used in `AbiOpts` and `BuildOpts`
 pub use types::color_preference::ColorPreference;
 pub use types::near::abi::Opts as AbiOpts;
-pub use types::near::build::{CliDescription, Opts as BuildOpts};
+pub use types::near::build::input::BuildContext;
+pub use types::near::build::input::{CliDescription, Opts as BuildOpts};
+#[cfg(feature = "docker")]
+pub use types::near::docker_build::Opts as DockerBuildOpts;
 
 // TODO: remove export
-pub use types::near::build::version_mismatch::VersionMismatch;
-pub use types::near::build::CompilationArtifact as BuildArtifact;
-pub use types::near::build::SHA256Checksum;
+pub use types::near::build::output::version_mismatch::VersionMismatch;
+pub use types::near::build::output::CompilationArtifact as BuildArtifact;
+pub use types::near::build::output::SHA256Checksum;
 pub use types::near::build_extended::{
     build_script::Opts as BuildScriptOpts, OptsExtended as BuildOptsExtended,
 };

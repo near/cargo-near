@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
-use crate::types::near::build::version_mismatch::VersionMismatch;
-use crate::types::near::build::CompilationArtifact;
+use crate::types::near::build::output::version_mismatch::VersionMismatch;
+use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build_extended::build_script::Opts;
 use rustc_version::Version;
 

@@ -78,7 +78,7 @@ macro_rules! invoke_cargo_near {
                   args.manifest_path = Some(cargo_path.into());
                   args
                 };
-                args.run(cargo_near::commands::build_command::BuildContext::Build)?;
+                args.run(cargo_near_build::BuildContext::Build)?;
             },
             Some(_) => todo!(),
             None => ()

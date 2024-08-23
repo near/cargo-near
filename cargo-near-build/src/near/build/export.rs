@@ -1,4 +1,4 @@
-use crate::{env_keys, types::near::build::Opts};
+use crate::{env_keys, types::near::build::input::Opts};
 
 pub fn nep_330_build_command(args: &Opts) -> eyre::Result<()> {
     log::debug!(

@@ -20,3 +20,8 @@ near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
 zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
+
+[features]
+default = []
+docker = []
+
