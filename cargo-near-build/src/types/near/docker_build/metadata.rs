@@ -1,4 +1,4 @@
-use cargo_near_build::CrateMetadata;
+use crate::CrateMetadata;
 use colored::Colorize;
 use serde::Deserialize;
 
@@ -7,7 +7,7 @@ use std::{collections::BTreeMap as Map, str::FromStr, thread, time::Duration};
 
 #[derive(Deserialize, Debug)]
 /// parsed from `[package.metadata.near.reproducible_build]` in Cargo.toml
-pub(super) struct ReproducibleBuild {
+pub struct ReproducibleBuild {
     image: String,
     image_digest: String,
     pub container_build_command: Option<Vec<String>>,
@@ -52,13 +52,13 @@ impl std::fmt::Display for ReproducibleBuild {
 }
 
 impl ReproducibleBuild {
-    fn validate(&self) -> color_eyre::eyre::Result<()> {
+    fn validate(&self) -> eyre::Result<()> {
         if self
             .image
             .chars()
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
-            return Err(color_eyre::eyre::eyre!(
+            return Err(eyre::eyre!(
                 "{}: `{}`\n{}",
                 "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
                 self.image,
@@ -70,7 +70,7 @@ impl ReproducibleBuild {
             .chars()
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
-            return Err(color_eyre::eyre::eyre!(
+            return Err(eyre::eyre!(
                 "{}: `{}`\n{}",
                 "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
                 self.image_digest,
@@ -87,7 +87,7 @@ impl ReproducibleBuild {
                 .chars()
                 .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
             {
-                return Err(color_eyre::eyre::eyre!(
+                return Err(eyre::eyre!(
                     "{}: `{}`\n{}",
                     "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
                     command_token,
@@ -95,7 +95,7 @@ impl ReproducibleBuild {
                 ));
             }
             if is_cargo_near && command_token == "--no-locked" {
-                return Err(color_eyre::eyre::eyre!(
+                return Err(eyre::eyre!(
                     "{}:\n{}",
                     "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
                     "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
@@ -108,7 +108,7 @@ impl ReproducibleBuild {
                 .keys()
                 .map(|element| element.as_str())
                 .collect::<Vec<_>>();
-            return Err(color_eyre::eyre::eyre!(
+            return Err(eyre::eyre!(
                 "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml, contains unknown keys: `{}`",
                 keys.join(",")
             ));
@@ -116,7 +116,7 @@ impl ReproducibleBuild {
         match self.repository {
             Some(ref repository) => {
                 if repository.scheme() != "https" {
-                    return Err(color_eyre::eyre::eyre!(
+                    return Err(eyre::eyre!(
                         "{}: {}\n{}",
                         "Malformed NEP330 metadata in Cargo.toml:",
                         repository,
@@ -125,7 +125,7 @@ impl ReproducibleBuild {
                 }
             }
             None => {
-                return Err(color_eyre::eyre::eyre!(
+                return Err(eyre::eyre!(
                     "{}: \n{}",
                     "Malformed NEP330 metadata in Cargo.toml",
                     "`[package.repository]`: should not be empty",
@@ -134,7 +134,7 @@ impl ReproducibleBuild {
         }
         Ok(())
     }
-    pub(super) fn parse(cargo_metadata: &CrateMetadata) -> color_eyre::eyre::Result<Self> {
+    pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
         let build_meta_value = cargo_metadata
             .root_package
             .metadata
@@ -172,13 +172,13 @@ impl ReproducibleBuild {
 
                 thread::sleep(Duration::new(12, 0));
 
-                return Err(color_eyre::eyre::eyre!(
+                return Err(eyre::eyre!(
                     "Missing `[package.metadata.near.reproducible_build]` in Cargo.toml"
                 ));
             }
             Some(build_meta_value) => {
                 serde_json::from_value(build_meta_value.clone()).map_err(|err| {
-                    color_eyre::eyre::eyre!(
+                    eyre::eyre!(
                         "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml: {}",
                         err
                     )
@@ -200,7 +200,7 @@ impl ReproducibleBuild {
         }
         Ok(build_meta)
     }
-    pub(super) fn concat_image(&self) -> String {
+    pub fn concat_image(&self) -> String {
         let mut result = String::new();
         result.push_str(&self.image);
         result.push('@');

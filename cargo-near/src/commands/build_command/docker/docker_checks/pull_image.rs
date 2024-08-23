@@ -1,8 +1,7 @@
+use cargo_near_build::ReproducibleBuild;
 use colored::Colorize;
 
-use crate::commands::build_command::docker::metadata;
-
-pub fn check(docker_build_meta: &metadata::ReproducibleBuild) -> color_eyre::eyre::Result<()> {
+pub fn check(docker_build_meta: &ReproducibleBuild) -> color_eyre::eyre::Result<()> {
     let docker_image = docker_build_meta.concat_image();
     println!("{} {}", "docker image to be used:".green(), docker_image);
     println!();

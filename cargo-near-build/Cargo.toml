@@ -21,8 +21,9 @@ zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
 url = { version = "2.5.0", features = ["serde"], optional = true }
+serde = { version = "1.0.197", optional = true }
 
 [features]
 default = []
-docker = ["dep:url"]
+docker = ["dep:url", "dep:serde"]
 

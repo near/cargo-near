@@ -21,6 +21,9 @@ pub use types::near::build::input::{CliDescription, Opts as BuildOpts};
 // TODO: remove on docker logic moved
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::source_id::{GitReference, SourceId};
+// TODO: remove on docker logic moved
+#[cfg(feature = "docker")]
+pub use types::near::docker_build::metadata::ReproducibleBuild;
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::Opts as DockerBuildOpts;
 

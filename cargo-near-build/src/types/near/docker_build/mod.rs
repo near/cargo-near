@@ -1,5 +1,6 @@
 use crate::{BuildContext, BuildOpts};
 
+pub mod metadata;
 pub mod source_id;
 
 #[derive(Default, Debug, Clone)]

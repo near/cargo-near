@@ -1,4 +1,6 @@
-use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts, GitReference, SourceId};
+use cargo_near_build::{
+    camino, BuildContext, BuildOpts, DockerBuildOpts, GitReference, ReproducibleBuild, SourceId,
+};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
     io::IsTerminal,
@@ -17,7 +19,6 @@ mod cloned_repo;
 mod crate_in_repo;
 mod docker_checks;
 mod git_checks;
-mod metadata;
 
 const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
 const ERR_NO_LOCKED_DEPLOY: &str = "`--no-locked` flag is forbidden for deploy with docker.";
@@ -64,7 +65,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
 
     let docker_build_meta =
         pretty_print::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
-            metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
+            ReproducibleBuild::parse(cloned_repo.crate_metadata())
         })?;
 
     if let BuildContext::Deploy = docker_opts.context {
@@ -72,7 +73,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
             "Performing check that current HEAD has been pushed to remote...",
             || {
                 git_checks::pushed_to_remote::check(
-                    // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+                    // this unwrap depends on `ReproducibleBuild::validate` logic
                     &docker_build_meta.repository.clone().unwrap(),
                     crate_in_repo.head,
                 )
@@ -98,7 +99,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
 
 fn docker_run_subprocess_step(
     opts: BuildOpts,
-    docker_build_meta: metadata::ReproducibleBuild,
+    docker_build_meta: ReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
     let mut docker_cmd: Command = {
@@ -263,7 +264,7 @@ struct Nep330BuildInfo {
 
 impl Nep330BuildInfo {
     fn new(
-        docker_build_meta: &metadata::ReproducibleBuild,
+        docker_build_meta: &ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<Self> {
         let build_environment = docker_build_meta.concat_image();
@@ -275,7 +276,7 @@ impl Nep330BuildInfo {
             .to_string();
 
         let source_code_snapshot = SourceId::for_git(
-            // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+            // this unwrap depends on `ReproducibleBuild::validate` logic
             docker_build_meta.repository.as_ref().unwrap(),
             GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
         )
@@ -320,11 +321,11 @@ struct EnvVars {
 
 impl EnvVars {
     fn new(
-        docker_build_meta: &metadata::ReproducibleBuild,
+        docker_build_meta: &ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<Self> {
         let build_info = Nep330BuildInfo::new(docker_build_meta, cloned_repo)?;
-        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+        // this unwrap depends on `ReproducibleBuild::validate` logic
         let repo_link = docker_build_meta.repository.clone().unwrap();
         let revision = cloned_repo.initial_crate_in_repo.head.to_string();
         Ok(Self {
