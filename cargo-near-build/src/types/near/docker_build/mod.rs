@@ -1,6 +1,7 @@
 use crate::{BuildContext, BuildOpts};
 
 pub mod cloned_repo;
+pub mod container_paths;
 pub mod crate_in_repo;
 pub mod env_vars;
 pub mod metadata;

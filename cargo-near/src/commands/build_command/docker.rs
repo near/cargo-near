@@ -1,5 +1,7 @@
 use cargo_near_build::docker_build_types::WARN_BECOMES_ERR;
-use cargo_near_build::docker_build_types::{cloned_repo, crate_in_repo, env_vars, metadata};
+use cargo_near_build::docker_build_types::{
+    cloned_repo, container_paths, crate_in_repo, env_vars, metadata,
+};
 use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::time::Duration;
@@ -8,8 +10,6 @@ use std::{
     process::{id, Command, ExitStatus},
     time::{SystemTime, UNIX_EPOCH},
 };
-
-use color_eyre::eyre::ContextCompat;
 
 use colored::Colorize;
 #[cfg(target_os = "linux")]
@@ -106,7 +106,7 @@ fn docker_run_subprocess_step(
                 .to_string();
             format!("cargo-near-{}-{}", timestamp, pid)
         };
-        let container_paths = ContainerPaths::compute(cloned_repo)?;
+        let container_paths = container_paths::Paths::compute(cloned_repo)?;
         let docker_image = docker_build_meta.concat_image();
 
         let env = env_vars::EnvVars::new(&docker_build_meta, cloned_repo)?;
@@ -202,36 +202,5 @@ fn git_dirty_check(
             Ok(())
         }
         _ => Ok(()),
-    }
-}
-
-struct ContainerPaths {
-    host_volume_arg: String,
-    crate_path: String,
-}
-
-const NEP330_REPO_MOUNT: &str = "/home/near/code";
-
-impl ContainerPaths {
-    fn compute(cloned_repo: &cloned_repo::ClonedRepo) -> color_eyre::eyre::Result<Self> {
-        let mounted_repo = NEP330_REPO_MOUNT.to_string();
-        let host_volume_arg = format!(
-            "{}:{}",
-            cloned_repo.tmp_repo_dir.path().to_string_lossy(),
-            &mounted_repo
-        );
-        let crate_path = {
-            let mut repo_path = unix_path::Path::new(NEP330_REPO_MOUNT).to_path_buf();
-            repo_path.push(cloned_repo.initial_crate_in_repo.unix_relative_path()?);
-
-            repo_path
-                .to_str()
-                .wrap_err("non UTF-8 unix path computed as crate path")?
-                .to_string()
-        };
-        Ok(Self {
-            host_volume_arg,
-            crate_path,
-        })
     }
 }
