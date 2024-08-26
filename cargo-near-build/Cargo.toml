@@ -26,8 +26,9 @@ git2 = { version = "0.19", optional = true }
 home = { version = "0.5.9", optional = true }
 pathdiff = { version = "0.2.1", features = ["camino"], optional = true }
 unix_path = { version = "1.0.1", optional = true }
+tempfile = { version = "3.10.1", optional = true }
 
 [features]
 default = []
-docker = ["dep:url", "dep:serde", "dep:git2", "dep:home", "dep:pathdiff", "dep:unix_path"]
+docker = ["dep:url", "dep:serde", "dep:git2", "dep:home", "dep:pathdiff", "dep:unix_path", "dep:tempfile"]
 

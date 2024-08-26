@@ -1,5 +1,6 @@
 use crate::{BuildContext, BuildOpts};
 
+pub mod cloned_repo;
 pub mod crate_in_repo;
 pub mod metadata;
 
@@ -14,3 +15,6 @@ impl Default for BuildContext {
         Self::Build
     }
 }
+
+pub const WARN_BECOMES_ERR: &str =
+    "This WARNING becomes a hard ERROR when deploying contract with docker.";

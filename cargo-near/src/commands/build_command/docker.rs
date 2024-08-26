@@ -1,13 +1,15 @@
+use cargo_near_build::docker_build_types::cloned_repo;
 use cargo_near_build::docker_build_types::crate_in_repo;
 use cargo_near_build::docker_build_types::metadata;
+use cargo_near_build::docker_build_types::WARN_BECOMES_ERR;
 use cargo_near_build::source_id;
 use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
+use std::time::Duration;
 use std::{
     io::IsTerminal,
     process::{id, Command, ExitStatus},
-    thread,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use color_eyre::eyre::ContextCompat;
@@ -16,14 +18,10 @@ use colored::Colorize;
 #[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
-mod cloned_repo;
 mod docker_checks;
 mod git_checks;
 
 const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
-const ERR_NO_LOCKED_DEPLOY: &str = "`--no-locked` flag is forbidden for deploy with docker.";
-const WARN_BECOMES_ERR: &str =
-    "This WARNING becomes a hard ERROR when deploying contract with docker.";
 
 pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Result<BuildArtifact> {
     let opts = docker_opts.build_opts;
@@ -42,24 +40,11 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
     let cloned_repo = pretty_print::handle_step(
         "Cloning project repo to a temporary build site, removing uncommitted changes...",
         || {
-            match (opts.no_locked, docker_opts.context) {
-                (false, _) => {}
-                (true, BuildContext::Build) => {
-                    no_locked_warn_pause(true);
-                    println!();
-                    println!("{}", WARN_BECOMES_ERR.red(),);
-                    thread::sleep(Duration::new(5, 0));
-                }
-                (true, BuildContext::Deploy) => {
-                    println!(
-                        "{}",
-                        "Check in Cargo.lock for contract being built into source control."
-                            .yellow()
-                    );
-                    return Err(color_eyre::eyre::eyre!(ERR_NO_LOCKED_DEPLOY));
-                }
-            }
-            cloned_repo::ClonedRepo::git_clone(crate_in_repo.clone(), opts.no_locked)
+            cloned_repo::ClonedRepo::check_locked_then_clone(
+                crate_in_repo.clone(),
+                opts.no_locked,
+                docker_opts.context,
+            )
         },
     )?;
 
@@ -211,11 +196,11 @@ fn git_dirty_check(
         (Err(err), BuildContext::Build) => {
             println!();
             println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
-            thread::sleep(Duration::new(3, 0));
+            std::thread::sleep(Duration::new(3, 0));
             println!();
             println!("{}", WARN_BECOMES_ERR.red(),);
             // this is magic to help user notice:
-            thread::sleep(Duration::new(5, 0));
+            std::thread::sleep(Duration::new(5, 0));
 
             Ok(())
         }
@@ -368,20 +353,4 @@ impl EnvVars {
             None
         }
     }
-}
-
-fn no_locked_warn_pause(warning_red: bool) {
-    println!();
-    let warning = if warning_red {
-        format!("{}", "WARNING: ".red())
-    } else {
-        "".to_string()
-    };
-    println!(
-        "{}{}",
-        warning,
-        "Please mind that `--no-locked` flag is allowed in Docker builds, but:".cyan()
-    );
-    println!("{}", "  - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as the result.".yellow());
-    thread::sleep(Duration::new(12, 0));
 }
