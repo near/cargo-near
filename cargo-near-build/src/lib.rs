@@ -20,13 +20,7 @@ pub use types::near::build::input::{CliDescription, Opts as BuildOpts};
 pub use types::near::color_preference::ColorPreference;
 // TODO: remove on docker logic moved
 #[cfg(feature = "docker")]
-pub use types::near::docker_build::source_id::{GitReference, SourceId};
-// TODO: remove on docker logic moved
-#[cfg(feature = "docker")]
-pub use types::near::docker_build::metadata::ReproducibleBuild;
-// TODO: remove on docker logic moved
-#[cfg(feature = "docker")]
-pub use types::near::docker_build::crate_in_repo::Crate;
+pub use types::near::docker_build as docker_build_types;
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::Opts as DockerBuildOpts;
 

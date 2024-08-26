@@ -1,7 +1,7 @@
-use cargo_near_build::{
-    camino, BuildContext, BuildOpts, Crate, DockerBuildOpts, GitReference, ReproducibleBuild,
-    SourceId,
-};
+use cargo_near_build::docker_build_types::crate_in_repo;
+use cargo_near_build::docker_build_types::metadata;
+use cargo_near_build::docker_build_types::source_id;
+use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
     io::IsTerminal,
@@ -34,7 +34,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
     color.apply();
     let crate_in_repo = pretty_print::handle_step(
         "Opening repo and determining HEAD and relative path of contract...",
-        || Crate::find(&opts.contract_path()?),
+        || crate_in_repo::Crate::find(&opts.contract_path()?),
     )?;
     pretty_print::handle_step("Checking if git is dirty...", || {
         git_dirty_check(docker_opts.context, &crate_in_repo.repo_root)
@@ -65,7 +65,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
 
     let docker_build_meta =
         pretty_print::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
-            ReproducibleBuild::parse(cloned_repo.crate_metadata())
+            metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
         })?;
 
     if let BuildContext::Deploy = docker_opts.context {
@@ -73,7 +73,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
             "Performing check that current HEAD has been pushed to remote...",
             || {
                 git_checks::pushed_to_remote::check(
-                    // this unwrap depends on `ReproducibleBuild::validate` logic
+                    // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
                     &docker_build_meta.repository.clone().unwrap(),
                     crate_in_repo.head,
                 )
@@ -99,7 +99,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
 
 fn docker_run_subprocess_step(
     opts: BuildOpts,
-    docker_build_meta: ReproducibleBuild,
+    docker_build_meta: metadata::ReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> color_eyre::eyre::Result<(ExitStatus, Command)> {
     let mut docker_cmd: Command = {
@@ -259,12 +259,12 @@ const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
 struct Nep330BuildInfo {
     build_environment: String,
     contract_path: String,
-    source_code_snapshot: SourceId,
+    source_code_snapshot: source_id::SourceId,
 }
 
 impl Nep330BuildInfo {
     fn new(
-        docker_build_meta: &ReproducibleBuild,
+        docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<Self> {
         let build_environment = docker_build_meta.concat_image();
@@ -275,10 +275,10 @@ impl Nep330BuildInfo {
             .wrap_err("non UTF-8 unix path computed as contract path")?
             .to_string();
 
-        let source_code_snapshot = SourceId::for_git(
-            // this unwrap depends on `ReproducibleBuild::validate` logic
+        let source_code_snapshot = source_id::SourceId::for_git(
+            // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
             docker_build_meta.repository.as_ref().unwrap(),
-            GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
+            source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
         )
         .map_err(|err| color_eyre::eyre::eyre!("compute SourceId {}", err))?;
         Ok(Self {
@@ -321,11 +321,11 @@ struct EnvVars {
 
 impl EnvVars {
     fn new(
-        docker_build_meta: &ReproducibleBuild,
+        docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> color_eyre::eyre::Result<Self> {
         let build_info = Nep330BuildInfo::new(docker_build_meta, cloned_repo)?;
-        // this unwrap depends on `ReproducibleBuild::validate` logic
+        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
         let repo_link = docker_build_meta.repository.clone().unwrap();
         let revision = cloned_repo.initial_crate_in_repo.head.to_string();
         Ok(Self {

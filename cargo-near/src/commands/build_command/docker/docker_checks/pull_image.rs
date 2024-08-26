@@ -1,4 +1,4 @@
-use cargo_near_build::ReproducibleBuild;
+use cargo_near_build::docker_build_types::metadata::ReproducibleBuild;
 use colored::Colorize;
 
 pub fn check(docker_build_meta: &ReproducibleBuild) -> color_eyre::eyre::Result<()> {

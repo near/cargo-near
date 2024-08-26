@@ -1,13 +1,14 @@
 use std::marker::PhantomData;
 
+use cargo_near_build::docker_build_types::crate_in_repo;
 use cargo_near_build::{
-    camino, ArtifactMessages, BuildArtifact, Crate, CrateMetadata, ManifestPath, MANIFEST_FILE_NAME,
+    camino, ArtifactMessages, BuildArtifact, CrateMetadata, ManifestPath, MANIFEST_FILE_NAME,
 };
 use cargo_near_build::{pretty_print, VersionMismatch};
 use colored::Colorize;
 
 pub(super) struct ClonedRepo {
-    pub initial_crate_in_repo: Crate,
+    pub initial_crate_in_repo: crate_in_repo::Crate,
     #[allow(unused)]
     pub tmp_repo_dir: tempfile::TempDir,
     no_locked: bool,
@@ -16,7 +17,7 @@ pub(super) struct ClonedRepo {
 
 impl ClonedRepo {
     pub(super) fn git_clone(
-        crate_in_repo: Crate,
+        crate_in_repo: crate_in_repo::Crate,
         no_locked: bool,
     ) -> color_eyre::eyre::Result<Self> {
         let tmp_repo_dir = tempfile::tempdir()?;
