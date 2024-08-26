@@ -1,8 +1,5 @@
-use cargo_near_build::docker_build_types::cloned_repo;
-use cargo_near_build::docker_build_types::crate_in_repo;
-use cargo_near_build::docker_build_types::metadata;
 use cargo_near_build::docker_build_types::WARN_BECOMES_ERR;
-use cargo_near_build::source_id;
+use cargo_near_build::docker_build_types::{cloned_repo, crate_in_repo, env_vars, metadata};
 use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::time::Duration;
@@ -112,7 +109,7 @@ fn docker_run_subprocess_step(
         let container_paths = ContainerPaths::compute(cloned_repo)?;
         let docker_image = docker_build_meta.concat_image();
 
-        let env = EnvVars::new(&docker_build_meta, cloned_repo)?;
+        let env = env_vars::EnvVars::new(&docker_build_meta, cloned_repo)?;
         let env_args = env.docker_args();
         let cargo_cmd = opts
             .get_cli_build_command_in_docker(docker_build_meta.container_build_command.clone())?;
@@ -236,121 +233,5 @@ impl ContainerPaths {
             host_volume_arg,
             crate_path,
         })
-    }
-}
-
-const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
-
-struct Nep330BuildInfo {
-    build_environment: String,
-    contract_path: String,
-    source_code_snapshot: source_id::SourceId,
-}
-
-impl Nep330BuildInfo {
-    fn new(
-        docker_build_meta: &metadata::ReproducibleBuild,
-        cloned_repo: &cloned_repo::ClonedRepo,
-    ) -> color_eyre::eyre::Result<Self> {
-        let build_environment = docker_build_meta.concat_image();
-        let contract_path = cloned_repo
-            .initial_crate_in_repo
-            .unix_relative_path()?
-            .to_str()
-            .wrap_err("non UTF-8 unix path computed as contract path")?
-            .to_string();
-
-        let source_code_snapshot = source_id::SourceId::for_git(
-            // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-            docker_build_meta.repository.as_ref().unwrap(),
-            source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
-        )
-        .map_err(|err| color_eyre::eyre::eyre!("compute SourceId {}", err))?;
-        Ok(Self {
-            build_environment,
-            contract_path,
-            source_code_snapshot,
-        })
-    }
-
-    fn docker_args(&self) -> Vec<String> {
-        let mut result = vec![
-            "--env".to_string(),
-            format!(
-                "{}={}",
-                env_keys::nep330::BUILD_ENVIRONMENT,
-                self.build_environment
-            ),
-            "--env".to_string(),
-            format!(
-                "{}={}",
-                env_keys::nep330::SOURCE_CODE_SNAPSHOT,
-                self.source_code_snapshot.as_url()
-            ),
-        ];
-
-        result.extend(vec![
-            "--env".to_string(),
-            format!("{}={}", env_keys::nep330::CONTRACT_PATH, self.contract_path),
-        ]);
-
-        result
-    }
-}
-struct EnvVars {
-    build_info: Nep330BuildInfo,
-    rust_log: String,
-    repo_link: url::Url,
-    revision: String,
-}
-
-impl EnvVars {
-    fn new(
-        docker_build_meta: &metadata::ReproducibleBuild,
-        cloned_repo: &cloned_repo::ClonedRepo,
-    ) -> color_eyre::eyre::Result<Self> {
-        let build_info = Nep330BuildInfo::new(docker_build_meta, cloned_repo)?;
-        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-        let repo_link = docker_build_meta.repository.clone().unwrap();
-        let revision = cloned_repo.initial_crate_in_repo.head.to_string();
-        Ok(Self {
-            build_info,
-            rust_log: RUST_LOG_EXPORT.to_string(),
-            repo_link,
-            revision,
-        })
-    }
-
-    fn docker_args(&self) -> Vec<String> {
-        let mut result = self.build_info.docker_args();
-
-        if let Some(repo_link_hint) = self.compute_repo_link_hint() {
-            result.extend(vec![
-                "--env".to_string(),
-                format!("{}={}", env_keys::nep330::LINK, repo_link_hint,),
-            ]);
-        }
-        result.extend(vec!["--env".to_string(), self.rust_log.clone()]);
-        result
-    }
-    fn compute_repo_link_hint(&self) -> Option<String> {
-        let url = self.repo_link.clone();
-
-        if url.host_str() == Some("github.com") {
-            let existing_path = url.path();
-            let existing_path = if existing_path.ends_with(".git") {
-                existing_path.trim_end_matches(".git")
-            } else {
-                existing_path
-            };
-
-            Some(
-                url.join(&format!("{}/tree/{}", existing_path, self.revision))
-                    .ok()?
-                    .to_string(),
-            )
-        } else {
-            None
-        }
     }
 }

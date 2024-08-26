@@ -2,6 +2,7 @@ use crate::{BuildContext, BuildOpts};
 
 pub mod cloned_repo;
 pub mod crate_in_repo;
+pub mod env_vars;
 pub mod metadata;
 
 #[derive(Default, Debug, Clone)]
