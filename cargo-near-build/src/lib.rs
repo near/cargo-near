@@ -23,6 +23,9 @@ pub use types::near::color_preference::ColorPreference;
 pub use types::near::docker_build as docker_build_types;
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::Opts as DockerBuildOpts;
+// TODO: remove on docker logic moved
+#[cfg(feature = "docker")]
+pub use types::source_id;
 
 // TODO: remove export
 pub use types::near::build::output::version_mismatch::VersionMismatch;

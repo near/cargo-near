@@ -2,7 +2,6 @@ use crate::{BuildContext, BuildOpts};
 
 pub mod crate_in_repo;
 pub mod metadata;
-pub mod source_id;
 
 #[derive(Default, Debug, Clone)]
 pub struct Opts {

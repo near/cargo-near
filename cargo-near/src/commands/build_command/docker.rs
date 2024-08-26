@@ -1,6 +1,6 @@
 use cargo_near_build::docker_build_types::crate_in_repo;
 use cargo_near_build::docker_build_types::metadata;
-use cargo_near_build::docker_build_types::source_id;
+use cargo_near_build::source_id;
 use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
