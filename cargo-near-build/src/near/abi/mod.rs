@@ -5,8 +5,8 @@ use crate::{
     pretty_print,
     types::{
         cargo::{manifest_path::ManifestPath, metadata::CrateMetadata},
-        color_preference::ColorPreference,
         near::abi as abi_types,
+        near::color_preference::ColorPreference,
     },
 };
 

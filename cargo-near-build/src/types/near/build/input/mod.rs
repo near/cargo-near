@@ -1,4 +1,4 @@
-use crate::types::color_preference::ColorPreference;
+use crate::types::near::color_preference::ColorPreference;
 
 #[cfg(feature = "docker")]
 mod docker_context;

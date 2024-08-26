@@ -13,11 +13,11 @@ pub use types::cargo::metadata::CrateMetadata;
 // TODO: remove on docker logic moved
 pub use types::near::build::side_effects::ArtifactMessages;
 
-// used in `AbiOpts` and `BuildOpts`
-pub use types::color_preference::ColorPreference;
 pub use types::near::abi::Opts as AbiOpts;
 pub use types::near::build::input::BuildContext;
 pub use types::near::build::input::{CliDescription, Opts as BuildOpts};
+// used in `AbiOpts` and `BuildOpts`
+pub use types::near::color_preference::ColorPreference;
 // TODO: remove on docker logic moved
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::source_id::{GitReference, SourceId};

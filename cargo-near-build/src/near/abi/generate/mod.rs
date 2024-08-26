@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     cargo_native::{self, Dylib},
     env_keys, pretty_print,
-    types::{cargo::metadata::CrateMetadata, color_preference::ColorPreference},
+    types::{cargo::metadata::CrateMetadata, near::color_preference::ColorPreference},
 };
 use eyre::ContextCompat;
 

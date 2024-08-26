@@ -1,6 +1,6 @@
 use camino::Utf8PathBuf;
 
-use crate::types::color_preference;
+use crate::types::near::color_preference;
 
 #[derive(Default)]
 pub struct Opts {
