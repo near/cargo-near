@@ -1,10 +1,8 @@
-use cargo_near_build::docker_build_types::WARN_BECOMES_ERR;
 use cargo_near_build::docker_build_types::{
     cloned_repo, container_paths, crate_in_repo, env_vars, metadata,
 };
-use cargo_near_build::{camino, BuildContext, BuildOpts, DockerBuildOpts};
+use cargo_near_build::{camino, git_checks, BuildContext, BuildOpts, DockerBuildOpts};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
-use std::time::Duration;
 use std::{
     io::IsTerminal,
     process::{id, Command, ExitStatus},
@@ -16,7 +14,6 @@ use colored::Colorize;
 use nix::unistd::{getgid, getuid};
 
 mod docker_checks;
-mod git_checks;
 
 const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
 
@@ -32,7 +29,7 @@ pub(super) fn docker_run(docker_opts: DockerBuildOpts) -> color_eyre::eyre::Resu
         || crate_in_repo::Crate::find(&opts.contract_path()?),
     )?;
     pretty_print::handle_step("Checking if git is dirty...", || {
-        git_dirty_check(docker_opts.context, &crate_in_repo.repo_root)
+        git_checks::dirty::check_then_handle(docker_opts.context, &crate_in_repo.repo_root)
     })?;
     let cloned_repo = pretty_print::handle_step(
         "Cloning project repo to a temporary build site, removing uncommitted changes...",
@@ -173,34 +170,5 @@ fn handle_docker_run_status(
     } else {
         docker_checks::print_command_status(status, command);
         Err(color_eyre::eyre::eyre!(ERR_REPRODUCIBLE))
-    }
-}
-
-fn git_dirty_check(
-    context: BuildContext,
-    repo_root: &camino::Utf8PathBuf,
-) -> color_eyre::eyre::Result<()> {
-    let result = git_checks::dirty::check(repo_root);
-    match (result, context) {
-        (Err(err), BuildContext::Deploy) => {
-            println!(
-                "{}",
-                "Either commit and push, or revert following changes to continue deployment:"
-                    .yellow()
-            );
-            Err(err)
-        }
-        (Err(err), BuildContext::Build) => {
-            println!();
-            println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
-            std::thread::sleep(Duration::new(3, 0));
-            println!();
-            println!("{}", WARN_BECOMES_ERR.red(),);
-            // this is magic to help user notice:
-            std::thread::sleep(Duration::new(5, 0));
-
-            Ok(())
-        }
-        _ => Ok(()),
     }
 }

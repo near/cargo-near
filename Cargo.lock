@@ -575,7 +575,6 @@ dependencies = [
  "colored",
  "derive_more",
  "env_logger",
- "git2",
  "inquire",
  "interactive-clap",
  "interactive-clap-derive",
@@ -586,16 +585,12 @@ dependencies = [
  "nix",
  "reqwest",
  "serde",
- "serde_json",
  "shell-words",
  "strum",
  "strum_macros",
- "tempfile",
  "tokio",
  "tracing",
  "tracing-test",
- "unix_path",
- "url",
 ]
 
 [[package]]
