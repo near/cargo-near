@@ -6,10 +6,10 @@ use crate::{
     types::{
         cargo::{manifest_path::ManifestPath, metadata::CrateMetadata},
         near::abi as abi_types,
-        near::color_preference::ColorPreference,
     },
 };
 
+use crate::types::near::build::input::ColorPreference;
 pub mod generate;
 
 pub fn build(args: abi_types::Opts) -> eyre::Result<()> {

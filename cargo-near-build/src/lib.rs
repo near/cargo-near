@@ -7,14 +7,11 @@ pub(crate) mod types;
 
 pub use types::near::abi::Opts as AbiOpts;
 pub use types::near::build::input::BuildContext;
+pub use types::near::build::input::ColorPreference;
 pub use types::near::build::input::{CliDescription, Opts as BuildOpts};
-// used in `AbiOpts` and `BuildOpts`
-pub use types::near::color_preference::ColorPreference;
 #[cfg(feature = "docker")]
 pub use types::near::docker_build::Opts as DockerBuildOpts;
 
-// TODO: remove export
-pub use types::near::build::output::version_mismatch::VersionMismatch;
 pub use types::near::build::output::CompilationArtifact as BuildArtifact;
 pub use types::near::build::output::SHA256Checksum;
 pub use types::near::build_extended::{

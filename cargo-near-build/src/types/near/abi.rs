@@ -1,6 +1,6 @@
 use camino::Utf8PathBuf;
 
-use crate::types::near::color_preference;
+use crate::types::near::build::input::ColorPreference;
 
 #[derive(Default)]
 pub struct Opts {
@@ -15,7 +15,7 @@ pub struct Opts {
     /// Path to the `Cargo.toml` of the contract to build
     pub manifest_path: Option<camino::Utf8PathBuf>,
     /// Coloring: auto, always, never
-    pub color: Option<color_preference::ColorPreference>,
+    pub color: Option<ColorPreference>,
 }
 
 /// ABI generation result.

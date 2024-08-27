@@ -5,10 +5,10 @@ use cargo_metadata::{Artifact, Message};
 use eyre::{ContextCompat, WrapErr};
 use std::io::BufRead;
 
+use crate::types::near::build::input::ColorPreference;
 use crate::types::{
     cargo::manifest_path::ManifestPath,
     near::build::{output::version_mismatch::VersionMismatch, output::CompilationArtifact},
-    near::color_preference::ColorPreference,
 };
 
 use super::ArtifactType;
