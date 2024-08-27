@@ -5,7 +5,7 @@ use nep330_build_info::BuildInfo;
 
 use crate::env_keys;
 
-use super::{cloned_repo, metadata};
+use crate::types::near::docker_build::{cloned_repo, metadata};
 
 pub struct EnvVars {
     build_info: BuildInfo,

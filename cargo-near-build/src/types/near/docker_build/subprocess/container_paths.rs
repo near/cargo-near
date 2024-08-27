@@ -1,4 +1,4 @@
-use super::cloned_repo;
+use crate::types::near::docker_build::cloned_repo;
 use eyre::ContextCompat;
 
 pub struct Paths {

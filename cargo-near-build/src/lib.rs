@@ -20,7 +20,7 @@ pub use types::near::build::input::{CliDescription, Opts as BuildOpts};
 pub use types::near::color_preference::ColorPreference;
 // TODO: remove on docker logic moved
 #[cfg(feature = "docker")]
-pub use near::docker_build::{docker_checks, git_checks};
+pub use near::docker_build::{docker_checks, git_checks, subprocess_step, ERR_REPRODUCIBLE};
 // TODO: remove on docker logic moved
 #[cfg(feature = "docker")]
 pub use types::near::docker_build as docker_build_types;
