@@ -2,7 +2,7 @@ use super::BuildContext;
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use crate::docker_build_types::WARN_BECOMES_ERR;
+use crate::types::near::docker_build::WARN_BECOMES_ERR;
 use crate::{
     camino, ArtifactMessages, BuildArtifact, CrateMetadata, ManifestPath, MANIFEST_FILE_NAME,
 };

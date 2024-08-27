@@ -1,8 +1,5 @@
-use crate::{
-    docker_build_types::{cloned_repo, metadata},
-    env_keys,
-    types::source_id,
-};
+use crate::types::near::docker_build::{cloned_repo, metadata};
+use crate::{env_keys, types::source_id};
 use eyre::ContextCompat;
 
 pub(super) struct BuildInfo {

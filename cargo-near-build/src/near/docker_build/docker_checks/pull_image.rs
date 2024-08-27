@@ -1,4 +1,4 @@
-use crate::docker_build_types::metadata::ReproducibleBuild;
+use crate::types::near::docker_build::metadata::ReproducibleBuild;
 use colored::Colorize;
 
 pub fn check(docker_build_meta: &ReproducibleBuild) -> eyre::Result<()> {

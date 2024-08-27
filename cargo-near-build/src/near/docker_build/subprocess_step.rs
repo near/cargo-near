@@ -9,12 +9,10 @@ use std::{
 #[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
 
-use crate::docker_build_types::subprocess::{container_paths, env_vars};
 use crate::env_keys;
-use crate::{
-    docker_build_types::{cloned_repo, metadata},
-    BuildOpts,
-};
+use crate::types::near::docker_build::subprocess::{container_paths, env_vars};
+use crate::types::near::docker_build::{cloned_repo, metadata};
+use crate::BuildOpts;
 
 pub fn run(
     opts: BuildOpts,

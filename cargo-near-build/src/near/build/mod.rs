@@ -4,6 +4,7 @@ use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
 
+use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::{cargo_native, env_keys, ColorPreference};
 use crate::{
@@ -14,9 +15,7 @@ use crate::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::build::{
-            input::Opts, output::version_mismatch::VersionMismatch, output::CompilationArtifact,
-        },
+        near::build::{input::Opts, output::version_mismatch::VersionMismatch},
     },
 };
 

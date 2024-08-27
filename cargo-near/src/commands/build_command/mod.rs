@@ -1,7 +1,5 @@
 use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
 
-mod docker;
-
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = BuildCommandlContext)]
@@ -52,7 +50,7 @@ impl BuildCommand {
         if self.no_docker() {
             cargo_near_build::build(self.into())
         } else {
-            docker::docker_run(cargo_near_build::DockerBuildOpts {
+            cargo_near_build::docker_build(cargo_near_build::DockerBuildOpts {
                 build_opts: self.into(),
                 context,
             })
