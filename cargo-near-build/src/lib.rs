@@ -11,16 +11,15 @@ pub(crate) mod pretty_print;
 pub(crate) mod types;
 
 #[cfg(feature = "cli_exports")]
-mod abi_exports {
-    pub use crate::near::abi::build as build_abi;
+pub mod abi {
+    pub use crate::near::abi::build;
     pub use crate::types::near::abi::Opts as AbiOpts;
 }
 
-#[cfg(feature = "cli_exports")]
-pub use abi_exports::*;
-
 mod build_exports {
     pub use crate::near::build::run as build;
+    #[cfg(feature = "cli_exports")]
+    pub use crate::types::near::build::input::BuildContext;
     pub use crate::types::near::build::input::Opts as BuildOpts;
     pub use crate::types::near::build::input::{CliDescription, ColorPreference};
     pub use crate::types::near::build::output::CompilationArtifact as BuildArtifact;
@@ -28,25 +27,22 @@ mod build_exports {
 }
 pub use build_exports::*;
 
-mod build_extended_exports {
-    pub use crate::near::build_extended::run as build_extended;
+/// Module is available if crate is built with `features = ["build_script"]`.
+///
+/// Contains an extended `build` method used to build contracts, that current crate
+/// depends on, in `build.rs` of current crate
+#[cfg(feature = "build_script")]
+pub mod extended {
+    pub use crate::near::build_extended::run as build;
     pub use crate::types::near::build_extended::build_script::Opts as BuildScriptOpts;
     pub use crate::types::near::build_extended::OptsExtended as BuildOptsExtended;
 }
 
-pub use build_extended_exports::*;
-
-#[cfg(feature = "cli_exports")]
-pub use types::near::build::input::BuildContext;
-
 #[cfg(feature = "docker")]
-mod docker_build_exports {
-    pub use crate::near::docker_build::run as docker_build;
+pub mod docker {
+    pub use crate::near::docker_build::run as build;
     pub use crate::types::near::docker_build::Opts as DockerBuildOpts;
 }
-
-#[cfg(feature = "docker")]
-pub use docker_build_exports::*;
 
 pub use camino;
 pub use near_abi;

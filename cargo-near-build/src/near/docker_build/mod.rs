@@ -3,7 +3,7 @@ use std::process::{Command, ExitStatus};
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
-use crate::{env_keys, pretty_print, DockerBuildOpts};
+use crate::{docker::DockerBuildOpts, env_keys, pretty_print};
 
 pub mod docker_checks;
 pub mod git_checks;

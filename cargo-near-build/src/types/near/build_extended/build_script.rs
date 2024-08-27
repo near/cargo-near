@@ -17,13 +17,13 @@ pub struct Opts<'a> {
     /// path of stub file, where a placeholder empty `wasm` output is emitted to, when
     /// build is skipped due to match in [`Self::build_skipped_when_env_is`]
     ///
-    /// if this path is relative, then the base is [`crate::BuildOptsExtended::workdir`]
+    /// if this path is relative, then the base is [`crate::extended::BuildOptsExtended::workdir`]
     pub stub_path: Option<&'a str>,
     /// substitution export of [`CARGO_TARGET_DIR`](https://doc.rust-lang.org/cargo/reference/environment-variables.html),
     /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938>;
     /// should best be a subfolder of [`CARGO_TARGET_DIR`](https://doc.rust-lang.org/cargo/reference/environment-variables.html)
     /// of crate being built to work normally in docker builds
     ///
-    /// if this path is relative, then the base is [`crate::BuildOptsExtended::workdir`]
+    /// if this path is relative, then the base is [`crate::extended::BuildOptsExtended::workdir`]
     pub distinct_target_dir: Option<&'a str>,
 }

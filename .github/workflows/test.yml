@@ -36,7 +36,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
       - name: Cargo check
-        run: cargo check -p cargo-near
+        run: | 
+          cargo check -p cargo-near
+          cargo check -p cargo-near-build --all-features
 
   tests:
     runs-on: ${{ matrix.platform }}
@@ -86,6 +88,17 @@ jobs:
 
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
+
+  # there're sometimes warnings, which signal, that the generated doc
+  # won't look as expected, when rendered, and sometimes errors, which will prevent doc from being
+  # generated at release time altogether.
+  cargo-doc:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: run cargo doc
+      run: RUSTDOCFLAGS="-D warnings" cargo doc -p cargo-near-build --features build_script
 
   audit:
     runs-on: ubuntu-latest

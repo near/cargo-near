@@ -50,7 +50,7 @@ impl BuildCommand {
         if self.no_docker() {
             cargo_near_build::build(self.into())
         } else {
-            cargo_near_build::docker_build(cargo_near_build::DockerBuildOpts {
+            cargo_near_build::docker::build(cargo_near_build::docker::DockerBuildOpts {
                 build_opts: self.into(),
                 context,
             })

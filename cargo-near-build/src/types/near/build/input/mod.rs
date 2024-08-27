@@ -10,6 +10,7 @@ pub enum BuildContext {
     Deploy,
 }
 
+/// argument of [crate::build] method
 #[derive(Debug, Default, Clone)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default

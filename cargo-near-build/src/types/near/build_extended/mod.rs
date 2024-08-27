@@ -1,4 +1,5 @@
-use crate::{BuildOpts, BuildScriptOpts};
+use crate::extended::BuildScriptOpts;
+use crate::BuildOpts;
 
 pub mod build_script;
 
