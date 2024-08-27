@@ -8,11 +8,11 @@ pub use self::pull_image::check as pull_image;
 mod hello_world;
 mod pull_image;
 
-pub(super) fn handle_command_io_error<T>(
+pub fn handle_command_io_error<T>(
     command: &std::process::Command,
     command_result: std::io::Result<T>,
-    report: color_eyre::eyre::Report,
-) -> color_eyre::eyre::Result<T> {
+    report: eyre::Report,
+) -> eyre::Result<T> {
     match command_result {
         Ok(result) => Ok(result),
         Err(io_err) if io_err.kind() == std::io::ErrorKind::NotFound => {
@@ -107,10 +107,7 @@ fn print_linux_postinstall_steps() {
     );
 }
 
-pub(super) fn print_command_status(
-    status: std::process::ExitStatus,
-    command: std::process::Command,
-) {
+pub fn print_command_status(status: std::process::ExitStatus, command: std::process::Command) {
     println!();
     let command = {
         let mut args = vec![command.get_program().to_string_lossy().to_string()];

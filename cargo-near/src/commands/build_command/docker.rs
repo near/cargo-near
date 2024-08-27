@@ -1,7 +1,9 @@
 use cargo_near_build::docker_build_types::{
     cloned_repo, container_paths, crate_in_repo, env_vars, metadata,
 };
-use cargo_near_build::{camino, git_checks, BuildContext, BuildOpts, DockerBuildOpts};
+use cargo_near_build::{
+    camino, docker_checks, git_checks, BuildContext, BuildOpts, DockerBuildOpts,
+};
 use cargo_near_build::{env_keys, pretty_print, BuildArtifact};
 use std::{
     io::IsTerminal,
@@ -12,8 +14,6 @@ use std::{
 use colored::Colorize;
 #[cfg(target_os = "linux")]
 use nix::unistd::{getgid, getuid};
-
-mod docker_checks;
 
 const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
 
