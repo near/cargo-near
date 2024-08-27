@@ -2,16 +2,8 @@ pub(crate) mod cargo_native;
 pub mod env_keys;
 pub(crate) mod fs;
 pub(crate) mod near;
-// TODO: replace `pub` with `pub(crate)` on docker logic moved
-pub mod pretty_print;
+pub(crate) mod pretty_print;
 pub(crate) mod types;
-
-// TODO: remove on docker logic moved
-pub use types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
-// TODO: remove on docker logic moved
-pub use types::cargo::metadata::CrateMetadata;
-// TODO: remove on docker logic moved
-pub use types::near::build::side_effects::ArtifactMessages;
 
 pub use types::near::abi::Opts as AbiOpts;
 pub use types::near::build::input::BuildContext;

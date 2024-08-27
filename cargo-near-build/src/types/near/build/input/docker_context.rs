@@ -1,5 +1,6 @@
-use crate::ManifestPath;
 use colored::Colorize;
+
+use crate::types::cargo::manifest_path::ManifestPath;
 
 impl super::Opts {
     pub fn contract_path(&self) -> eyre::Result<camino::Utf8PathBuf> {

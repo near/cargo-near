@@ -1,9 +1,10 @@
-use crate::CrateMetadata;
 use colored::Colorize;
 use serde::Deserialize;
 
 use serde_json::Value;
 use std::{collections::BTreeMap as Map, str::FromStr, thread, time::Duration};
+
+use crate::types::cargo::metadata::CrateMetadata;
 
 #[derive(Deserialize, Debug)]
 /// parsed from `[package.metadata.near.reproducible_build]` in Cargo.toml

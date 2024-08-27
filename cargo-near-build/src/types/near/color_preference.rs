@@ -32,8 +32,7 @@ fn default_mode() -> ColorPreference {
 }
 
 impl ColorPreference {
-    // TODO: replace `pub` with `pub(crate)` on docker logic moved
-    pub fn apply(&self) {
+    pub(crate) fn apply(&self) {
         match self {
             ColorPreference::Auto => {
                 default_mode().apply();

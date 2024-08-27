@@ -2,11 +2,13 @@ use super::BuildContext;
 use std::marker::PhantomData;
 use std::time::Duration;
 
+use crate::pretty_print;
+use crate::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
+use crate::types::cargo::metadata::CrateMetadata;
+use crate::types::near::build::output::version_mismatch::VersionMismatch;
+use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::types::near::docker_build::WARN_BECOMES_ERR;
-use crate::{
-    camino, ArtifactMessages, BuildArtifact, CrateMetadata, ManifestPath, MANIFEST_FILE_NAME,
-};
-use crate::{pretty_print, VersionMismatch};
+use crate::{camino, BuildArtifact};
 use colored::Colorize;
 
 use super::crate_in_repo;
