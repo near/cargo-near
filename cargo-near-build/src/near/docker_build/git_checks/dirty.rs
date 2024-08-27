@@ -3,8 +3,9 @@ use std::time::Duration;
 use colored::Colorize;
 use eyre::{ContextCompat, WrapErr};
 
+use crate::camino;
+use crate::types::near::build::input::BuildContext;
 use crate::types::near::docker_build::WARN_BECOMES_ERR;
-use crate::{camino, BuildContext};
 use serde_json::to_string;
 
 pub fn check_then_handle(

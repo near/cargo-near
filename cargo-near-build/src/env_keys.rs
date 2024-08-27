@@ -20,7 +20,7 @@ pub mod nep330 {
         pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
     }
 
-    pub fn print_env() {
+    pub(crate) fn print_env() {
         log::info!("Variables, relevant for reproducible builds:");
         for key in [
             BUILD_ENVIRONMENT,

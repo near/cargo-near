@@ -1,4 +1,6 @@
-use crate::{BuildContext, BuildOpts};
+use crate::BuildOpts;
+
+use super::build::input::BuildContext;
 
 pub mod cloned_repo;
 pub mod crate_in_repo;

@@ -37,6 +37,7 @@ pub struct Opts {
     pub cli_description: CliDescription,
 }
 
+/// used as field in [crate::BuildOpts]
 #[derive(Debug, Clone)]
 pub struct CliDescription {
     /// binary name for builder field in ABI
@@ -106,7 +107,7 @@ impl Opts {
     }
 }
 
-/// used as field in [AbiOpts] and [BuildOpts]
+/// used as field in [crate::BuildOpts]
 #[derive(Debug, Clone)]
 pub enum ColorPreference {
     Auto,
