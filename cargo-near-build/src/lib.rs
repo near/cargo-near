@@ -31,6 +31,38 @@ pub use build_exports::*;
 ///
 /// Contains an extended `build` method used to build contracts, that current crate
 /// depends on, in `build.rs` of current crate
+/// Potential import may look like this:
+/// ```ignore
+/// [build-dependencies.cargo-near-build]
+/// version = "0.1.0"
+/// features = ["build_script"]
+/// ```
+///
+/// Usage example:
+///
+/// ```no_run
+/// use cargo_near_build::extended::BuildScriptOpts;
+/// let opts = cargo_near_build::extended::BuildOptsExtended {
+///     workdir: "../another-contract",
+///     env: vec![
+///         // unix path of target contract from root of repo
+///         (cargo_near_build::env_keys::nep330::CONTRACT_PATH, "another-contract")
+///     ], 
+///     build_opts: cargo_near_build::BuildOpts::default(),
+///     build_script_opts: BuildScriptOpts {
+///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
+///         rerun_if_changed_list: vec!["../another-contract", "../Cargo.toml", "../Cargo.lock"],
+///         build_skipped_when_env_is: vec![
+///             // shorter build for `cargo check`
+///             ("PROFILE", "debug"),
+///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+///         ],
+///         distinct_target_dir: Some("../target/build-rs-another-contract"),
+///         stub_path: Some("../target/stub.bin"),
+///     },
+/// };
+/// cargo_near_build::extended::build(opts).expect("sub-contract build error");
+/// ```
 #[cfg(feature = "build_script")]
 pub mod extended {
     pub use crate::near::build_extended::run as build;
