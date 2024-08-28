@@ -6,7 +6,7 @@
 //!
 //! ## Sample usage:
 //!
-//! Deafult:
+//! Default:
 //!
 //! ```no_run
 //! let artifact = cargo_near_build::build(Default::default()).expect("some error during build");
@@ -22,6 +22,8 @@
 //!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
 //! ```
 pub(crate) mod cargo_native;
+/// the module contains names of environment variables, exported during
+/// various operations of the library
 pub mod env_keys;
 pub(crate) mod fs;
 pub(crate) mod near;

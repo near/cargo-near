@@ -23,6 +23,7 @@ use super::abi;
 
 pub mod export;
 
+/// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/crate::BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     VersionMismatch::export_builder_and_near_abi_versions();
     export::nep_330_build_command(&args)?;

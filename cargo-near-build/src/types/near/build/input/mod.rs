@@ -11,11 +11,16 @@ pub enum BuildContext {
 }
 
 /// argument of [crate::build] method
+///
+/// [std::default::Default] implementation is derived:
+/// - `false` for `bool`-s,
+/// - `None` - for `Option`-s, and delegates to
+/// - [impl Default for CliDescription](struct.CliDescription.html#impl-Default-for-CliDescription)
 #[derive(Debug, Default, Clone)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
     pub no_locked: bool,
-    /// Build contract in debug mode, without optimizations and bigger is size
+    /// Build contract in debug mode, without optimizations and bigger in size
     pub no_release: bool,
     /// Do not generate ABI for the contract
     pub no_abi: bool,
@@ -31,7 +36,8 @@ pub struct Opts {
     pub features: Option<String>,
     /// Disables default feature flags.
     pub no_default_features: bool,
-    /// Coloring: auto, always, never
+    /// Coloring: auto, always, never;
+    /// assumed to be auto when `None`
     pub color: Option<ColorPreference>,
     /// description of cli command, where [crate::BuildOpts] are being used from, either real
     /// or emulated
@@ -41,17 +47,16 @@ pub struct Opts {
 /// used as field in [crate::BuildOpts]
 #[derive(Debug, Clone)]
 pub struct CliDescription {
-    /// binary name for builder field in ABI
-    ///
-    /// this is `"cargo-near"` in [std::default::Default] implementation
+    /// binary name for `builder` field in [near_abi::BuildInfo::builder]
     pub cli_name_abi: String,
     /// cli command prefix for export of [crate::env_keys::nep330::BUILD_COMMAND] variable
     /// when used as lib method
-    ///
-    /// this is `vec!["cargo", "near", "build"]` in [std::default::Default] implementation
     pub cli_command_prefix: Vec<String>,
 }
 
+/// this is `"cargo-near"` for [CliDescription::cli_name_abi] and
+///
+/// `vec!["cargo", "near", "build"]` for [CliDescription::cli_command_prefix]
 impl Default for CliDescription {
     fn default() -> Self {
         Self {
@@ -109,6 +114,13 @@ impl Opts {
 }
 
 /// used as field in [crate::BuildOpts]
+///
+/// it determines if the print to stdout/stderr is colored or not
+/// # Behaviour of [ColorPreference::Auto]:
+/// if `NO_COLOR` environment variable is set and isnt't set to `"0"`, then the result is [ColorPreference::Never]
+///
+/// otherwise it's [ColorPreference::Always] if stderr is a terminal device,
+/// and [ColorPreference::Never] in the remaining cases
 #[derive(Debug, Clone)]
 pub enum ColorPreference {
     Auto,
