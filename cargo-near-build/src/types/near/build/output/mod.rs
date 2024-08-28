@@ -7,8 +7,10 @@ pub mod version_mismatch;
 
 /// type of success value of result of [crate::build]
 pub struct CompilationArtifact<T: ArtifactType = Wasm> {
+    /// path to output file
     pub path: Utf8PathBuf,
     pub fresh: bool,
+    /// whether the artifact file originated from docker build or regular build with rust toolchain
     pub from_docker: bool,
     pub(crate) builder_version_mismatch: version_mismatch::VersionMismatch,
     pub(crate) artifact_type: PhantomData<T>,

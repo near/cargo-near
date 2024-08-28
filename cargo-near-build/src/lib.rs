@@ -1,7 +1,21 @@
+//! ## Crate features
+//!
+//! * **build_script** -
+//!   Adds [crate::extended] module for use in build scripts
+//! * **cli_exports** -
+//!   Additional exports, needed from lib in context of cli tool
+//! * **docker** -
+//!   Adds `docker` module for functionality of
+//!   building in docker with WASM reproducibility.
+//!   This feature implies **cli_exports** feature.
+//!
+//! ### Default features
+//!
+//! None are enabled by default
+//!
 //! ## Re-exports
 //!
-//! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact]
-//! as type of some of fields
+//! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact] as type of some of fields
 //! 2. [near_abi] is re-exported, because details of ABI generated depends on specific version of `near-abi` dependency  
 //!
 //! ## Sample usage:
@@ -16,7 +30,7 @@
 //!
 //! ```no_run
 //!     let build_opts = cargo_near_build::BuildOpts {
-//!         features: Some("some-contract-feature-1".into()),
+//!         features: Some("some_contract_feature_1".into()),
 //!         ..Default::default()
 //!     };
 //!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
