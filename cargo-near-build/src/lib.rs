@@ -1,7 +1,8 @@
 //! ## Re-exports
 //!
-//! `camino` is re-exported, because it is used in [BuildOpts], and [BuildArtifact]
+//! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact]
 //! as type of some of fields
+//! 2. [near_abi] is re-exported, because details of ABI generated depends on specific version of `near-abi` dependency  
 //!
 //! ## Sample usage:
 //!
