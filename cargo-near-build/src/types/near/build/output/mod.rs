@@ -5,7 +5,7 @@ use camino::Utf8PathBuf;
 use sha2::{Digest, Sha256};
 pub mod version_mismatch;
 
-/// type of success value of result of [crate::build]
+/// type of success value of result of [build](crate::build) function
 pub struct CompilationArtifact<T: ArtifactType = Wasm> {
     /// path to output file
     pub path: Utf8PathBuf,
@@ -28,7 +28,7 @@ impl crate::BuildArtifact {
     }
 }
 
-/// type of return value of [crate::BuildArtifact::compute_hash]
+/// type of return value of [BuildArtifact::compute_hash](crate::BuildArtifact::compute_hash)
 pub struct SHA256Checksum {
     pub hash: Vec<u8>,
 }

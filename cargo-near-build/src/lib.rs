@@ -1,7 +1,7 @@
 //! ## Crate features
 //!
 //! * **build_script** -
-//!   Adds [crate::extended] module for use in build scripts
+//!   Adds [extended] module for use in build scripts
 //! * **cli_exports** -
 //!   Additional exports, needed from lib in context of cli tool
 //! * **docker** -
@@ -36,7 +36,7 @@
 //!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
 //! ```
 pub(crate) mod cargo_native;
-/// the module contains names of environment variables, exported during
+/// module contains names of environment variables, exported during
 /// various operations of the library
 pub mod env_keys;
 pub(crate) mod fs;
@@ -61,7 +61,7 @@ mod build_exports {
 }
 pub use build_exports::*;
 
-/// Module is available if crate is built with `features = ["build_script"]`.
+/// module is available if crate is built with `features = ["build_script"]`.
 ///
 /// Contains an extended `build` method used to build contracts, that current crate
 /// depends on, in `build.rs` of current crate
