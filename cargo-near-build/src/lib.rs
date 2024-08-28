@@ -2,7 +2,24 @@
 //!
 //! `camino` is re-exported, because it is used in [BuildOpts], and [BuildArtifact]
 //! as type of some of fields
-
+//!
+//! ## Sample usage:
+//!
+//! Deafult:
+//!
+//! ```no_run
+//! let artifact = cargo_near_build::build(Default::default()).expect("some error during build");
+//! ```
+//!
+//! With some options set:
+//!
+//! ```no_run
+//!     let build_opts = cargo_near_build::BuildOpts {
+//!         features: Some("some-contract-feature-1".into()),
+//!         ..Default::default()
+//!     };
+//!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
+//! ```
 pub(crate) mod cargo_native;
 pub mod env_keys;
 pub(crate) mod fs;
@@ -47,7 +64,7 @@ pub use build_exports::*;
 ///     env: vec![
 ///         // unix path of target contract from root of repo
 ///         (cargo_near_build::env_keys::nep330::CONTRACT_PATH, "another-contract")
-///     ], 
+///     ],
 ///     build_opts: cargo_near_build::BuildOpts::default(),
 ///     build_script_opts: BuildScriptOpts {
 ///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
