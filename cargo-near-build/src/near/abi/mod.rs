@@ -5,11 +5,11 @@ use crate::{
     pretty_print,
     types::{
         cargo::{manifest_path::ManifestPath, metadata::CrateMetadata},
-        color_preference::ColorPreference,
         near::abi as abi_types,
     },
 };
 
+use crate::types::near::build::input::ColorPreference;
 pub mod generate;
 
 pub fn build(args: abi_types::Opts) -> eyre::Result<()> {

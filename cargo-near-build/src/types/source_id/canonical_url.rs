@@ -14,13 +14,13 @@ use url::Url;
 pub struct CanonicalUrl(Url);
 
 impl CanonicalUrl {
-    pub fn new(url: &Url) -> color_eyre::eyre::Result<CanonicalUrl> {
+    pub fn new(url: &Url) -> eyre::Result<CanonicalUrl> {
         let mut url = url.clone();
 
         // cannot-be-a-base-urls (e.g., `github.com:rust-lang/rustfmt.git`)
         // are not supported.
         if url.cannot_be_a_base() {
-            return Err(color_eyre::eyre::eyre!(
+            return Err(eyre::eyre!(
                 "invalid url `{}`: cannot-be-a-base-URLs are not supported",
                 url
             ));

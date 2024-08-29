@@ -1,9 +1,42 @@
-use color_eyre::eyre::{ContextCompat, WrapErr};
+use std::time::Duration;
 
-use cargo_near_build::camino;
+use colored::Colorize;
+use eyre::{ContextCompat, WrapErr};
+
+use crate::camino;
+use crate::types::near::build::input::BuildContext;
+use crate::types::near::docker_build::WARN_BECOMES_ERR;
 use serde_json::to_string;
 
-pub fn check(repo_root: &camino::Utf8PathBuf) -> color_eyre::Result<()> {
+pub fn check_then_handle(
+    context: BuildContext,
+    repo_root: &camino::Utf8PathBuf,
+) -> eyre::Result<()> {
+    let result = check(repo_root);
+    match (result, context) {
+        (Err(err), BuildContext::Deploy) => {
+            println!(
+                "{}",
+                "Either commit and push, or revert following changes to continue deployment:"
+                    .yellow()
+            );
+            Err(err)
+        }
+        (Err(err), BuildContext::Build) => {
+            println!();
+            println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
+            std::thread::sleep(Duration::new(3, 0));
+            println!();
+            println!("{}", WARN_BECOMES_ERR.red(),);
+            // this is magic to help user notice:
+            std::thread::sleep(Duration::new(5, 0));
+
+            Ok(())
+        }
+        _ => Ok(()),
+    }
+}
+fn check(repo_root: &camino::Utf8PathBuf) -> eyre::Result<()> {
     let repo = git2::Repository::open(repo_root)?;
     let mut dirty_files = Vec::new();
     // Include each submodule so that the error message can provide
@@ -13,7 +46,7 @@ pub fn check(repo_root: &camino::Utf8PathBuf) -> color_eyre::Result<()> {
     if dirty_files.is_empty() {
         return Ok(());
     }
-    Err(color_eyre::eyre::eyre!(
+    Err(eyre::eyre!(
         "{} files in the working directory contain changes that were \
              not yet committed into git:\n\n{}",
         dirty_files.len(),
@@ -30,7 +63,7 @@ pub fn check(repo_root: &camino::Utf8PathBuf) -> color_eyre::Result<()> {
 fn status_submodules(
     repo: &git2::Repository,
     dirty_files: &mut Vec<std::path::PathBuf>,
-) -> near_cli_rs::CliResult {
+) -> eyre::Result<()> {
     collect_statuses(repo, dirty_files)?;
     for submodule in repo.submodules()? {
         // Ignore submodules that don't open, they are probably not initialized.
@@ -46,7 +79,7 @@ fn status_submodules(
 fn collect_statuses(
     repo: &git2::Repository,
     dirty_files: &mut Vec<std::path::PathBuf>,
-) -> near_cli_rs::CliResult {
+) -> eyre::Result<()> {
     let mut status_opts = git2::StatusOptions::new();
     // Exclude submodules, as they are being handled manually by recursing
     // into each one so that details about specific files can be

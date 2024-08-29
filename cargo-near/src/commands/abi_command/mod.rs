@@ -1,4 +1,4 @@
-use cargo_near_build::AbiOpts;
+use cargo_near_build::abi::AbiOpts;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -57,7 +57,7 @@ impl AbiCommandlContext {
             manifest_path: scope.manifest_path.clone(),
             color: scope.color.clone(),
         };
-        cargo_near_build::build_abi(args.into())?;
+        cargo_near_build::abi::build(args.into())?;
         Ok(Self)
     }
 }

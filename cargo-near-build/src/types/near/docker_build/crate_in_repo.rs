@@ -1,6 +1,5 @@
-use cargo_near_build::camino;
-use color_eyre::eyre::ContextCompat;
 use colored::Colorize;
+use eyre::ContextCompat;
 
 #[derive(Debug, Clone)]
 pub struct Crate {
@@ -12,7 +11,7 @@ pub struct Crate {
 }
 
 impl Crate {
-    pub fn find(initial_crate_root: &camino::Utf8PathBuf) -> color_eyre::eyre::Result<Self> {
+    pub fn find(initial_crate_root: &camino::Utf8PathBuf) -> eyre::Result<Self> {
         let mut search_from = initial_crate_root.clone();
 
         let mut repo: Option<git2::Repository> = None;
@@ -33,7 +32,7 @@ impl Crate {
             };
         }
         match repo {
-            None => Err(color_eyre::eyre::eyre!(
+            None => Err(eyre::eyre!(
                 "Repo containing {} not found",
                 initial_crate_root
             )),
@@ -56,11 +55,11 @@ impl Crate {
             }
         }
     }
-    pub fn host_relative_path(&self) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+    pub fn host_relative_path(&self) -> eyre::Result<camino::Utf8PathBuf> {
         pathdiff::diff_utf8_paths(&self.crate_root, &self.repo_root)
             .wrap_err("cannot compute crate's relative path in repo")
     }
-    pub fn unix_relative_path(&self) -> color_eyre::eyre::Result<unix_path::PathBuf> {
+    pub fn unix_relative_path(&self) -> eyre::Result<unix_path::PathBuf> {
         let host_relative: camino::Utf8PathBuf = self.host_relative_path()?;
 
         let path_buf = {
@@ -71,7 +70,7 @@ impl Crate {
         };
 
         if !path_buf.as_path().is_relative() {
-            return Err(color_eyre::eyre::eyre!(
+            return Err(eyre::eyre!(
                 "crate's path in repo, expressed as a unix path, isn't relative : {:?}",
                 path_buf.to_str()
             ));

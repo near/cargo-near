@@ -1,3 +1,4 @@
 pub mod cargo;
-pub mod color_preference;
 pub mod near;
+#[cfg(feature = "docker")]
+pub mod source_id;

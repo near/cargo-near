@@ -1,34 +1,114 @@
+//! ## Crate features
+//!
+//! * **build_script** -
+//!   Adds [extended] module for use in build scripts
+//! * **cli_exports** -
+//!   Additional exports, needed from lib in context of cli tool
+//! * **docker** -
+//!   Adds `docker` module for functionality of
+//!   building in docker with WASM reproducibility.
+//!   This feature implies **cli_exports** feature.
+//!
+//! ### Default features
+//!
+//! None are enabled by default
+//!
+//! ## Re-exports
+//!
+//! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact] as type of some of fields
+//! 2. [near_abi] is re-exported, because details of ABI generated depends on specific version of `near-abi` dependency  
+//!
+//! ## Sample usage:
+//!
+//! Default:
+//!
+//! ```no_run
+//! let artifact = cargo_near_build::build(Default::default()).expect("some error during build");
+//! ```
+//!
+//! With some options set:
+//!
+//! ```no_run
+//!     let build_opts = cargo_near_build::BuildOpts {
+//!         features: Some("some_contract_feature_1".into()),
+//!         ..Default::default()
+//!     };
+//!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
+//! ```
 pub(crate) mod cargo_native;
+/// module contains names of environment variables, exported during
+/// various operations of the library
 pub mod env_keys;
 pub(crate) mod fs;
 pub(crate) mod near;
-// TODO: replace `pub` with `pub(crate)` on docker logic moved
-pub mod pretty_print;
+pub(crate) mod pretty_print;
 pub(crate) mod types;
 
-// TODO: remove on docker logic moved
-pub use types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
-// TODO: remove on docker logic moved
-pub use types::cargo::metadata::CrateMetadata;
-// TODO: remove on docker logic moved
-pub use types::near::build::ArtifactMessages;
+#[cfg(feature = "cli_exports")]
+pub mod abi {
+    pub use crate::near::abi::build;
+    pub use crate::types::near::abi::Opts as AbiOpts;
+}
 
-// used in `AbiOpts` and `BuildOpts`
-pub use types::color_preference::ColorPreference;
-pub use types::near::abi::Opts as AbiOpts;
-pub use types::near::build::{CliDescription, Opts as BuildOpts};
+mod build_exports {
+    pub use crate::near::build::run as build;
+    #[cfg(feature = "cli_exports")]
+    pub use crate::types::near::build::input::BuildContext;
+    pub use crate::types::near::build::input::Opts as BuildOpts;
+    pub use crate::types::near::build::input::{CliDescription, ColorPreference};
+    pub use crate::types::near::build::output::CompilationArtifact as BuildArtifact;
+    pub use crate::types::near::build::output::SHA256Checksum;
+}
+pub use build_exports::*;
 
-pub use types::near::build::version_mismatch::VersionMismatch;
-pub use types::near::build::CompilationArtifact as BuildArtifact;
-pub use types::near::build::SHA256Checksum;
-pub use types::near::build_extended::{
-    build_script::Opts as BuildScriptOpts, OptsExtended as BuildOptsExtended,
-};
+/// module is available if crate is built with `features = ["build_script"]`.
+///
+/// Contains an extended `build` method used to build contracts, that current crate
+/// depends on, in `build.rs` of current crate
+/// Potential import may look like this:
+/// ```ignore
+/// [build-dependencies.cargo-near-build]
+/// version = "0.1.0"
+/// features = ["build_script"]
+/// ```
+///
+/// Usage example:
+///
+/// ```no_run
+/// use cargo_near_build::extended::BuildScriptOpts;
+/// let opts = cargo_near_build::extended::BuildOptsExtended {
+///     workdir: "../another-contract",
+///     env: vec![
+///         // unix path of target contract from root of repo
+///         (cargo_near_build::env_keys::nep330::CONTRACT_PATH, "another-contract")
+///     ],
+///     build_opts: cargo_near_build::BuildOpts::default(),
+///     build_script_opts: BuildScriptOpts {
+///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
+///         rerun_if_changed_list: vec!["../another-contract", "../Cargo.toml", "../Cargo.lock"],
+///         build_skipped_when_env_is: vec![
+///             // shorter build for `cargo check`
+///             ("PROFILE", "debug"),
+///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+///         ],
+///         distinct_target_dir: Some("../target/build-rs-another-contract"),
+///         stub_path: Some("../target/stub.bin"),
+///     },
+/// };
+/// cargo_near_build::extended::build(opts).expect("sub-contract build error");
+/// ```
+#[cfg(feature = "build_script")]
+pub mod extended {
+    pub use crate::near::build_extended::run as build;
+    pub use crate::types::near::build_extended::build_script::Opts as BuildScriptOpts;
+    pub use crate::types::near::build_extended::OptsExtended as BuildOptsExtended;
+}
 
-pub use near_abi;
-// used in `AbiOpts` and `BuildOpts`, and `BuildArtifact`
+#[cfg(feature = "docker")]
+pub mod docker {
+    pub use crate::near::docker_build::run as build;
+    pub use crate::types::near::docker_build::Opts as DockerBuildOpts;
+}
+
 pub use camino;
-
-pub use near::abi::build as build_abi;
-pub use near::build::run as build;
-pub use near::build_extended::run as build_extended;
+pub use near_abi;

@@ -1,6 +1,6 @@
 mod build_script;
 mod tmp_env;
-use crate::types::near::build::CompilationArtifact;
+use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build_extended::OptsExtended;
 use rustc_version::Version;
 

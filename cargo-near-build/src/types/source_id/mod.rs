@@ -9,12 +9,12 @@ pub mod canonical_url;
 /// A type that can be converted to a Url
 pub trait IntoUrl {
     /// Performs the conversion
-    fn into_url(self) -> color_eyre::eyre::Result<Url>;
+    fn into_url(self) -> eyre::Result<Url>;
 }
 
 impl<'a> IntoUrl for &'a str {
-    fn into_url(self) -> color_eyre::eyre::Result<Url> {
-        Url::parse(self).map_err(|s| color_eyre::eyre::eyre!("invalid url `{}`: {}", self, s))
+    fn into_url(self) -> eyre::Result<Url> {
+        Url::parse(self).map_err(|s| eyre::eyre!("invalid url `{}`: {}", self, s))
     }
 }
 
@@ -144,7 +144,7 @@ impl SourceId {
     /// Creates a `SourceId` object from the kind and URL.
     ///
     /// The canonical url will be calculated, but the precise field will not
-    fn new(kind: SourceKind, url: Url) -> color_eyre::eyre::Result<SourceId> {
+    fn new(kind: SourceKind, url: Url) -> eyre::Result<SourceId> {
         let source_id = SourceId {
             kind,
             canonical_url: CanonicalUrl::new(&url)?,
@@ -155,10 +155,10 @@ impl SourceId {
     }
 
     #[allow(unused)]
-    pub fn from_url(string: &str) -> color_eyre::eyre::Result<SourceId> {
+    pub fn from_url(string: &str) -> eyre::Result<SourceId> {
         let (kind, url) = string
             .split_once('+')
-            .ok_or_else(|| color_eyre::eyre::eyre!("invalid source `{}`", string))?;
+            .ok_or_else(|| eyre::eyre!("invalid source `{}`", string))?;
 
         match kind {
             "git" => {
@@ -169,10 +169,7 @@ impl SourceId {
                 url.set_query(None);
                 Ok(SourceId::for_git(&url, reference)?.with_git_precise(precise))
             }
-            kind => Err(color_eyre::eyre::eyre!(
-                "unsupported source protocol: {}",
-                kind
-            )),
+            kind => Err(eyre::eyre!("unsupported source protocol: {}", kind)),
         }
     }
 
@@ -194,7 +191,7 @@ impl SourceId {
     }
 
     /// Creates a `SourceId` from a Git reference.
-    pub fn for_git(url: &Url, reference: GitReference) -> color_eyre::eyre::Result<SourceId> {
+    pub fn for_git(url: &Url, reference: GitReference) -> eyre::Result<SourceId> {
         SourceId::new(SourceKind::Git(reference), url.clone())
     }
 
@@ -273,9 +270,7 @@ impl<'a> std::fmt::Display for PrettyRef<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::source_id::{GitReference, SourceKind};
-
-    use super::SourceId;
+    use super::{GitReference, SourceId, SourceKind};
 
     #[test]
     fn test_source_id_from_url() {

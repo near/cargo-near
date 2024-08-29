@@ -28,7 +28,7 @@ impl ContractContext {
         let file_path = scope
             .build_command_args
             .clone()
-            .run(build_command::BuildContext::Deploy)?
+            .run(cargo_near_build::BuildContext::Deploy)?
             .path;
 
         Ok(Self(

@@ -1,9 +1,9 @@
-use color_eyre::eyre::WrapErr;
 use colored::Colorize;
+use eyre::WrapErr;
 
 const BETWEEN_ATTEMPTS_SLEEP: std::time::Duration = std::time::Duration::from_millis(100);
 
-pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> color_eyre::Result<()> {
+pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> eyre::Result<()> {
     for attempt in 1..=5 {
         let tmp_clone_destination = tempfile::tempdir()?;
         println!(
@@ -36,7 +36,7 @@ pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> color_eyre::Result<()>
         }
     }
 
-    Err(color_eyre::eyre::eyre!(
+    Err(eyre::eyre!(
         "Failed to verify that HEAD was pushed by cloning {}. Exceeded max attempts.\n\
         Try setting `package.repository` \
         of your contract to point to the remote of your repository.",
