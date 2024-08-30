@@ -1,6 +1,4 @@
 use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
-pub const DISABLE_PUSHED_TO_REMOTE_CHECK: &str =
-    "CARGO_NEAR_REPRODUCIBLE_DISABLE_PUSHED_TO_REMOTE_GIT_CHECK";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -50,6 +48,16 @@ pub struct BuildCommand {
 impl BuildCommand {
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
         if self.no_docker() {
+            match context {
+                BuildContext::Deploy {
+                    skip_git_remote_check,
+                } if skip_git_remote_check == true => {
+                    return Err(color_eyre::eyre::eyre!(
+                        "`--skip-git-remote-check` flag is only applicable for docker builds"
+                    ));
+                }
+                _ => {}
+            }
             cargo_near_build::build(self.into())
         } else {
             cargo_near_build::docker::build(cargo_near_build::docker::DockerBuildOpts {

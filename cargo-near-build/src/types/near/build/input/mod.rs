@@ -8,7 +8,7 @@ mod docker_context;
 #[derive(Debug, Clone, Copy)]
 pub enum BuildContext {
     Build,
-    Deploy,
+    Deploy { skip_git_remote_check: bool },
 }
 
 /// argument of [build](crate::build) function
