@@ -1,4 +1,6 @@
 use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
+pub const DISABLE_PUSHED_TO_REMOTE_CHECK: &str =
+    "CARGO_NEAR_REPRODUCIBLE_DISABLE_PUSHED_TO_REMOTE_GIT_CHECK";
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
