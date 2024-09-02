@@ -3,9 +3,9 @@ use crate::types::near::abi as abi_types;
 
 pub mod generate;
 
-#[cfg(feature = "cli_exports")]
+#[cfg(feature = "abi_build")]
 pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
-    // imports #[cfg(feature = "cli_exports")]
+    // imports #[cfg(feature = "abi_build")]
     use crate::{
         pretty_print,
         types::{cargo::manifest_path::ManifestPath, near::build::input::ColorPreference},

@@ -2,12 +2,11 @@
 //!
 //! * **build_script** -
 //!   Adds [extended] module for use in build scripts
-//! * **cli_exports** -
-//!   Additional exports, needed from lib in context of cli tool
+//! * **abi_build** -
+//!   Additional functionality, needed for build of ABI separately
 //! * **docker** -
 //!   Adds `docker` module for functionality of
 //!   building in docker with WASM reproducibility.
-//!   This feature implies **cli_exports** feature.
 //!
 //! ### Default features
 //!
@@ -44,7 +43,7 @@ pub(crate) mod near;
 pub(crate) mod pretty_print;
 pub(crate) mod types;
 
-#[cfg(feature = "cli_exports")]
+#[cfg(feature = "abi_build")]
 pub mod abi {
     pub use crate::near::abi::build;
     pub use crate::types::near::abi::Opts as AbiOpts;
@@ -52,7 +51,7 @@ pub mod abi {
 
 mod build_exports {
     pub use crate::near::build::run as build;
-    #[cfg(feature = "cli_exports")]
+    #[cfg(feature = "docker")]
     pub use crate::types::near::build::input::BuildContext;
     pub use crate::types::near::build::input::Opts as BuildOpts;
     pub use crate::types::near::build::input::{CliDescription, ColorPreference};

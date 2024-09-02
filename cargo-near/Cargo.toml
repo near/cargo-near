@@ -23,7 +23,7 @@ license = false
 eula = false
 
 [dependencies]
-cargo-near-build = { version = "0.1.0", path = "../cargo-near-build", features = ["docker"] }
+cargo-near-build = { version = "0.1.0", path = "../cargo-near-build", features = ["abi_build", "docker"] }
 clap = { version = "4.0.18", features = ["derive", "env"] }
 colored = "2.0"
 env_logger = "0.11.5"

@@ -41,9 +41,8 @@ targets = ["x86_64-unknown-linux-gnu"]
 [features]
 default = []
 build_script = []
-cli_exports = [] 
+abi_build = [] 
 docker = [
-  "cli_exports",
   "dep:url", "dep:serde", "dep:git2", 
   "dep:home", "dep:pathdiff", "dep:unix_path", 
   "dep:tempfile", "dep:nix"
