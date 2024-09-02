@@ -1,7 +1,9 @@
 use camino::Utf8PathBuf;
 
+#[cfg(feature = "cli_exports")]
 use crate::types::near::build::input::ColorPreference;
 
+#[cfg(feature = "cli_exports")]
 #[derive(Default)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default

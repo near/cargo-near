@@ -1,18 +1,18 @@
-use camino::Utf8PathBuf;
-use colored::Colorize;
+use crate::types::cargo::metadata::CrateMetadata;
+use crate::types::near::abi as abi_types;
 
-use crate::{
-    pretty_print,
-    types::{
-        cargo::{manifest_path::ManifestPath, metadata::CrateMetadata},
-        near::abi as abi_types,
-    },
-};
-
-use crate::types::near::build::input::ColorPreference;
 pub mod generate;
 
+#[cfg(feature = "cli_exports")]
 pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
+    // imports #[cfg(feature = "cli_exports")]
+    use crate::{
+        pretty_print,
+        types::{cargo::manifest_path::ManifestPath, near::build::input::ColorPreference},
+    };
+    use camino::Utf8PathBuf;
+    use colored::Colorize;
+
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
