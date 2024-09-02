@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0](https://github.com/near/cargo-near/compare/cargo-near-v0.8.2...cargo-near-v0.9.0) - 2024-09-02
+
+### Added
+- Extracted cargo-near-build into a standalone crate to be able to use it in near-workspaces and other places without the rest of the heavy dependencies of cargo-near ([#198](https://github.com/near/cargo-near/pull/198))
+- Added tracking of `cargo near new` usage to collect statistics of the command usage ([#192](https://github.com/near/cargo-near/pull/192))
+
 ## [0.8.2](https://github.com/near/cargo-near/compare/cargo-near-v0.8.1...cargo-near-v0.8.2) - 2024-08-16
 
 ### Other

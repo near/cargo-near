@@ -568,33 +568,6 @@ dependencies = [
 [[package]]
 name = "cargo-near"
 version = "0.8.2"
-dependencies = [
- "cargo-near-build",
- "clap",
- "color-eyre",
- "colored",
- "derive_more",
- "env_logger",
- "inquire",
- "interactive-clap",
- "interactive-clap-derive",
- "linked-hash-map",
- "log",
- "names",
- "near-cli-rs",
- "reqwest",
- "serde",
- "shell-words",
- "strum",
- "strum_macros",
- "tokio",
- "tracing",
- "tracing-test",
-]
-
-[[package]]
-name = "cargo-near"
-version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b7d99422c06c754d57a42c301f0d3d8a1c8e8d6d62799107bccf83f32e6571"
 dependencies = [
@@ -638,6 +611,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-near"
+version = "0.9.0"
+dependencies = [
+ "cargo-near-build",
+ "clap",
+ "color-eyre",
+ "colored",
+ "derive_more",
+ "env_logger",
+ "inquire",
+ "interactive-clap",
+ "interactive-clap-derive",
+ "linked-hash-map",
+ "log",
+ "names",
+ "near-cli-rs",
+ "reqwest",
+ "serde",
+ "shell-words",
+ "strum",
+ "strum_macros",
+ "tokio",
+ "tracing",
+ "tracing-test",
+]
+
+[[package]]
 name = "cargo-near-build"
 version = "0.1.0"
 dependencies = [
@@ -673,7 +673,7 @@ version = "0.1.0"
 dependencies = [
  "borsh",
  "camino",
- "cargo-near 0.8.2",
+ "cargo-near 0.9.0",
  "cargo-near-build",
  "color-eyre",
  "const_format",
@@ -3137,7 +3137,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cargo-near 0.8.2",
  "chrono",
  "fs2",
  "json-patch",
