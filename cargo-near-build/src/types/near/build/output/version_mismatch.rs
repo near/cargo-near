@@ -3,12 +3,13 @@ use crate::env_keys;
 pub type Version = String;
 
 #[derive(Debug)]
-pub enum VersionMismatch {
+pub(crate) enum VersionMismatch {
     Some {
         environment: Version,
         current_process: Version,
     },
     None,
+    #[cfg(feature = "docker")]
     UnknownFromDocker,
 }
 
@@ -26,6 +27,7 @@ impl std::fmt::Display for VersionMismatch {
                 )
             }
             Self::None => write!(f, "no `cargo-near` version mismatch in nested builds detected",),
+            #[cfg(feature = "docker")]
             Self::UnknownFromDocker => write!(f, "it's unknown if `cargo-near` version mismatch has occurred in docker build environment",),
         }
     }

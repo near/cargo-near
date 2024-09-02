@@ -4,6 +4,7 @@ use std::io::IsTerminal;
 #[cfg(feature = "docker")]
 mod docker_context;
 
+#[cfg(feature = "docker")]
 #[derive(Debug, Clone, Copy)]
 pub enum BuildContext {
     Build,

@@ -25,6 +25,7 @@ pub mod nep330 {
     /// NEP-330 1.1.0
     pub const VERSION: &str = "NEP330_VERSION";
     // ====================== End section =======================================
+    #[cfg(feature = "docker")]
     pub(crate) mod nonspec {
         pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
     }

@@ -2,6 +2,9 @@
 name = "cargo-near-build"
 edition = "2021"
 version = "0.1.0"
+description = "Library for building Rust smart contracts on NEAR, basis of `cargo-near` crate/CLI"
+repository = "https://github.com/near/cargo-near"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 eyre = "0.6.12"
@@ -38,9 +41,8 @@ targets = ["x86_64-unknown-linux-gnu"]
 [features]
 default = []
 build_script = []
-cli_exports = [] 
+abi_build = [] 
 docker = [
-  "cli_exports",
   "dep:url", "dep:serde", "dep:git2", 
   "dep:home", "dep:pathdiff", "dep:unix_path", 
   "dep:tempfile", "dep:nix"
