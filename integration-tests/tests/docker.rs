@@ -19,7 +19,7 @@ fn test_docker_build() -> cargo_near::CliResult {
                 args.manifest_path = Some(cargo_path.into());
                 args
             };
-            args.run(cargo_near::commands::build_command::BuildContext::Build)?;
+            args.run(cargo_near_build::BuildContext::Build)?;
         }
         _ => {
             unreachable!("another cmd is set by `cargo near build`");

@@ -1,7 +1,7 @@
 use std::env;
 use std::io::{IsTerminal, Write};
 
-use cargo_near::commands::build_command::NEP330_BUILD_ENVIRONMENT_ENV_KEY;
+use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 use log::Level;
@@ -13,7 +13,7 @@ use cargo_near::Cmd;
 fn main() -> CliResult {
     let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
 
-    let environment = if std::env::var(NEP330_BUILD_ENVIRONMENT_ENV_KEY).is_ok() {
+    let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
         "container".cyan()
     } else {
         "host".purple()
@@ -76,6 +76,8 @@ fn main() -> CliResult {
         env::args().next().unwrap_or("./cargo".to_string())
     };
 
+    let console_command_path = console_command_path.yellow();
+
     loop {
         match <Cmd as interactive_clap::FromCli>::from_cli(
             Some(cli.clone()),
@@ -85,7 +87,7 @@ fn main() -> CliResult {
             | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
                 eprintln!(
                     "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}",
-                    shell_words::join(cli_cmd.to_cli_args())
+                    shell_words::join(cli_cmd.to_cli_args()).yellow()
                 );
                 return Ok(());
             }
@@ -98,7 +100,7 @@ fn main() -> CliResult {
                 if let Some(cli_cmd) = optional_cli_cmd {
                     eprintln!(
                         "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}\n",
-                        shell_words::join(cli_cmd.to_cli_args())
+                        shell_words::join(cli_cmd.to_cli_args()).yellow()
                     );
                 }
                 return Err(err);

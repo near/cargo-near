@@ -7,3 +7,4 @@ changelog_update = false
 name = "cargo-near"
 changelog_update = true
 changelog_path = "./CHANGELOG.md"
+changelog_include = ["cargo-near-build"] 

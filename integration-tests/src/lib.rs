@@ -62,15 +62,15 @@ macro_rules! invoke_cargo_near {
 
         match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
-                let args = cargo_near::commands::abi_command::AbiCommand {
+                let args = cargo_near_build::abi::AbiOpts {
                     no_locked: cmd.no_locked,
                     no_doc: cmd.no_doc,
                     compact_abi: cmd.compact_abi,
-                    out_dir: cmd.out_dir,
+                    out_dir: cmd.out_dir.map(Into::into),
                     manifest_path: Some(cargo_path.into()),
-                    color: cmd.color,
+                    color: cmd.color.map(Into::into),
                 };
-                cargo_near::commands::abi_command::abi::run(args)?;
+                cargo_near_build::abi::build(args)?;
             },
             Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
                 let args = {
@@ -78,7 +78,7 @@ macro_rules! invoke_cargo_near {
                   args.manifest_path = Some(cargo_path.into());
                   args
                 };
-                args.run(cargo_near::commands::build_command::BuildContext::Build)?;
+                args.run(cargo_near_build::BuildContext::Build)?;
             },
             Some(_) => todo!(),
             None => ()
@@ -100,7 +100,7 @@ macro_rules! generate_abi_with {
             $($code)*
         };
 
-        let abi_root: near_abi::AbiRoot =
+        let abi_root: cargo_near_build::near_abi::AbiRoot =
             serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
         abi_root
     }};
@@ -152,7 +152,7 @@ macro_rules! generate_abi_fn {
 
 pub struct BuildResult {
     pub wasm: Vec<u8>,
-    pub abi_root: Option<near_abi::AbiRoot>,
+    pub abi_root: Option<cargo_near_build::near_abi::AbiRoot>,
     pub abi_compressed: Option<Vec<u8>>,
 }
 
@@ -186,7 +186,7 @@ macro_rules! build_with {
         };
 
         let abi_path = result_dir.join(format!("{}_abi.json", function_name!()));
-        let abi_root: Option<near_abi::AbiRoot> = if abi_path.exists() {
+        let abi_root: Option<cargo_near_build::near_abi::AbiRoot> = if abi_path.exists() {
             Some(serde_json::from_slice(&std::fs::read(abi_path)?)?)
         } else {
             None

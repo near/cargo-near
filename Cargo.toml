@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "cargo-near",
+    "cargo-near-build",
     "integration-tests",
 ]
 

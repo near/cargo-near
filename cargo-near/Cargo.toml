@@ -23,23 +23,12 @@ license = false
 eula = false
 
 [dependencies]
-bs58 = "0.5"
-hex = "0.4.3"
-camino = "1.1.1"
-cargo_metadata = "0.18.1"
+cargo-near-build = { version = "0.1.0", path = "../cargo-near-build", features = ["docker"] }
 clap = { version = "4.0.18", features = ["derive", "env"] }
 colored = "2.0"
 env_logger = "0.11.5"
 log = "0.4"
-rustc_version = "0.4"
 serde = "1.0.197"
-serde_json = "1.0"
-sha2 = "0.10"
-symbolic-debuginfo = "8.8"
-schemars = "0.8"
-near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
-libloading = "0.8.3"
-zstd = "0.13"
 color-eyre = "0.6"
 inquire = "0.7"
 strum = { version = "0.24", features = ["derive"] }
@@ -51,14 +40,6 @@ shell-words = "1.0.0"
 interactive-clap = "0.3"
 interactive-clap-derive = "0.3"
 near-cli-rs = { version = "0.14.0", default-features = false }
-dunce = "1"
-tempfile = "3.10.1"
-git2 = "0.19"
-home = "0.5.9"
-pathdiff = { version = "0.2.1", features = ["camino"] }
-unix_path = "1.0.1"
-url = { version = "2.5.0", features = ["serde"] }
-tmp_env = "0.1.1"
 reqwest = "0.12.5"
 tracing = "0.1.40"
 tokio = { version = "1.0", default-features = false, features = [
@@ -68,8 +49,6 @@ tokio = { version = "1.0", default-features = false, features = [
 [dev-dependencies]
 tracing-test = "0.2.5"
 
-[target.'cfg(target_os = "linux")'.dependencies]
-nix = { version = "0.29.0", features = ["user", "process"] }
 
 [features]
 default = ["ledger"]

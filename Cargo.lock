@@ -569,47 +569,27 @@ dependencies = [
 name = "cargo-near"
 version = "0.8.2"
 dependencies = [
- "bs58 0.5.1",
- "camino",
- "cargo_metadata",
+ "cargo-near-build",
  "clap",
  "color-eyre",
  "colored",
  "derive_more",
- "dunce",
  "env_logger",
- "git2",
- "hex",
- "home",
  "inquire",
  "interactive-clap",
  "interactive-clap-derive",
- "libloading",
  "linked-hash-map",
  "log",
  "names",
- "near-abi",
  "near-cli-rs",
- "nix",
- "pathdiff",
  "reqwest",
- "rustc_version",
- "schemars",
  "serde",
- "serde_json",
- "sha2 0.10.8",
  "shell-words",
  "strum",
  "strum_macros",
- "symbolic-debuginfo",
- "tempfile",
- "tmp_env",
  "tokio",
  "tracing",
  "tracing-test",
- "unix_path",
- "url",
- "zstd 0.13.2",
 ]
 
 [[package]]
@@ -658,12 +638,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-near-build"
+version = "0.1.0"
+dependencies = [
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "colored",
+ "dunce",
+ "eyre",
+ "git2",
+ "hex",
+ "home",
+ "libloading",
+ "log",
+ "near-abi",
+ "nix",
+ "pathdiff",
+ "rustc_version",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "symbolic-debuginfo",
+ "tempfile",
+ "unix_path",
+ "url",
+ "zstd 0.13.2",
+]
+
+[[package]]
 name = "cargo-near-integration-tests"
 version = "0.1.0"
 dependencies = [
  "borsh",
  "camino",
  "cargo-near 0.8.2",
+ "cargo-near-build",
  "color-eyre",
  "const_format",
  "env_logger",
@@ -671,7 +682,6 @@ dependencies = [
  "git2",
  "log",
  "minifier",
- "near-abi",
  "near-workspaces",
  "prettyplease 0.2.20",
  "quote",
@@ -2324,15 +2334,15 @@ dependencies = [
 
 [[package]]
 name = "keyring"
-version = "3.1.0"
+version = "3.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e3ffeb4169230bc4f956b7276b688fc203824cc2ace8dc41ceecbd1746011a6"
+checksum = "0c163ef0b9da5ccf44ae4d7c9d24fb1a8750aa1969d484865fc1eedc44b26c09"
 dependencies = [
  "byteorder",
  "dbus-secret-service",
  "openssl",
  "security-framework",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2386,9 +2396,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.156"
+version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5f43f184355eefb8d17fc948dbecf6c13be3c141f20d834ae842193a448c72a"
+checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
 name = "libdbus-sys"
@@ -4334,18 +4344,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.208"
+version = "1.0.207"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cff085d2cb684faa248efb494c39b68e522822ac0de72ccf08109abde717cfb2"
+checksum = "5665e14a49a4ea1b91029ba7d3bca9f299e1f7cfa194388ccc20f14743e784f2"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.208"
+version = "1.0.207"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24008e81ff7613ed8e5ba0cfaf24e2c2f1e5b8a0495711e44fcd4882fca62bcf"
+checksum = "6aea2634c86b0e8ef2cfdc0c340baede54ec27b1e46febd7f80dffb2aa44a00e"
 dependencies = [
  "proc-macro2",
  "quote",
