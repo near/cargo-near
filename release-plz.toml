@@ -7,8 +7,8 @@ changelog_update = false
 name = "cargo-near"
 changelog_update = true
 changelog_path = "./CHANGELOG.md"
-changelog_include = ["cargo-near-build"] 
 
 [[package]]
 name = "cargo-near-build"
-changelog_update = false
+changelog_update = true
+changelog_path = "./cargo-near-build/CHANGELOG.md"
