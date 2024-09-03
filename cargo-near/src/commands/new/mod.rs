@@ -44,7 +44,11 @@ impl NewContext {
                 &new_file_path,
                 new_project_file
                     .content
-                    .replace("cargo-near-new-project-name", project_name),
+                    .replace("cargo-near-new-project-name", project_name)
+                    .replace(
+                        "cargo-near-new-ci-tool-version-self",
+                        env!("CARGO_PKG_VERSION"),
+                    ),
             )
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }

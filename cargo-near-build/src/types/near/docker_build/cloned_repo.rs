@@ -37,7 +37,7 @@ impl ClonedRepo {
                 println!("{}", WARN_BECOMES_ERR.red(),);
                 std::thread::sleep(Duration::new(5, 0));
             }
-            (true, BuildContext::Deploy) => {
+            (true, BuildContext::Deploy { .. }) => {
                 println!(
                     "{}",
                     "Check in Cargo.lock for contract being built into source control.".yellow()

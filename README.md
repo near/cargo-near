@@ -80,6 +80,8 @@ cargo near new
 
 Initializes a new project skeleton to create a contract from a template.
 
+[Example](./docs/workflows.md) of github [workflows](./cargo-near/src/commands/new/new-project-template/.github/workflows) configuration, created by `cargo near new`.
+
 ---
 
 ```console

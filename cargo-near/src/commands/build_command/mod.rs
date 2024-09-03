@@ -48,6 +48,14 @@ pub struct BuildCommand {
 impl BuildCommand {
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
         if self.no_docker() {
+            if let BuildContext::Deploy {
+                skip_git_remote_check: true,
+            } = context
+            {
+                return Err(color_eyre::eyre::eyre!(
+                    "`--skip-git-remote-check` flag is only applicable for docker builds"
+                ));
+            }
             cargo_near_build::build(self.into())
         } else {
             cargo_near_build::docker::build(cargo_near_build::docker::DockerBuildOpts {

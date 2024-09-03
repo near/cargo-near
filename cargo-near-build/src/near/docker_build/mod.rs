@@ -38,17 +38,29 @@ pub fn run(docker_opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
             metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
         })?;
 
-    if let BuildContext::Deploy = docker_opts.context {
-        pretty_print::handle_step(
-            "Performing check that current HEAD has been pushed to remote...",
-            || {
-                git_checks::pushed_to_remote::check(
-                    // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-                    &docker_build_meta.repository.clone().unwrap(),
-                    crate_in_repo.head,
-                )
-            },
-        )?;
+    if let BuildContext::Deploy {
+        skip_git_remote_check,
+    } = docker_opts.context
+    {
+        if !skip_git_remote_check {
+            pretty_print::handle_step(
+                "Performing check that current HEAD has been pushed to remote...",
+                || {
+                    git_checks::pushed_to_remote::check(
+                        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
+                        &docker_build_meta.repository.clone().unwrap(),
+                        crate_in_repo.head,
+                    )
+                },
+            )?;
+        } else {
+            pretty_print::handle_step(
+                "Check that current HEAD has been pushed to remote was configured out by `--skip-git-remote-check` flag",
+                || {
+                    Ok(())
+                },
+            )?;
+        }
     }
     if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
         pretty_print::handle_step("Performing `docker` sanity check...", || {

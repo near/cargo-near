@@ -14,7 +14,7 @@ pub fn check_then_handle(
 ) -> eyre::Result<()> {
     let result = check(repo_root);
     match (result, context) {
-        (Err(err), BuildContext::Deploy) => {
+        (Err(err), BuildContext::Deploy { .. }) => {
             println!(
                 "{}",
                 "Either commit and push, or revert following changes to continue deployment:"

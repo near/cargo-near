@@ -10,6 +10,9 @@ pub struct Contract {
     #[interactive_clap(flatten)]
     /// Specify a build command args:
     build_command_args: build_command::BuildCommand,
+    /// whether to check that code has been pushed to repository during docker build
+    #[interactive_clap(long)]
+    skip_git_remote_check: bool,
     #[interactive_clap(skip_default_input_arg)]
     /// What is the contract account ID?
     contract_account_id: near_cli_rs::types::account_id::AccountId,
@@ -28,7 +31,9 @@ impl ContractContext {
         let file_path = scope
             .build_command_args
             .clone()
-            .run(cargo_near_build::BuildContext::Deploy)?
+            .run(cargo_near_build::BuildContext::Deploy {
+                skip_git_remote_check: scope.skip_git_remote_check,
+            })?
             .path;
 
         Ok(Self(
@@ -82,9 +87,12 @@ impl interactive_clap::FromCli for Contract {
             .clone()
             .expect("Unexpected error");
 
+        let skip_git_remote_check = clap_variant.skip_git_remote_check;
+
         let new_context_scope = InteractiveClapContextScopeForContract {
             build_command_args,
             contract_account_id,
+            skip_git_remote_check,
         };
 
         let output_context =

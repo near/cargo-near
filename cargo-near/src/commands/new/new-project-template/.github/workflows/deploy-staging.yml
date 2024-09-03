@@ -34,10 +34,14 @@ jobs:
             send
 
       - name: Install cargo-near CLI
-        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/download/cargo-near-v0.6.2/cargo-near-installer.sh | sh
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/download/cargo-near-vcargo-near-new-ci-tool-version-self/cargo-near-installer.sh | sh
       - name: Deploy to staging
+        # `--skip-git-remote-check` was used
+        # as pull request git refs `refs/pull/NUMBER/merge` are somewhat harder to access and live only as long as PRs do
+        # 
+        # WASM reproducibility check akin to SourceScan won't be available for staging contracts, deployed from PRs 
         run: |
-          cargo near deploy "${{ env.NEAR_CONTRACT_PR_STAGING_ACCOUNT_ID }}" \
+          cargo near deploy --skip-git-remote-check "${{ env.NEAR_CONTRACT_PR_STAGING_ACCOUNT_ID }}" \
             without-init-call \
             network-config "${{ vars.NEAR_CONTRACT_STAGING_NETWORK }}" \
             sign-with-plaintext-private-key \
