@@ -12,3 +12,4 @@ changelog_path = "./CHANGELOG.md"
 name = "cargo-near-build"
 changelog_update = true
 changelog_path = "./cargo-near-build/CHANGELOG.md"
+git_release_enable = false
