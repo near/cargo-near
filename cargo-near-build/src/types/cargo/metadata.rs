@@ -44,7 +44,7 @@ impl CrateMetadata {
             manifest_path,
             raw_metadata: metadata,
         };
-        log::trace!("crate metadata : {:#?}", crate_metadata);
+        tracing::trace!("crate metadata : {:#?}", crate_metadata);
         Ok(crate_metadata)
     }
 
@@ -57,7 +57,7 @@ impl CrateMetadata {
         } else {
             self.target_directory.clone()
         };
-        log::debug!("resolved output directory: {}", result);
+        tracing::debug!("resolved output directory: {}", result);
         Ok(result)
     }
 
@@ -71,13 +71,13 @@ fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
-    log::info!("Fetching cargo metadata for {}", manifest_path.path);
+    tracing::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
     }
     let cmd = cmd.manifest_path(&manifest_path.path);
-    log::debug!("metadata command: {:#?}", cmd.cargo_command());
+    tracing::debug!("metadata command: {:#?}", cmd.cargo_command());
     let metadata = cmd.exec();
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {

@@ -63,7 +63,7 @@ pub fn run(
                 &container_paths.crate_path,
             ];
             let stdin_is_terminal = std::io::stdin().is_terminal();
-            log::debug!("input device is a tty: {}", stdin_is_terminal);
+            tracing::debug!("input device is a tty: {}", stdin_is_terminal);
             if stdin_is_terminal
                 && std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err()
             {
@@ -75,7 +75,7 @@ pub fn run(
             docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
 
             docker_args.push(&cargo_cmd);
-            log::debug!("docker command : {:?}", docker_args);
+            tracing::debug!("docker command : {:?}", docker_args);
             docker_args
         };
 

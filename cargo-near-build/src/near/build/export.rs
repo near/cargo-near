@@ -1,7 +1,7 @@
 use crate::{env_keys, types::near::build::input::Opts};
 
 pub fn nep_330_build_command(args: &Opts) -> eyre::Result<()> {
-    log::debug!(
+    tracing::debug!(
         "compute `CARGO_NEAR_BUILD_COMMAND`,  current executable: {:?}",
         std::env::args().collect::<Vec<_>>()
     );

@@ -1,46 +1,39 @@
 use std::env;
-use std::io::{IsTerminal, Write};
+use std::io::IsTerminal;
 
 use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
-use log::Level;
+
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{fmt::format, prelude::*};
 
 pub use near_cli_rs::CliResult;
 
 use cargo_near::Cmd;
 
 fn main() -> CliResult {
-    let mut builder = env_logger::Builder::from_env(env_logger::Env::default());
-
     let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
         "container".cyan()
     } else {
         "host".purple()
     };
+    let my_formatter = cargo_near::types::my_formatter::MyFormatter::from_environment(environment);
 
-    builder
-        .format(move |buf, record| {
-            let level = format!("[{}]", record.level());
-            let level = match record.level() {
-                Level::Error => level.red(),
-                Level::Warn => level.yellow(),
-                Level::Info => level.cyan(),
-                Level::Debug => level.truecolor(100, 100, 100),
-                Level::Trace => level.truecolor(200, 200, 200),
-            };
-            let ts = buf.timestamp_seconds();
-            writeln!(
-                buf,
-                " {}-[{}] {}:{} {} - {}",
-                level,
-                environment,
-                record.file().unwrap_or("unknown"),
-                record.line().unwrap_or(0),
-                ts,
-                record.args()
-            )
-        })
+    let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
+
+    let env_filter = EnvFilter::from_default_env();
+
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_line_number(true)
+                .fmt_fields(format)
+                .event_format(my_formatter)
+                .with_filter(env_filter),
+        )
         .init();
 
     match env::var("NO_COLOR") {
