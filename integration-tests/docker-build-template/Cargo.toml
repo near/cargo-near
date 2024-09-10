@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-near-sdk = { version = "5.3" }
+near-sdk = { version = "5.4" }
 
 [package.metadata.near.reproducible_build]
 image = "sourcescan/cargo-near:0.8.2-rust-1.80.1"

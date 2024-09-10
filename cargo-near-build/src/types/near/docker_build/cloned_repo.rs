@@ -67,14 +67,13 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, no_locked).map_err(|err| {
+            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, no_locked).inspect_err(|err| {
             if !no_locked && err.to_string().contains("Cargo.lock is absent") {
                 no_locked_warn_pause(false);
                 println!();
                 println!("{}", "Cargo.lock check was performed against git version of code.".cyan());
                 println!("{}", "Don't forget to check in Cargo.lock into source code for deploy if it's git-ignored...".cyan());
             }
-            err
         })?
         };
         log::info!(
