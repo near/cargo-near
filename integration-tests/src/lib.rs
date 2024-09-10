@@ -2,7 +2,7 @@
 pub mod from_crates_io {
     use const_format::formatcp;
 
-    pub const SDK_VERSION: &str = "5.2.1";
+    pub const SDK_VERSION: &str = "5.4.0";
     pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
 }
 
@@ -10,8 +10,8 @@ pub mod from_crates_io {
 pub mod from_git {
     use const_format::formatcp;
 
-    pub const SDK_VERSION: &str = "5.2.1";
-    pub const SDK_REVISION: &str = "5c9eaeaad596f42df7002446beca63f819791c5f";
+    pub const SDK_VERSION: &str = "5.4.0";
+    pub const SDK_REVISION: &str = "9c68e71bf3ac51f9e8cec4b871890b15b5ac0b35";
     pub const SDK_SHORT_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
     pub const SDK_REPO: &str = "https://github.com/near/near-sdk-rs.git";
     pub const SDK_VERSION_TOML: &str =

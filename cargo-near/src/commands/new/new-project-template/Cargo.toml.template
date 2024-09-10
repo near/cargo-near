@@ -15,9 +15,9 @@ crate-type = ["cdylib", "rlib"]
 # in https://github.com/near/NEPs/blob/master/neps/nep-0330.md 
 [package.metadata.near.reproducible_build]
 # docker image, descriptor of build environment
-image = "sourcescan/cargo-near:0.8.2-rust-1.80.1"
+image = "sourcescan/cargo-near:0.8.2-rust-1.81.0"
 # tag after colon above serves only descriptive purpose; image is identified by digest
-image_digest = "sha256:2cbb36ee1c09afe81c200ff3ee76c3222b30afaf33d34bf0133c194b3d0d9857"
+image_digest = "sha256:3b5e6efa1d0cef710009f9cc20c845d316187cc170455edc5ba7fdf471c19655"
 # build command inside of docker container 
 # if docker image from default gallery is used https://hub.docker.com/r/sourcescan/cargo-near/tags,
 # the command may be any combination of flags of `cargo-near`,
@@ -30,7 +30,7 @@ near-sdk = "5.4"
 
 [dev-dependencies]
 near-sdk = { version = "5.4", features = ["unit-testing"] }
-near-workspaces = { version = "0.12.0", features = ["unstable"] }
+near-workspaces = { version = "0.13.0", features = ["unstable"] }
 tokio = { version = "1.12.0", features = ["full"] }
 serde_json = "1"
 
