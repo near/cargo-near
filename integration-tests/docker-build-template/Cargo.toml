@@ -16,8 +16,8 @@ crate-type = ["cdylib", "rlib"]
 near-sdk = { version = "5.4" }
 
 [package.metadata.near.reproducible_build]
-image = "sourcescan/cargo-near:git-e3c8adb4b5542cbfc159bb1534f2b94c900c1648-1.80.0"
-image_digest = "sha256:4bbcdf985936e1cb9b71c627a00cb9b53546ac0c9ef6b175da2918c1dea21363"
+image = "sourcescan/cargo-near:0.8.2-rust-1.80.1"
+image_digest = "sha256:2cbb36ee1c09afe81c200ff3ee76c3222b30afaf33d34bf0133c194b3d0d9857"
 container_build_command = ["cargo", "near", "build"]
 
 [profile.release]
