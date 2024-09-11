@@ -10,13 +10,13 @@ pub fn wasm32_exists() -> bool {
     match result {
         Ok(wasm32_target_libdir_path) => {
             if wasm32_target_libdir_path.exists() {
-                log::info!(
+                tracing::info!(
                     "Found {COMPILATION_TARGET} in {:?}",
                     wasm32_target_libdir_path
                 );
                 true
             } else {
-                log::info!(
+                tracing::info!(
                     "Failed to find {COMPILATION_TARGET} in {:?}",
                     wasm32_target_libdir_path
                 );
@@ -24,7 +24,7 @@ pub fn wasm32_exists() -> bool {
             }
         }
         Err(_) => {
-            log::error!("Some error in getting the target libdir, trying rustup..");
+            tracing::error!("Some error in getting the target libdir, trying rustup..");
 
             invoke_rustup(["target", "list", "--installed"])
                 .map(|stdout| {
@@ -62,7 +62,7 @@ where
     let mut cmd = Command::new(rustup);
     cmd.args(args);
 
-    log::info!("Invoking rustup: {:?}", cmd);
+    tracing::info!("Invoking rustup: {:?}", cmd);
 
     let child = cmd
         .stdout(std::process::Stdio::piped())

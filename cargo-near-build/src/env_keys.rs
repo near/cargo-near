@@ -31,7 +31,7 @@ pub mod nep330 {
     }
 
     pub(crate) fn print_env() {
-        log::info!("Variables, relevant for reproducible builds:");
+        tracing::info!("Variables, relevant for reproducible builds:");
         for key in [
             BUILD_ENVIRONMENT,
             BUILD_COMMAND,
@@ -41,7 +41,7 @@ pub mod nep330 {
             let value = std::env::var(key)
                 .map(|val| format!("'{}'", val))
                 .unwrap_or("unset".to_string());
-            log::info!("{}={}", key, value);
+            tracing::info!("{}={}", key, value);
         }
     }
 }

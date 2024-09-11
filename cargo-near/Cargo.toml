@@ -29,8 +29,6 @@ cargo-near-build = { version = "0.1.0", path = "../cargo-near-build", features =
 ] }
 clap = { version = "4.0.18", features = ["derive", "env"] }
 colored = "2.0"
-env_logger = "0.11.5"
-log = "0.4"
 serde = "1.0.197"
 color-eyre = "0.6"
 inquire = "0.7"
@@ -44,7 +42,13 @@ interactive-clap = "0.3"
 interactive-clap-derive = "0.3"
 near-cli-rs = { version = "0.15.0", default-features = false }
 reqwest = "0.12.5"
+indicatif = "0.17.8"
+indenter = "0.3"
+tracing-core = "0.1.32"
 tracing = "0.1.40"
+tracing-log = "0.2.0"
+tracing-indicatif = "0.3.6"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tokio = { version = "1.0", default-features = false, features = [
     "rt-multi-thread",
 ] }

@@ -76,7 +76,7 @@ impl ClonedRepo {
             }
         })?
         };
-        log::info!(
+        tracing::info!(
             "obtained tmp_crate_metadata.target_directory: {}",
             tmp_crate_metadata.target_directory
         );

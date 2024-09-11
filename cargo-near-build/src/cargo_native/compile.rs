@@ -121,7 +121,7 @@ where
 
     if let Some(path) = working_dir {
         let path = crate::fs::force_canonicalize_dir(path.as_ref())?;
-        log::debug!("Setting cargo working dir to '{}'", path);
+        tracing::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
 
@@ -134,7 +134,7 @@ where
         ColorPreference::Never => cmd.args(["--color", "never"]),
     };
 
-    log::info!("Invoking cargo: {:?}", cmd);
+    tracing::info!("Invoking cargo: {:?}", cmd);
 
     let mut child = cmd
         // capture the stdout to return from this function as bytes

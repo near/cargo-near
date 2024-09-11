@@ -50,7 +50,7 @@ impl Crate {
                     crate_root: initial_crate_root.clone(),
                     head,
                 };
-                log::debug!("crate in repo: {:?}", result);
+                tracing::debug!("crate in repo: {:?}", result);
                 Ok(result)
             }
         }
