@@ -474,6 +474,7 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-indicatif",
+ "tracing-log",
  "tracing-subscriber",
  "tracing-test",
 ]

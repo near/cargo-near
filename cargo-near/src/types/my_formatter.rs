@@ -1,6 +1,7 @@
 use colored::Colorize;
 use tracing::Level;
 use tracing_core::{Event, Subscriber};
+use tracing_log::NormalizeEvent;
 use tracing_subscriber::fmt::{
     format::{self, FormatEvent, FormatFields},
     FmtContext,
@@ -29,10 +30,11 @@ where
         mut writer: format::Writer<'_>,
         event: &Event<'_>,
     ) -> std::fmt::Result {
-        let metadata = event.metadata();
+        let normalized_meta = event.normalized_metadata();
+        let metadata = normalized_meta.as_ref().unwrap_or_else(|| event.metadata());
 
         let level = format!("[{}]", metadata.level());
-        let level = match *metadata.level() {
+        let fmt_level = match *metadata.level() {
             Level::ERROR => level.red(),
             Level::WARN => level.yellow(),
             Level::INFO => level.cyan(),
@@ -43,7 +45,7 @@ where
         write!(
             &mut writer,
             "{}-[{}] {}:{} - ",
-            level,
+            fmt_level,
             self.environment,
             metadata.file().unwrap_or("log"),
             metadata.line().unwrap_or_default()

@@ -29,9 +29,8 @@ fn main() -> CliResult {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::fmt::layer()
-                .with_line_number(true)
-                .fmt_fields(format)
                 .event_format(my_formatter)
+                .fmt_fields(format)
                 .with_filter(env_filter),
         )
         .init();

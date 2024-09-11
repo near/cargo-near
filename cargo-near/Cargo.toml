@@ -46,6 +46,7 @@ indicatif = "0.17.8"
 indenter = "0.3"
 tracing-core = "0.1.32"
 tracing = "0.1.40"
+tracing-log = "0.2.0"
 tracing-indicatif = "0.3.6"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tokio = { version = "1.0", default-features = false, features = [
