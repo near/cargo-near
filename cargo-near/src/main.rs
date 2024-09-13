@@ -5,6 +5,8 @@ use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 
+use indicatif::ProgressStyle;
+use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
@@ -24,16 +26,64 @@ fn main() -> CliResult {
 
     let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
 
-    let env_filter = EnvFilter::from_default_env();
+    let cli = match Cmd::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => error.exit(),
+    };
 
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::fmt::layer()
-                .event_format(my_formatter)
-                .fmt_fields(format)
-                .with_filter(env_filter),
-        )
-        .init();
+    if env::var("RUST_LOG").is_ok() {
+        tracing_subscriber::registry()
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .event_format(my_formatter)
+                    .fmt_fields(format)
+                    .with_filter(EnvFilter::from_default_env()),
+            )
+            .init();
+    } else if cli.teach_me {
+        let env_filter = EnvFilter::from_default_env()
+            .add_directive(tracing::Level::WARN.into())
+            .add_directive("near_teach_me=info".parse()?)
+            .add_directive("near_cli_rs=info".parse()?);
+        tracing_subscriber::registry()
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .without_time()
+                    .with_target(false),
+            )
+            .with(env_filter)
+            .init();
+    } else {
+        let indicatif_layer = IndicatifLayer::new()
+            .with_progress_style(
+                ProgressStyle::with_template(
+                    "{spinner:.blue}{span_child_prefix} {span_name} {msg} {span_fields}",
+                )
+                .unwrap()
+                .tick_strings(&[
+                    "▹▹▹▹▹",
+                    "▸▹▹▹▹",
+                    "▹▸▹▹▹",
+                    "▹▹▸▹▹",
+                    "▹▹▹▸▹",
+                    "▹▹▹▹▸",
+                    "▪▪▪▪▪",
+                ]),
+            )
+            .with_span_child_prefix_symbol("↳ ");
+        let env_filter = EnvFilter::from_default_env()
+            .add_directive(tracing::Level::WARN.into())
+            .add_directive("near_cli_rs=info".parse()?);
+        tracing_subscriber::registry()
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .without_time()
+                    .with_writer(indicatif_layer.get_stderr_writer()),
+            )
+            .with(indicatif_layer)
+            .with(env_filter)
+            .init();
+    };
 
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => colored::control::set_override(false),
@@ -49,10 +99,6 @@ fn main() -> CliResult {
     color_eyre::config::HookBuilder::default()
         .display_env_section(display_env_section)
         .install()?;
-    let cli = match Cmd::try_parse() {
-        Ok(cli) => cli,
-        Err(error) => error.exit(),
-    };
 
     let global_context = near_cli_rs::GlobalContext {
         config,
