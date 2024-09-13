@@ -450,9 +450,9 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.8.2"
+version = "0.9.0"
 dependencies = [
- "cargo-near-build 0.1.0",
+ "cargo-near-build 0.1.1",
  "clap",
  "color-eyre",
  "colored",
@@ -482,6 +482,30 @@ dependencies = [
 [[package]]
 name = "cargo-near-build"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "110e4e3b4dc5187c77581a49866018db00c1f4b1b108762aea203e1f35b14445"
+dependencies = [
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "colored",
+ "dunce",
+ "eyre",
+ "hex",
+ "libloading",
+ "log",
+ "near-abi",
+ "rustc_version",
+ "schemars",
+ "serde_json",
+ "sha2 0.10.8",
+ "symbolic-debuginfo",
+ "zstd 0.13.2",
+]
+
+[[package]]
+name = "cargo-near-build"
+version = "0.1.1"
 dependencies = [
  "bs58 0.5.1",
  "camino",
@@ -510,37 +534,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "cargo-near-build"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "110e4e3b4dc5187c77581a49866018db00c1f4b1b108762aea203e1f35b14445"
-dependencies = [
- "bs58 0.5.1",
- "camino",
- "cargo_metadata",
- "colored",
- "dunce",
- "eyre",
- "hex",
- "libloading",
- "log",
- "near-abi",
- "rustc_version",
- "schemars",
- "serde_json",
- "sha2 0.10.8",
- "symbolic-debuginfo",
- "zstd 0.13.2",
-]
-
-[[package]]
 name = "cargo-near-integration-tests"
 version = "0.1.0"
 dependencies = [
  "borsh",
  "camino",
  "cargo-near",
- "cargo-near-build 0.1.0",
+ "cargo-near-build 0.1.1",
  "color-eyre",
  "const_format",
  "env_logger",
@@ -2833,7 +2833,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near-build 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cargo-near-build 0.1.0",
  "chrono",
  "fs2",
  "json-patch",
