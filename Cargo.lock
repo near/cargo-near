@@ -500,6 +500,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.8",
+ "shell-words",
  "symbolic-debuginfo",
  "tempfile",
  "tracing",

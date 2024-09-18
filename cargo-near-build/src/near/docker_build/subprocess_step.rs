@@ -46,8 +46,13 @@ pub fn run(
 
         let env = env_vars::EnvVars::new(&docker_build_meta, cloned_repo)?;
         let env_args = env.docker_args();
-        let cargo_cmd = opts
-            .get_cli_build_command_in_docker(docker_build_meta.container_build_command.clone())?;
+        let cargo_cmd = {
+            let cargo_cmd = opts.get_cli_build_command_in_docker(
+                docker_build_meta.container_build_command.clone(),
+            )?;
+            tracing::debug!("cli_build_command_in_docker {:#?}", cargo_cmd);
+            shell_words::join(cargo_cmd)
+        };
         println!("{} {}", "build command in container:".green(), cargo_cmd);
 
         let docker_args = {
@@ -75,7 +80,7 @@ pub fn run(
             docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
 
             docker_args.push(&cargo_cmd);
-            tracing::debug!("docker command : {:?}", docker_args);
+            tracing::debug!("docker command : {:#?}", docker_args);
             docker_args
         };
 
