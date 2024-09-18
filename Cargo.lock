@@ -461,7 +461,6 @@ dependencies = [
  "indicatif",
  "inquire",
  "interactive-clap",
- "interactive-clap-derive",
  "linked-hash-map",
  "names",
  "near-cli-rs",
@@ -1942,10 +1941,9 @@ dependencies = [
 [[package]]
 name = "interactive-clap"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b1e6acfe2ceaaa893a54c57d445a820d3b0fa4c6187b67b3f69fd07473c726e"
+source = "git+https://github.com/dj8yfo/interactive-clap.git?branch=multiple_vec_attr#04dd1267e78b31d2d950a4ff137855d7c2f76af0"
 dependencies = [
- "interactive-clap-derive",
+ "interactive-clap-derive 0.3.0 (git+https://github.com/dj8yfo/interactive-clap.git?branch=multiple_vec_attr)",
  "strum",
  "strum_macros",
 ]
@@ -1955,6 +1953,17 @@ name = "interactive-clap-derive"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab1ce8e6ef82771b125341b0a6bd5eb45888b01235aa61125ecc72cc22be4738"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "interactive-clap-derive"
+version = "0.3.0"
+source = "git+https://github.com/dj8yfo/interactive-clap.git?branch=multiple_vec_attr#04dd1267e78b31d2d950a4ff137855d7c2f76af0"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2491,7 +2500,7 @@ dependencies = [
  "indicatif",
  "inquire",
  "interactive-clap",
- "interactive-clap-derive",
+ "interactive-clap-derive 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "keyring",
  "linked-hash-map",
  "near-abi",

@@ -16,6 +16,7 @@ pub enum BuildContext {
 /// [std::default::Default] implementation is derived:
 /// - `false` for `bool`-s,
 /// - `None` - for `Option`-s
+/// - empty vector - for `Vec`
 /// - delegates to [impl Default for CliDescription](struct.CliDescription.html#impl-Default-for-CliDescription)
 #[derive(Debug, Default, Clone)]
 pub struct Opts {
@@ -43,6 +44,9 @@ pub struct Opts {
     /// description of cli command, where [BuildOpts](crate::BuildOpts) are being used from, either real
     /// or emulated
     pub cli_description: CliDescription,
+    /// additional environment key-value pairs, that should be passed to underlying
+    /// build commands
+    pub env: Vec<(String, String)>,
 }
 
 /// used as field in [BuildOpts](crate::BuildOpts)
