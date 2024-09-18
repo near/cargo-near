@@ -1940,30 +1940,20 @@ dependencies = [
 
 [[package]]
 name = "interactive-clap"
-version = "0.3.0"
-source = "git+https://github.com/dj8yfo/interactive-clap.git?branch=multiple_vec_attr#e0a04e2ffa903012baa467dbb6c67d0e4476498a"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b0f7ba4a74027eb091780d5f44c60ab8d7d7bcb0770af33ef024d4e7d1c8cf3"
 dependencies = [
- "interactive-clap-derive 0.3.0 (git+https://github.com/dj8yfo/interactive-clap.git?branch=multiple_vec_attr)",
+ "interactive-clap-derive",
  "strum",
  "strum_macros",
 ]
 
 [[package]]
 name = "interactive-clap-derive"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab1ce8e6ef82771b125341b0a6bd5eb45888b01235aa61125ecc72cc22be4738"
-dependencies = [
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "interactive-clap-derive"
-version = "0.3.0"
-source = "git+https://github.com/dj8yfo/interactive-clap.git?branch=multiple_vec_attr#e0a04e2ffa903012baa467dbb6c67d0e4476498a"
+checksum = "bdced66b21ea0b5ce63c96e34ebfdadf05cf74594a5659d2bdd5d2c8cf586fa0"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2500,7 +2490,7 @@ dependencies = [
  "indicatif",
  "inquire",
  "interactive-clap",
- "interactive-clap-derive 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "interactive-clap-derive",
  "keyring",
  "linked-hash-map",
  "near-abi",
