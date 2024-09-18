@@ -50,7 +50,15 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
-    let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
+    let mut build_env = {
+        let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
+        build_env.extend(
+            args.env
+                .iter()
+                .map(|(key, value)| (key.as_ref(), value.as_ref())),
+        );
+        build_env
+    };
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     let cargo_feature_args = {
         let mut feat_args = vec![];
