@@ -76,14 +76,22 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let (builder_version, builder_version_mismatch) =
         VersionMismatch::get_coerced_builder_version()?;
     if !args.no_abi {
-        let mut contract_abi = abi::generate::procedure(
-            &crate_metadata,
-            args.no_locked,
-            !args.no_doc,
-            true,
-            &cargo_feature_args,
-            color.clone(),
-        )?;
+        let mut contract_abi = {
+            let env = args
+                .env
+                .iter()
+                .map(|(key, value)| (key.as_ref(), value.as_ref()))
+                .collect::<Vec<_>>();
+            abi::generate::procedure(
+                &crate_metadata,
+                args.no_locked,
+                !args.no_doc,
+                true,
+                &cargo_feature_args,
+                env,
+                color.clone(),
+            )?
+        };
 
         let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {

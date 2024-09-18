@@ -16,6 +16,7 @@ pub fn procedure(
     generate_docs: bool,
     hide_warnings: bool,
     cargo_feature_args: &[&str],
+    env: Vec<(&str, &str)>,
     color: ColorPreference,
 ) -> eyre::Result<near_abi::AbiRoot> {
     let root_node = crate_metadata
@@ -68,15 +69,20 @@ pub fn procedure(
 
     pretty_print::step("Generating ABI");
 
-    let dylib_artifact = cargo_native::compile::run::<Dylib>(
-        &crate_metadata.manifest_path,
-        cargo_args.as_slice(),
-        vec![
+    let compile_env = {
+        let mut compile_env = vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
-        ],
+        ];
+        compile_env.extend_from_slice(&env);
+        compile_env
+    };
+    let dylib_artifact = cargo_native::compile::run::<Dylib>(
+        &crate_metadata.manifest_path,
+        cargo_args.as_slice(),
+        compile_env,
         hide_warnings,
         color,
     )?;

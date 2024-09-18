@@ -38,6 +38,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
         !args.no_doc,
         false,
         &[],
+        vec![],
         color,
     )?;
     let abi_types::Result { path } = write_to_file(
