@@ -111,6 +111,16 @@ impl Opts {
             color = color_arg.to_string();
             cargo_args.extend(&["--color", &color]);
         }
+
+        let equal_pairs: Vec<String> = self
+            .env
+            .iter()
+            .map(|(key, value)| [key.as_str(), value.as_str()].join("="))
+            .collect();
+        equal_pairs.iter().for_each(|equal_pair| {
+            cargo_args.extend(&["--env", &equal_pair]);
+        });
+
         cargo_args
             .into_iter()
             .map(|el| el.to_string())
@@ -165,5 +175,32 @@ impl ColorPreference {
             ColorPreference::Always => colored::control::set_override(true),
             ColorPreference::Never => colored::control::set_override(false),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_opts_get_cli_build_command_for_env_vals() {
+        let opts = super::Opts {
+            env: vec![
+                ("KEY".into(), "VALUE".into()),
+                (
+                    "GOOGLE_QUERY".into(),
+                    "https://www.google.com/search?q=google+translate&sca_esv=3c150c50f502bc5d"
+                        .into(),
+                ),
+            ],
+            ..Default::default()
+        };
+
+        assert_eq!(opts.get_cli_build_command(), ["cargo".to_string(),
+             "near".to_string(),
+             "build".to_string(),
+             "--env".to_string(),
+             "KEY=VALUE".to_string(),
+             "--env".to_string(),
+             "GOOGLE_QUERY=https://www.google.com/search?q=google+translate&sca_esv=3c150c50f502bc5d".to_string()]);
     }
 }
