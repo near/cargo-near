@@ -1,6 +1,7 @@
 use std::process::Stdio;
 
 use color_eyre::eyre::{ContextCompat, WrapErr};
+use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 use crate::posthog_tracking;
 
@@ -16,10 +17,12 @@ pub struct New {
 pub struct NewContext;
 
 impl NewContext {
+    #[tracing::instrument(name = "Creating a new project:", skip_all)]
     pub fn from_previous_context(
         _previous_context: near_cli_rs::GlobalContext,
         scope: &<New as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
+        tracing::Span::current().pb_set_message(&format!("'{}' ...", scope.project_dir));
         let project_dir: &std::path::Path = scope.project_dir.as_ref();
 
         if project_dir.exists() {
@@ -61,61 +64,7 @@ impl NewContext {
             .spawn(posthog_tracking::track_usage)
             .unwrap();
 
-        let status = std::process::Command::new("git")
-            .arg("init")
-            .current_dir(project_dir)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()?;
-        if !status.success() {
-            return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `git init`"
-            ));
-        }
-
-        let child = std::process::Command::new("cargo")
-            .arg("update")
-            .current_dir(project_dir)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-        let output = child.wait_with_output()?;
-        if !output.status.success() {
-            println!("{}", String::from_utf8_lossy(&output.stderr));
-            return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `cargo update`"
-            ));
-        }
-
-        let status = std::process::Command::new("git")
-            .arg("add")
-            .arg("-A")
-            .current_dir(project_dir)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()?;
-        if !status.success() {
-            return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `git add -A`"
-            ));
-        }
-
-        let child = std::process::Command::new("git")
-            .arg("commit")
-            .arg("-m")
-            .arg("init")
-            .arg("--author=nearprotocol-ci <nearprotocol-ci@near.org>")
-            .current_dir(project_dir)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-        let output = child.wait_with_output()?;
-        if !output.status.success() {
-            println!("{}", String::from_utf8_lossy(&output.stderr));
-            return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
-            ));
-        }
+        execute_git_commands(project_dir)?;
 
         println!("New project is created at '{}'.\n", project_dir.display());
         println!("Now you can build, test, and deploy your project using cargo-near:");
@@ -131,6 +80,71 @@ impl NewContext {
 
         Ok(Self)
     }
+}
+
+#[tracing::instrument(name = "Sending a tracking request ...")]
+fn track_request() {
+    let _detached_thread_handle = std::thread::Builder::new()
+        .spawn(posthog_tracking::track_usage)
+        .unwrap();
+}
+
+#[tracing::instrument(name = "The process of executing `git` commands ...", skip_all)]
+fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult {
+    let status = std::process::Command::new("git")
+        .arg("init")
+        .current_dir(project_dir)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()?;
+    if !status.success() {
+        return Err(color_eyre::eyre::eyre!(
+            "Failed to execute process: `git init`"
+        ));
+    }
+
+    let child = std::process::Command::new("cargo")
+        .arg("update")
+        .current_dir(project_dir)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let output = child.wait_with_output()?;
+    if !output.status.success() {
+        println!("{}", String::from_utf8_lossy(&output.stderr));
+        return Err(color_eyre::eyre::eyre!(
+            "Failed to execute process: `cargo update`"
+        ));
+    }
+
+    let status = std::process::Command::new("git")
+        .arg("add")
+        .arg("-A")
+        .current_dir(project_dir)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()?;
+    if !status.success() {
+        return Err(color_eyre::eyre::eyre!(
+            "Failed to execute process: `git add -A`"
+        ));
+    }
+
+    let status = std::process::Command::new("git")
+        .arg("commit")
+        .arg("-m")
+        .arg("init")
+        .current_dir(project_dir)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()?;
+    if !status.success() {
+        return Err(color_eyre::eyre::eyre!(
+            "Failed to execute process: `git commit -m init`"
+        ));
+    }
+
+    Ok(())
 }
 
 struct NewProjectFile {
