@@ -15,9 +15,14 @@ crate-type = ["cdylib", "rlib"]
 # in https://github.com/near/NEPs/blob/master/neps/nep-0330.md 
 [package.metadata.near.reproducible_build]
 # docker image, descriptor of build environment
-image = "sourcescan/cargo-near:0.8.2-rust-1.81.0"
+# TODO: replace with git-image tag after publish 
+image = "sourcescan/cargo-near:git-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-1.81.0"
 # tag after colon above serves only descriptive purpose; image is identified by digest
-image_digest = "sha256:3b5e6efa1d0cef710009f9cc20c845d316187cc170455edc5ba7fdf471c19655"
+image_digest = "sha256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# list of environment variables names, whose values, if set, will be used as external build parameters
+# in a reproducible manner
+# supported by `git-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-1.81.0` image or later images
+passed_env = []
 # build command inside of docker container 
 # if docker image from default gallery is used https://hub.docker.com/r/sourcescan/cargo-near/tags,
 # the command may be any combination of flags of `cargo-near`,
