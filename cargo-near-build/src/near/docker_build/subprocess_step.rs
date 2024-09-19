@@ -49,11 +49,13 @@ pub fn run(
         let cargo_cmd = {
             let cargo_cmd = opts.get_cli_build_command_in_docker(
                 docker_build_meta.container_build_command.clone(),
+                docker_build_meta.passed_env.clone(),
             )?;
             tracing::debug!("cli_build_command_in_docker {:#?}", cargo_cmd);
             shell_words::join(cargo_cmd)
         };
         println!("{} {}", "build command in container:".green(), cargo_cmd);
+        println!();
 
         let docker_args = {
             let mut docker_args = vec![

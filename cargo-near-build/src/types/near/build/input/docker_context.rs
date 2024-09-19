@@ -19,6 +19,7 @@ impl super::Opts {
     pub fn get_cli_build_command_in_docker(
         &self,
         manifest_command: Option<Vec<String>>,
+        passed_env: Option<Vec<String>>,
     ) -> eyre::Result<Vec<String>> {
         manifest_command.map_or_else(
             || {
@@ -28,7 +29,32 @@ impl super::Opts {
                 );
                 Ok(self.passthrough_some_opts_into_docker_cmd())
             },
-            |manifest_command| {
+            |mut manifest_command| {
+                let suffix_env = passed_env.into_iter().flatten().filter(|env_key| {
+                    std::env::var(env_key).is_ok()
+                }).flat_map(|env_key| {
+                    println!(
+                        "{}{}{}", 
+                        "detected environment build parameter, which has been set: `".cyan(), 
+                        env_key.yellow(),
+                        "`".cyan(),
+                    );
+                    let value = std::env::var(&env_key).unwrap();
+                    let pair = [env_key, value].join("=");
+                    ["--env".to_string(), pair]
+                }).collect::<Vec<_>>();
+
+                if !suffix_env.is_empty() {
+                    println!("{}{}{}",
+                        "(listed in `".cyan(), 
+                        "passed_env".yellow(), 
+                        "` from `[package.metadata.near.reproducible_build]` in Cargo.toml)".cyan(),
+                    );
+                    println!();
+                }
+
+
+                manifest_command.extend(suffix_env);
 
                 self.check_conflicts_with_manifest_command()?;
                 Ok(manifest_command)

@@ -31,7 +31,11 @@ impl std::fmt::Display for ReproducibleBuild {
         writeln!(f, "    {}: {}", "image", self.image)?;
         writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
         if let Some(ref passed_env) = self.passed_env {
-            writeln!(f, "    {}: {:?}", "passed environment variables", passed_env)?;
+            writeln!(
+                f,
+                "    {}: {:?}",
+                "passed environment variables", passed_env
+            )?;
         } else {
             writeln!(
                 f,
