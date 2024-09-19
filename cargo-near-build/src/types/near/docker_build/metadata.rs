@@ -11,6 +11,7 @@ use crate::types::cargo::metadata::CrateMetadata;
 pub struct ReproducibleBuild {
     image: String,
     image_digest: String,
+    pub passed_env: Option<Vec<String>>,
     pub container_build_command: Option<Vec<String>>,
     /// a clonable git remote url,
     /// currently, only ones, starting with `https://`, are supported;
@@ -29,6 +30,16 @@ impl std::fmt::Display for ReproducibleBuild {
 
         writeln!(f, "    {}: {}", "image", self.image)?;
         writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
+        if let Some(ref passed_env) = self.passed_env {
+            writeln!(f, "    {}: {:?}", "passed environment variables", passed_env)?;
+        } else {
+            writeln!(
+                f,
+                "    {}: {}",
+                "passed environment variables",
+                "ABSENT".green()
+            )?;
+        }
         if let Some(ref cmd) = self.container_build_command {
             writeln!(f, "    {}: {:?}", "container build command", cmd)?;
         } else {
@@ -84,7 +95,6 @@ impl ReproducibleBuild {
         Ok(())
     }
     fn validate_container_build_command(&self) -> eyre::Result<()> {
-        
         let is_cargo_near = {
             let build_command = self.container_build_command.clone().unwrap_or_default();
             Some("cargo") == build_command.first().map(AsRef::as_ref)
@@ -157,6 +167,14 @@ impl ReproducibleBuild {
         self.validate_container_build_command()?;
         self.validate_if_unknown_keys_present()?;
         self.validate_repository()?;
+
+        if self.passed_env.is_some() && self.container_build_command.is_none() {
+            return Err(eyre::eyre!(
+                    "{}: \n{}",
+                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    "using optional `passed_env` field requires that `container_build_command` is set too",
+                ));
+        }
         Ok(())
     }
     pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
