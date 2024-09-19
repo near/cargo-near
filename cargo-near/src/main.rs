@@ -44,7 +44,8 @@ fn main() -> CliResult {
         let env_filter = EnvFilter::from_default_env()
             .add_directive(tracing::Level::WARN.into())
             .add_directive("near_teach_me=info".parse()?)
-            .add_directive("near_cli_rs=info".parse()?);
+            .add_directive("near_cli_rs=info".parse()?)
+            .add_directive("cargo_near=info".parse()?);
         tracing_subscriber::registry()
             .with(
                 tracing_subscriber::fmt::layer()
@@ -73,7 +74,8 @@ fn main() -> CliResult {
             .with_span_child_prefix_symbol("↳ ");
         let env_filter = EnvFilter::from_default_env()
             .add_directive(tracing::Level::WARN.into())
-            .add_directive("near_cli_rs=info".parse()?);
+            .add_directive("near_cli_rs=info".parse()?)
+            .add_directive("cargo_near=info".parse()?);
         tracing_subscriber::registry()
             .with(
                 tracing_subscriber::fmt::layer()
