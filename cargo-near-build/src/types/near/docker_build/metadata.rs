@@ -53,7 +53,7 @@ impl std::fmt::Display for ReproducibleBuild {
 }
 
 impl ReproducibleBuild {
-    fn validate(&self) -> eyre::Result<()> {
+    fn validate_image(&self) -> eyre::Result<()> {
         if self
             .image
             .chars()
@@ -66,6 +66,9 @@ impl ReproducibleBuild {
                 "`image`: string contains invalid characters",
             ));
         }
+        Ok(())
+    }
+    fn validate_image_digest(&self) -> eyre::Result<()> {
         if self
             .image_digest
             .chars()
@@ -78,6 +81,10 @@ impl ReproducibleBuild {
                 "`image_digest`: string contains invalid characters",
             ));
         }
+        Ok(())
+    }
+    fn validate_container_build_command(&self) -> eyre::Result<()> {
+        
         let is_cargo_near = {
             let build_command = self.container_build_command.clone().unwrap_or_default();
             Some("cargo") == build_command.first().map(AsRef::as_ref)
@@ -103,6 +110,10 @@ impl ReproducibleBuild {
                 ));
             }
         }
+        Ok(())
+    }
+
+    fn validate_if_unknown_keys_present(&self) -> eyre::Result<()> {
         if !self.unknown_keys.is_empty() {
             let keys = self
                 .unknown_keys
@@ -114,6 +125,10 @@ impl ReproducibleBuild {
                 keys.join(",")
             ));
         }
+        Ok(())
+    }
+
+    fn validate_repository(&self) -> eyre::Result<()> {
         match self.repository {
             Some(ref repository) => {
                 if repository.scheme() != "https" {
@@ -133,6 +148,15 @@ impl ReproducibleBuild {
                 ));
             }
         }
+        Ok(())
+    }
+
+    fn validate(&self) -> eyre::Result<()> {
+        self.validate_image()?;
+        self.validate_image_digest()?;
+        self.validate_container_build_command()?;
+        self.validate_if_unknown_keys_present()?;
+        self.validate_repository()?;
         Ok(())
     }
     pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
