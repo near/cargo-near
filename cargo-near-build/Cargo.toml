@@ -38,6 +38,9 @@ nix = { version = "0.29.0", features = ["user", "process"], optional = true }
 features = ["build_script"]
 targets = ["x86_64-unknown-linux-gnu"]
 
+[package.metadata.dist]
+dist = false
+
 [features]
 default = []
 build_script = []
