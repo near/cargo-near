@@ -150,9 +150,10 @@ impl super::Opts {
         }
         if !self.env.is_empty() {
             return Err(eyre::eyre!(format!(
-                "`{}` {}",
+                "`{}` {}\n{}",
                 "--env",
-                Self::BUILD_COMMAND_CLI_CONFIG_ERR
+                Self::BUILD_COMMAND_CLI_CONFIG_ERR,
+                "You can specify environment vars in `passed_env` list in `[package.metadata.near.reproducible_build]` instead"
             )));
         }
         Ok(())
