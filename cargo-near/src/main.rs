@@ -7,37 +7,40 @@ use interactive_clap::ToCliArgs;
 
 use indicatif::ProgressStyle;
 use tracing_indicatif::IndicatifLayer;
+use tracing_subscriber::fmt::format;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::{fmt::format, prelude::*};
+use tracing_subscriber::{filter::filter_fn, prelude::*};
 
 pub use near_cli_rs::CliResult;
 
 use cargo_near::Cmd;
 
 fn main() -> CliResult {
-    let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
-        "container".cyan()
-    } else {
-        "host".purple()
-    };
-    let my_formatter = cargo_near::types::my_formatter::MyFormatter::from_environment(environment);
-
-    let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
-
     let cli = match Cmd::try_parse() {
         Ok(cli) => cli,
         Err(error) => error.exit(),
     };
 
     if env::var("RUST_LOG").is_ok() {
+        let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
+            "container".cyan()
+        } else {
+            "host".purple()
+        };
+        let my_formatter =
+            cargo_near::types::my_formatter::MyFormatter::from_environment(environment);
+
+        let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
+
         tracing_subscriber::registry()
             .with(
                 tracing_subscriber::fmt::layer()
                     .event_format(my_formatter)
                     .fmt_fields(format)
-                    .with_filter(EnvFilter::from_default_env()),
+                    .with_filter(EnvFilter::from_default_env())
+                    .with_filter(filter_fn(|metadata| metadata.target() != "near_teach_me")),
             )
             .init();
     } else if cli.teach_me {
