@@ -31,6 +31,7 @@ impl super::Opts {
                 Ok(self.passthrough_some_opts_into_docker_cmd())
             },
             |mut manifest_command| {
+                self.check_flag_conflicts_with_manifest_command()?;
                 let suffix_env = passed_env.into_iter().flatten().filter(|env_key| {
                     std::env::var(env_key).is_ok()
                 }).flat_map(|env_key| {
@@ -57,7 +58,6 @@ impl super::Opts {
 
                 manifest_command.extend(suffix_env);
 
-                self.check_conflicts_with_manifest_command()?;
                 Ok(manifest_command)
             }
         )
@@ -101,7 +101,7 @@ impl super::Opts {
         cli_command_prefix.extend(cli_args);
         cli_command_prefix
     }
-    fn check_conflicts_with_manifest_command(&self) -> eyre::Result<()> {
+    fn check_flag_conflicts_with_manifest_command(&self) -> eyre::Result<()> {
         // NOTE: `--no-locked` is allowed for docker builds
         // if self.no_locked {
         //     no-op
