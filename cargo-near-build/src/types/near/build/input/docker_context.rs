@@ -27,6 +27,7 @@ impl super::Opts {
                     "{}",
                     "configuring `container_build_command` from cli args, passed to current command".cyan()
                 );
+                println!();
                 Ok(self.passthrough_some_opts_into_docker_cmd())
             },
             |mut manifest_command| {
