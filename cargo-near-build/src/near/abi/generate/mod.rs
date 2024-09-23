@@ -16,7 +16,7 @@ pub fn procedure(
     generate_docs: bool,
     hide_warnings: bool,
     cargo_feature_args: &[&str],
-    env: Vec<(&str, &str)>,
+    env: &[(&str, &str)],
     color: ColorPreference,
 ) -> eyre::Result<near_abi::AbiRoot> {
     let root_node = crate_metadata

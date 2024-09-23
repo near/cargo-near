@@ -96,7 +96,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 !args.no_doc,
                 true,
                 &cargo_feature_args,
-                env,
+                &env,
                 color.clone(),
             )?
         };
