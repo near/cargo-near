@@ -70,14 +70,13 @@ pub fn procedure(
     pretty_print::step("Generating ABI");
 
     let compile_env = {
-        let mut compile_env = vec![
+        let compile_env = vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ];
-        compile_env.extend_from_slice(&env);
-        compile_env
+        [&compile_env, env].concat()
     };
     let dylib_artifact = cargo_native::compile::run::<Dylib>(
         &crate_metadata.manifest_path,
