@@ -82,8 +82,10 @@ fn track_request() {
         .unwrap();
 }
 
-#[tracing::instrument(name = "The process of executing `git` commands ...", skip_all)]
+#[tracing::instrument(name = "The process of executing", skip_all)]
 fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult {
+    tracing::Span::current().pb_set_message("`git` commands ...");
+    tracing::info!(target: "near_teach_me", "`git init`");
     let status = std::process::Command::new("git")
         .arg("init")
         .current_dir(project_dir)
@@ -96,6 +98,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
+    tracing::info!(target: "near_teach_me", "`cargo update`");
     let child = std::process::Command::new("cargo")
         .arg("update")
         .current_dir(project_dir)
@@ -110,6 +113,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
+    tracing::info!(target: "near_teach_me", "`git add -A`");
     let status = std::process::Command::new("git")
         .arg("add")
         .arg("-A")
@@ -123,6 +127,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
+    tracing::info!(target: "near_teach_me", "`git commit -m init`");
     let status = std::process::Command::new("git")
         .arg("commit")
         .arg("-m")
