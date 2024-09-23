@@ -17,7 +17,11 @@ pub struct New {
 pub struct NewContext;
 
 impl NewContext {
-    #[tracing::instrument(name = "Creating a new project:", skip_all)]
+    #[tracing::instrument(
+        target = "tracing_instrument",
+        name = "Creating a new project:",
+        skip_all
+    )]
     pub fn from_previous_context(
         _previous_context: near_cli_rs::GlobalContext,
         scope: &<New as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
@@ -82,14 +86,18 @@ impl NewContext {
     }
 }
 
-#[tracing::instrument(name = "Sending a tracking request ...")]
+#[tracing::instrument(target = "tracing_instrument", name = "Sending a tracking request ...")]
 fn track_request() {
     let _detached_thread_handle = std::thread::Builder::new()
         .spawn(posthog_tracking::track_usage)
         .unwrap();
 }
 
-#[tracing::instrument(name = "The process of executing", skip_all)]
+#[tracing::instrument(
+    target = "tracing_instrument",
+    name = "The process of executing",
+    skip_all
+)]
 fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult {
     tracing::Span::current().pb_set_message("`git` commands ...");
     tracing::info!(target: "near_teach_me", "`git init`");
