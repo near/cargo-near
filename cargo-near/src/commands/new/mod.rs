@@ -27,6 +27,8 @@ impl NewContext {
         scope: &<New as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         tracing::Span::current().pb_set_message(&format!("'{}' ...", scope.project_dir));
+        tracing::info!(target: "near_teach_me", "'{}' ...", scope.project_dir);
+
         let project_dir: &std::path::Path = scope.project_dir.as_ref();
 
         if project_dir.exists() {
@@ -88,6 +90,7 @@ impl NewContext {
 
 #[tracing::instrument(target = "tracing_instrument", name = "Sending a tracking request ...")]
 fn track_request() {
+    tracing::Span::current();
     let _detached_thread_handle = std::thread::Builder::new()
         .spawn(posthog_tracking::track_usage)
         .unwrap();
@@ -100,7 +103,7 @@ fn track_request() {
 )]
 fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult {
     tracing::Span::current().pb_set_message("`git` commands ...");
-    tracing::info!(target: "near_teach_me", "`git init`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git init`");
     let status = std::process::Command::new("git")
         .arg("init")
         .current_dir(project_dir)
@@ -113,7 +116,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", "`cargo update`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `cargo update`");
     let child = std::process::Command::new("cargo")
         .arg("update")
         .current_dir(project_dir)
@@ -128,7 +131,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", "`git add -A`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git add -A`");
     let status = std::process::Command::new("git")
         .arg("add")
         .arg("-A")
@@ -142,7 +145,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", "`git commit -m init`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git commit -m init`");
     let status = std::process::Command::new("git")
         .arg("commit")
         .arg("-m")

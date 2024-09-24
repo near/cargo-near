@@ -48,7 +48,7 @@ fn main() -> CliResult {
             .add_directive(tracing::Level::WARN.into())
             .add_directive("near_teach_me=info".parse()?)
             .add_directive("near_cli_rs=info".parse()?)
-            .add_directive("cargo_near=info".parse()?);
+            .add_directive("tracing_instrument=info".parse()?);
         tracing_subscriber::registry()
             .with(
                 tracing_subscriber::fmt::layer()
