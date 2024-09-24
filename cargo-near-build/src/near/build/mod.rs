@@ -82,7 +82,11 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .map(|(key, value)| (key.as_ref(), value.as_ref()))
                 .collect::<Vec<_>>();
 
-            // nep330_build_cmd.append_borrowed_to(&mut env);
+            // required, otherwise `message: Build Details Extension field not provided or malformed: \
+            // "`NEP330_BUILD_INFO_BUILD_COMMAND` is required, when \
+            // `NEP330_BUILD_INFO_BUILD_ENVIRONMENT` is set, but it's either not set or empty!"`
+            // when generating abi in docker build
+            nep330_build_cmd.append_borrowed_to(&mut env);
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
