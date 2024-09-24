@@ -51,6 +51,11 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
     let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
+    build_env.extend(
+        args.env
+            .iter()
+            .map(|(key, value)| (key.as_ref(), value.as_ref())),
+    );
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     let cargo_feature_args = {
         let mut feat_args = vec![];
@@ -76,14 +81,22 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let (builder_version, builder_version_mismatch) =
         VersionMismatch::get_coerced_builder_version()?;
     if !args.no_abi {
-        let mut contract_abi = abi::generate::procedure(
-            &crate_metadata,
-            args.no_locked,
-            !args.no_doc,
-            true,
-            &cargo_feature_args,
-            color.clone(),
-        )?;
+        let mut contract_abi = {
+            let env = args
+                .env
+                .iter()
+                .map(|(key, value)| (key.as_ref(), value.as_ref()))
+                .collect::<Vec<_>>();
+            abi::generate::procedure(
+                &crate_metadata,
+                args.no_locked,
+                !args.no_doc,
+                true,
+                &cargo_feature_args,
+                &env,
+                color.clone(),
+            )?
+        };
 
         let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {

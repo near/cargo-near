@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
@@ -43,10 +45,23 @@ pub struct BuildCommand {
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
+    /// env overrides in the form of `"KEY=VALUE"` strings
+    #[interactive_clap(long_vec_multiple_opt)]
+    pub env: Vec<String>,
 }
 
 impl BuildCommand {
+    fn validate_env_opt(&self) -> color_eyre::eyre::Result<()> {
+        for pair in self.env.iter() {
+            pair.split_once('=').ok_or(color_eyre::eyre::eyre!(
+                "invalid \"key=value\" environment argument (must contain '='): {}",
+                pair
+            ))?;
+        }
+        Ok(())
+    }
     pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
+        self.validate_env_opt()?;
         if self.no_docker() {
             if let BuildContext::Deploy {
                 skip_git_remote_check: true,
@@ -83,8 +98,23 @@ impl From<CliBuildCommand> for BuildCommand {
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
             color: value.color,
+            env: value.env,
         }
     }
+}
+
+fn get_env_key_vals(input: Vec<String>) -> Vec<(String, String)> {
+    let iterator = input.iter().flat_map(|pair_string| {
+        pair_string
+            .split_once('=')
+            .map(|(env_key, value)| (env_key.to_string(), value.to_string()))
+    });
+
+    let dedup_map: HashMap<String, String> = HashMap::from_iter(iterator);
+
+    let result = dedup_map.into_iter().collect();
+    tracing::trace!("passed additional environment pairs: {:#?}", result);
+    result
 }
 
 impl From<BuildCommand> for BuildOpts {
@@ -101,6 +131,7 @@ impl From<BuildCommand> for BuildOpts {
             manifest_path: value.manifest_path.map(Into::into),
             color: value.color.map(Into::into),
             cli_description: Default::default(),
+            env: get_env_key_vals(value.env),
         }
     }
 }
@@ -124,6 +155,7 @@ impl BuildCommandlContext {
             features: scope.features.clone(),
             no_default_features: scope.no_default_features,
             color: scope.color.clone(),
+            env: scope.env.clone(),
         };
         args.run(BuildContext::Build)?;
         Ok(Self)
