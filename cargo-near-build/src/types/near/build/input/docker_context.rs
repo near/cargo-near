@@ -40,34 +40,35 @@ impl super::Opts {
         passed_env: Option<Vec<String>>,
     ) -> eyre::Result<Vec<String>> {
         self.check_flag_conflicts_with_manifest_command()?;
-        let suffix_env = passed_env
-            .into_iter()
-            .flatten()
-            .filter(|env_key| std::env::var(env_key).is_ok())
-            .flat_map(|env_key| {
+        if let Some(passed_env) = passed_env {
+            let suffix_env = passed_env
+                .into_iter()
+                .filter(|env_key| std::env::var(env_key).is_ok())
+                .flat_map(|env_key| {
+                    println!(
+                        "{}{}{}",
+                        "detected environment build parameter, which has been set: `".cyan(),
+                        env_key.yellow(),
+                        "`".cyan(),
+                    );
+                    let value = std::env::var(&env_key).unwrap();
+                    let pair = [env_key, value].join("=");
+                    ["--env".to_string(), pair]
+                })
+                .collect::<Vec<_>>();
+
+            if !suffix_env.is_empty() {
                 println!(
                     "{}{}{}",
-                    "detected environment build parameter, which has been set: `".cyan(),
-                    env_key.yellow(),
-                    "`".cyan(),
+                    "(listed in `".cyan(),
+                    "passed_env".yellow(),
+                    "` from `[package.metadata.near.reproducible_build]` in Cargo.toml)".cyan(),
                 );
-                let value = std::env::var(&env_key).unwrap();
-                let pair = [env_key, value].join("=");
-                ["--env".to_string(), pair]
-            })
-            .collect::<Vec<_>>();
+                println!();
+            }
 
-        if !suffix_env.is_empty() {
-            println!(
-                "{}{}{}",
-                "(listed in `".cyan(),
-                "passed_env".yellow(),
-                "` from `[package.metadata.near.reproducible_build]` in Cargo.toml)".cyan(),
-            );
-            println!();
+            manifest_command.extend(suffix_env);
         }
-
-        manifest_command.extend(suffix_env);
 
         Ok(manifest_command)
     }
