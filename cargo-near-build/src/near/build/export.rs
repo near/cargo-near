@@ -1,6 +1,6 @@
-use crate::{env_keys, types::near::build::input::Opts};
+use crate::types::near::build::{buildtime_exports::Nep330BuildCommand, input::Opts};
 
-pub fn nep_330_build_command(args: &Opts) -> eyre::Result<()> {
+pub fn nep_330_build_command(args: &Opts) -> eyre::Result<Nep330BuildCommand> {
     tracing::debug!(
         "compute `CARGO_NEAR_BUILD_COMMAND`,  current executable: {:?}",
         std::env::args().collect::<Vec<_>>()
@@ -24,9 +24,6 @@ pub fn nep_330_build_command(args: &Opts) -> eyre::Result<()> {
         }
     };
 
-    std::env::set_var(
-        env_keys::nep330::BUILD_COMMAND,
-        serde_json::to_string(&env_value)?,
-    );
-    Ok(())
+    let command = Nep330BuildCommand::new(serde_json::to_string(&env_value)?);
+    Ok(command)
 }

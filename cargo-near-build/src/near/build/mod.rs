@@ -26,7 +26,7 @@ pub mod export;
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     VersionMismatch::export_builder_and_near_abi_versions();
-    export::nep_330_build_command(&args)?;
+    let nep330_build_cmd = export::nep_330_build_command(&args)?;
     env_keys::nep330::print_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
@@ -50,12 +50,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
 
-    let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
-    build_env.extend(
-        args.env
-            .iter()
-            .map(|(key, value)| (key.as_ref(), value.as_ref())),
-    );
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     let cargo_feature_args = {
         let mut feat_args = vec![];
@@ -82,11 +76,13 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         VersionMismatch::get_coerced_builder_version()?;
     if !args.no_abi {
         let mut contract_abi = {
-            let env = args
+            let mut env = args
                 .env
                 .iter()
                 .map(|(key, value)| (key.as_ref(), value.as_ref()))
                 .collect::<Vec<_>>();
+
+            // nep330_build_cmd.append_borrowed_to(&mut env);
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
@@ -121,20 +117,32 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     cargo_args.extend(cargo_feature_args);
 
-    if let (false, Some(abi_path)) = (args.no_embed_abi, &min_abi_path) {
+    if let (false, Some(..)) = (args.no_embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
-        build_env.push(("CARGO_NEAR_ABI_PATH", abi_path.as_str()));
     }
 
     let version = crate_metadata.root_package.version.to_string();
-    build_env.push((env_keys::nep330::VERSION, &version));
-    // this will be set in docker builds (externally to current process), having more info about git commit
-    if std::env::var(env_keys::nep330::LINK).is_err() {
-        if let Some(ref repository) = crate_metadata.root_package.repository {
-            build_env.push((env_keys::nep330::LINK, repository));
-        }
-    }
 
+    let build_env = {
+        let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
+        build_env.extend(
+            args.env
+                .iter()
+                .map(|(key, value)| (key.as_ref(), value.as_ref())),
+        );
+        if let (false, Some(abi_path)) = (args.no_embed_abi, &min_abi_path) {
+            build_env.push((env_keys::CARGO_NEAR_ABI_PATH, abi_path.as_str()));
+        }
+        build_env.push((env_keys::nep330::VERSION, &version));
+        // this will be set in docker builds (externally to current process), having more info about git commit
+        if std::env::var(env_keys::nep330::LINK).is_err() {
+            if let Some(ref repository) = crate_metadata.root_package.repository {
+                build_env.push((env_keys::nep330::LINK, repository));
+            }
+        }
+        nep330_build_cmd.append_borrowed_to(&mut build_env);
+        build_env
+    };
     pretty_print::step("Building contract");
     let mut wasm_artifact = cargo_native::compile::run::<Wasm>(
         &crate_metadata.manifest_path,
