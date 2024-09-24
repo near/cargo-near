@@ -134,7 +134,7 @@ where
         ColorPreference::Never => cmd.args(["--color", "never"]),
     };
 
-    tracing::info!("Invoking cargo: {:?}", cmd);
+    tracing::info!("Invoking cargo: {:#?}", cmd);
 
     let mut child = cmd
         // capture the stdout to return from this function as bytes

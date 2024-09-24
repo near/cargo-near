@@ -142,9 +142,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.88"
+version = "1.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e1496f8fb1fbf272686b8d37f523dab3e4a7443300055e74cdaa449f3114356"
+checksum = "86fdf8605db99b54d3cd748a44c6d04df638eb5dafb219b135d0149bd0db01f6"
 
 [[package]]
 name = "arbitrary"
@@ -157,9 +157,9 @@ dependencies = [
 
 [[package]]
 name = "arrayref"
-version = "0.3.8"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d151e35f61089500b617991b791fc8bfd237ae50cd5950803758a179b41e67a"
+checksum = "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb"
 
 [[package]]
 name = "arrayvec"
@@ -405,9 +405,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.7.1"
+version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
+checksum = "428d9aa8fbc0670b7b8d6030a7fadd0f86151cae55e4dbbece15f3780a3dfaf3"
 
 [[package]]
 name = "bytesize"
@@ -462,7 +462,6 @@ dependencies = [
  "indicatif",
  "inquire",
  "interactive-clap",
- "interactive-clap-derive",
  "linked-hash-map",
  "names",
  "near-cli-rs",
@@ -479,30 +478,6 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "tracing-test",
-]
-
-[[package]]
-name = "cargo-near-build"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "110e4e3b4dc5187c77581a49866018db00c1f4b1b108762aea203e1f35b14445"
-dependencies = [
- "bs58 0.5.1",
- "camino",
- "cargo_metadata",
- "colored",
- "dunce",
- "eyre",
- "hex",
- "libloading",
- "log",
- "near-abi",
- "rustc_version",
- "schemars",
- "serde_json",
- "sha2 0.10.8",
- "symbolic-debuginfo",
- "zstd 0.13.2",
 ]
 
 [[package]]
@@ -527,11 +502,36 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.8",
+ "shell-words",
  "symbolic-debuginfo",
  "tempfile",
  "tracing",
  "unix_path",
  "url",
+ "zstd 0.13.2",
+]
+
+[[package]]
+name = "cargo-near-build"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd00f13698319e43d9af5b1afc7045131342f3097dd78320a09bb6303bbf2d06"
+dependencies = [
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "colored",
+ "dunce",
+ "eyre",
+ "hex",
+ "libloading",
+ "near-abi",
+ "rustc_version",
+ "schemars",
+ "serde_json",
+ "sha2 0.10.8",
+ "symbolic-debuginfo",
+ "tracing",
  "zstd 0.13.2",
 ]
 
@@ -609,9 +609,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.18"
+version = "1.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62ac837cdb5cb22e10a256099b4fc502b1dfe560cb282963a974d7abd80e476"
+checksum = "07b1695e2c7e8fc85310cde85aeaab7e3097f593c91d209d3f9df76c928100f0"
 dependencies = [
  "jobserver",
  "libc",
@@ -1805,9 +1805,9 @@ dependencies = [
 
 [[package]]
 name = "iana-time-zone"
-version = "0.1.60"
+version = "0.1.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7ffbb5a1b541ea2561f8c41c087286cc091e21e556a4f09a8f6cbf17b69b141"
+checksum = "235e081f3925a06703c2d0117ea8b91f042756fd6e7a6e5d901e8ca1a996b220"
 dependencies = [
  "android_system_properties",
  "core-foundation-sys",
@@ -1943,9 +1943,9 @@ dependencies = [
 
 [[package]]
 name = "interactive-clap"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b1e6acfe2ceaaa893a54c57d445a820d3b0fa4c6187b67b3f69fd07473c726e"
+checksum = "3b0f7ba4a74027eb091780d5f44c60ab8d7d7bcb0770af33ef024d4e7d1c8cf3"
 dependencies = [
  "interactive-clap-derive",
  "strum",
@@ -1954,9 +1954,9 @@ dependencies = [
 
 [[package]]
 name = "interactive-clap-derive"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab1ce8e6ef82771b125341b0a6bd5eb45888b01235aa61125ecc72cc22be4738"
+checksum = "bdced66b21ea0b5ce63c96e34ebfdadf05cf74594a5659d2bdd5d2c8cf586fa0"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -2835,7 +2835,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near-build 0.1.0",
+ "cargo-near-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "fs2",
  "json-patch",
@@ -4604,9 +4604,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.22.20"
+version = "0.22.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "583c44c02ad26b0c3f3066fe629275e50627026c51ac2e595cca4c230ce1ce1d"
+checksum = "3b072cee73c449a636ffd6f32bd8de3a9f7119139aff882f44943ce2986dc5cf"
 dependencies = [
  "indexmap 2.5.0",
  "serde",
@@ -4799,9 +4799,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
+checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unicode-width"
