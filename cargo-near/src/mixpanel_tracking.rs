@@ -1,17 +1,19 @@
-use reqwest::Client;
+use base64::{engine::general_purpose, Engine as _};
+use reqwest::{header::HeaderMap, Client};
+use serde::Serialize;
 use std::{env, str};
 use tracing::debug;
 
 const SEND_TRACKING_REQUEST_ERROR: &str = "Can't send tracking usage event";
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize)]
 struct MixpanelProperties {
     token: String,
     pkg_version: String,
     os: String,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize)]
 struct TrackingData {
     event: String,
     properties: MixpanelProperties,
@@ -27,15 +29,22 @@ pub(crate) fn track_usage() {
         event: "CNN".to_string(),
         properties,
     };
+    let serialized_data = serde_json::to_vec(&tracking_data).unwrap();
+    let base64_encoded_data = general_purpose::STANDARD.encode(&serialized_data);
 
     let client = Client::new();
+
+    let mut headers = HeaderMap::new();
+    headers.insert("accept", "text/plain".parse().unwrap());
+    headers.insert("content-type", "application/json".parse().unwrap());
 
     if tokio::runtime::Runtime::new()
         .unwrap()
         .block_on(
             client
-                .post("https://api.mixpanel.com/track")
-                .json(&tracking_data)
+                .get("https://api.mixpanel.com/track")
+                .query(&[("data", base64_encoded_data)])
+                .headers(headers)
                 .send(),
         )
         .is_err()

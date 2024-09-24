@@ -452,6 +452,7 @@ dependencies = [
 name = "cargo-near"
 version = "0.9.0"
 dependencies = [
+ "base64 0.22.1",
  "cargo-near-build 0.1.1",
  "clap",
  "color-eyre",
@@ -466,6 +467,7 @@ dependencies = [
  "near-cli-rs",
  "reqwest",
  "serde",
+ "serde_json",
  "shell-words",
  "strum",
  "strum_macros",
