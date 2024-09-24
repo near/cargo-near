@@ -117,9 +117,9 @@ impl Opts {
             .iter()
             .map(|(key, value)| [key.as_str(), value.as_str()].join("="))
             .collect();
-        equal_pairs.iter().for_each(|equal_pair| {
+        for equal_pair in equal_pairs.iter() {
             cargo_args.extend(&["--env", equal_pair]);
-        });
+        }
 
         cargo_args
             .into_iter()
