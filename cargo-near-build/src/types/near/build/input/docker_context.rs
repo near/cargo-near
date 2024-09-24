@@ -86,22 +86,16 @@ impl super::Opts {
         cli_args.extend(self.no_embed_abi.then_some("--no-embed-abi".into()));
         cli_args.extend(self.no_doc.then_some("--no-doc".into()));
 
-        cli_args.extend(
-            self.features
-                .clone()
-                .into_iter()
-                .flat_map(|features| ["--features".into(), features]),
-        );
+        if let Some(ref features) = self.features {
+            cli_args.extend(["--features".into(), features.clone()]);
+        }
         cli_args.extend(
             self.no_default_features
                 .then_some("--no-default-features".into()),
         );
-        cli_args.extend(
-            self.color
-                .clone()
-                .into_iter()
-                .flat_map(|color| ["--color".into(), color.to_string()]),
-        );
+        if let Some(ref color) = self.color {
+            cli_args.extend(["--color".into(), color.to_string()]);
+        }
         cli_args.extend(self.env.clone().into_iter().flat_map(|(key, value)| {
             let equal_pair = [key, value].join("=");
             ["--env".to_string(), equal_pair]
