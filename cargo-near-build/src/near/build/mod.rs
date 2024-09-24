@@ -1,5 +1,6 @@
 use crate::cargo_native::Wasm;
 use crate::types::near::abi as abi_types;
+use crate::types::near::build::buildtime_env;
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
@@ -21,12 +22,10 @@ use crate::{
 
 use super::abi;
 
-pub mod export;
-
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     VersionMismatch::export_builder_and_near_abi_versions();
-    let nep330_build_cmd = export::nep_330_build_command(&args)?;
+    let nep330_build_cmd_env = buildtime_env::Nep330BuildCommand::compute(&args)?;
     env_keys::nep330::print_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
@@ -86,7 +85,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             // "`NEP330_BUILD_INFO_BUILD_COMMAND` is required, when \
             // `NEP330_BUILD_INFO_BUILD_ENVIRONMENT` is set, but it's either not set or empty!"`
             // when generating abi in docker build
-            nep330_build_cmd.append_borrowed_to(&mut env);
+            nep330_build_cmd_env.append_borrowed_to(&mut env);
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
@@ -125,7 +124,9 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
     }
 
-    let version = crate_metadata.root_package.version.to_string();
+    let nep330_version_env = buildtime_env::Nep330Version::new(&crate_metadata);
+    let nep330_link_env = buildtime_env::Nep330Link::new(&crate_metadata);
+    let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
 
     let build_env = {
         let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
@@ -134,17 +135,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .iter()
                 .map(|(key, value)| (key.as_ref(), value.as_ref())),
         );
-        if let (false, Some(abi_path)) = (args.no_embed_abi, &min_abi_path) {
-            build_env.push((env_keys::CARGO_NEAR_ABI_PATH, abi_path.as_str()));
-        }
-        build_env.push((env_keys::nep330::VERSION, &version));
-        // this will be set in docker builds (externally to current process), having more info about git commit
-        if std::env::var(env_keys::nep330::LINK).is_err() {
-            if let Some(ref repository) = crate_metadata.root_package.repository {
-                build_env.push((env_keys::nep330::LINK, repository));
-            }
-        }
-        nep330_build_cmd.append_borrowed_to(&mut build_env);
+        abi_path_env.append_borrowed_to(&mut build_env);
+        nep330_version_env.append_borrowed_to(&mut build_env);
+        nep330_link_env.append_borrowed_to(&mut build_env);
+        nep330_build_cmd_env.append_borrowed_to(&mut build_env);
         build_env
     };
     pretty_print::step("Building contract");
