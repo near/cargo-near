@@ -33,10 +33,13 @@ where
                 let rustflags: &mut String = final_env
                     .entry(key)
                     .or_insert_with(|| std::env::var(key).unwrap_or_default());
-                if !rustflags.is_empty() {
-                    rustflags.push(' ');
+                // helps avoids situation on complete match `RUSTFLAGS="-C link-arg=-s -C link-arg=-s"`
+                if !rustflags.contains(value) {
+                    if !rustflags.is_empty() {
+                        rustflags.push(' ');
+                    }
+                    rustflags.push_str(value);
                 }
-                rustflags.push_str(value);
             }
             _ => {
                 final_env.insert(key, value.to_string());
