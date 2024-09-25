@@ -16,7 +16,7 @@ use crate::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::build::{input::Opts, output::version_mismatch::VersionMismatch},
+        near::build::{input::Opts, output::version_info::VersionInfo},
     },
 };
 
@@ -24,7 +24,6 @@ use super::abi;
 
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
-    VersionMismatch::export_builder_and_near_abi_versions();
     let nep330_build_cmd_env = buildtime_env::Nep330BuildCommand::compute(&args)?;
     env_keys::nep330::print_env();
 
@@ -71,8 +70,8 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let mut abi = None;
     let mut min_abi_path = None;
-    let (builder_version, builder_version_mismatch) =
-        VersionMismatch::get_coerced_builder_version()?;
+    let builder_version_info = VersionInfo::get_coerced_builder_version()?;
+    let builder_abi_versions_env = builder_version_info.compute_env_variables()?;
     if !args.no_abi {
         let mut contract_abi = {
             let mut env = args
@@ -86,6 +85,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             // `NEP330_BUILD_INFO_BUILD_ENVIRONMENT` is set, but it's either not set or empty!"`
             // when generating abi in docker build
             nep330_build_cmd_env.append_borrowed_to(&mut env);
+            builder_abi_versions_env.append_borrowed_to(&mut env);
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
@@ -100,7 +100,11 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {
             compiler: format!("rustc {}", rustc_version::version()?),
-            builder: format!("{} {}", embedding_binary, builder_version),
+            builder: format!(
+                "{} {}",
+                embedding_binary,
+                builder_version_info.result_builder_version()?
+            ),
             image: None,
         });
         if !args.no_embed_abi {
@@ -139,6 +143,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         nep330_version_env.append_borrowed_to(&mut build_env);
         nep330_link_env.append_borrowed_to(&mut build_env);
         nep330_build_cmd_env.append_borrowed_to(&mut build_env);
+        builder_abi_versions_env.append_borrowed_to(&mut build_env);
         build_env
     };
     pretty_print::step("Building contract");
@@ -151,7 +156,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     )?;
 
     wasm_artifact.path = crate::fs::copy(&wasm_artifact.path, &out_dir)?;
-    wasm_artifact.builder_version_mismatch = builder_version_mismatch;
+    wasm_artifact.builder_version_info = Some(builder_version_info);
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
 

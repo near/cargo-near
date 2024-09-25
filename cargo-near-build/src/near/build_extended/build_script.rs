@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::types::near::build::output::version_mismatch::VersionMismatch;
+use crate::types::near::build::output::version_info::VersionInfo;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build_extended::build_script::Opts;
 use rustc_version::Version;
@@ -59,7 +59,7 @@ impl<'a> Opts<'a> {
                 path: stub_path,
                 fresh: true,
                 from_docker: false,
-                builder_version_mismatch: VersionMismatch::None,
+                builder_version_info: None,
                 artifact_type: PhantomData,
             }
         };
@@ -78,13 +78,14 @@ impl<'a> Opts<'a> {
         } else {
             ":"
         };
-        if let ref version_mismatch @ VersionMismatch::Some { .. } =
-            artifact.builder_version_mismatch
+        if let ref version_info @ Some(VersionInfo::EnvMismatch { .. }) =
+            artifact.builder_version_info
         {
+            let version_info = version_info.as_ref().unwrap();
             print_warn!(
                 version,
                 "INFO: `cargo-near` version was coerced during build: {}.",
-                version_mismatch
+                version_info
             );
             print_warn!(version, "`cargo-near` crate version (used in `build.rs`) did not match `cargo-near` build environment.");
             print_warn!(version, "You may consider to optionally make 2 following versions match exactly, if they're too far away:");

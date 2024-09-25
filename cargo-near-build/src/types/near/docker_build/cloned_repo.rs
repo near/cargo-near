@@ -5,7 +5,7 @@ use std::time::Duration;
 use crate::pretty_print;
 use crate::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use crate::types::cargo::metadata::CrateMetadata;
-use crate::types::near::build::output::version_mismatch::VersionMismatch;
+use crate::types::near::build::output::version_info::VersionInfo;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::types::near::docker_build::WARN_BECOMES_ERR;
 use crate::{camino, BuildArtifact};
@@ -149,7 +149,7 @@ fn copy(
         path: out_wasm_path,
         fresh: true,
         from_docker: true,
-        builder_version_mismatch: VersionMismatch::UnknownFromDocker,
+        builder_version_info: Some(VersionInfo::UnknownFromDocker),
         artifact_type: PhantomData,
     };
     let mut messages = ArtifactMessages::default();

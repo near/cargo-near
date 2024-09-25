@@ -6,10 +6,7 @@ use eyre::{ContextCompat, WrapErr};
 use std::io::BufRead;
 
 use crate::types::near::build::input::ColorPreference;
-use crate::types::{
-    cargo::manifest_path::ManifestPath,
-    near::build::{output::version_mismatch::VersionMismatch, output::CompilationArtifact},
-};
+use crate::types::{cargo::manifest_path::ManifestPath, near::build::output::CompilationArtifact};
 
 use super::ArtifactType;
 
@@ -84,7 +81,7 @@ where
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
-            builder_version_mismatch: VersionMismatch::None,
+            builder_version_info: None,
             artifact_type: PhantomData,
         }),
         _ => eyre::bail!(

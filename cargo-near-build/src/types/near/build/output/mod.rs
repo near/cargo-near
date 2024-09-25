@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::cargo_native::{ArtifactType, Wasm};
 use camino::Utf8PathBuf;
 use sha2::{Digest, Sha256};
-pub mod version_mismatch;
+pub mod version_info;
 
 /// type of success value of result of [build](crate::build) function
 pub struct CompilationArtifact<T: ArtifactType = Wasm> {
@@ -12,7 +12,8 @@ pub struct CompilationArtifact<T: ArtifactType = Wasm> {
     pub fresh: bool,
     /// whether the artifact file originated from docker build or regular build with rust toolchain
     pub from_docker: bool,
-    pub(crate) builder_version_mismatch: version_mismatch::VersionMismatch,
+    /// `None` of `Option` means it hasn't been set yet
+    pub(crate) builder_version_info: Option<version_info::VersionInfo>,
     pub(crate) artifact_type: PhantomData<T>,
 }
 
