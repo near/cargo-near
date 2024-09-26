@@ -62,7 +62,10 @@ impl NewContext {
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
         }
 
-        track_request();
+        let _detached_thread_handle = std::thread::Builder::new()
+            .spawn(mixpanel_tracking::track_usage)
+            .unwrap();
+
         execute_git_commands(project_dir)?;
 
         println!("New project is created at '{}'.\n", project_dir.display());
@@ -79,14 +82,6 @@ impl NewContext {
 
         Ok(Self)
     }
-}
-
-#[tracing::instrument(target = "tracing_instrument", name = "Sending a tracking request ...")]
-fn track_request() {
-    tracing::Span::current();
-    let _detached_thread_handle = std::thread::Builder::new()
-        .spawn(mixpanel_tracking::track_usage)
-        .unwrap();
 }
 
 #[tracing::instrument(
