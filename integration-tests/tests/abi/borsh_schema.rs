@@ -1,13 +1,14 @@
 use crate::util::AsBorshSchema;
 use borsh::schema::{BorshSchemaContainer, Definition, Fields};
-use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
+use cargo_near_integration_tests::{generate_abi, generate_abi_fn, setup_tracing};
 use function_name::named;
 use std::collections::BTreeMap;
 
 #[test]
 #[named]
 fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
-    let _e = env_logger::Builder::from_default_env().try_init();
+    setup_tracing();
+
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
