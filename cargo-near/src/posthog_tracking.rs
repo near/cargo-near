@@ -1,49 +1,51 @@
-use base64::{engine::general_purpose, Engine as _};
 use reqwest::{header::HeaderMap, Client};
 use serde::Serialize;
 use std::{env, str};
 use tracing::debug;
+use rustc_version::version;
 
 const SEND_TRACKING_REQUEST_ERROR: &str = "Can't send tracking usage event";
 
 #[derive(Debug, Serialize)]
-struct MixpanelProperties {
-    token: String,
-    pkg_version: String,
+struct PosthogProperties {
+    language: String,
+    engine: String,
     os: String,
 }
 
 #[derive(Debug, Serialize)]
 struct TrackingData {
+    api_key: String,
     event: String,
-    properties: MixpanelProperties,
+    distinct_id: String,
+    properties: PosthogProperties,
 }
 
 pub(crate) fn track_usage() {
-    let properties = MixpanelProperties {
-        token: "24177ef1ec09ffea5cb6f68909c66a61".to_string(),
-        pkg_version: env!("CARGO_PKG_VERSION").to_string(),
+    let properties = PosthogProperties {
+        language: "rust".to_string(),
+        engine: version().unwrap().to_string(),
         os: env::consts::OS.to_string(),
     };
     let tracking_data = TrackingData {
-        event: "CNN".to_string(),
+        api_key: "phc_bMxqEAiInwlq3FMyZvuFPZ8qdYuVwh9L5YfqRpeFk0I".to_string(),
+        distinct_id: "cargo-near".to_string(),
+        event: "contract".to_string(),
         properties,
     };
     let serialized_data = serde_json::to_vec(&tracking_data).unwrap();
-    let base64_encoded_data = general_purpose::STANDARD.encode(&serialized_data);
 
     let client = Client::new();
 
     let mut headers = HeaderMap::new();
-    headers.insert("accept", "text/plain".parse().unwrap());
     headers.insert("content-type", "application/json".parse().unwrap());
 
     if tokio::runtime::Runtime::new()
         .unwrap()
         .block_on(
             client
-                .get("https://api.mixpanel.com/track")
-                .query(&[("data", base64_encoded_data)])
+                .post("https://eu.i.posthog.com/capture")
+                .body(serialized_data)
                 .headers(headers)
                 .send(),
         )

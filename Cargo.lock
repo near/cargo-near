@@ -466,6 +466,7 @@ dependencies = [
  "names",
  "near-cli-rs",
  "reqwest",
+ "rustc_version",
  "serde",
  "serde_json",
  "shell-words",
