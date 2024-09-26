@@ -1,7 +1,7 @@
 use reqwest::{header::HeaderMap, Client};
 use serde::Serialize;
 use std::{env, str};
-use tracing::debug;
+use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 const SEND_TRACKING_REQUEST_ERROR: &str = "Can't send tracking usage event";
 
@@ -20,6 +20,10 @@ struct TrackingData {
     properties: PosthogProperties,
 }
 
+#[tracing::instrument(
+    target = "tracing_instrument",
+    name = "Sending a tracking request using Mixpanel via url"
+)]
 pub(crate) fn track_usage() {
     let properties = PosthogProperties {
         language: "rs".to_string(),
@@ -36,6 +40,17 @@ pub(crate) fn track_usage() {
 
     let client = Client::new();
 
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "I am making HTTP call to broadcast the tracking data, learn more https://mixpanel.com/"
+    );
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "HTTP GET https://api.mixpanel.com/track",
+    );
+
     let mut headers = HeaderMap::new();
     headers.insert("content-type", "application/json".parse().unwrap());
 
@@ -48,9 +63,23 @@ pub(crate) fn track_usage() {
                 .headers(headers)
                 .send(),
         )
+        .inspect(|response| {
+            tracing::info!(
+                target: "near_teach_me",
+                parent: &tracing::Span::none(),
+                "JSON Response:\n{}",
+                near_cli_rs::common::indent_payload(&format!("{:#?}", response))
+            );
+        })
         .is_err()
     {
-        debug!(SEND_TRACKING_REQUEST_ERROR)
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "JSON RPC Response:\n{}",
+            near_cli_rs::common::indent_payload(SEND_TRACKING_REQUEST_ERROR)
+        );
+        tracing::debug!(SEND_TRACKING_REQUEST_ERROR)
     }
 }
 
