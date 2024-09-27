@@ -132,6 +132,7 @@ impl From<BuildCommand> for BuildOpts {
             color: value.color.map(Into::into),
             cli_description: Default::default(),
             env: get_env_key_vals(value.env),
+            mute_env: vec![],
         }
     }
 }

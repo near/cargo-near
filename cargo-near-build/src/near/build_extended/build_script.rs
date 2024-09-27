@@ -67,7 +67,7 @@ impl<'a> Opts<'a> {
     }
 
     pub(crate) fn post_build(
-        &self,
+        self,
         skipped: bool,
         artifact: &CompilationArtifact,
         workdir: &str,

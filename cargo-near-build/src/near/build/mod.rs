@@ -74,25 +74,31 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let builder_abi_versions_env = builder_version_info.compute_env_variables()?;
     if !args.no_abi {
         let mut contract_abi = {
-            let mut env = args
+            let mut abi_env = args
                 .env
                 .iter()
                 .map(|(key, value)| (key.as_ref(), value.as_ref()))
                 .collect::<Vec<_>>();
 
+            abi_env.extend(
+                args.mute_env
+                    .iter()
+                    .map(|(key, value)| (key.as_ref(), value.as_ref())),
+            );
+
             // required, otherwise `message: Build Details Extension field not provided or malformed: \
             // "`NEP330_BUILD_INFO_BUILD_COMMAND` is required, when \
             // `NEP330_BUILD_INFO_BUILD_ENVIRONMENT` is set, but it's either not set or empty!"`
             // when generating abi in docker build
-            nep330_build_cmd_env.append_borrowed_to(&mut env);
-            builder_abi_versions_env.append_borrowed_to(&mut env);
+            nep330_build_cmd_env.append_borrowed_to(&mut abi_env);
+            builder_abi_versions_env.append_borrowed_to(&mut abi_env);
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
                 !args.no_doc,
                 true,
                 &cargo_feature_args,
-                &env,
+                &abi_env,
                 color.clone(),
             )?
         };
@@ -136,6 +142,12 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         let mut build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
         build_env.extend(
             args.env
+                .iter()
+                .map(|(key, value)| (key.as_ref(), value.as_ref())),
+        );
+
+        build_env.extend(
+            args.mute_env
                 .iter()
                 .map(|(key, value)| (key.as_ref(), value.as_ref())),
         );
