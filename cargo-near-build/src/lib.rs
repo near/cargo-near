@@ -67,7 +67,7 @@ pub use build_exports::*;
 /// Potential import may look like this:
 /// ```ignore
 /// [build-dependencies.cargo-near-build]
-/// version = "0.1.0"
+/// version = "x.y.z"
 /// features = ["build_script"]
 /// ```
 ///
@@ -77,11 +77,16 @@ pub use build_exports::*;
 /// use cargo_near_build::extended::BuildScriptOpts;
 /// let opts = cargo_near_build::extended::BuildOptsExtended {
 ///     workdir: "../another-contract",
-///     env: vec![
-///         // unix path of target contract from root of repo
-///         (cargo_near_build::env_keys::nep330::CONTRACT_PATH, "another-contract")
-///     ],
-///     build_opts: cargo_near_build::BuildOpts::default(),
+///     build_opts: cargo_near_build::BuildOpts {
+///         mute_env: vec![
+///             // unix path of target contract from root of repo
+///             (
+///                 cargo_near_build::env_keys::nep330::CONTRACT_PATH.into(),
+///                 "another-contract".into(),
+///             ),
+///         ],
+///         ..Default::default()
+///     },
 ///     build_script_opts: BuildScriptOpts {
 ///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
 ///         rerun_if_changed_list: vec!["../another-contract", "../Cargo.toml", "../Cargo.lock"],
