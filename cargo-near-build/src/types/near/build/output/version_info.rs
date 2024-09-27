@@ -64,13 +64,13 @@ impl VersionInfo {
 
         let current_process_version = Self::current_builder_version();
         let result = match std::env::var(BuilderAbiVersions::builder_version_env_key()) {
-            Err(_err) => VersionInfo::CurrentProcess(current_process_version.into()),
+            Err(_err) => VersionInfo::CurrentProcess(current_process_version),
             Ok(env_version) => match env_version == current_process_version {
-                true => VersionInfo::CurrentProcess(current_process_version.into()),
+                true => VersionInfo::CurrentProcess(current_process_version),
                 // coercing to env_version on mismatch
                 false => VersionInfo::EnvMismatch {
                     environment: env_version,
-                    current_process: current_process_version.into(),
+                    current_process: current_process_version,
                 },
             },
         };
