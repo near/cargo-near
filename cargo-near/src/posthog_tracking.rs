@@ -28,7 +28,7 @@ pub(crate) fn track_usage() {
         os: env::consts::OS.to_string(),
     };
     let tracking_data = TrackingData {
-        api_key: "phc_bMxqEAiInwlq3FMyZvuFPZ8qdYuVwh9L5YfqRpeFk0I".to_string(),
+        api_key: "phc_95PGQnbyatmj2TBRPWYfhbHfqB6wgZj5QRL8WY9gW20".to_string(),
         distinct_id: "cargo-near".to_string(),
         event: "contract".to_string(),
         properties,
