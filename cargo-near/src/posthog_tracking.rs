@@ -23,7 +23,7 @@ struct TrackingData {
 
 pub(crate) fn track_usage() {
     let properties = PosthogProperties {
-        language: "rust".to_string(),
+        language: "rs".to_string(),
         engine: version().unwrap().to_string(),
         os: env::consts::OS.to_string(),
     };
