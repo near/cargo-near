@@ -12,6 +12,14 @@ pub fn extract_abi_entries(
     let dylib_path: &Utf8Path = &artifact.path;
     let dylib_file_contents = fs::read(dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "A dylib was built at {:?} with format {} for architecture {}",
+        &dylib_path,
+        &object.file_format(),
+        &object.arch()
+    );
     tracing::debug!(
         "A dylib was built at {:?} with format {} for architecture {}",
         &dylib_path,
@@ -26,6 +34,12 @@ pub fn extract_abi_entries(
     if near_abi_symbols.is_empty() {
         eyre::bail!("No NEAR ABI symbols found in the dylib");
     }
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Detected NEAR ABI symbols:\n{}",
+        near_cli_rs::common::indent_payload(&format!("{:#?}", &near_abi_symbols))
+    );
     tracing::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
 
     let mut entries = vec![];

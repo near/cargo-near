@@ -44,6 +44,14 @@ impl CrateMetadata {
             manifest_path,
             raw_metadata: metadata,
         };
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "Crate metadata:\n{}", near_cli_rs::common::indent_payload(
+                "Metadata information is very large. So, if you need it, use the \"RUST_LOG=trace\" flag. \
+                    For example, `RUST_LOG=trace cargo-near near build`"
+            )
+        );
         tracing::trace!("crate metadata : {:#?}", crate_metadata);
         Ok(crate_metadata)
     }
@@ -57,6 +65,11 @@ impl CrateMetadata {
         } else {
             self.target_directory.clone()
         };
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "Resolved output directory: {}", result
+        );
         tracing::debug!("resolved output directory: {}", result);
         Ok(result)
     }
@@ -71,12 +84,23 @@ fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Fetching cargo metadata for {}", manifest_path.path
+    );
     tracing::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
     }
     let cmd = cmd.manifest_path(&manifest_path.path);
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Execution command:\n{}",
+        near_cli_rs::common::indent_payload(&format!("`{:?}`", cmd.cargo_command()).replace("\"", ""))
+    );
     tracing::debug!("metadata command: {:#?}", cmd.cargo_command());
     let metadata = cmd.exec();
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {

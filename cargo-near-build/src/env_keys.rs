@@ -7,6 +7,7 @@ pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VE
 /// module contains variables, which are set to configure build with WASM reproducibility,
 /// which correspond to some fields of `ContractSourceMetadata` in <https://github.com/near/NEPs/blob/master/neps/nep-0330.md>
 pub mod nep330 {
+    use std::collections::HashMap;
 
     // ====================== NEP-330 1.2.0 - Build Details Extension ===========
     /// NEP-330 1.2.0
@@ -31,6 +32,7 @@ pub mod nep330 {
     }
 
     pub(crate) fn print_env() {
+        let mut env_map: HashMap<&str, String> = HashMap::new();
         tracing::info!("Variables, relevant for reproducible builds:");
         for key in [
             BUILD_ENVIRONMENT,
@@ -42,6 +44,16 @@ pub mod nep330 {
                 .map(|val| format!("'{}'", val))
                 .unwrap_or("unset".to_string());
             tracing::info!("{}={}", key, value);
+            env_map.insert(
+                key,
+                value.replace("'", "").replace("\"", "").replace(",", " "),
+            );
         }
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "Variables, relevant for reproducible builds:\n{}",
+            near_cli_rs::common::indent_payload(&format!("{:#?}", env_map))
+        );
     }
 }
