@@ -85,8 +85,8 @@ where
     tracing::info!(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
-        "Invoking rustup: `{}`",
-        format!("{}", format!("{:?}", cmd).replace("\"", ""))
+        "Invoking rustup:\n{}",
+        near_cli_rs::common::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
     );
     tracing::info!(
         "Invoking rustup: `{}`",
