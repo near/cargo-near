@@ -1,5 +1,5 @@
 use crate::extended::BuildScriptOpts;
-use crate::BuildOpts;
+use crate::{BuildImplicitEnvOpts, BuildOpts};
 
 pub mod build_script;
 
@@ -7,5 +7,6 @@ pub mod build_script;
 pub struct OptsExtended<'a> {
     pub workdir: &'a str,
     pub build_opts: BuildOpts,
+    pub build_implicit_env_opts: BuildImplicitEnvOpts,
     pub build_script_opts: BuildScriptOpts<'a>,
 }

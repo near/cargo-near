@@ -4,6 +4,8 @@ use std::io::IsTerminal;
 #[cfg(feature = "docker")]
 mod docker_context;
 
+pub mod implicit_env;
+
 #[cfg(feature = "docker")]
 #[derive(Debug, Clone, Copy)]
 pub enum BuildContext {
@@ -47,13 +49,6 @@ pub struct Opts {
     /// additional environment key-value pairs, that should be passed to underlying
     /// build commands
     pub env: Vec<(String, String)>,
-    /// additional environment key-value pairs, that should be passed to underlying
-    /// build commands
-    ///
-    /// unlike [Self::env] this env is *mute*: it's not reflected in `--env` flag-components of environment
-    /// [crate::env_keys::nep330::BUILD_COMMAND] variable,
-    /// set during build
-    pub mute_env: Vec<(String, String)>,
 }
 
 /// used as field in [BuildOpts](crate::BuildOpts)

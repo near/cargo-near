@@ -67,7 +67,7 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, no_locked).inspect_err(|err| {
+            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, no_locked, None).inspect_err(|err| {
             if !no_locked && err.to_string().contains("Cargo.lock is absent") {
                 no_locked_warn_pause(false);
                 println!();
@@ -104,7 +104,11 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, self.no_locked)?
+            CrateMetadata::collect(
+                ManifestPath::try_from(cargo_toml_path)?,
+                self.no_locked,
+                None,
+            )?
         };
 
         let destination_dir =

@@ -71,7 +71,7 @@ impl BuildCommand {
                     "`--skip-git-remote-check` flag is only applicable for docker builds"
                 ));
             }
-            cargo_near_build::build(self.into())
+            cargo_near_build::build(self.into(), None)
         } else {
             cargo_near_build::docker::build(cargo_near_build::docker::DockerBuildOpts {
                 build_opts: self.into(),
@@ -132,7 +132,6 @@ impl From<BuildCommand> for BuildOpts {
             color: value.color.map(Into::into),
             cli_description: Default::default(),
             env: get_env_key_vals(value.env),
-            mute_env: vec![],
         }
     }
 }

@@ -22,7 +22,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
+        CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked, None)
     })?;
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;

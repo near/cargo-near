@@ -5,6 +5,8 @@ use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
 use eyre::{ContextCompat, WrapErr};
 
+use crate::types::near::build::buildtime_env;
+
 use super::manifest_path::ManifestPath;
 
 /// Relevant metadata obtained from Cargo.toml.
@@ -18,8 +20,13 @@ pub struct CrateMetadata {
 
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
-    pub fn collect(manifest_path: ManifestPath, no_locked: bool) -> eyre::Result<Self> {
-        let (mut metadata, root_package) = get_cargo_metadata(&manifest_path, no_locked)?;
+    pub fn collect(
+        manifest_path: ManifestPath,
+        no_locked: bool,
+        cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
+    ) -> eyre::Result<Self> {
+        let (mut metadata, root_package) =
+            get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
 
         metadata.target_directory = crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
         metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
@@ -70,11 +77,16 @@ impl CrateMetadata {
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
+    cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     tracing::info!("Fetching cargo metadata for {}", manifest_path.path);
     let mut cmd = MetadataCommand::new();
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
+    }
+    if let Some(target_dir) = cargo_target_dir {
+        let (key, value) = target_dir.entry();
+        cmd.env(key, value);
     }
     let cmd = cmd.manifest_path(&manifest_path.path);
     tracing::debug!("metadata command: {:#?}", cmd.cargo_command());

@@ -1,3 +1,5 @@
+/// this is [`CARGO_TARGET_DIR`](https://doc.rust-lang.org/cargo/reference/environment-variables.html)
+pub const CARGO_TARGET_DIR: &str = "CARGO_TARGET_DIR";
 /// this variable is set to `"true"` during ABI generation operation  
 pub const BUILD_RS_ABI_STEP_HINT: &str = "CARGO_NEAR_ABI_GENERATION";
 

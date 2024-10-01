@@ -16,15 +16,26 @@ use crate::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::build::{input::Opts, output::version_info::VersionInfo},
+        near::build::{
+            input::{self, Opts},
+            output::version_info::VersionInfo,
+        },
     },
 };
 
 use super::abi;
 
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
-pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
+pub fn run(
+    args: Opts,
+    implicit_env_opts: Option<input::implicit_env::Opts>,
+) -> eyre::Result<CompilationArtifact> {
     let nep330_build_cmd_env = buildtime_env::Nep330BuildCommand::compute(&args)?;
+
+    let buildtime_env::ExternalEnv {
+        cargo_target_path_env,
+        nep330_contract_path_env,
+    } = implicit_env_opts.into();
     env_keys::nep330::print_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
@@ -43,7 +54,11 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         } else {
             MANIFEST_FILE_NAME.into()
         };
-        CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
+        CrateMetadata::collect(
+            ManifestPath::try_from(manifest_path)?,
+            args.no_locked,
+            cargo_target_path_env.as_ref(),
+        )
     })?;
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
@@ -80,18 +95,16 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .map(|(key, value)| (key.as_ref(), value.as_ref()))
                 .collect::<Vec<_>>();
 
-            abi_env.extend(
-                args.mute_env
-                    .iter()
-                    .map(|(key, value)| (key.as_ref(), value.as_ref())),
-            );
-
             // required, otherwise `message: Build Details Extension field not provided or malformed: \
             // "`NEP330_BUILD_INFO_BUILD_COMMAND` is required, when \
             // `NEP330_BUILD_INFO_BUILD_ENVIRONMENT` is set, but it's either not set or empty!"`
             // when generating abi in docker build
             nep330_build_cmd_env.append_borrowed_to(&mut abi_env);
+            nep330_contract_path_env.append_borrowed_to(&mut abi_env);
             builder_abi_versions_env.append_borrowed_to(&mut abi_env);
+            if let Some(ref target_dir) = cargo_target_path_env {
+                target_dir.append_borrowed_to(&mut abi_env);
+            }
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
@@ -146,16 +159,15 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .map(|(key, value)| (key.as_ref(), value.as_ref())),
         );
 
-        build_env.extend(
-            args.mute_env
-                .iter()
-                .map(|(key, value)| (key.as_ref(), value.as_ref())),
-        );
         abi_path_env.append_borrowed_to(&mut build_env);
         nep330_version_env.append_borrowed_to(&mut build_env);
         nep330_link_env.append_borrowed_to(&mut build_env);
         nep330_build_cmd_env.append_borrowed_to(&mut build_env);
+        nep330_contract_path_env.append_borrowed_to(&mut build_env);
         builder_abi_versions_env.append_borrowed_to(&mut build_env);
+        if let Some(ref target_dir) = cargo_target_path_env {
+            target_dir.append_borrowed_to(&mut build_env);
+        }
         build_env
     };
     pretty_print::step("Building contract");

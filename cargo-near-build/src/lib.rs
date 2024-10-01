@@ -22,7 +22,7 @@
 //! Default:
 //!
 //! ```no_run
-//! let artifact = cargo_near_build::build(Default::default()).expect("some error during build");
+//! let artifact = cargo_near_build::build(Default::default(), None).expect("some error during build");
 //! ```
 //!
 //! With some options set:
@@ -32,7 +32,7 @@
 //!         features: Some("some_contract_feature_1".into()),
 //!         ..Default::default()
 //!     };
-//!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
+//!     let artifact = cargo_near_build::build(build_opts, None).expect("some error during build");
 //! ```
 pub(crate) mod cargo_native;
 /// module contains names of environment variables, exported during
@@ -51,6 +51,7 @@ pub mod abi {
 
 mod build_exports {
     pub use crate::near::build::run as build;
+    pub use crate::types::near::build::input::implicit_env::Opts as BuildImplicitEnvOpts;
     #[cfg(feature = "docker")]
     pub use crate::types::near::build::input::BuildContext;
     pub use crate::types::near::build::input::Opts as BuildOpts;
@@ -74,18 +75,14 @@ pub use build_exports::*;
 /// Usage example:
 ///
 /// ```no_run
+/// use cargo_near_build::BuildImplicitEnvOpts;
 /// use cargo_near_build::extended::BuildScriptOpts;
 /// let opts = cargo_near_build::extended::BuildOptsExtended {
 ///     workdir: "../another-contract",
-///     build_opts: cargo_near_build::BuildOpts {
-///         mute_env: vec![
-///             // unix path of target contract from root of repo
-///             (
-///                 cargo_near_build::env_keys::nep330::CONTRACT_PATH.into(),
-///                 "another-contract".into(),
-///             ),
-///         ],
-///         ..Default::default()
+///     build_opts: Default::default(),
+///     build_implicit_env_opts: BuildImplicitEnvOpts {
+///         cargo_target_dir: Some("../target/build-rs-another-contract".into()),    
+///         nep330_contract_path: Some("another-contract".into()),
 ///     },
 ///     build_script_opts: BuildScriptOpts {
 ///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
@@ -95,7 +92,6 @@ pub use build_exports::*;
 ///             ("PROFILE", "debug"),
 ///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
 ///         ],
-///         distinct_target_dir: Some("../target/build-rs-another-contract"),
 ///         stub_path: Some("../target/stub.bin"),
 ///     },
 /// };
