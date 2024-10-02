@@ -33,8 +33,8 @@ pub fn run(
     let nep330_build_cmd_env = buildtime_env::Nep330BuildCommand::compute(&args)?;
 
     let buildtime_env::ExternalEnv {
-        cargo_target_path_env,
-        nep330_contract_path_env,
+        cargo_target_path: external_cargo_target_path_env,
+        nep330_contract_path: external_nep330_contract_path_env,
     } = implicit_env_opts.into();
     env_keys::nep330::print_env();
 
@@ -57,7 +57,7 @@ pub fn run(
         CrateMetadata::collect(
             ManifestPath::try_from(manifest_path)?,
             args.no_locked,
-            cargo_target_path_env.as_ref(),
+            external_cargo_target_path_env.as_ref(),
         )
     })?;
 
@@ -100,9 +100,9 @@ pub fn run(
             // `NEP330_BUILD_INFO_BUILD_ENVIRONMENT` is set, but it's either not set or empty!"`
             // when generating abi in docker build
             nep330_build_cmd_env.append_borrowed_to(&mut abi_env);
-            nep330_contract_path_env.append_borrowed_to(&mut abi_env);
+            external_nep330_contract_path_env.append_borrowed_to(&mut abi_env);
             builder_abi_versions_env.append_borrowed_to(&mut abi_env);
-            if let Some(ref target_dir) = cargo_target_path_env {
+            if let Some(ref target_dir) = external_cargo_target_path_env {
                 target_dir.append_borrowed_to(&mut abi_env);
             }
             abi::generate::procedure(
@@ -163,9 +163,9 @@ pub fn run(
         nep330_version_env.append_borrowed_to(&mut build_env);
         nep330_link_env.append_borrowed_to(&mut build_env);
         nep330_build_cmd_env.append_borrowed_to(&mut build_env);
-        nep330_contract_path_env.append_borrowed_to(&mut build_env);
+        external_nep330_contract_path_env.append_borrowed_to(&mut build_env);
         builder_abi_versions_env.append_borrowed_to(&mut build_env);
-        if let Some(ref target_dir) = cargo_target_path_env {
+        if let Some(ref target_dir) = external_cargo_target_path_env {
             target_dir.append_borrowed_to(&mut build_env);
         }
         build_env

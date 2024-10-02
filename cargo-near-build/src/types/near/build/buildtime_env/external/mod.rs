@@ -3,8 +3,8 @@ pub(super) mod cargo_target_dir;
 pub(super) mod nep330_path;
 
 pub struct ExternalEnv {
-    pub cargo_target_path_env: Option<cargo_target_dir::CargoTargetDir>,
-    pub nep330_contract_path_env: nep330_path::Nep330ContractPath,
+    pub cargo_target_path: Option<cargo_target_dir::CargoTargetDir>,
+    pub nep330_contract_path: nep330_path::Nep330ContractPath,
 }
 
 impl From<Option<input::implicit_env::Opts>> for ExternalEnv {
@@ -22,8 +22,8 @@ impl From<Option<input::implicit_env::Opts>> for ExternalEnv {
         );
 
         Self {
-            cargo_target_path_env: cargo_target_path,
-            nep330_contract_path_env: nep330_contract_path,
+            cargo_target_path,
+            nep330_contract_path,
         }
     }
 }
