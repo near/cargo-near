@@ -39,6 +39,7 @@ jobs:
         run: | 
           cargo check -p cargo-near
           cargo check -p cargo-near-build --all-features
+          cargo test -p cargo-near-build --all-features --doc
 
   tests:
     runs-on: ${{ matrix.platform }}
