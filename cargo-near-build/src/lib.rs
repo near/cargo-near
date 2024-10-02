@@ -82,6 +82,7 @@ pub use build_exports::*;
 ///     build_opts: Default::default(),
 ///     build_implicit_env_opts: BuildImplicitEnvOpts {
 ///         cargo_target_dir: Some("../target/build-rs-another-contract".into()),    
+///         // unix path to contract being built from root of the repo
 ///         nep330_contract_path: Some("another-contract".into()),
 ///     },
 ///     build_script_opts: BuildScriptOpts {
