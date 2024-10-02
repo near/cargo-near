@@ -22,7 +22,7 @@ pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error
         build_implicit_env_opts,
     } = args;
     let (artifact, skipped) = skip_or_compile(
-        workdir,
+        &workdir,
         build_opts,
         build_implicit_env_opts,
         &build_script_opts,
@@ -37,7 +37,7 @@ pub(crate) fn skip_or_compile(
     workdir: &'_ str,
     build_opts: BuildOpts,
     build_implicit_env_opts: BuildImplicitEnvOpts,
-    build_script_opts: &BuildScriptOpts<'_>,
+    build_script_opts: &BuildScriptOpts,
     version: &Version,
 ) -> Result<(CompilationArtifact, bool), Box<dyn std::error::Error>> {
     let _tmp_workdir = tmp_change_cwd::set_current_dir(workdir)?;

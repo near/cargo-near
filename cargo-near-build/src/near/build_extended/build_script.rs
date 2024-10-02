@@ -20,7 +20,7 @@ macro_rules! print_warn {
     }
 }
 
-impl<'a> Opts<'a> {
+impl Opts {
     pub(crate) fn should_skip(&self, version: &Version) -> bool {
         let mut return_bool = false;
         for (env_key, value_to_skip) in self.build_skipped_when_env_is.iter() {
@@ -70,7 +70,7 @@ impl<'a> Opts<'a> {
         self,
         skipped: bool,
         artifact: &CompilationArtifact,
-        workdir: &str,
+        workdir: String,
         version: &Version,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let colon_separator = if version >= &DEPRECATE_SINGLE_COLON_SINCE {

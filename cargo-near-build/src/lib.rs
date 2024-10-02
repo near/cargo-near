@@ -78,21 +78,21 @@ pub use build_exports::*;
 /// use cargo_near_build::BuildImplicitEnvOpts;
 /// use cargo_near_build::extended::BuildScriptOpts;
 /// let opts = cargo_near_build::extended::BuildOptsExtended {
-///     workdir: "../another-contract",
+///     workdir: "../another-contract".into(),
 ///     build_opts: Default::default(),
 ///     build_implicit_env_opts: BuildImplicitEnvOpts {
 ///         cargo_target_dir: Some("../target/build-rs-another-contract".into()),    
 ///         nep330_contract_path: Some("another-contract".into()),
 ///     },
 ///     build_script_opts: BuildScriptOpts {
-///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
-///         rerun_if_changed_list: vec!["../another-contract", "../Cargo.toml", "../Cargo.lock"],
+///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1".into()),
+///         rerun_if_changed_list: vec!["../another-contract".into(), "../Cargo.toml".into(), "../Cargo.lock".into()],
 ///         build_skipped_when_env_is: vec![
 ///             // shorter build for `cargo check`
-///             ("PROFILE", "debug"),
-///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+///             ("PROFILE".into(), "debug".into()),
+///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT.into(), "true".into()),
 ///         ],
-///         stub_path: Some("../target/stub.bin"),
+///         stub_path: Some("../target/stub.bin".into()),
 ///     },
 /// };
 /// cargo_near_build::extended::build(opts).expect("sub-contract build error");
