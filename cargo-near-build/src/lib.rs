@@ -29,11 +29,8 @@
 //! With some options set:
 //!
 //! ```no_run
-//!     let build_opts = cargo_near_build::BuildOpts {
-//!         features: Some("some_contract_feature_1".into()),
-//!         ..Default::default()
-//!     };
-//!     let artifact = cargo_near_build::build(build_opts, None).expect("some error during build");
+//! let build_opts = cargo_near_build::BuildOpts::builder().features("some_contract_feature_1").build();
+//! let artifact = cargo_near_build::build(build_opts, None).expect("some error during build");
 //! ```
 pub(crate) mod cargo_native;
 /// module contains names of environment variables, exported during
@@ -76,28 +73,45 @@ pub use build_exports::*;
 /// Usage example:
 ///
 /// ```no_run
-/// use cargo_near_build::BuildImplicitEnvOpts;
-/// use cargo_near_build::extended::BuildScriptOpts;
-/// let opts = cargo_near_build::extended::BuildOptsExtended {
-///     workdir: "../another-contract".into(),
-///     build_opts: Default::default(),
-///     build_implicit_env_opts: BuildImplicitEnvOpts {
-///         cargo_target_dir: Some("../target/build-rs-another-contract".into()),    
-///         // unix path to contract being built from root of the repo
-///         nep330_contract_path: Some("another-contract".into()),
-///     },
-///     build_script_opts: BuildScriptOpts {
-///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1".into()),
-///         rerun_if_changed_list: vec!["../another-contract".into(), "../Cargo.toml".into(), "../Cargo.lock".into()],
-///         build_skipped_when_env_is: vec![
-///             // shorter build for `cargo check`
-///             ("PROFILE", "debug"),
-///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
-///         ].into(),
-///         stub_path: Some("../target/stub.bin".into()),
-///     },
-/// };
-/// cargo_near_build::extended::build(opts).expect("sub-contract build error");
+/// use cargo_near_build::{bon, extended};
+/// use cargo_near_build::{BuildImplicitEnvOpts, BuildOpts};
+///
+/// // directory of target sub-contract's crate
+/// let workdir = "../another-contract";
+/// // unix path to target sub-contract's crate from root of the repo
+/// let nep330_contract_path = "another-contract";
+///
+/// let build_opts = BuildOpts::builder().build(); // default opts
+///
+/// let pwd = std::env::current_dir().expect("get pwd");
+/// // a distinct target is needed to avoid deadlock during build
+/// let distinct_target = pwd.join("../target/build-rs-another-contract");
+/// let stub_path = pwd.join("../target/stub.bin");
+///
+/// let build_implicit_env_opts = BuildImplicitEnvOpts::builder()
+///     .nep330_contract_path(nep330_contract_path)
+///     .cargo_target_dir(distinct_target.to_string_lossy())
+///     .build();
+///
+/// let build_script_opts = extended::BuildScriptOpts::builder()
+///     .rerun_if_changed_list(bon::vec![workdir, "../Cargo.toml", "../Cargo.lock",])
+///     .build_skipped_when_env_is(vec![
+///         // shorter build for `cargo check`
+///         ("PROFILE", "debug"),
+///         (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+///     ])
+///     .stub_path(stub_path.to_string_lossy())
+///     .result_env_key("BUILD_RS_SUB_BUILD_ARTIFACT_1")
+///     .build();
+///
+/// let extended_opts = extended::BuildOptsExtended::builder()
+///     .workdir(workdir)
+///     .build_opts(build_opts)
+///     .build_implicit_env_opts(build_implicit_env_opts)
+///     .build_script_opts(build_script_opts)
+///     .build();
+///
+/// cargo_near_build::extended::build(extended_opts).expect("sub-contract build error");
 /// ```
 #[cfg(feature = "build_script")]
 pub mod extended {
