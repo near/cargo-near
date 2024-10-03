@@ -20,34 +20,43 @@ pub enum BuildContext {
 /// - `None` - for `Option`-s
 /// - empty vector - for `Vec`
 /// - delegates to [impl Default for CliDescription](struct.CliDescription.html#impl-Default-for-CliDescription)
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, bon::Builder)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    #[builder(default)]
     pub no_locked: bool,
     /// Build contract in debug mode, without optimizations and bigger in size
+    #[builder(default)]
     pub no_release: bool,
     /// Do not generate ABI for the contract
+    #[builder(default)]
     pub no_abi: bool,
     /// Do not embed the ABI in the contract binary
+    #[builder(default)]
     pub no_embed_abi: bool,
     /// Do not include rustdocs in the embedded ABI
+    #[builder(default)]
     pub no_doc: bool,
     /// Copy final artifacts to this directory
     pub out_dir: Option<camino::Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
     pub manifest_path: Option<camino::Utf8PathBuf>,
     /// Set compile-time feature flags.
+    #[builder(into)]
     pub features: Option<String>,
     /// Disables default feature flags.
+    #[builder(default)]
     pub no_default_features: bool,
     /// Coloring: auto, always, never;
     /// assumed to be auto when `None`
     pub color: Option<ColorPreference>,
     /// description of cli command, where [BuildOpts](crate::BuildOpts) are being used from, either real
     /// or emulated
+    #[builder(default)]
     pub cli_description: CliDescription,
     /// additional environment key-value pairs, that should be passed to underlying
     /// build commands
+    #[builder(default)]
     pub env: Vec<(String, String)>,
 }
 

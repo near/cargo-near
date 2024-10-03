@@ -3,8 +3,9 @@ use crate::{BuildImplicitEnvOpts, BuildOpts};
 
 pub mod build_script;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, bon::Builder)]
 pub struct OptsExtended {
+    #[builder(into)]
     pub workdir: String,
     pub build_opts: BuildOpts,
     pub build_implicit_env_opts: BuildImplicitEnvOpts,

@@ -23,7 +23,7 @@ macro_rules! print_warn {
 impl Opts {
     pub(crate) fn should_skip(&self, version: &Version) -> bool {
         let mut return_bool = false;
-        for (env_key, value_to_skip) in self.build_skipped_when_env_is.iter() {
+        for (env_key, value_to_skip) in self.build_skipped_when_env_is.0.iter() {
             if let Ok(actual_value) = std::env::var(env_key) {
                 if actual_value == *value_to_skip {
                     return_bool = true;

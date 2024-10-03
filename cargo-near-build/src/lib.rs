@@ -16,6 +16,7 @@
 //!
 //! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact] as type of some of fields
 //! 2. [near_abi] is re-exported, because details of ABI generated depends on specific version of `near-abi` dependency  
+//! 3. [bon] is re-exported for the convenience of [bon::vec] helper macro
 //!
 //! ## Sample usage:
 //!
@@ -90,9 +91,9 @@ pub use build_exports::*;
 ///         rerun_if_changed_list: vec!["../another-contract".into(), "../Cargo.toml".into(), "../Cargo.lock".into()],
 ///         build_skipped_when_env_is: vec![
 ///             // shorter build for `cargo check`
-///             ("PROFILE".into(), "debug".into()),
-///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT.into(), "true".into()),
-///         ],
+///             ("PROFILE", "debug"),
+///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+///         ].into(),
 ///         stub_path: Some("../target/stub.bin".into()),
 ///     },
 /// };
@@ -101,7 +102,7 @@ pub use build_exports::*;
 #[cfg(feature = "build_script")]
 pub mod extended {
     pub use crate::near::build_extended::run as build;
-    pub use crate::types::near::build_extended::build_script::Opts as BuildScriptOpts;
+    pub use crate::types::near::build_extended::build_script::{EnvPairs, Opts as BuildScriptOpts};
     pub use crate::types::near::build_extended::OptsExtended as BuildOptsExtended;
 }
 
@@ -111,5 +112,6 @@ pub mod docker {
     pub use crate::types::near::docker_build::Opts as DockerBuildOpts;
 }
 
+pub use bon;
 pub use camino;
 pub use near_abi;
