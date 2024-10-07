@@ -4,6 +4,7 @@ use std::fs;
 use camino::Utf8Path;
 
 use crate::cargo_native::Dylib;
+use crate::pretty_print;
 use crate::types::near::build::output::CompilationArtifact;
 
 pub fn extract_abi_entries(
@@ -38,7 +39,7 @@ pub fn extract_abi_entries(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Detected NEAR ABI symbols:\n{}",
-        near_cli_rs::common::indent_payload(&format!("{:#?}", &near_abi_symbols))
+        pretty_print::indent_payload(&format!("{:#?}", &near_abi_symbols))
     );
     tracing::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
 
