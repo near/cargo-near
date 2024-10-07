@@ -52,7 +52,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let mut build_env;
     if rustc_version::version().unwrap() >= rustc_version::Version::parse("1.82.0").unwrap() {
-        build_env = vec![("RUSTFLAGS", "-C link-arg=-s -C target-feature=-multivalue,-reference-types")];
+        build_env = vec![(
+            "RUSTFLAGS",
+            "-C link-arg=-s -C target-feature=-multivalue,-reference-types",
+        )];
     } else {
         build_env = vec![("RUSTFLAGS", "-C link-arg=-s")];
     }
