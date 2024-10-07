@@ -143,7 +143,7 @@ where
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Invoking cargo:\n{}",
-        near_cli_rs::common::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
+        near_cli_rs::common::indent_payload(&format!("{:#?}", cmd))
     );
     tracing::info!("Invoking cargo: {:#?}", cmd);
 
