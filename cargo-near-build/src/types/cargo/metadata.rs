@@ -5,6 +5,7 @@ use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
 use eyre::{ContextCompat, OptionExt, WrapErr};
 
+use crate::pretty_print;
 use crate::types::near::build::buildtime_env;
 
 use super::manifest_path::ManifestPath;
@@ -57,7 +58,7 @@ impl CrateMetadata {
         tracing::info!(
             target: "near_teach_me",
             parent: &tracing::Span::none(),
-            "Crate metadata:\n{}", near_cli_rs::common::indent_payload(
+            "Crate metadata:\n{}", pretty_print::indent_payload(
                 "Metadata information is very large. So, if you need it, use the \"RUST_LOG=trace\" flag. \
                     For example, `RUST_LOG=trace cargo-near near build`"
             )
@@ -168,7 +169,7 @@ fn get_cargo_metadata(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Execution command:\n{}",
-        near_cli_rs::common::indent_payload(&format!("`{:?}`", cmd.cargo_command()).replace("\"", ""))
+        pretty_print::indent_payload(&format!("`{:?}`", cmd.cargo_command()).replace("\"", ""))
     );
     tracing::debug!("metadata command: {:#?}", cmd.cargo_command());
     let metadata = cmd.exec();

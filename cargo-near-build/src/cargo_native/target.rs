@@ -2,6 +2,8 @@ use std::{ffi::OsStr, io::BufRead, path::PathBuf, process::Command};
 
 use eyre::WrapErr;
 
+use crate::pretty_print;
+
 pub const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub fn wasm32_exists() -> bool {
@@ -57,7 +59,7 @@ fn get_rustc_wasm32_unknown_unknown_target_libdir() -> eyre::Result<PathBuf> {
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Execution command:\n{}",
-        near_cli_rs::common::indent_payload(&format!("`{:?}`", command).replace("\"", ""))
+        pretty_print::indent_payload(&format!("`{:?}`", command).replace("\"", ""))
     );
 
     let output = command.output()?;
@@ -86,7 +88,7 @@ where
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Invoking rustup:\n{}",
-        near_cli_rs::common::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
+        pretty_print::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
     );
     tracing::info!(
         "Invoking rustup: `{}`",

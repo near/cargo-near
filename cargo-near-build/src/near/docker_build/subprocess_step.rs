@@ -11,6 +11,7 @@ use std::{
 use nix::unistd::{getgid, getuid};
 
 use crate::env_keys;
+use crate::pretty_print;
 use crate::types::near::docker_build::subprocess::{container_paths, env_vars};
 use crate::types::near::docker_build::{cloned_repo, metadata};
 
@@ -75,7 +76,7 @@ pub fn run(
                 target: "near_teach_me",
                 parent: &tracing::Span::none(),
                 "Input device is a TTY:\n{}",
-                near_cli_rs::common::indent_payload(&stdin_is_terminal.to_string())
+                pretty_print::indent_payload(&stdin_is_terminal.to_string())
             );
             tracing::debug!("input device is a tty: {}", stdin_is_terminal);
             if stdin_is_terminal
@@ -93,7 +94,7 @@ pub fn run(
                 target: "near_teach_me",
                 parent: &tracing::Span::none(),
                 "Execution docker command:\n{}",
-                near_cli_rs::common::indent_payload(&format!("`{}`", docker_args.join(" ")))
+                pretty_print::indent_payload(&format!("`{}`", docker_args.join(" ")))
             );
             tracing::debug!("docker command : {:#?}", docker_args);
             docker_args

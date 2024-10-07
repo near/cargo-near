@@ -5,6 +5,7 @@ use cargo_metadata::{Artifact, Message};
 use eyre::{ContextCompat, WrapErr};
 use std::io::BufRead;
 
+use crate::pretty_print;
 use crate::types::near::build::input::ColorPreference;
 use crate::types::{cargo::manifest_path::ManifestPath, near::build::output::CompilationArtifact};
 
@@ -143,7 +144,7 @@ where
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Invoking cargo:\n{}",
-        near_cli_rs::common::indent_payload(&format!("{:#?}", cmd))
+        pretty_print::indent_payload(&format!("{:#?}", cmd))
     );
     tracing::info!("Invoking cargo: {:#?}", cmd);
 

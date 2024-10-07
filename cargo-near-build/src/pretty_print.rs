@@ -33,3 +33,14 @@ pub fn duration(start: Instant, activity: &str) {
         humantime::format_duration(duration)
     );
 }
+
+pub fn indent_payload(s: &str) -> String {
+    use std::fmt::Write;
+
+    let mut indented_string = String::new();
+    indenter::indented(&mut indented_string)
+        .with_str(" |    ")
+        .write_str(s)
+        .ok();
+    indented_string
+}
