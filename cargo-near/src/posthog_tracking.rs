@@ -2,14 +2,13 @@ use reqwest::{header::HeaderMap, Client};
 use serde::Serialize;
 use std::{env, str};
 use tracing::debug;
-use rustc_version::version;
 
 const SEND_TRACKING_REQUEST_ERROR: &str = "Can't send tracking usage event";
 
 #[derive(Debug, Serialize)]
 struct PosthogProperties {
     language: String,
-    engine: String,
+    pkg_version: String,
     os: String,
 }
 
@@ -24,7 +23,7 @@ struct TrackingData {
 pub(crate) fn track_usage() {
     let properties = PosthogProperties {
         language: "rs".to_string(),
-        engine: version().unwrap().to_string(),
+        pkg_version: env!("CARGO_PKG_VERSION").to_string(),
         os: env::consts::OS.to_string(),
     };
     let tracking_data = TrackingData {
