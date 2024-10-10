@@ -34,7 +34,6 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
     };
     let contract_abi = generate::procedure(
         &crate_metadata,
-        true,
         args.no_locked,
         !args.no_doc,
         false,

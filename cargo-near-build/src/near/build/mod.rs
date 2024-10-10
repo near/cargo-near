@@ -90,7 +90,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .collect::<Vec<_>>();
             abi::generate::procedure(
                 &crate_metadata,
-                args.no_release,
                 args.no_locked,
                 !args.no_doc,
                 true,

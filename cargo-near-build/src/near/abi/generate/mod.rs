@@ -12,7 +12,6 @@ pub mod dylib;
 
 pub fn procedure(
     crate_metadata: &CrateMetadata,
-    no_release: bool,
     no_locked: bool,
     generate_docs: bool,
     hide_warnings: bool,
@@ -61,9 +60,6 @@ pub fn procedure(
     let cargo_args = {
         let mut args = vec!["--features", "near-sdk/__abi-generate"];
         args.extend_from_slice(cargo_feature_args);
-        if !no_release {
-            args.push("--release");
-        }
         if !no_locked {
             args.push("--locked");
         }
