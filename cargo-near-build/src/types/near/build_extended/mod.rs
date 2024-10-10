@@ -1,13 +1,13 @@
 use crate::extended::BuildScriptOpts;
-use crate::BuildOpts;
+use crate::{BuildImplicitEnvOpts, BuildOpts};
 
 pub mod build_script;
 
-#[derive(Debug, Clone)]
-pub struct OptsExtended<'a> {
-    pub workdir: &'a str,
-    /// vector of key-value pairs of temporary env overrides during build process
-    pub env: Vec<(&'a str, &'a str)>,
+#[derive(Debug, Clone, bon::Builder)]
+pub struct OptsExtended {
+    #[builder(into)]
+    pub workdir: String,
     pub build_opts: BuildOpts,
-    pub build_script_opts: BuildScriptOpts<'a>,
+    pub build_implicit_env_opts: BuildImplicitEnvOpts,
+    pub build_script_opts: BuildScriptOpts,
 }

@@ -4,7 +4,7 @@ use camino::Utf8PathBuf;
 use crate::types::near::build::input::ColorPreference;
 
 #[cfg(feature = "abi_build")]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
     pub no_locked: bool,

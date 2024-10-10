@@ -23,6 +23,7 @@ near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
 zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
+bon = "2.3.0"
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }

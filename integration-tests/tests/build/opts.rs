@@ -1,5 +1,5 @@
 use crate::build::util;
-use cargo_near_integration_tests::build_fn_with;
+use cargo_near_integration_tests::{build_fn_with, setup_tracing};
 use function_name::named;
 use std::fs;
 
@@ -86,6 +86,7 @@ fn test_build_opt_out_dir() -> cargo_near::CliResult {
 #[tokio::test]
 #[named]
 async fn test_build_no_release() -> cargo_near::CliResult {
+    setup_tracing();
     let build_result = build_fn_with! {
         Opts: "--no-release";
         Code:

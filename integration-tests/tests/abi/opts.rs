@@ -1,10 +1,13 @@
-use cargo_near_integration_tests::generate_abi_fn_with;
+use cargo_near_integration_tests::{
+    common_root_for_test_projects_build, generate_abi_fn_with, setup_tracing,
+};
 use function_name::named;
 use std::fs;
 
 #[test]
 #[named]
 fn test_abi_no_doc() -> cargo_near::CliResult {
+    setup_tracing();
     let abi_root = generate_abi_fn_with! {
         Opts: "--no-doc";
         Code:
@@ -24,6 +27,7 @@ fn test_abi_no_doc() -> cargo_near::CliResult {
 #[test]
 #[named]
 fn test_abi_opt_compact_abi() -> cargo_near::CliResult {
+    setup_tracing();
     generate_abi_fn_with! {
         Opts: "--compact-abi";
         Code:
@@ -32,18 +36,16 @@ fn test_abi_opt_compact_abi() -> cargo_near::CliResult {
         }
     };
 
-    let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
-    let workspace_dir = manifest_dir
-        .parent()
-        .unwrap()
+    let workspace_dir = common_root_for_test_projects_build();
+    let expected_target_dir = workspace_dir
+        .join(function_name!())
         .join("target")
-        .join("_abi-integration-tests");
-    let abi_json = fs::read_to_string(
-        workspace_dir
-            .join("target")
-            .join("near")
-            .join(format!("{}_abi.json", function_name!())),
-    )?;
+        .join("near");
+
+    tracing::info!("expected target dir: {:?}", expected_target_dir);
+
+    let abi_json =
+        fs::read_to_string(expected_target_dir.join(format!("{}_abi.json", function_name!())))?;
 
     assert_eq!(minifier::json::minify(&abi_json).to_string(), abi_json);
 
@@ -53,6 +55,7 @@ fn test_abi_opt_compact_abi() -> cargo_near::CliResult {
 #[test]
 #[named]
 fn test_abi_opt_out_dir() -> cargo_near::CliResult {
+    setup_tracing();
     let out_dir = tempfile::tempdir()?;
     let abi_root = generate_abi_fn_with! {
         Opts: format!("--out-dir {}", out_dir.path().display());
