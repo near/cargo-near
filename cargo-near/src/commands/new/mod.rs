@@ -2,7 +2,7 @@ use std::process::Stdio;
 
 use color_eyre::eyre::{ContextCompat, WrapErr};
 
-use crate::mixpanel_tracking;
+use crate::posthog_tracking;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -54,7 +54,7 @@ impl NewContext {
         }
 
         let _detached_thread_handle = std::thread::Builder::new()
-            .spawn(mixpanel_tracking::track_usage)
+            .spawn(posthog_tracking::track_usage)
             .unwrap();
 
         let status = std::process::Command::new("git")
