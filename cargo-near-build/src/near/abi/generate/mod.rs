@@ -63,6 +63,10 @@ pub fn procedure(
         if !no_locked {
             args.push("--locked");
         }
+        // TODO: add extenal no_release flag and react to it
+        if false {
+            args.push("--release");
+        }
 
         args
     };
