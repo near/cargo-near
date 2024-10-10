@@ -25,6 +25,7 @@ pub mod export;
 
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
+    let start = std::time::Instant::now();
     VersionMismatch::export_builder_and_near_abi_versions();
     export::nep_330_build_command(&args)?;
     env_keys::nep330::print_env();
@@ -177,5 +178,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     }
 
     messages.pretty_print();
+    pretty_print::duration(start, "cargo near build");
     Ok(wasm_artifact)
 }
