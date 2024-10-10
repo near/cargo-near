@@ -85,6 +85,7 @@ impl super::Opts {
         cli_args.extend(self.no_abi.then_some("--no-abi".into()));
         cli_args.extend(self.no_embed_abi.then_some("--no-embed-abi".into()));
         cli_args.extend(self.no_doc.then_some("--no-doc".into()));
+        cli_args.extend(self.no_wasmopt.then_some("--no-wasmopt".into()));
 
         if let Some(ref features) = self.features {
             cli_args.extend(["--features".into(), features.clone()]);
@@ -135,6 +136,13 @@ impl super::Opts {
             return Err(eyre::eyre!(format!(
                 "`{}` {}",
                 "--no-doc",
+                Self::BUILD_COMMAND_CLI_CONFIG_ERR
+            )));
+        }
+        if self.no_wasmopt {
+            return Err(eyre::eyre!(format!(
+                "`{}` {}",
+                "--no-wasmopt ",
                 Self::BUILD_COMMAND_CLI_CONFIG_ERR
             )));
         }

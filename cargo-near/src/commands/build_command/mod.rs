@@ -24,6 +24,9 @@ pub struct BuildCommand {
     /// Do not include rustdocs in the embedded ABI
     #[interactive_clap(long)]
     pub no_doc: bool,
+    /// Do not run `wasm-opt -O` on the generated output as a post-step
+    #[interactive_clap(long)]
+    pub no_wasmopt: bool,
     /// Copy final artifacts to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
@@ -93,6 +96,7 @@ impl From<CliBuildCommand> for BuildCommand {
             no_abi: value.no_abi,
             no_embed_abi: value.no_embed_abi,
             no_doc: value.no_doc,
+            no_wasmopt: value.no_wasmopt,
             features: value.features,
             no_default_features: value.no_default_features,
             out_dir: value.out_dir,
@@ -125,6 +129,7 @@ impl From<BuildCommand> for BuildOpts {
             no_abi: value.no_abi,
             no_embed_abi: value.no_embed_abi,
             no_doc: value.no_doc,
+            no_wasmopt: value.no_wasmopt,
             features: value.features,
             no_default_features: value.no_default_features,
             out_dir: value.out_dir.map(Into::into),
@@ -150,6 +155,7 @@ impl BuildCommandlContext {
             no_abi: scope.no_abi,
             no_embed_abi: scope.no_embed_abi,
             no_doc: scope.no_doc,
+            no_wasmopt: scope.no_wasmopt,
             out_dir: scope.out_dir.clone(),
             manifest_path: scope.manifest_path.clone(),
             features: scope.features.clone(),
