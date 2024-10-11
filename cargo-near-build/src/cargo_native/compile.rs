@@ -5,6 +5,7 @@ use cargo_metadata::{Artifact, Message};
 use eyre::{ContextCompat, WrapErr};
 use std::io::BufRead;
 
+use crate::pretty_print;
 use crate::types::near::build::input::ColorPreference;
 use crate::types::{
     cargo::manifest_path::ManifestPath,
@@ -121,6 +122,11 @@ where
 
     if let Some(path) = working_dir {
         let path = crate::fs::force_canonicalize_dir(path.as_ref())?;
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "Setting cargo working dir to '{}'", path
+        );
         tracing::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
@@ -134,6 +140,12 @@ where
         ColorPreference::Never => cmd.args(["--color", "never"]),
     };
 
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Invoking cargo:\n{}",
+        pretty_print::indent_payload(&format!("{:#?}", cmd))
+    );
     tracing::info!("Invoking cargo: {:#?}", cmd);
 
     let mut child = cmd

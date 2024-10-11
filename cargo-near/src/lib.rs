@@ -11,6 +11,9 @@ pub(crate) mod posthog_tracking;
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 pub struct Cmd {
+    /// TEACH-ME mode
+    #[interactive_clap(long)]
+    teach_me: bool,
     #[interactive_clap(subcommand)]
     pub opts: Opts,
 }
@@ -29,6 +32,9 @@ pub enum Opts {
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 pub struct NearArgs {
+    /// TEACH-ME mode
+    #[interactive_clap(long)]
+    teach_me: bool,
     #[interactive_clap(subcommand)]
     pub cmd: self::commands::NearCommand,
 }

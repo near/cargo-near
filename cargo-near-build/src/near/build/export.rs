@@ -1,6 +1,12 @@
-use crate::{env_keys, types::near::build::input::Opts};
+use crate::{env_keys, pretty_print, types::near::build::input::Opts};
 
 pub fn nep_330_build_command(args: &Opts) -> eyre::Result<()> {
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Compute `CARGO_NEAR_BUILD_COMMAND`, current executable:\n{}",
+        pretty_print::indent_payload(&format!("`{}`", std::env::args().collect::<Vec<String>>().join(" ")))
+    );
     tracing::debug!(
         "compute `CARGO_NEAR_BUILD_COMMAND`,  current executable: {:?}",
         std::env::args().collect::<Vec<_>>()

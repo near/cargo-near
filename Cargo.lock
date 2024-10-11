@@ -493,6 +493,7 @@ dependencies = [
  "git2",
  "hex",
  "home",
+ "indenter",
  "libloading",
  "near-abi",
  "nix",
