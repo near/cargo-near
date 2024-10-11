@@ -20,8 +20,6 @@ pub struct Opts {
     pub build_skipped_when_env_is: EnvPairs,
     /// path of stub file, where a placeholder empty `wasm` output is emitted to, when
     /// build is skipped due to match in [`Self::build_skipped_when_env_is`]
-    ///
-    /// if this path is relative, then the base is [`crate::extended::BuildOptsExtended::workdir`]
     #[builder(into)]
     pub stub_path: Option<String>,
 }
