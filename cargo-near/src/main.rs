@@ -15,13 +15,29 @@ use tracing_subscriber::{filter::filter_fn, prelude::*};
 
 pub use near_cli_rs::CliResult;
 
-use cargo_near::Cmd;
+use cargo_near::{CliOpts, Cmd, Opts};
 
 fn main() -> CliResult {
-    let cli = match Cmd::try_parse() {
+    let cli_cmd = match Cmd::try_parse() {
         Ok(cli) => cli,
         Err(error) => error.exit(),
     };
+    let config = near_cli_rs::config::Config::get_config_toml()?;
+    let global_context = near_cli_rs::GlobalContext {
+        config,
+        teach_me: false,
+        offline: false,
+    };
+
+    let cli_opts = match cli_cmd.clone().opts {
+        Some(cli_opts) => cli_opts,
+        None => match Opts::choose_variant(global_context.clone()) {
+            interactive_clap::ResultFromCli::Ok(cli_opts) => cli_opts,
+            interactive_clap::ResultFromCli::Err(_optional_cli_cmd, err) => return Err(err),
+            _ => return Ok(()),
+        },
+    };
+    let CliOpts::Near(cli_near_args) = cli_opts.clone();
 
     if env::var("RUST_LOG").is_ok() {
         let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
@@ -43,7 +59,7 @@ fn main() -> CliResult {
                     .with_filter(filter_fn(|metadata| metadata.target() != "near_teach_me")),
             )
             .init();
-    } else if cli.teach_me {
+    } else if cli_cmd.teach_me || cli_near_args.teach_me {
         let env_filter = EnvFilter::from_default_env()
             .add_directive(tracing::Level::WARN.into())
             .add_directive("near_teach_me=info".parse()?)
@@ -95,8 +111,6 @@ fn main() -> CliResult {
         _ => colored::control::set_override(std::io::stderr().is_terminal()),
     }
 
-    let config = near_cli_rs::config::Config::get_config_toml()?;
-
     #[cfg(not(debug_assertions))]
     let display_env_section = false;
     #[cfg(debug_assertions)]
@@ -104,12 +118,6 @@ fn main() -> CliResult {
     color_eyre::config::HookBuilder::default()
         .display_env_section(display_env_section)
         .install()?;
-
-    let global_context = near_cli_rs::GlobalContext {
-        config,
-        teach_me: false,
-        offline: false,
-    };
 
     let console_command_path = if env::var("CARGO_HOME").is_ok() {
         "cargo".to_string()
@@ -122,15 +130,15 @@ fn main() -> CliResult {
     let console_command_path = console_command_path.yellow();
 
     loop {
-        match <Cmd as interactive_clap::FromCli>::from_cli(
-            Some(cli.clone()),
+        match <Opts as interactive_clap::FromCli>::from_cli(
+            Some(cli_opts.clone()),
             global_context.clone(),
         ) {
-            interactive_clap::ResultFromCli::Ok(cli_cmd)
-            | interactive_clap::ResultFromCli::Cancel(Some(cli_cmd)) => {
+            interactive_clap::ResultFromCli::Ok(cli_opts)
+            | interactive_clap::ResultFromCli::Cancel(Some(cli_opts)) => {
                 eprintln!(
                     "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}",
-                    shell_words::join(cli_cmd.to_cli_args()).yellow()
+                    shell_words::join(cli_opts.to_cli_args()).yellow()
                 );
                 return Ok(());
             }
@@ -139,8 +147,8 @@ fn main() -> CliResult {
                 return Ok(());
             }
             interactive_clap::ResultFromCli::Back => {}
-            interactive_clap::ResultFromCli::Err(optional_cli_cmd, err) => {
-                if let Some(cli_cmd) = optional_cli_cmd {
+            interactive_clap::ResultFromCli::Err(optional_cli_opts, err) => {
+                if let Some(_cli_opts) = optional_cli_opts {
                     eprintln!(
                         "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}\n",
                         shell_words::join(cli_cmd.to_cli_args()).yellow()
