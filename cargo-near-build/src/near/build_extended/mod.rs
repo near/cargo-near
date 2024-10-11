@@ -27,7 +27,7 @@ pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error
     print_warn!(
         &actual_version,
         "build script of `{}` is happening in workdir: {:?}",
-        env!("CARGO_PKG_NAME"),
+        std::env::var("CARGO_PKG_NAME").unwrap_or("unset CARGO_PKG_NAME".into()),
         std::env::current_dir()
             .map(|path| path.to_string_lossy().into_owned())
             .unwrap_or("ERR GET PWD".into())
