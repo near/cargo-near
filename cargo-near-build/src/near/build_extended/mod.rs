@@ -22,12 +22,6 @@ use rustc_version::Version;
 
 use crate::extended::BuildScriptOpts;
 
-/// only single-threaded build-scripts are supported
-///
-/// this function cannot be run concurrently with itself, as it changes working dir
-/// of process, executing it.
-/// changing current working dir concurrently from different threads
-/// may entail incorrect results
 pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
     let actual_version = rustc_version::version()?;
     print_warn!(

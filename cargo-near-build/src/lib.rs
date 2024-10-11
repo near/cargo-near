@@ -75,22 +75,24 @@ pub use build_exports::*;
 /// ```no_run
 /// use cargo_near_build::{bon, extended};
 /// use cargo_near_build::{BuildImplicitEnvOpts, BuildOpts};
+/// use std::str::FromStr;
 ///
 /// // directory of target sub-contract's crate
 /// let workdir = "../another-contract";
 /// // unix path to target sub-contract's crate from root of the repo
 /// let nep330_contract_path = "another-contract";
+/// let manifest = camino::Utf8PathBuf::from_str(workdir)
+///     .expect("pathbuf from str")
+///     .join("Cargo.toml");
 ///
-/// let build_opts = BuildOpts::builder().build(); // default opts
-///
-/// let pwd = std::env::current_dir().expect("get pwd");
-/// // a distinct target is needed to avoid deadlock during build
-/// let distinct_target = pwd.join("../target/build-rs-another-contract");
-/// let stub_path = pwd.join("../target/stub.bin");
+/// let build_opts = BuildOpts::builder()
+///     .manifest_path(manifest)
+///     .build(); // default opts
 ///
 /// let build_implicit_env_opts = BuildImplicitEnvOpts::builder()
 ///     .nep330_contract_path(nep330_contract_path)
-///     .cargo_target_dir(distinct_target.to_string_lossy())
+///     // a distinct target is needed to avoid deadlock during build
+///     .cargo_target_dir("../target/build-rs-another-contract")
 ///     .build();
 ///
 /// let build_script_opts = extended::BuildScriptOpts::builder()
@@ -100,12 +102,11 @@ pub use build_exports::*;
 ///         ("PROFILE", "debug"),
 ///         (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
 ///     ])
-///     .stub_path(stub_path.to_string_lossy())
+///     .stub_path("../target/stub.bin")
 ///     .result_env_key("BUILD_RS_SUB_BUILD_ARTIFACT_1")
 ///     .build();
 ///
 /// let extended_opts = extended::BuildOptsExtended::builder()
-///     .workdir(workdir)
 ///     .build_opts(build_opts)
 ///     .build_implicit_env_opts(build_implicit_env_opts)
 ///     .build_script_opts(build_script_opts)
