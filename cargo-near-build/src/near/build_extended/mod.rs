@@ -1,5 +1,20 @@
+macro_rules! print_warn {
+    ($version: expr, $($tokens: tt)*) => {
+        let separator = if $version >= &DEPRECATE_SINGLE_COLON_SINCE {
+            "::"
+        } else {
+            ":"
+        };
+        println!("cargo{}warning={}", separator, format!($($tokens)*))
+    }
+}
+
+/// `cargo::` prefix for build script outputs, that `cargo` recognizes
+/// was implemented <https://github.com/rust-lang/cargo/pull/12201> since this version
+const DEPRECATE_SINGLE_COLON_SINCE: Version = Version::new(1, 77, 0);
+
 mod build_script;
-mod tmp_change_cwd;
+
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build_extended::OptsExtended;
 use crate::{BuildImplicitEnvOpts, BuildOpts};
@@ -15,32 +30,36 @@ use crate::extended::BuildScriptOpts;
 /// may entail incorrect results
 pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
     let actual_version = rustc_version::version()?;
+    print_warn!(
+        &actual_version,
+        "build script of `{}` is happening in workdir: {:?}",
+        env!("CARGO_PKG_NAME"),
+        std::env::current_dir()
+            .map(|path| path.to_string_lossy().into_owned())
+            .unwrap_or("ERR GET PWD".into())
+    );
     let OptsExtended {
-        workdir,
         build_opts,
         build_script_opts,
         build_implicit_env_opts,
     } = args;
     let (artifact, skipped) = skip_or_compile(
-        &workdir,
         build_opts,
         build_implicit_env_opts,
         &build_script_opts,
         &actual_version,
     )?;
 
-    build_script_opts.post_build(skipped, &artifact, workdir, &actual_version)?;
+    build_script_opts.post_build(skipped, &artifact, &actual_version)?;
     Ok(artifact)
 }
 
 pub(crate) fn skip_or_compile(
-    workdir: &'_ str,
     build_opts: BuildOpts,
     build_implicit_env_opts: BuildImplicitEnvOpts,
     build_script_opts: &BuildScriptOpts,
     version: &Version,
 ) -> Result<(CompilationArtifact, bool), Box<dyn std::error::Error>> {
-    let _tmp_workdir = tmp_change_cwd::set_current_dir(workdir)?;
     let result = if build_script_opts.should_skip(version) {
         let artifact = build_script_opts.create_empty_stub()?;
         (artifact, true)

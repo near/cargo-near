@@ -26,7 +26,7 @@ impl Nep330BuildCommand {
             _ => {
                 // NOTE: order of output of cli flags shouldn't be too important, as the version of
                 // `cargo-near` used as lib will be fixed in `Cargo.lock`
-                args.get_cli_build_command()
+                args.get_cli_command_for_lib_context()
             }
         };
 

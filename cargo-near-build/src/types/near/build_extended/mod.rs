@@ -5,8 +5,6 @@ pub mod build_script;
 
 #[derive(Debug, Clone, bon::Builder)]
 pub struct OptsExtended {
-    #[builder(into)]
-    pub workdir: String,
     pub build_opts: BuildOpts,
     pub build_implicit_env_opts: BuildImplicitEnvOpts,
     pub build_script_opts: BuildScriptOpts,

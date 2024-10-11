@@ -9,17 +9,6 @@ use rustc_version::Version;
 /// was implemented <https://github.com/rust-lang/cargo/pull/12201> since this version
 const DEPRECATE_SINGLE_COLON_SINCE: Version = Version::new(1, 77, 0);
 
-macro_rules! print_warn {
-    ($version: ident, $($tokens: tt)*) => {
-        let separator = if $version >= &DEPRECATE_SINGLE_COLON_SINCE {
-            "::"
-        } else {
-            ":"
-        };
-        println!("cargo{}warning={}", separator, format!($($tokens)*))
-    }
-}
-
 impl Opts {
     pub(crate) fn should_skip(&self, version: &Version) -> bool {
         let mut return_bool = false;
@@ -70,7 +59,6 @@ impl Opts {
         self,
         skipped: bool,
         artifact: &CompilationArtifact,
-        workdir: String,
         version: &Version,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let colon_separator = if version >= &DEPRECATE_SINGLE_COLON_SINCE {
@@ -108,8 +96,7 @@ impl Opts {
             );
             print_warn!(
                 version,
-                "Path to result artifact of build in `{}` is exported to `{}`",
-                workdir,
+                "Path to result artifact of build is exported to `{}`",
                 result_env_key,
             );
         }
