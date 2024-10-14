@@ -1,9 +1,11 @@
 /// additional argument of [build](crate::build) function, wrapped in an `Option`
 #[derive(Debug, Clone, bon::Builder)]
 pub struct Opts {
-    /// override value of [crate::env_keys::nep330::CONTRACT_PATH] environment variable
+    /// override value of [crate::env_keys::nep330::CONTRACT_PATH] environment variable,
+    /// needed in context [crate::extended::build] logic, when a sub-contract being built inside of `build.rs`
+    /// resides in different [crate::env_keys::nep330::CONTRACT_PATH] than the current contract
     #[builder(into)]
-    pub nep330_contract_path: Option<String>,
+    pub override_nep330_contract_path: Option<String>,
     /// override value of [crate::env_keys::CARGO_TARGET_DIR] environment variable,
     /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938> in context of nested (cargo) build
     /// in build-script;

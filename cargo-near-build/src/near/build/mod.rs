@@ -34,7 +34,7 @@ pub fn run(
 
     let buildtime_env::ExternalEnv {
         cargo_target_path: external_cargo_target_path_env,
-        nep330_contract_path: external_nep330_contract_path_env,
+        override_nep330_contract_path: external_nep330_contract_path_env,
     } = implicit_env_opts.into();
     env_keys::nep330::print_env();
 

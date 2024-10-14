@@ -90,7 +90,7 @@ pub use build_exports::*;
 ///     .build(); // default opts
 ///
 /// let build_implicit_env_opts = BuildImplicitEnvOpts::builder()
-///     .nep330_contract_path(nep330_contract_path)
+///     .override_nep330_contract_path(nep330_contract_path)
 ///     // a distinct target is needed to avoid deadlock during build
 ///     .cargo_target_dir("../target/build-rs-another-contract")
 ///     .build();

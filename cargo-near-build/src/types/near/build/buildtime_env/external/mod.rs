@@ -4,7 +4,7 @@ pub(super) mod nep330_path;
 
 pub struct ExternalEnv {
     pub cargo_target_path: Option<cargo_target_dir::CargoTargetDir>,
-    pub nep330_contract_path: nep330_path::Nep330ContractPath,
+    pub override_nep330_contract_path: nep330_path::Nep330ContractPath,
 }
 
 impl From<Option<input::implicit_env::Opts>> for ExternalEnv {
@@ -18,12 +18,12 @@ impl From<Option<input::implicit_env::Opts>> for ExternalEnv {
         let nep330_contract_path = nep330_path::Nep330ContractPath::maybe_new(
             value
                 .as_ref()
-                .and_then(|value| value.nep330_contract_path.clone()),
+                .and_then(|value| value.override_nep330_contract_path.clone()),
         );
 
         Self {
             cargo_target_path,
-            nep330_contract_path,
+            override_nep330_contract_path: nep330_contract_path,
         }
     }
 }
