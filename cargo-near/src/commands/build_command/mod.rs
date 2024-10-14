@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use cargo_near_build::docker;
 use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
@@ -73,10 +74,8 @@ impl BuildCommand {
             }
             cargo_near_build::build(self.into(), None)
         } else {
-            cargo_near_build::docker::build(cargo_near_build::docker::DockerBuildOpts {
-                build_opts: self.into(),
-                context,
-            })
+            let docker_opts = docker_opts_from((self, context));
+            cargo_near_build::docker::build(docker_opts)
         }
     }
     pub fn no_docker(&self) -> bool {
@@ -135,6 +134,28 @@ impl From<BuildCommand> for BuildOpts {
         }
     }
 }
+
+/// this is more or less equivalent to
+/// impl From<(BuildCommand, BuildContext)> for docker::DockerBuildOpts
+/// which is not possible due to BuildContext being a non-local type to current (cli) crate
+fn docker_opts_from(value: (BuildCommand, BuildContext)) -> docker::DockerBuildOpts {
+    docker::DockerBuildOpts {
+        no_locked: value.0.no_locked,
+        no_release: value.0.no_release,
+        no_abi: value.0.no_abi,
+        no_embed_abi: value.0.no_embed_abi,
+        no_doc: value.0.no_doc,
+        features: value.0.features,
+        no_default_features: value.0.no_default_features,
+        out_dir: value.0.out_dir.map(Into::into),
+        manifest_path: value.0.manifest_path.map(Into::into),
+        color: value.0.color.map(Into::into),
+        cli_description: Default::default(),
+        env: get_env_key_vals(value.0.env),
+        context: value.1,
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct BuildCommandlContext;
 

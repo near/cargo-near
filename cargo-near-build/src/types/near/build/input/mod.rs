@@ -1,9 +1,6 @@
 use std::env;
 use std::io::IsTerminal;
 
-#[cfg(feature = "docker")]
-mod docker_context;
-
 pub mod implicit_env;
 
 #[cfg(feature = "docker")]

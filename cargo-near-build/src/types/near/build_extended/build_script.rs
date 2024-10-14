@@ -34,7 +34,7 @@ impl From<Vec<(&str, &str)>> for EnvPairs {
     fn from(value: Vec<(&str, &str)>) -> Self {
         let vector = value
             .into_iter()
-            .map(|(key, value)| ((key.into(), value.into())))
+            .map(|(key, value)| (key.into(), value.into()))
             .collect();
 
         Self(vector)

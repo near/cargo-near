@@ -1,9 +1,10 @@
 use std::process::{Command, ExitStatus};
 
+use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
-use crate::{docker::DockerBuildOpts, env_keys, pretty_print};
+use crate::{env_keys, pretty_print};
 
 pub mod docker_checks;
 pub mod git_checks;
@@ -11,8 +12,7 @@ pub mod subprocess_step;
 
 pub const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
 
-pub fn run(docker_opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
-    let opts = docker_opts.build_opts;
+pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     let color = opts.color.clone().unwrap_or(crate::ColorPreference::Auto);
     color.apply();
     let crate_in_repo = pretty_print::handle_step(
@@ -20,7 +20,7 @@ pub fn run(docker_opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         || crate_in_repo::Crate::find(&opts.contract_path()?),
     )?;
     pretty_print::handle_step("Checking if git is dirty...", || {
-        git_checks::dirty::check_then_handle(docker_opts.context, &crate_in_repo.repo_root)
+        git_checks::dirty::check_then_handle(opts.context, &crate_in_repo.repo_root)
     })?;
     let cloned_repo = pretty_print::handle_step(
         "Cloning project repo to a temporary build site, removing uncommitted changes...",
@@ -28,7 +28,7 @@ pub fn run(docker_opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
             cloned_repo::ClonedRepo::check_locked_then_clone(
                 crate_in_repo.clone(),
                 opts.no_locked,
-                docker_opts.context,
+                opts.context,
             )
         },
     )?;
@@ -40,7 +40,7 @@ pub fn run(docker_opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
 
     if let BuildContext::Deploy {
         skip_git_remote_check,
-    } = docker_opts.context
+    } = opts.context
     {
         if !skip_git_remote_check {
             pretty_print::handle_step(
