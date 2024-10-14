@@ -16,26 +16,21 @@ use crate::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::build::{
-            input::{self, Opts},
-            output::version_info::VersionInfo,
-        },
+        near::build::{input::Opts, output::version_info::VersionInfo},
     },
 };
 
 use super::abi;
 
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
-pub fn run(
-    args: Opts,
-    implicit_env_opts: Option<input::implicit_env::Opts>,
-) -> eyre::Result<CompilationArtifact> {
+pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let nep330_build_cmd_env = buildtime_env::Nep330BuildCommand::compute(&args)?;
 
-    let buildtime_env::ExternalEnv {
-        cargo_target_path: external_cargo_target_path_env,
-        override_nep330_contract_path: external_nep330_contract_path_env,
-    } = implicit_env_opts.into();
+    let external_cargo_target_path_env =
+        buildtime_env::CargoTargetDir::maybe_new(args.override_cargo_target_dir);
+    let external_nep330_contract_path_env =
+        buildtime_env::Nep330ContractPath::maybe_new(args.override_nep330_contract_path);
+
     env_keys::nep330::print_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);

@@ -23,14 +23,14 @@
 //! Default:
 //!
 //! ```no_run
-//! let artifact = cargo_near_build::build(Default::default(), None).expect("some error during build");
+//! let artifact = cargo_near_build::build(Default::default()).expect("some error during build");
 //! ```
 //!
 //! With some options set:
 //!
 //! ```no_run
 //! let build_opts = cargo_near_build::BuildOpts::builder().features("some_contract_feature_1").build();
-//! let artifact = cargo_near_build::build(build_opts, None).expect("some error during build");
+//! let artifact = cargo_near_build::build(build_opts).expect("some error during build");
 //! ```
 pub(crate) mod cargo_native;
 /// module contains names of environment variables, exported during
@@ -49,7 +49,6 @@ pub mod abi {
 
 mod build_exports {
     pub use crate::near::build::run as build;
-    pub use crate::types::near::build::input::implicit_env::Opts as BuildImplicitEnvOpts;
     #[cfg(feature = "docker")]
     pub use crate::types::near::build::input::BuildContext;
     pub use crate::types::near::build::input::Opts as BuildOpts;
@@ -74,7 +73,7 @@ pub use build_exports::*;
 ///
 /// ```no_run
 /// use cargo_near_build::{bon, extended};
-/// use cargo_near_build::{BuildImplicitEnvOpts, BuildOpts};
+/// use cargo_near_build::BuildOpts;
 /// use std::str::FromStr;
 ///
 /// // directory of target sub-contract's crate
@@ -87,13 +86,10 @@ pub use build_exports::*;
 ///
 /// let build_opts = BuildOpts::builder()
 ///     .manifest_path(manifest)
-///     .build(); // default opts
-///
-/// let build_implicit_env_opts = BuildImplicitEnvOpts::builder()
 ///     .override_nep330_contract_path(nep330_contract_path)
 ///     // a distinct target is needed to avoid deadlock during build
-///     .cargo_target_dir("../target/build-rs-another-contract")
-///     .build();
+///     .override_cargo_target_dir("../target/build-rs-another-contract")
+///     .build(); // default opts
 ///
 /// let build_script_opts = extended::BuildScriptOpts::builder()
 ///     .rerun_if_changed_list(bon::vec![workdir, "../Cargo.toml", "../Cargo.lock",])
@@ -108,7 +104,6 @@ pub use build_exports::*;
 ///
 /// let extended_opts = extended::BuildOptsExtended::builder()
 ///     .build_opts(build_opts)
-///     .build_implicit_env_opts(build_implicit_env_opts)
 ///     .build_script_opts(build_script_opts)
 ///     .build();
 ///

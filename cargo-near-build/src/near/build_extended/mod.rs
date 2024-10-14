@@ -17,7 +17,7 @@ mod build_script;
 
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build_extended::OptsExtended;
-use crate::{BuildImplicitEnvOpts, BuildOpts};
+use crate::BuildOpts;
 use rustc_version::Version;
 
 use crate::extended::BuildScriptOpts;
@@ -35,14 +35,8 @@ pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error
     let OptsExtended {
         build_opts,
         build_script_opts,
-        build_implicit_env_opts,
     } = args;
-    let (artifact, skipped) = skip_or_compile(
-        build_opts,
-        build_implicit_env_opts,
-        &build_script_opts,
-        &actual_version,
-    )?;
+    let (artifact, skipped) = skip_or_compile(build_opts, &build_script_opts, &actual_version)?;
 
     build_script_opts.post_build(skipped, &artifact, &actual_version)?;
     Ok(artifact)
@@ -50,7 +44,6 @@ pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error
 
 pub(crate) fn skip_or_compile(
     build_opts: BuildOpts,
-    build_implicit_env_opts: BuildImplicitEnvOpts,
     build_script_opts: &BuildScriptOpts,
     version: &Version,
 ) -> Result<(CompilationArtifact, bool), Box<dyn std::error::Error>> {
@@ -58,7 +51,7 @@ pub(crate) fn skip_or_compile(
         let artifact = build_script_opts.create_empty_stub()?;
         (artifact, true)
     } else {
-        let artifact = crate::build(build_opts, Some(build_implicit_env_opts))?;
+        let artifact = crate::build(build_opts)?;
         (artifact, false)
     };
     Ok(result)

@@ -19,4 +19,4 @@ pub use command::Nep330BuildCommand;
 pub use abi_builder_version::BuilderAbiVersions;
 
 pub use external::cargo_target_dir::CargoTargetDir;
-pub use external::ExternalEnv;
+pub use external::nep330_path::Nep330ContractPath;
