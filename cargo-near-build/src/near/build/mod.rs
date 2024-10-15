@@ -49,8 +49,9 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         } else {
             MANIFEST_FILE_NAME.into()
         };
+        let manifest_path = ManifestPath::try_from(manifest_path)?;
         CrateMetadata::collect(
-            ManifestPath::try_from(manifest_path)?,
+            manifest_path,
             args.no_locked,
             external_cargo_target_path_env.as_ref(),
         )
