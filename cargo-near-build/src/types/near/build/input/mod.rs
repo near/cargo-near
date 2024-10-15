@@ -54,7 +54,7 @@ pub struct Opts {
     #[builder(default)]
     pub env: Vec<(String, String)>,
     /// override value of [crate::env_keys::nep330::CONTRACT_PATH] environment variable,
-    /// needed in context [crate::extended::build] logic, when a sub-contract being built inside of `build.rs`
+    /// needed in context of [crate::extended::build] logic, when a sub-contract being built inside of `build.rs`
     /// resides in different [crate::env_keys::nep330::CONTRACT_PATH] than the current contract
     #[builder(into)]
     pub override_nep330_contract_path: Option<String>,
@@ -152,7 +152,7 @@ impl Opts {
 ///
 /// otherwise it's [ColorPreference::Always] if stderr is a terminal device,
 /// and [ColorPreference::Never] in the remaining cases
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ColorPreference {
     Auto,
     Always,

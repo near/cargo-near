@@ -13,7 +13,7 @@ pub mod subprocess_step;
 pub const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
 
 pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
-    let color = opts.color.clone().unwrap_or(crate::ColorPreference::Auto);
+    let color = opts.color.unwrap_or(crate::ColorPreference::Auto);
     color.apply();
     let crate_in_repo = pretty_print::handle_step(
         "Opening repo and determining HEAD and relative path of contract...",
