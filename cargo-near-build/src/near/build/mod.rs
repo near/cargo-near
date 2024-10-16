@@ -148,9 +148,17 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     wasm_artifact.path = crate::fs::copy(&wasm_artifact.path, &out_dir)?;
 
     if !args.no_wasmopt {
-        wasm_opt::OptimizationOptions::new_optimize_for_size()
-            .run(&wasm_artifact.path, &wasm_artifact.path)?;
+        println!();
+        pretty_print::handle_step(
+            "Running an optimize for size post-step with wasm-opt...",
+            || {
+                wasm_opt::OptimizationOptions::new_optimize_for_size()
+                    .run(&wasm_artifact.path, &wasm_artifact.path)?;
+                Ok(())
+            },
+        )?;
     }
+
     wasm_artifact.builder_version_mismatch = builder_version_mismatch;
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
