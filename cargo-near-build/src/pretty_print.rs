@@ -27,9 +27,9 @@ pub fn success(msg: &str) {
 pub fn duration(start: Instant, activity: &str) {
     let duration = std::time::Duration::from_secs(start.elapsed().as_secs());
     println!(
-        "    {} {} in {:#}",
+        "    {} {} in {}",
         "Finished".bold().cyan(),
         activity,
-        duration_human::DurationHuman::from(duration)
+        humantime::format_duration(duration)
     );
 }

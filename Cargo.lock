@@ -489,11 +489,11 @@ dependencies = [
  "cargo_metadata",
  "colored",
  "dunce",
- "duration-human",
  "eyre",
  "git2",
  "hex",
  "home",
+ "humantime",
  "libloading",
  "near-abi",
  "nix",
@@ -1179,19 +1179,6 @@ name = "dunce"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
-
-[[package]]
-name = "duration-human"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ecd7b96a60d705aea85c88b53dc7f0e6e38dfa1697e8fe0296360ba9150b88"
-dependencies = [
- "clap",
- "lazy-regex",
- "regex",
- "syn 1.0.109",
- "thiserror",
-]
 
 [[package]]
 name = "dyn-clone"
@@ -2172,29 +2159,6 @@ dependencies = [
  "openssl",
  "security-framework",
  "windows-sys 0.59.0",
-]
-
-[[package]]
-name = "lazy-regex"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff63c423c68ea6814b7da9e88ce585f793c87ddd9e78f646970891769c8235d4"
-dependencies = [
- "lazy-regex-proc_macros",
- "once_cell",
- "regex",
-]
-
-[[package]]
-name = "lazy-regex-proc_macros"
-version = "2.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8edfc11b8f56ce85e207e62ea21557cfa09bb24a8f6b04ae181b086ff8611c22"
-dependencies = [
- "proc-macro2",
- "quote",
- "regex",
- "syn 1.0.109",
 ]
 
 [[package]]
