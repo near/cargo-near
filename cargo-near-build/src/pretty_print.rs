@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use colored::Colorize;
 
 pub fn handle_step<F, T>(msg: &str, f: F) -> eyre::Result<T>
@@ -20,4 +22,14 @@ pub fn step(msg: &str) {
 
 pub fn success(msg: &str) {
     eprintln!("{} {}", "✓".bold().green(), msg);
+}
+
+pub fn duration(start: Instant, activity: &str) {
+    let duration = std::time::Duration::from_secs(start.elapsed().as_secs());
+    println!(
+        "    {} {} in {}",
+        "Finished".bold().cyan(),
+        activity,
+        humantime::format_duration(duration)
+    );
 }
