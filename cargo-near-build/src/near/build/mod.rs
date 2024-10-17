@@ -24,6 +24,7 @@ use super::abi;
 
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
+    let start = std::time::Instant::now();
     let override_cargo_target_path_env =
         buildtime_env::CargoTargetDir::maybe_new(args.override_cargo_target_dir.clone());
 
@@ -162,6 +163,19 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     )?;
 
     wasm_artifact.path = crate::fs::copy(&wasm_artifact.path, &out_dir)?;
+
+    if !args.no_wasmopt {
+        println!();
+        pretty_print::handle_step(
+            "Running an optimize for size post-step with wasm-opt...",
+            || {
+                wasm_opt::OptimizationOptions::new_optimize_for_size()
+                    .run(&wasm_artifact.path, &wasm_artifact.path)?;
+                Ok(())
+            },
+        )?;
+    }
+
     wasm_artifact.builder_version_info = Some(builder_version_info);
 
     // todo! if we embedded, check that the binary exports the __contract_abi symbol
@@ -189,5 +203,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     }
 
     messages.pretty_print();
+    pretty_print::duration(start, "cargo near build");
     Ok(wasm_artifact)
 }

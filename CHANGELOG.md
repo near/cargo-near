@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1](https://github.com/near/cargo-near/compare/cargo-near-v0.10.0...cargo-near-v0.10.1) - 2024-10-17
+
+### Other
+
+- update Docker image reference in new command template with cargo-near 0.10.0 and Rust 1.82.0 ([#232](https://github.com/near/cargo-near/pull/232))
+
+## [0.10.0](https://github.com/near/cargo-near/compare/cargo-near-v0.9.0...cargo-near-v0.10.0) - 2024-10-16
+
+### Added
+
+- [**breaking**] use `wasm-opt -O` (via wasm-opt-rs) as post-step of build ([#231](https://github.com/near/cargo-near/pull/231))
+- `env` flag for external parameters of docker build and regular build ([#226](https://github.com/near/cargo-near/pull/226))
+
+### Other
+
+- Use Posthog instead of Mixpanel to collect stats on new projects creation ([#227](https://github.com/near/cargo-near/pull/227))
+- Fix tracking usage ([#225](https://github.com/near/cargo-near/pull/225))
+
 ## [0.9.0](https://github.com/near/cargo-near/compare/cargo-near-v0.8.2...cargo-near-v0.9.0) - 2024-09-12
 
 ### Added

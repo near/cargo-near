@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.1.1...cargo-near-build-v0.2.0) - 2024-10-16
+
+### Added
+
+- [**breaking**] use `wasm-opt -O` (via wasm-opt-rs) as post-step of build ([#231](https://github.com/near/cargo-near/pull/231))
+- `env` flag for external parameters of docker build and regular build ([#226](https://github.com/near/cargo-near/pull/226))
+
+### Other
+
+- disable github release for `cargo-near-build` via cargo-dist ([#222](https://github.com/near/cargo-near/pull/222))
+
 ## [0.1.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.1.0...cargo-near-build-v0.1.1) - 2024-09-12
 
 ### Added

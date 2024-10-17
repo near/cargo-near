@@ -27,6 +27,9 @@ pub struct Opts {
     /// Do not include rustdocs in the embedded ABI
     #[builder(default)]
     pub no_doc: bool,
+    /// do not run `wasm-opt -O` on the generated output as a post-step
+    #[builder(default)]
+    pub no_wasmopt: bool,
     /// Copy final artifacts to this directory
     pub out_dir: Option<camino::Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
