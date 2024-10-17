@@ -97,8 +97,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install packages (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
     - name: run cargo doc
-      run: RUSTDOCFLAGS="-D warnings" cargo doc -p cargo-near-build --features build_script
+      run: |
+        RUSTDOCFLAGS="-D warnings" cargo doc --workspace --features cargo-near-build/build_script
+        cargo test --workspace --features cargo-near-build/build_script --doc
 
   audit:
     runs-on: ubuntu-latest

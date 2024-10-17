@@ -7,6 +7,10 @@ publish = false
 [dependencies]
 const_format = "0.2"
 cargo-near-build = { version = "0.2.0", path = "../cargo-near-build" }
+cargo-near = { path = "../cargo-near" }
+colored = "2.0"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
@@ -26,5 +30,3 @@ tokio = "1.0"
 quote = "1.0"
 near-workspaces = "0.14.0"
 zstd = "0.13"
-env_logger = "0.11.5"
-log = "0.4"

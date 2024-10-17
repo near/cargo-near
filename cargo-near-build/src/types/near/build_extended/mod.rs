@@ -3,11 +3,8 @@ use crate::BuildOpts;
 
 pub mod build_script;
 
-#[derive(Debug, Clone)]
-pub struct OptsExtended<'a> {
-    pub workdir: &'a str,
-    /// vector of key-value pairs of temporary env overrides during build process
-    pub env: Vec<(&'a str, &'a str)>,
+#[derive(Debug, Clone, bon::Builder)]
+pub struct OptsExtended {
     pub build_opts: BuildOpts,
-    pub build_script_opts: BuildScriptOpts<'a>,
+    pub build_script_opts: BuildScriptOpts,
 }

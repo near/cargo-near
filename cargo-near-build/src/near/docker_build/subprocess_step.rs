@@ -1,4 +1,5 @@
 use super::docker_checks;
+use crate::docker::DockerBuildOpts;
 use colored::Colorize;
 use std::io::IsTerminal;
 use std::{
@@ -12,10 +13,9 @@ use nix::unistd::{getgid, getuid};
 use crate::env_keys;
 use crate::types::near::docker_build::subprocess::{container_paths, env_vars};
 use crate::types::near::docker_build::{cloned_repo, metadata};
-use crate::BuildOpts;
 
 pub fn run(
-    opts: BuildOpts,
+    opts: DockerBuildOpts,
     docker_build_meta: metadata::ReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> eyre::Result<(ExitStatus, Command)> {
@@ -47,10 +47,7 @@ pub fn run(
         let env = env_vars::EnvVars::new(&docker_build_meta, cloned_repo)?;
         let env_args = env.docker_args();
         let shell_escaped_cargo_cmd = {
-            let cargo_cmd = opts.get_cli_build_command_in_docker(
-                docker_build_meta.container_build_command.clone(),
-                docker_build_meta.passed_env.clone(),
-            )?;
+            let cargo_cmd = opts.get_cli_build_command_in_docker(&docker_build_meta)?;
             tracing::debug!("cli_build_command_in_docker {:#?}", cargo_cmd);
             shell_words::join(cargo_cmd)
         };

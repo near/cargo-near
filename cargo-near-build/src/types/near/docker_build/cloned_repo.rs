@@ -5,7 +5,7 @@ use std::time::Duration;
 use crate::pretty_print;
 use crate::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use crate::types::cargo::metadata::CrateMetadata;
-use crate::types::near::build::output::version_mismatch::VersionMismatch;
+use crate::types::near::build::output::version_info::VersionInfo;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::types::near::docker_build::WARN_BECOMES_ERR;
 use crate::{camino, BuildArtifact};
@@ -67,7 +67,8 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, no_locked).inspect_err(|err| {
+            let manifest_path = ManifestPath::try_from(cargo_toml_path)?;
+            CrateMetadata::collect(manifest_path, no_locked, None).inspect_err(|err| {
             if !no_locked && err.to_string().contains("Cargo.lock is absent") {
                 no_locked_warn_pause(false);
                 println!();
@@ -104,7 +105,8 @@ impl ClonedRepo {
                 path.push(MANIFEST_FILE_NAME);
                 path
             };
-            CrateMetadata::collect(ManifestPath::try_from(cargo_toml_path)?, self.no_locked)?
+            let manifest_path = ManifestPath::try_from(cargo_toml_path)?;
+            CrateMetadata::collect(manifest_path, self.no_locked, None)?
         };
 
         let destination_dir =
@@ -149,7 +151,7 @@ fn copy(
         path: out_wasm_path,
         fresh: true,
         from_docker: true,
-        builder_version_mismatch: VersionMismatch::UnknownFromDocker,
+        builder_version_info: Some(VersionInfo::UnknownFromDocker),
         artifact_type: PhantomData,
     };
     let mut messages = ArtifactMessages::default();

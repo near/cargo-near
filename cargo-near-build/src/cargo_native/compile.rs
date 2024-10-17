@@ -6,10 +6,7 @@ use eyre::{ContextCompat, WrapErr};
 use std::io::BufRead;
 
 use crate::types::near::build::input::ColorPreference;
-use crate::types::{
-    cargo::manifest_path::ManifestPath,
-    near::build::{output::version_mismatch::VersionMismatch, output::CompilationArtifact},
-};
+use crate::types::{cargo::manifest_path::ManifestPath, near::build::output::CompilationArtifact};
 
 use super::ArtifactType;
 
@@ -36,10 +33,13 @@ where
                 let rustflags: &mut String = final_env
                     .entry(key)
                     .or_insert_with(|| std::env::var(key).unwrap_or_default());
-                if !rustflags.is_empty() {
-                    rustflags.push(' ');
+                // helps avoids situation on complete match `RUSTFLAGS="-C link-arg=-s -C link-arg=-s"`
+                if !rustflags.contains(value) {
+                    if !rustflags.is_empty() {
+                        rustflags.push(' ');
+                    }
+                    rustflags.push_str(value);
                 }
-                rustflags.push_str(value);
             }
             _ => {
                 final_env.insert(key, value.to_string());
@@ -84,7 +84,7 @@ where
             path,
             fresh: !compile_artifact.fresh,
             from_docker: false,
-            builder_version_mismatch: VersionMismatch::None,
+            builder_version_info: None,
             artifact_type: PhantomData,
         }),
         _ => eyre::bail!(

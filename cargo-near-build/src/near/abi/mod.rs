@@ -4,7 +4,7 @@ use crate::types::near::abi as abi_types;
 pub mod generate;
 
 #[cfg(feature = "abi_build")]
-pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
+pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
     // imports #[cfg(feature = "abi_build")]
     use crate::{
         pretty_print,
@@ -22,7 +22,8 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
         } else {
             "Cargo.toml".into()
         };
-        CrateMetadata::collect(ManifestPath::try_from(manifest_path)?, args.no_locked)
+        let manifest_path = ManifestPath::try_from(manifest_path)?;
+        CrateMetadata::collect(manifest_path, args.no_locked, None)
     })?;
 
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
@@ -53,7 +54,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<()> {
     pretty_print::success("ABI Successfully Generated!");
     eprintln!("     - ABI: {}", abi_path.to_string().yellow().bold());
 
-    Ok(())
+    Ok(abi_path)
 }
 
 pub fn write_to_file(

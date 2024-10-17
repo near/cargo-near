@@ -16,6 +16,7 @@
 //!
 //! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact] as type of some of fields
 //! 2. [near_abi] is re-exported, because details of ABI generated depends on specific version of `near-abi` dependency  
+//! 3. [bon] is re-exported for the convenience of [bon::vec] helper macro
 //!
 //! ## Sample usage:
 //!
@@ -28,11 +29,8 @@
 //! With some options set:
 //!
 //! ```no_run
-//!     let build_opts = cargo_near_build::BuildOpts {
-//!         features: Some("some_contract_feature_1".into()),
-//!         ..Default::default()
-//!     };
-//!     let artifact = cargo_near_build::build(build_opts).expect("some error during build");
+//! let build_opts = cargo_near_build::BuildOpts::builder().features("some_contract_feature_1").build();
+//! let artifact = cargo_near_build::build(build_opts).expect("some error during build");
 //! ```
 pub(crate) mod cargo_native;
 /// module contains names of environment variables, exported during
@@ -67,39 +65,54 @@ pub use build_exports::*;
 /// Potential import may look like this:
 /// ```ignore
 /// [build-dependencies.cargo-near-build]
-/// version = "0.1.0"
+/// version = "x.y.z"
 /// features = ["build_script"]
 /// ```
 ///
 /// Usage example:
 ///
 /// ```no_run
-/// use cargo_near_build::extended::BuildScriptOpts;
-/// let opts = cargo_near_build::extended::BuildOptsExtended {
-///     workdir: "../another-contract",
-///     env: vec![
-///         // unix path of target contract from root of repo
-///         (cargo_near_build::env_keys::nep330::CONTRACT_PATH, "another-contract")
-///     ],
-///     build_opts: cargo_near_build::BuildOpts::default(),
-///     build_script_opts: BuildScriptOpts {
-///         result_env_key: Some("BUILD_RS_SUB_BUILD_ARTIFACT_1"),
-///         rerun_if_changed_list: vec!["../another-contract", "../Cargo.toml", "../Cargo.lock"],
-///         build_skipped_when_env_is: vec![
-///             // shorter build for `cargo check`
-///             ("PROFILE", "debug"),
-///             (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
-///         ],
-///         distinct_target_dir: Some("../target/build-rs-another-contract"),
-///         stub_path: Some("../target/stub.bin"),
-///     },
-/// };
-/// cargo_near_build::extended::build(opts).expect("sub-contract build error");
+/// use cargo_near_build::{bon, extended};
+/// use cargo_near_build::BuildOpts;
+/// use std::str::FromStr;
+///
+/// // directory of target sub-contract's crate
+/// let workdir = "../another-contract";
+/// // unix path to target sub-contract's crate from root of the repo
+/// let nep330_contract_path = "another-contract";
+/// let manifest = camino::Utf8PathBuf::from_str(workdir)
+///     .expect("pathbuf from str")
+///     .join("Cargo.toml");
+///
+/// let build_opts = BuildOpts::builder()
+///     .manifest_path(manifest)
+///     .override_nep330_contract_path(nep330_contract_path)
+///     // a distinct target is needed to avoid deadlock during build
+///     .override_cargo_target_dir("../target/build-rs-another-contract")
+///     .build(); // default opts
+///
+/// let build_script_opts = extended::BuildScriptOpts::builder()
+///     .rerun_if_changed_list(bon::vec![workdir, "../Cargo.toml", "../Cargo.lock",])
+///     .build_skipped_when_env_is(vec![
+///         // shorter build for `cargo check`
+///         ("PROFILE", "debug"),
+///         (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+///     ])
+///     .stub_path("../target/stub.bin")
+///     .result_env_key("BUILD_RS_SUB_BUILD_ARTIFACT_1")
+///     .build();
+///
+/// let extended_opts = extended::BuildOptsExtended::builder()
+///     .build_opts(build_opts)
+///     .build_script_opts(build_script_opts)
+///     .build();
+///
+/// cargo_near_build::extended::build(extended_opts).expect("sub-contract build error");
 /// ```
 #[cfg(feature = "build_script")]
 pub mod extended {
     pub use crate::near::build_extended::run as build;
-    pub use crate::types::near::build_extended::build_script::Opts as BuildScriptOpts;
+    pub use crate::types::near::build_extended::build_script::{EnvPairs, Opts as BuildScriptOpts};
     pub use crate::types::near::build_extended::OptsExtended as BuildOptsExtended;
 }
 
@@ -109,5 +122,6 @@ pub mod docker {
     pub use crate::types::near::docker_build::Opts as DockerBuildOpts;
 }
 
+pub use bon;
 pub use camino;
 pub use near_abi;

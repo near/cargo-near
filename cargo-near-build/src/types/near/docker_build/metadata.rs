@@ -123,6 +123,15 @@ impl ReproducibleBuild {
                     "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
                 ));
             }
+            if is_cargo_near && command_token == "--manifest-path" {
+                return Err(eyre::eyre!(
+                    "{}:\n{}\n{}",
+                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    "`container_build_command`: `--manifest-path` isn't allowed to be specified \
+                    in manifest itself.",
+                    "`--manifest-path ./Cargo.toml` is implied in all such cases",
+                ));
+            }
         }
         Ok(())
     }
