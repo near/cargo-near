@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1](https://github.com/near/cargo-near/compare/cargo-near-v0.10.0...cargo-near-v0.10.1) - 2024-10-17
+
+### Other
+
+- update Docker image reference in new command template with cargo-near 0.10.0 and Rust 1.82.0 ([#232](https://github.com/near/cargo-near/pull/232))
+
 ## [0.10.0](https://github.com/near/cargo-near/compare/cargo-near-v0.9.0...cargo-near-v0.10.0) - 2024-10-16
 
 ### Added
