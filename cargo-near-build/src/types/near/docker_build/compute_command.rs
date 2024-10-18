@@ -1,28 +1,19 @@
 use colored::Colorize;
 
-use crate::types::cargo::manifest_path::ManifestPath;
+use super::metadata;
 
 impl super::Opts {
-    pub fn contract_path(&self) -> eyre::Result<camino::Utf8PathBuf> {
-        let contract_path: camino::Utf8PathBuf = if let Some(manifest_path) = &self.manifest_path {
-            let manifest_path = ManifestPath::try_from(manifest_path.clone())?;
-            manifest_path.directory()?.to_path_buf()
-        } else {
-            camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?)
-                .map_err(|err| eyre::eyre!("Failed to convert path {}", err.to_string_lossy()))?
-        };
-        Ok(contract_path)
-    }
-
     const BUILD_COMMAND_CLI_CONFIG_ERR: &'static str =  "flag cannot be used, when `container_build_command` is configured from `[package.metadata.near.reproducible_build]` in Cargo.toml";
 
     pub fn get_cli_build_command_in_docker(
         &self,
-        manifest_command: Option<Vec<String>>,
-        passed_env: Option<Vec<String>>,
+        docker_build_meta: &metadata::ReproducibleBuild,
     ) -> eyre::Result<Vec<String>> {
-        if let Some(manifest_command) = manifest_command {
-            self.append_env_suffix(manifest_command, passed_env)
+        if let Some(manifest_command) = docker_build_meta.container_build_command.as_ref() {
+            self.append_env_suffix(
+                manifest_command.clone(),
+                docker_build_meta.passed_env.clone(),
+            )
         } else {
             println!(
                 "{}",
@@ -176,7 +167,7 @@ impl super::Opts {
 mod tests {
     #[test]
     fn test_passthrough_some_opts_into_docker_cmd() {
-        let opts = crate::BuildOpts {
+        let opts = crate::docker::DockerBuildOpts {
             no_release: true,
             no_abi: true,
             no_embed_abi: true,

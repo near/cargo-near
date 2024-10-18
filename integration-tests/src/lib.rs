@@ -1,9 +1,34 @@
+use cargo_near_build::camino;
+
 /// NOTE: `near-sdk` version, published on crates.io
 pub mod from_crates_io {
     use const_format::formatcp;
 
     pub const SDK_VERSION: &str = "5.5.0";
     pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
+}
+
+pub fn setup_tracing() {
+    use colored::Colorize;
+    use tracing_subscriber::layer::SubscriberExt;
+    use tracing_subscriber::util::SubscriberInitExt;
+    use tracing_subscriber::EnvFilter;
+    use tracing_subscriber::{fmt::format, prelude::*};
+    let environment = "test".green();
+    let my_formatter = cargo_near::types::my_formatter::MyFormatter::from_environment(environment);
+
+    let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
+
+    let env_filter = EnvFilter::from_default_env();
+
+    let _e = tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .event_format(my_formatter)
+                .fmt_fields(format)
+                .with_filter(env_filter),
+        )
+        .try_init();
 }
 
 /// NOTE: this version is version of near-sdk in arbitrary revision from N.x.x development cycle
@@ -25,11 +50,20 @@ pub mod from_git {
     );
 }
 
+pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
+    let manifest_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
+    let workspace_dir = manifest_dir
+        .parent()
+        .unwrap()
+        .join("target")
+        .join("_abi-integration-tests");
+    workspace_dir
+}
+
 #[macro_export]
 macro_rules! invoke_cargo_near {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? Opts: $cli_opts:expr; Code: $($code:tt)*) => {{
-        let manifest_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
-        let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
+        let workspace_dir = $crate::common_root_for_test_projects_build();
         let crate_dir = workspace_dir.join(function_name!());
         let src_dir = crate_dir.join("src");
         std::fs::create_dir_all(&src_dir)?;
@@ -56,11 +90,9 @@ macro_rules! invoke_cargo_near {
         let lib_rs_path = src_dir.join("lib.rs");
         std::fs::write(lib_rs_path, lib_rs)?;
 
-        std::env::set_var("CARGO_TARGET_DIR", workspace_dir.join("target"));
-
         let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts.split(" "))?;
 
-        match cli_args.cmd {
+        let path: camino::Utf8PathBuf = match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
                 let args = cargo_near_build::abi::AbiOpts {
                     no_locked: cmd.no_locked,
@@ -70,7 +102,9 @@ macro_rules! invoke_cargo_near {
                     manifest_path: Some(cargo_path.into()),
                     color: cmd.color.map(Into::into),
                 };
-                cargo_near_build::abi::build(args)?;
+                tracing::debug!("AbiOpts: {:#?}", args);
+                let path = cargo_near_build::abi::build(args)?;
+                path
             },
             Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
                 let args = {
@@ -78,13 +112,15 @@ macro_rules! invoke_cargo_near {
                   args.manifest_path = Some(cargo_path.into());
                   args
                 };
-                args.run(cargo_near_build::BuildContext::Build)?;
+                tracing::debug!("BuildCommand: {:#?}", args);
+                let artifact = args.run(cargo_near_build::BuildContext::Build)?;
+                artifact.path
             },
             Some(_) => todo!(),
-            None => ()
-        }
+            None => unreachable!(),
+        };
+        path
 
-        workspace_dir.join("target").join("near")
     }};
 }
 
@@ -93,12 +129,13 @@ macro_rules! generate_abi_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         let opts = "cargo near abi --no-locked";
         $(let opts = format!("cargo near abi --no-locked {}", $cli_opts);)?;
-        let result_dir = $crate::invoke_cargo_near! {
+        let result_file = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;
             Code:
             $($code)*
         };
+        let result_dir = result_file.as_std_path().parent().expect("has parent");
 
         let abi_root: cargo_near_build::near_abi::AbiRoot =
             serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
@@ -162,28 +199,17 @@ macro_rules! build_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
         let opts = "cargo near build --no-docker --no-locked";
         $(let opts = format!("cargo near build --no-docker --no-locked {}", $cli_opts);)?;
-        let result_dir = $crate::invoke_cargo_near! {
+        let result_file = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;
             Code:
             $($code)*
         };
+        let result_dir = result_file.as_std_path().parent().expect("has parent");
 
-        let manifest_dir: std::path::PathBuf = env!("CARGO_MANIFEST_DIR").into();
-        let workspace_dir = manifest_dir.parent().unwrap().join("target").join("_abi-integration-tests");
-        let wasm_debug_path = workspace_dir.join("target")
-            .join("wasm32-unknown-unknown")
-            .join("debug")
-            .join(format!("{}.wasm", function_name!()));
-        let wasm_release_path = workspace_dir.join("target")
-            .join("wasm32-unknown-unknown")
-            .join("release")
-            .join(format!("{}.wasm", function_name!()));
-        let wasm: Vec<u8> = if wasm_release_path.exists() {
-            std::fs::read(wasm_release_path)?
-        } else {
-            std::fs::read(wasm_debug_path)?
-        };
+        let wasm_path = result_dir.
+            join(format!("{}.wasm", function_name!()));
+        let wasm: Vec<u8> = std::fs::read(wasm_path)?;
 
         let abi_path = result_dir.join(format!("{}_abi.json", function_name!()));
         let abi_root: Option<cargo_near_build::near_abi::AbiRoot> = if abi_path.exists() {

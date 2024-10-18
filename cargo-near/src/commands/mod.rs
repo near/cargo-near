@@ -33,7 +33,7 @@ pub enum NearCommand {
                          To create an account on a different network, use NEAR CLI [https://near.cli.rs]"
     ))]
     /// Create a development account using the faucet service sponsor to receive some NEAR tokens (testnet only)
-    /// To create an account on a different network, use NEAR CLI [https://near.cli.rs]
+    /// To create an account on a different network, use NEAR CLI <https://near.cli.rs>
     CreateDevAccount(self::create_dev_account::CreateAccount),
     #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
     /// Add a new contract code

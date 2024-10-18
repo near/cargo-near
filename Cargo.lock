@@ -312,6 +312,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "bon"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97493a391b4b18ee918675fb8663e53646fd09321c58b46afa04e8ce2499c869"
+dependencies = [
+ "bon-macros",
+ "rustversion",
+]
+
+[[package]]
+name = "bon-macros"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a2af3eac944c12cdf4423eab70d310da0a8e5851a18ffb192c0a5e3f7ae1663"
+dependencies = [
+ "darling",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.77",
+]
+
+[[package]]
 name = "borsh"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -508,6 +531,7 @@ dependencies = [
 name = "cargo-near-build"
 version = "0.2.0"
 dependencies = [
+ "bon",
  "bs58 0.5.1",
  "camino",
  "cargo_metadata",
@@ -546,11 +570,10 @@ dependencies = [
  "cargo-near",
  "cargo-near-build 0.2.0",
  "color-eyre",
+ "colored",
  "const_format",
- "env_logger",
  "function_name",
  "git2",
- "log",
  "minifier",
  "near-workspaces",
  "prettyplease 0.2.22",
@@ -560,6 +583,8 @@ dependencies = [
  "syn 2.0.77",
  "tempfile",
  "tokio",
+ "tracing",
+ "tracing-subscriber",
  "zstd 0.13.2",
 ]
 
@@ -1275,29 +1300,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.77",
-]
-
-[[package]]
-name = "env_filter"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f2c92ceda6ceec50f43169f9ee8424fe2db276791afde7b2cd8bc084cb376ab"
-dependencies = [
- "log",
- "regex",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.11.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13fa619b91fb2381732789fc5de83b45675e882f66623b7d8cb4f643017018d"
-dependencies = [
- "anstream",
- "anstyle",
- "env_filter",
- "humantime",
- "log",
 ]
 
 [[package]]

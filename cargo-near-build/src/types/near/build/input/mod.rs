@@ -2,9 +2,6 @@ use std::env;
 use std::io::IsTerminal;
 
 #[cfg(feature = "docker")]
-mod docker_context;
-
-#[cfg(feature = "docker")]
 #[derive(Debug, Clone, Copy)]
 pub enum BuildContext {
     Build,
@@ -18,37 +15,60 @@ pub enum BuildContext {
 /// - `None` - for `Option`-s
 /// - empty vector - for `Vec`
 /// - delegates to [impl Default for CliDescription](struct.CliDescription.html#impl-Default-for-CliDescription)
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, bon::Builder)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    #[builder(default)]
     pub no_locked: bool,
     /// Build contract in debug mode, without optimizations and bigger in size
+    #[builder(default)]
     pub no_release: bool,
     /// Do not generate ABI for the contract
+    #[builder(default)]
     pub no_abi: bool,
     /// Do not embed the ABI in the contract binary
+    #[builder(default)]
     pub no_embed_abi: bool,
     /// Do not include rustdocs in the embedded ABI
+    #[builder(default)]
     pub no_doc: bool,
     /// do not run `wasm-opt -O` on the generated output as a post-step
+    #[builder(default)]
     pub no_wasmopt: bool,
     /// Copy final artifacts to this directory
     pub out_dir: Option<camino::Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
     pub manifest_path: Option<camino::Utf8PathBuf>,
     /// Set compile-time feature flags.
+    #[builder(into)]
     pub features: Option<String>,
     /// Disables default feature flags.
+    #[builder(default)]
     pub no_default_features: bool,
     /// Coloring: auto, always, never;
     /// assumed to be auto when `None`
     pub color: Option<ColorPreference>,
     /// description of cli command, where [BuildOpts](crate::BuildOpts) are being used from, either real
     /// or emulated
+    #[builder(default)]
     pub cli_description: CliDescription,
     /// additional environment key-value pairs, that should be passed to underlying
     /// build commands
+    #[builder(default)]
     pub env: Vec<(String, String)>,
+    /// override value of [crate::env_keys::nep330::CONTRACT_PATH] environment variable,
+    /// needed in context of [crate::extended::build] logic, when a sub-contract being built inside of `build.rs`
+    /// resides in different [crate::env_keys::nep330::CONTRACT_PATH] than the current contract
+    #[builder(into)]
+    pub override_nep330_contract_path: Option<String>,
+    /// override value of [crate::env_keys::CARGO_TARGET_DIR] environment variable,
+    /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938> in context of [crate::extended::build] logic
+    /// when a sub-contract is built in `build.rs`
+    ///
+    /// should best be a subfolder of [crate::env_keys::CARGO_TARGET_DIR]
+    /// of crate being built to work normally
+    #[builder(into)]
+    pub override_cargo_target_dir: Option<String>,
 }
 
 /// used as field in [BuildOpts](crate::BuildOpts)
@@ -77,7 +97,7 @@ impl Opts {
     /// this is just 1-to-1 mapping of each struct's field to a cli flag
     /// in order of fields, as specified in struct's definition.
     /// `Default` implementation corresponds to plain `cargo near build` command without any args
-    pub(crate) fn get_cli_build_command(&self) -> Vec<String> {
+    pub(crate) fn get_cli_command_for_lib_context(&self) -> Vec<String> {
         let cargo_args = self.cli_description.cli_command_prefix.clone();
         let mut cargo_args: Vec<&str> = cargo_args.iter().map(|ele| ele.as_str()).collect();
         if self.no_locked {
@@ -101,9 +121,6 @@ impl Opts {
         }
         if let Some(ref out_dir) = self.out_dir {
             cargo_args.extend_from_slice(&["--out-dir", out_dir.as_str()]);
-        }
-        if let Some(ref manifest_path) = self.manifest_path {
-            cargo_args.extend_from_slice(&["--manifest-path", manifest_path.as_str()]);
         }
         if let Some(ref features) = self.features {
             cargo_args.extend(&["--features", features]);
@@ -141,7 +158,7 @@ impl Opts {
 ///
 /// otherwise it's [ColorPreference::Always] if stderr is a terminal device,
 /// and [ColorPreference::Never] in the remaining cases
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ColorPreference {
     Auto,
     Always,
@@ -200,7 +217,7 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(opts.get_cli_build_command(), ["cargo".to_string(),
+        assert_eq!(opts.get_cli_command_for_lib_context(), ["cargo".to_string(),
              "near".to_string(),
              "build".to_string(),
              "--env".to_string(),
