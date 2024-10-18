@@ -473,10 +473,10 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.10.1"
+version = "0.11.0"
 dependencies = [
  "base64 0.22.1",
- "cargo-near-build 0.2.0",
+ "cargo-near-build 0.3.0",
  "clap",
  "color-eyre",
  "colored",
@@ -529,7 +529,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near-build"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bon",
  "bs58 0.5.1",
@@ -568,7 +568,7 @@ dependencies = [
  "borsh",
  "camino",
  "cargo-near",
- "cargo-near-build 0.2.0",
+ "cargo-near-build 0.3.0",
  "color-eyre",
  "colored",
  "const_format",
