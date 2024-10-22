@@ -33,9 +33,13 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev git
 
-      - name: Cargo check
+      - name: Carg |
+          git --version
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          o check
         run: | 
           cargo check -p cargo-near
           cargo check -p cargo-near-build --all-features
@@ -65,10 +69,14 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev git
 
       - name: Run tests
-        run: cargo test --workspace
+        run: |
+          git --version
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          cargo test --workspace
 
   lint:
     runs-on: ubuntu-latest
