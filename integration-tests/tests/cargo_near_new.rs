@@ -1,34 +1,23 @@
+use serde_json::json;
+
 #[cfg(target_os = "linux")]
-#[test]
-fn test_docker_build() -> cargo_near::CliResult {
+#[tokio::test]
+async fn test_docker_build() -> Result<(), Box<dyn std::error::Error>> {
     use cargo_near_integration_tests::setup_tracing;
 
     setup_tracing();
 
-    let tests_manifest = {
-        let cargo_near_integration_tests_dir: camino::Utf8PathBuf =
-            env!("CARGO_MANIFEST_DIR").into();
-        cargo_near_integration_tests_dir.join("Cargo.toml")
-    };
     let generated_manifest = {
         let generated_dir = run_cargo_near_new()?;
-        generated_dir.join("Cargo.toml").try_into()?
+        generated_dir.join("Cargo.toml")
     };
-
-    let versions = [&tests_manifest, &generated_manifest]
-        .iter()
-        .map(|manifest| get_workspaces_rs_version(manifest))
-        .collect::<Result<Vec<_>, color_eyre::Report>>()?;
-
-    // This ensures sync of versions in source code of tests and `new` generation template
-    assert_eq!(versions[0], versions[1]);
 
     let opts = cargo_near_build::docker::DockerBuildOpts::builder()
         .manifest_path(generated_manifest.clone())
         .context(cargo_near_build::BuildContext::Build)
         .build();
 
-    cargo_near_build::docker::build(opts)?;
+    let artifact = cargo_near_build::docker::build(opts)?;
 
     std::fs::remove_dir_all(
         generated_manifest
@@ -36,19 +25,45 @@ fn test_docker_build() -> cargo_near::CliResult {
             .expect("expected to have parent"),
     )?;
 
-    // TODO:
-    // ../../cargo-near/src/commands/new/new-project-template/tests/test_basics.rs
+    let contract_wasm = std::fs::read(artifact.path)?;
+
+    test_basics_on(&contract_wasm).await?;
 
     Ok(())
 }
+
+include! {"../../cargo-near/src/commands/new/test_basics_on.rs.in"}
 
 #[test]
-fn test_new_command() -> cargo_near::CliResult {
-    let _generated_dir = run_cargo_near_new()?;
+fn test_new_cmd_workspaces_toolchain_version() -> cargo_near::CliResult {
+    let tests_manifest = {
+        let cargo_near_integration_tests_dir: camino::Utf8PathBuf =
+            env!("CARGO_MANIFEST_DIR").into();
+        cargo_near_integration_tests_dir.join("Cargo.toml")
+    };
+    let generated_manifest = {
+        let generated_dir = run_cargo_near_new()?;
+        generated_dir.join("Cargo.toml")
+    };
+
+    let versions = [&tests_manifest, &generated_manifest]
+        .iter()
+        .map(|manifest| get_workspaces_rs_version(manifest))
+        .collect::<Result<Vec<_>, color_eyre::Report>>()?;
+
+    // This ensures sync of versions in source code of tests and `new` generated template
+    assert_eq!(versions[0], versions[1]);
+
+    // TODO: add sync of versions of rust-toolchain.toml-s
+
+    std::fs::remove_dir_all(
+        generated_manifest
+            .parent()
+            .expect("expected to have parent"),
+    )?;
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
 fn get_workspaces_rs_version(manifest_path: &camino::Utf8PathBuf) -> color_eyre::Result<String> {
     use color_eyre::eyre::OptionExt;
 
@@ -75,7 +90,7 @@ fn get_workspaces_rs_version(manifest_path: &camino::Utf8PathBuf) -> color_eyre:
     Ok(result)
 }
 
-fn run_cargo_near_new() -> color_eyre::Result<std::path::PathBuf> {
+fn run_cargo_near_new() -> color_eyre::Result<camino::Utf8PathBuf> {
     let out_path = {
         let tmp_dir = tempfile::Builder::new()
             .prefix("cargo_near_new_")
@@ -94,5 +109,5 @@ fn run_cargo_near_new() -> color_eyre::Result<std::path::PathBuf> {
         },
         &scope,
     )?;
-    Ok(out_path)
+    Ok(out_path.try_into()?)
 }
