@@ -42,6 +42,12 @@ fn test_docker_build() -> cargo_near::CliResult {
     Ok(())
 }
 
+#[test]
+fn test_new_command() -> cargo_near::CliResult {
+    let _generated_dir = run_cargo_near_new()?;
+    Ok(())
+}
+
 #[cfg(target_os = "linux")]
 fn get_workspaces_rs_version(manifest_path: &camino::Utf8PathBuf) -> color_eyre::Result<String> {
     use color_eyre::eyre::OptionExt;
@@ -69,7 +75,6 @@ fn get_workspaces_rs_version(manifest_path: &camino::Utf8PathBuf) -> color_eyre:
     Ok(result)
 }
 
-#[cfg(target_os = "linux")]
 fn run_cargo_near_new() -> color_eyre::Result<std::path::PathBuf> {
     let out_path = {
         let tmp_dir = tempfile::Builder::new()

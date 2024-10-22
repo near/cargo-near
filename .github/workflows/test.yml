@@ -33,13 +33,9 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev git
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
-      - name: Carg |
-          git --version
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          o check
+      - name: Cargo check
         run: | 
           cargo check -p cargo-near
           cargo check -p cargo-near-build --all-features
@@ -69,13 +65,12 @@ jobs:
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev git
+        run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
       - name: Run tests
         run: |
-          git --version
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
+          git config --global user.email "nearprotocol-ci@near.org"
+          git config --global user.name "nearprotocol-ci"
           cargo test --workspace
 
   lint:

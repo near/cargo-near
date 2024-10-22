@@ -96,28 +96,20 @@ impl NewContext {
             ));
         }
 
-        // let status = std::process::Command::new("git")
         let child = std::process::Command::new("git")
             .arg("commit")
             .arg("-m")
             .arg("init")
+            .arg("--author=nearprotocol-ci <nearprotocol-ci@near.org>")
             .current_dir(project_dir)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            // .stdout(Stdio::null())
-            // .stderr(Stdio::null())
-            // .status()?;
             .spawn()?;
-        // if !status.success() {
-        //     return Err(color_eyre::eyre::eyre!(
-        //         "Failed to execute process: `git commit -m init`"
-        //     ));
-        // }
         let output = child.wait_with_output()?;
         if !output.status.success() {
             println!("{}", String::from_utf8_lossy(&output.stderr));
             return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `cargo update`"
+                "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
             ));
         }
 
