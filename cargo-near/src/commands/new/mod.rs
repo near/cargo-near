@@ -48,6 +48,10 @@ impl NewContext {
                     .replace(
                         "cargo-near-new-ci-tool-version-self",
                         env!("CARGO_PKG_VERSION"),
+                    )
+                    .replace(
+                        "TEST_BASICS_ON_INCLUDE",
+                        include_str!("./test_basics_on.rs.in"),
                     ),
             )
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
