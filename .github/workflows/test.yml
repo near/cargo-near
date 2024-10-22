@@ -36,7 +36,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
       - name: Cargo check
+        env:
+          # info: (overridden by '/home/runner/work/cargo-near/cargo-near/rust-toolchain.toml')
+          RUSTUP_TOOLCHAIN: ${{ env.RUST_MSRV }}
         run: | 
+          rustc -vV
           cargo check -p cargo-near
           cargo check -p cargo-near-build --all-features
 
