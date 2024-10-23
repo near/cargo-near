@@ -16,13 +16,14 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
 camino = "1.1.1"
 cargo-near = { path = "../cargo-near" }
-cargo-near-build = { version = "0.2.0", path = "../cargo-near-build" }
+cargo-near-build = { version = "0.2.0", path = "../cargo-near-build", features = ["test_code"] }
 color-eyre = "0.6"
 function_name = "0.3"
 git2 = "0.19"
 minifier = "0.3"
 prettyplease = "0.2"
 schemars = "0.8"
+semver = "1.0.23"
 serde_json = "1.0"
 syn = "2"
 tempfile = "3.3"

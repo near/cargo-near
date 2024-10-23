@@ -11,6 +11,7 @@ async fn test_docker_build() -> Result<(), Box<dyn std::error::Error>> {
         let generated_dir = run_cargo_near_new()?;
         generated_dir.join("Cargo.toml")
     };
+    assert_new_cmd_workspaces_version_equal_to_test(&generated_manifest)?;
 
     let opts = cargo_near_build::docker::DockerBuildOpts::builder()
         .manifest_path(generated_manifest.clone())
@@ -34,36 +35,39 @@ async fn test_docker_build() -> Result<(), Box<dyn std::error::Error>> {
 
 include! {"../../cargo-near/src/commands/new/test_basics_on.rs.in"}
 
-#[test]
-fn test_new_cmd_workspaces_toolchain_version() -> cargo_near::CliResult {
+fn extract_locked_workspaces_version(
+    manifest_path: &camino::Utf8PathBuf,
+    package_name: &str,
+) -> color_eyre::Result<semver::Version> {
+    let meta =
+        cargo_near_build::CrateMetadata::collect(manifest_path.clone().try_into()?, false, None)?;
+
+    let package = meta.find_dependency(package_name)?;
+
+    Ok(package.version.clone())
+}
+
+/// This asserts sync of versions in lock-file of `cargo-near-integration-tests` and
+/// `cargo near new` generated template
+fn assert_new_cmd_workspaces_version_equal_to_test(
+    generated_manifest: &camino::Utf8PathBuf,
+) -> cargo_near::CliResult {
     let tests_manifest = {
         let cargo_near_integration_tests_dir: camino::Utf8PathBuf =
             env!("CARGO_MANIFEST_DIR").into();
         cargo_near_integration_tests_dir.join("Cargo.toml")
     };
-    let generated_manifest = {
-        let generated_dir = run_cargo_near_new()?;
-        generated_dir.join("Cargo.toml")
-    };
-
-    let versions = [&tests_manifest, &generated_manifest]
+    let versions = [&tests_manifest, generated_manifest]
         .iter()
-        .map(|manifest| get_workspaces_rs_version(manifest))
+        .map(|manifest| extract_locked_workspaces_version(manifest, "near_workspaces"))
         .collect::<Result<Vec<_>, color_eyre::Report>>()?;
 
-    // This ensures sync of versions in source code of tests and `new` generated template
     assert_eq!(versions[0], versions[1]);
-
-    // TODO: add sync of versions of rust-toolchain.toml-s
-
-    std::fs::remove_dir_all(
-        generated_manifest
-            .parent()
-            .expect("expected to have parent"),
-    )?;
     Ok(())
 }
 
+// TODO: add sync of versions of rust-toolchain.toml-s
+#[allow(unused)]
 fn get_workspaces_rs_version(manifest_path: &camino::Utf8PathBuf) -> color_eyre::Result<String> {
     use color_eyre::eyre::OptionExt;
 
@@ -90,6 +94,7 @@ fn get_workspaces_rs_version(manifest_path: &camino::Utf8PathBuf) -> color_eyre:
     Ok(result)
 }
 
+/// runs a `cargo near new FOLDER` routine while returning the FOLDER
 fn run_cargo_near_new() -> color_eyre::Result<camino::Utf8PathBuf> {
     let out_path = {
         let tmp_dir = tempfile::Builder::new()

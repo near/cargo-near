@@ -581,6 +581,7 @@ dependencies = [
  "prettyplease 0.2.22",
  "quote",
  "schemars",
+ "semver",
  "serde_json",
  "syn 2.0.77",
  "tempfile",

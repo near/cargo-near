@@ -122,6 +122,9 @@ pub mod docker {
     pub use crate::types::near::docker_build::Opts as DockerBuildOpts;
 }
 
+#[cfg(feature = "test_code")]
+pub use crate::types::cargo::metadata::CrateMetadata;
+
 pub use bon;
 pub use camino;
 pub use near_abi;

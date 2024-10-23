@@ -71,6 +71,32 @@ impl CrateMetadata {
     pub fn formatted_package_name(&self) -> String {
         self.root_package.name.replace('-', "_")
     }
+
+    pub fn find_dependency(&self, dependency_name: &str) -> eyre::Result<&cargo_metadata::Package> {
+        let root_node = self
+            .raw_metadata
+            .resolve
+            .as_ref()
+            .and_then(|dep_graph| {
+                dep_graph
+                .nodes
+                .iter()
+                .find(|node| node.id == self.root_package.id)
+            })
+            .wrap_err("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed")?;
+
+        root_node
+            .deps
+            .iter()
+            .find(|dep| dep.name == dependency_name)
+            .and_then(|near_sdk| {
+                self.raw_metadata
+                    .packages
+                    .iter()
+                    .find(|pkg| pkg.id == near_sdk.pkg)
+            })
+            .wrap_err(format!("`{}` dependency not found", dependency_name))
+    }
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
