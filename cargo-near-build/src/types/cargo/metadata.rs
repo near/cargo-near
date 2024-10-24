@@ -25,11 +25,14 @@ impl CrateMetadata {
         no_locked: bool,
         cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
     ) -> eyre::Result<Self> {
-        let (mut metadata, root_package) =
-            get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
-
-        metadata.target_directory = crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
-        metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
+        let (metadata, root_package) = {
+            let (mut metadata, root_package) =
+                get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
+            metadata.target_directory =
+                crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
+            metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
+            (metadata, root_package)
+        };
 
         let mut target_directory =
             crate::fs::force_canonicalize_dir(&metadata.target_directory.join("near"))?;
@@ -89,11 +92,11 @@ impl CrateMetadata {
             .deps
             .iter()
             .find(|dep| dep.name == dependency_name)
-            .and_then(|near_sdk| {
+            .and_then(|found_dependency| {
                 self.raw_metadata
                     .packages
                     .iter()
-                    .find(|pkg| pkg.id == near_sdk.pkg)
+                    .find(|pkg| pkg.id == found_dependency.pkg)
             })
             .wrap_err(format!("`{}` dependency not found", dependency_name))
     }
