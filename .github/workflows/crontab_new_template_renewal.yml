@@ -5,6 +5,10 @@ on:
     - cron: '0 1 * * *'  # Runs daily at 1 hour after midnight
   workflow_dispatch:
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   check_latest_docker_image:
     runs-on: ubuntu-latest
