@@ -3,7 +3,7 @@ use std::{thread, time::Duration};
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
-use eyre::{ContextCompat, WrapErr};
+use eyre::{ContextCompat, OptionExt, WrapErr};
 
 use crate::types::near::build::buildtime_env;
 
@@ -75,30 +75,58 @@ impl CrateMetadata {
         self.root_package.name.replace('-', "_")
     }
 
-    pub fn find_dependency(&self, dependency_name: &str) -> eyre::Result<&cargo_metadata::Package> {
-        let root_node = self
-            .raw_metadata
-            .resolve
-            .as_ref()
-            .and_then(|dep_graph| {
-                dep_graph
-                .nodes
-                .iter()
-                .find(|node| node.id == self.root_package.id)
-            })
-            .wrap_err("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed")?;
+    pub fn find_direct_dependency(
+        &self,
+        dependency_name: &str,
+    ) -> eyre::Result<Vec<&cargo_metadata::Package>> {
+        let Some(ref dependency_graph) = self.raw_metadata.resolve else {
+            return Err(eyre::eyre!(
+                "crate_metadata.raw_metadata.resolve dependency graph is expected to be set\n\
+                it's not set when `cargo metadata` was run with `--no-deps` flag"
+            ));
+        };
+        let Some(ref root_package_id) = dependency_graph.root else {
+            return Err(eyre::eyre!(
+                "crate_metadata.raw_metadata.resolve.root package id is expected to be set\n\
+                it's not set when `cargo metadata` was run from a root of virtual workspace"
+            ));
+        };
 
-        root_node
+        let root_nodes = dependency_graph
+            .nodes
+            .iter()
+            .filter(|node| node.id == *root_package_id)
+            .collect::<Vec<_>>();
+
+        if root_nodes.len() != 1 {
+            return Err(eyre::eyre!(
+                "expected to find extactly 1 root node in dependency graph: {:#?}",
+                root_nodes
+            ));
+        }
+        let root_node = root_nodes[0];
+
+        let dependency_nodes = root_node
             .deps
             .iter()
-            .find(|dep| dep.name == dependency_name)
-            .and_then(|found_dependency| {
-                self.raw_metadata
-                    .packages
-                    .iter()
-                    .find(|pkg| pkg.id == found_dependency.pkg)
-            })
-            .wrap_err(format!("`{}` dependency not found", dependency_name))
+            .filter(|dep| dep.name == dependency_name)
+            .collect::<Vec<_>>();
+
+        let mut result = vec![];
+
+        for dependency_node in dependency_nodes {
+            let dependency_package = self
+                .raw_metadata
+                .packages
+                .iter()
+                .find(|pkg| pkg.id == dependency_node.pkg)
+                .ok_or_eyre(format!(
+                    "expected to find a package for package id : {:#?}",
+                    dependency_node.pkg
+                ))?;
+            result.push(dependency_package);
+        }
+        Ok(result)
     }
 }
 
@@ -142,7 +170,7 @@ fn get_cargo_metadata(
     let root_package = metadata
         .root_package()
         .wrap_err(
-            "metadata.root_package() returned None.\n\
+            "raw_metadata.root_package() returned None.\n\
             Command was likely called from a root of virtual workspace as current directory \
             and not from a contract's crate",
         )?
