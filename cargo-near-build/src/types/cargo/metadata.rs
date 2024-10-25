@@ -141,7 +141,11 @@ fn get_cargo_metadata(
         .wrap_err("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
     let root_package = metadata
         .root_package()
-        .wrap_err("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?
+        .wrap_err(
+            "metadata.root_package() returned None.\n\
+            Command was likely called from a root of virtual workspace as current directory \
+            and not from a contract's crate",
+        )?
         .clone();
     Ok((metadata, root_package))
 }
