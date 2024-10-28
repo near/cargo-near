@@ -1,6 +1,7 @@
 #![allow(clippy::large_enum_variant)]
 
-pub use near_cli_rs::CliResult;
+pub use near_cli_rs::{CliResult, GlobalContext};
+
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 pub mod commands;

@@ -1,0 +1,53 @@
+name: renew docker image tag and digest periodically and on-demand
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Runs daily at 1 hour after midnight
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  check_latest_docker_image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: hustcer/setup-nu@v3
+        with:
+          version: "*"
+
+      - name: Run update script
+        shell: nu {0}
+        run: |
+          let record = http get "https://hub.docker.com/v2/namespaces/sourcescan/repositories/cargo-near/tags" | get results | first;
+
+          let mod_content = (
+            open cargo-near/src/commands/new/new-project-template/Cargo.toml.template --raw | lines
+            | each { 
+              |line| if ($line | str starts-with "image = ") { 
+                $'image = "sourcescan/cargo-near:($record.name)"' 
+              } else { $line } 
+            } 
+            | each { 
+              |line| if ($line | str starts-with "image_digest = ") { 
+                $'image_digest = "($record.digest)"' 
+              } else { $line } 
+            } 
+            | to text
+          );
+
+          $mod_content | save -f cargo-near/src/commands/new/new-project-template/Cargo.toml.template
+
+          git diff
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: update `cargo near new` template `image` and `image_digest` 

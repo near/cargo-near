@@ -48,6 +48,10 @@ impl NewContext {
                     .replace(
                         "cargo-near-new-ci-tool-version-self",
                         env!("CARGO_PKG_VERSION"),
+                    )
+                    .replace(
+                        "TEST_BASICS_ON_INCLUDE",
+                        include_str!("./test_basics_on.rs.in"),
                     ),
             )
             .wrap_err_with(|| format!("Failed to write to file: {}", new_file_path.display()))?;
@@ -96,17 +100,20 @@ impl NewContext {
             ));
         }
 
-        let status = std::process::Command::new("git")
+        let child = std::process::Command::new("git")
             .arg("commit")
             .arg("-m")
             .arg("init")
+            .arg("--author=nearprotocol-ci <nearprotocol-ci@near.org>")
             .current_dir(project_dir)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()?;
-        if !status.success() {
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+        let output = child.wait_with_output()?;
+        if !output.status.success() {
+            println!("{}", String::from_utf8_lossy(&output.stderr));
             return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `git commit -m init`"
+                "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
             ));
         }
 

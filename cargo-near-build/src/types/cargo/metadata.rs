@@ -3,7 +3,7 @@ use std::{thread, time::Duration};
 use camino::Utf8PathBuf;
 use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
-use eyre::{ContextCompat, WrapErr};
+use eyre::{ContextCompat, OptionExt, WrapErr};
 
 use crate::types::near::build::buildtime_env;
 
@@ -25,11 +25,14 @@ impl CrateMetadata {
         no_locked: bool,
         cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
     ) -> eyre::Result<Self> {
-        let (mut metadata, root_package) =
-            get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
-
-        metadata.target_directory = crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
-        metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
+        let (metadata, root_package) = {
+            let (mut metadata, root_package) =
+                get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
+            metadata.target_directory =
+                crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
+            metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
+            (metadata, root_package)
+        };
 
         let mut target_directory =
             crate::fs::force_canonicalize_dir(&metadata.target_directory.join("near"))?;
@@ -70,6 +73,60 @@ impl CrateMetadata {
 
     pub fn formatted_package_name(&self) -> String {
         self.root_package.name.replace('-', "_")
+    }
+
+    pub fn find_direct_dependency(
+        &self,
+        dependency_name: &str,
+    ) -> eyre::Result<Vec<&cargo_metadata::Package>> {
+        let Some(ref dependency_graph) = self.raw_metadata.resolve else {
+            return Err(eyre::eyre!(
+                "crate_metadata.raw_metadata.resolve dependency graph is expected to be set\n\
+                it's not set when `cargo metadata` was run with `--no-deps` flag"
+            ));
+        };
+        let Some(ref root_package_id) = dependency_graph.root else {
+            return Err(eyre::eyre!(
+                "crate_metadata.raw_metadata.resolve.root package id is expected to be set\n\
+                it's not set when `cargo metadata` was run from a root of virtual workspace"
+            ));
+        };
+
+        let root_nodes = dependency_graph
+            .nodes
+            .iter()
+            .filter(|node| node.id == *root_package_id)
+            .collect::<Vec<_>>();
+
+        if root_nodes.len() != 1 {
+            return Err(eyre::eyre!(
+                "expected to find extactly 1 root node in dependency graph: {:#?}",
+                root_nodes
+            ));
+        }
+        let root_node = root_nodes[0];
+
+        let dependency_nodes = root_node
+            .deps
+            .iter()
+            .filter(|dep| dep.name == dependency_name)
+            .collect::<Vec<_>>();
+
+        let mut result = vec![];
+
+        for dependency_node in dependency_nodes {
+            let dependency_package = self
+                .raw_metadata
+                .packages
+                .iter()
+                .find(|pkg| pkg.id == dependency_node.pkg)
+                .ok_or_eyre(format!(
+                    "expected to find a package for package id : {:#?}",
+                    dependency_node.pkg
+                ))?;
+            result.push(dependency_package);
+        }
+        Ok(result)
     }
 }
 
@@ -112,7 +169,11 @@ fn get_cargo_metadata(
         .wrap_err("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?;
     let root_package = metadata
         .root_package()
-        .wrap_err("Error invoking `cargo metadata`. Your `Cargo.toml` file is likely malformed")?
+        .wrap_err(
+            "raw_metadata.root_package() returned None.\n\
+            Command was likely called from a root of virtual workspace as current directory \
+            and not from a contract's crate",
+        )?
         .clone();
     Ok((metadata, root_package))
 }

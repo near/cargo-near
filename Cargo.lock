@@ -505,30 +505,6 @@ dependencies = [
 
 [[package]]
 name = "cargo-near-build"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd00f13698319e43d9af5b1afc7045131342f3097dd78320a09bb6303bbf2d06"
-dependencies = [
- "bs58 0.5.1",
- "camino",
- "cargo_metadata",
- "colored",
- "dunce",
- "eyre",
- "hex",
- "libloading",
- "near-abi",
- "rustc_version",
- "schemars",
- "serde_json",
- "sha2 0.10.8",
- "symbolic-debuginfo",
- "tracing",
- "zstd 0.13.2",
-]
-
-[[package]]
-name = "cargo-near-build"
 version = "0.2.0"
 dependencies = [
  "bon",
@@ -562,6 +538,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-near-build"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09e969adcb72ace16b0048c1d73bbd2824cf931236473ec7f606b3f635334a34"
+dependencies = [
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "colored",
+ "dunce",
+ "eyre",
+ "hex",
+ "humantime",
+ "libloading",
+ "near-abi",
+ "rustc_version",
+ "schemars",
+ "serde_json",
+ "sha2 0.10.8",
+ "symbolic-debuginfo",
+ "tracing",
+ "wasm-opt",
+ "zstd 0.13.2",
+]
+
+[[package]]
 name = "cargo-near-integration-tests"
 version = "0.1.0"
 dependencies = [
@@ -579,10 +581,12 @@ dependencies = [
  "prettyplease 0.2.22",
  "quote",
  "schemars",
+ "semver",
  "serde_json",
  "syn 2.0.77",
  "tempfile",
  "tokio",
+ "toml",
  "tracing",
  "tracing-subscriber",
  "zstd 0.13.2",
@@ -2895,14 +2899,14 @@ dependencies = [
 
 [[package]]
 name = "near-workspaces"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f59e15efadb1d2e4c21d4d1a8d5a8f8a732eb8f16cfb54a1a56628ab5bf5a125"
+checksum = "268b4a18fd4f24423d2d947b079608c446b3eb2bb61b9e262d5cfa198046947b"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bs58 0.5.1",
- "cargo-near-build 0.1.1",
+ "cargo-near-build 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "fs2",
  "json-patch",
