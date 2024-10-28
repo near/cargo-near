@@ -78,7 +78,6 @@ pub fn run(
                 "Input device is a TTY:\n{}",
                 pretty_print::indent_payload(&stdin_is_terminal.to_string())
             );
-            tracing::debug!("input device is a tty: {}", stdin_is_terminal);
             if stdin_is_terminal
                 && std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err()
             {
@@ -93,10 +92,9 @@ pub fn run(
             tracing::info!(
                 target: "near_teach_me",
                 parent: &tracing::Span::none(),
-                "Execution docker command:\n{}",
-                pretty_print::indent_payload(&format!("`{}`", docker_args.join(" ")))
+                "Docker command:\n{}",
+                pretty_print::indent_payload(&format!("{:#?}", docker_args))
             );
-            tracing::debug!("docker command : {:#?}", docker_args);
             docker_args
         };
 

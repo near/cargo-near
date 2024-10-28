@@ -122,7 +122,6 @@ fn get_env_key_vals(input: Vec<String>) -> Vec<(String, String)> {
         "Passed additional environment pairs:\n{}",
         near_cli_rs::common::indent_payload(&format!("{:#?}", result))
     );
-    tracing::trace!("passed additional environment pairs: {:#?}", result);
     result
 }
 

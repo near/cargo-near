@@ -127,7 +127,6 @@ where
             parent: &tracing::Span::none(),
             "Setting cargo working dir to '{}'", path
         );
-        tracing::debug!("Setting cargo working dir to '{}'", path);
         cmd.current_dir(path);
     }
 
@@ -146,7 +145,6 @@ where
         "Invoking cargo:\n{}",
         pretty_print::indent_payload(&format!("{:#?}", cmd))
     );
-    tracing::info!("Invoking cargo: {:#?}", cmd);
 
     let mut child = cmd
         // capture the stdout to return from this function as bytes

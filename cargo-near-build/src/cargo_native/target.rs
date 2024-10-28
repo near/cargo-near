@@ -18,19 +18,11 @@ pub fn wasm32_exists() -> bool {
                     "Found {COMPILATION_TARGET} in {:?}",
                     wasm32_target_libdir_path
                 );
-                tracing::info!(
-                    "Found {COMPILATION_TARGET} in {:?}",
-                    wasm32_target_libdir_path
-                );
                 true
             } else {
                 tracing::info!(
                     target: "near_teach_me",
                     parent: &tracing::Span::none(),
-                    "Failed to find {COMPILATION_TARGET} in {:?}",
-                    wasm32_target_libdir_path
-                );
-                tracing::info!(
                     "Failed to find {COMPILATION_TARGET} in {:?}",
                     wasm32_target_libdir_path
                 );
@@ -89,10 +81,6 @@ where
         parent: &tracing::Span::none(),
         "Invoking rustup:\n{}",
         pretty_print::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
-    );
-    tracing::info!(
-        "Invoking rustup: `{}`",
-        format!("{}", format!("{:?}", cmd).replace("\"", ""))
     );
 
     let child = cmd

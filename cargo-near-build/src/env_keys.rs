@@ -38,12 +38,10 @@ pub mod nep330 {
 
     pub(crate) fn print_env() {
         let mut env_map: HashMap<&str, String> = HashMap::new();
-        tracing::info!("Variables, relevant for reproducible builds:");
         for key in [BUILD_ENVIRONMENT, CONTRACT_PATH, SOURCE_CODE_SNAPSHOT] {
             let value = std::env::var(key)
                 .map(|val| format!("'{}'", val))
                 .unwrap_or("unset".to_string());
-            tracing::info!("{}={}", key, value);
             env_map.insert(
                 key,
                 value.replace("'", "").replace("\"", "").replace(",", " "),

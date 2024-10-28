@@ -9,9 +9,9 @@ use indicatif::ProgressStyle;
 use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::fmt::format;
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::prelude::*;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::{filter::filter_fn, prelude::*};
 
 pub use near_cli_rs::CliResult;
 
@@ -55,8 +55,7 @@ fn main() -> CliResult {
                 tracing_subscriber::fmt::layer()
                     .event_format(my_formatter)
                     .fmt_fields(format)
-                    .with_filter(EnvFilter::from_default_env())
-                    .with_filter(filter_fn(|metadata| metadata.target() != "near_teach_me")),
+                    .with_filter(EnvFilter::from_default_env()),
             )
             .init();
     } else if cli_cmd.teach_me || cli_near_args.teach_me {

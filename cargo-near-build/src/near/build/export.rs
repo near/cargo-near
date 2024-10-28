@@ -7,10 +7,6 @@ pub fn nep_330_build_command(args: &Opts) -> eyre::Result<()> {
         "Compute `CARGO_NEAR_BUILD_COMMAND`, current executable:\n{}",
         pretty_print::indent_payload(&format!("`{}`", std::env::args().collect::<Vec<String>>().join(" ")))
     );
-    tracing::debug!(
-        "compute `CARGO_NEAR_BUILD_COMMAND`,  current executable: {:?}",
-        std::env::args().collect::<Vec<_>>()
-    );
     let env_value: Vec<String> = match std::env::args().next() {
         // this is for cli context, being called from `cargo-near` bin
         Some(cli_arg_0)

@@ -21,12 +21,6 @@ pub fn extract_abi_entries(
         &object.file_format(),
         &object.arch()
     );
-    tracing::debug!(
-        "A dylib was built at {:?} with format {} for architecture {}",
-        &dylib_path,
-        &object.file_format(),
-        &object.arch()
-    );
     let near_abi_symbols = object
         .symbols()
         .flat_map(|sym| sym.name)
@@ -41,7 +35,6 @@ pub fn extract_abi_entries(
         "Detected NEAR ABI symbols:\n{}",
         pretty_print::indent_payload(&format!("{:#?}", &near_abi_symbols))
     );
-    tracing::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
 
     let mut entries = vec![];
     unsafe {
