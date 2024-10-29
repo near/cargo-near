@@ -18,6 +18,10 @@ crate-type = ["cdylib", "rlib"]
 image = "sourcescan/cargo-near:0.10.1-rust-1.82.0"
 # tag after colon above serves only descriptive purpose; image is identified by digest
 image_digest = "sha256:48206ab74c774cb03394ef84f0c5e0b458a071331164b5da853de06f3510cbf8"
+# list of environment variables names, whose values, if set, will be used as external build parameters
+# in a reproducible manner
+# supported by `sourcescan/cargo-near:0.10.1-rust-1.82.0` image or later images
+paxxed_env = []
 # build command inside of docker container 
 # if docker image from default gallery is used https://hub.docker.com/r/sourcescan/cargo-near/tags,
 # the command may be any combination of flags of `cargo-near`,
