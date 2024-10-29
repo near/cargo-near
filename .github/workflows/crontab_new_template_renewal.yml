@@ -51,3 +51,6 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           title: update `cargo near new` template `image` and `image_digest` 
+        env:
+          # https://github.com/peter-evans/create-pull-request/issues/48#issuecomment-536204092
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
