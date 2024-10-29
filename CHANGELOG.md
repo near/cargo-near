@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0](https://github.com/near/cargo-near/compare/cargo-near-v0.10.1...cargo-near-v0.11.0) - 2024-10-29
+
+### Other
+
+- add `passed_env` to default docker template ([#242](https://github.com/near/cargo-near/pull/242))
+- update `cargo near new` template `image` and `image_digest` ([#241](https://github.com/near/cargo-near/pull/241))
+- cargo near new integration test + gh workflow to autorenew image tag/digest ([#235](https://github.com/near/cargo-near/pull/235))
+- [**breaking**] remove unsafe `std::env::set_var` ([#228](https://github.com/near/cargo-near/pull/228))
+
 ## [0.10.1](https://github.com/near/cargo-near/compare/cargo-near-v0.10.0...cargo-near-v0.10.1) - 2024-10-17
 
 ### Other
