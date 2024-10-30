@@ -1,6 +1,6 @@
 [package]
 name = "cargo-near"
-version = "0.10.1"
+version = "0.11.0"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition = "2021"
 rust-version = "1.79.0"
@@ -23,7 +23,7 @@ license = false
 eula = false
 
 [dependencies]
-cargo-near-build = { version = "0.2.0", path = "../cargo-near-build", features = [
+cargo-near-build = { version = "0.3.0", path = "../cargo-near-build", features = [
     "abi_build",
     "docker",
 ] }
