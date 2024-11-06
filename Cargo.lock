@@ -547,7 +547,6 @@ dependencies = [
  "indenter",
  "libloading",
  "near-abi",
- "near-cli-rs",
  "nix",
  "pathdiff",
  "rustc_version",
