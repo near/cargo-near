@@ -1,8 +1,10 @@
 use std::process::Stdio;
 
-use color_eyre::eyre::{ContextCompat, WrapErr};
-
 use crate::posthog_tracking;
+use color_eyre::{
+    eyre::{ContextCompat, WrapErr},
+    Section,
+};
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -61,13 +63,26 @@ impl NewContext {
             .spawn(posthog_tracking::track_usage)
             .unwrap();
 
-        let status = std::process::Command::new("git")
+        let child_result = std::process::Command::new("git")
             .arg("init")
             .current_dir(project_dir)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()?;
-        if !status.success() {
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn();
+        let child = match child_result {
+            Ok(child) => child,
+            Err(io_err) if io_err.kind() == std::io::ErrorKind::NotFound => {
+                return Err(io_err)
+                    .wrap_err("`git` executable isn't available")
+                    .note("Git from https://git-scm.com/ is required to be available in PATH")?;
+            }
+            Err(io_err) => {
+                return Err(io_err)?;
+            }
+        };
+        let output = child.wait_with_output()?;
+        if !output.status.success() {
+            println!("{}", String::from_utf8_lossy(&output.stderr));
             return Err(color_eyre::eyre::eyre!(
                 "Failed to execute process: `git init`"
             ));
