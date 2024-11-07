@@ -88,14 +88,6 @@ impl NewContext {
     }
 }
 
-#[tracing::instrument(target = "tracing_instrument", name = "Sending a tracking request ...")]
-fn track_request() {
-    tracing::Span::current();
-    let _detached_thread_handle = std::thread::Builder::new()
-        .spawn(posthog_tracking::track_usage)
-        .unwrap();
-}
-
 #[tracing::instrument(
     target = "tracing_instrument",
     name = "The process of executing",
@@ -158,6 +150,24 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         return Err(color_eyre::eyre::eyre!(
             "Failed to execute process: `git commit -m init`"
         ));
+    }
+
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`");
+    let child = std::process::Command::new("git")
+        .arg("commit")
+        .arg("-m")
+        .arg("init")
+        .arg("--author=nearprotocol-ci <nearprotocol-ci@near.org>")
+        .current_dir(project_dir)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let output = child.wait_with_output()?;
+    if !output.status.success() {
+        println!("{}", String::from_utf8_lossy(&output.stderr));
+        return Err(color_eyre::eyre::eyre!(
+                "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
+            ));
     }
 
     Ok(())
