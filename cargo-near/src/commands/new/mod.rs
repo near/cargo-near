@@ -137,21 +137,6 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git commit -m init`");
-    let status = std::process::Command::new("git")
-        .arg("commit")
-        .arg("-m")
-        .arg("init")
-        .current_dir(project_dir)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
-    if !status.success() {
-        return Err(color_eyre::eyre::eyre!(
-            "Failed to execute process: `git commit -m init`"
-        ));
-    }
-
     tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`");
     let child = std::process::Command::new("git")
         .arg("commit")
