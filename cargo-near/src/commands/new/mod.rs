@@ -7,6 +7,10 @@ use color_eyre::{
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 use crate::posthog_tracking;
+use color_eyre::{
+    eyre::{ContextCompat, WrapErr},
+    Section,
+};
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
