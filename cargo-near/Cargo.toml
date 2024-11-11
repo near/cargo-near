@@ -39,7 +39,7 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
 interactive-clap = "0.3.1"
-near-cli-rs = { git = "https://github.com/near/near-cli-rs", rev = "1bcd9c9f6b406f1d0d829760dd60d89b75bf4bbd", default-features = false }
+near-cli-rs = { version = "0.15.0", default-features = false }
 reqwest = "0.12.5"
 indicatif = "0.17.8"
 indenter = "0.3"
