@@ -155,12 +155,11 @@ fn get_cargo_metadata(
         cmd.env(key, value);
     }
     let cmd = cmd.manifest_path(&manifest_path.path);
-    tracing::debug!("metadata command: {:#?}", cmd.cargo_command());
     tracing::info!(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Command execution:\n{}",
-        pretty_print::indent_payload(&format!("`{:?}`", cmd.cargo_command()).replace("\"", ""))
+        pretty_print::indent_payload(&format!("{:#?}", cmd.cargo_command()))
     );
     let metadata = cmd.exec();
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
