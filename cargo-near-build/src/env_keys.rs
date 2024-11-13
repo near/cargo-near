@@ -39,13 +39,8 @@ pub mod nep330 {
     pub(crate) fn print_env() {
         let mut env_map: HashMap<&str, String> = HashMap::new();
         for key in [BUILD_ENVIRONMENT, CONTRACT_PATH, SOURCE_CODE_SNAPSHOT] {
-            let value = std::env::var(key)
-                .map(|val| format!("'{}'", val))
-                .unwrap_or("unset".to_string());
-            env_map.insert(
-                key,
-                value.replace("'", "").replace("\"", "").replace(",", " "),
-            );
+            let value = std::env::var(key).unwrap_or("unset".to_string());
+            env_map.insert(key, value);
         }
         tracing::info!(
             target: "near_teach_me",
