@@ -147,10 +147,10 @@ fn main() -> CliResult {
             }
             interactive_clap::ResultFromCli::Back => {}
             interactive_clap::ResultFromCli::Err(optional_cli_opts, err) => {
-                if let Some(_cli_opts) = optional_cli_opts {
+                if let Some(cli_opts) = optional_cli_opts {
                     eprintln!(
                         "Here is the console command if you ever need to re-run it again:\n{console_command_path} {}\n",
-                        shell_words::join(cli_cmd.to_cli_args()).yellow()
+                        shell_words::join(cli_opts.to_cli_args()).yellow()
                     );
                 }
                 return Err(err);
