@@ -122,11 +122,6 @@ where
 
     if let Some(path) = working_dir {
         let path = crate::fs::force_canonicalize_dir(path.as_ref())?;
-        tracing::info!(
-            target: "near_teach_me",
-            parent: &tracing::Span::none(),
-            "Setting cargo working dir to '{}'", path
-        );
         cmd.current_dir(path);
     }
 
