@@ -50,7 +50,7 @@ fn get_rustc_wasm32_unknown_unknown_target_libdir() -> eyre::Result<PathBuf> {
     tracing::info!(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
-        "Execution command:\n{}",
+        "Command execution:\n{}",
         pretty_print::indent_payload(&format!("`{:?}`", command).replace("\"", ""))
     );
 

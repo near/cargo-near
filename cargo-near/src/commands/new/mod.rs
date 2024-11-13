@@ -98,7 +98,7 @@ impl NewContext {
 )]
 fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult {
     tracing::Span::current().pb_set_message("`git` commands ...");
-    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git init`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `git init`");
     let child_result = std::process::Command::new("git")
         .arg("init")
         .current_dir(project_dir)
@@ -124,7 +124,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `cargo update`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `cargo update`");
     let child = std::process::Command::new("cargo")
         .arg("update")
         .current_dir(project_dir)
@@ -139,7 +139,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git add -A`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `git add -A`");
     let status = std::process::Command::new("git")
         .arg("add")
         .arg("-A")
@@ -153,7 +153,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
-    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Execution command: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`");
+    tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`");
     let child = std::process::Command::new("git")
         .arg("commit")
         .arg("-m")

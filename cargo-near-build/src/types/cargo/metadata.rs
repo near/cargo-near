@@ -159,7 +159,7 @@ fn get_cargo_metadata(
     tracing::info!(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
-        "Execution command:\n{}",
+        "Command execution:\n{}",
         pretty_print::indent_payload(&format!("`{:?}`", cmd.cargo_command()).replace("\"", ""))
     );
     let metadata = cmd.exec();
