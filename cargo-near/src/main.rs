@@ -58,7 +58,7 @@ fn main() -> CliResult {
                     .with_filter(EnvFilter::from_default_env()),
             )
             .init();
-    } else if cli_cmd.teach_me || cli_near_args.teach_me {
+    } else if cli_near_args.teach_me {
         let env_filter = EnvFilter::from_default_env()
             .add_directive(tracing::Level::WARN.into())
             .add_directive("near_teach_me=info".parse()?)
