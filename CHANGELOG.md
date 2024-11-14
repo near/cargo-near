@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0](https://github.com/near/cargo-near/compare/cargo-near-v0.11.0...cargo-near-v0.12.0) - 2024-11-14
+
+### Added
+
+- Added the ability to use the TEACH-ME mode ([#221](https://github.com/near/cargo-near/pull/221))
+
+### Other
+
+- Gracefully handle missing `git` on `cargo near new` ([#246](https://github.com/near/cargo-near/pull/246))
+- update `cargo near new` template `image` and `image_digest` ([#244](https://github.com/near/cargo-near/pull/244))
+
 ## [0.11.0](https://github.com/near/cargo-near/compare/cargo-near-v0.10.1...cargo-near-v0.11.0) - 2024-10-29
 
 ### Other
