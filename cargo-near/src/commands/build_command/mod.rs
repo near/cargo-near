@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use cargo_near_build::docker;
-use cargo_near_build::{env_keys, BuildArtifact, BuildContext, BuildOpts};
+use cargo_near_build::{env_keys, BuildContext, BuildOpts};
+
+// mod non_reproducible_wasm; 
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -55,30 +56,22 @@ pub struct BuildCommand {
 }
 
 impl BuildCommand {
-    fn validate_env_opt(&self) -> color_eyre::eyre::Result<()> {
-        for pair in self.env.iter() {
-            pair.split_once('=').ok_or(color_eyre::eyre::eyre!(
-                "invalid \"key=value\" environment argument (must contain '='): {}",
-                pair
-            ))?;
-        }
-        Ok(())
-    }
-    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
-        self.validate_env_opt()?;
+    // fn validate_env_opt(&self) -> color_eyre::eyre::Result<()> {
+    //     for pair in self.env.iter() {
+    //         pair.split_once('=').ok_or(color_eyre::eyre::eyre!(
+    //             "invalid \"key=value\" environment argument (must contain '='): {}",
+    //             pair
+    //         ))?;
+    //     }
+    //     Ok(())
+    // }
+
+    pub fn run(self, context: BuildContext) -> color_eyre::eyre::Result<()> {
+        // self.validate_env_opt()?;
         if self.no_docker() {
-            if let BuildContext::Deploy {
-                skip_git_remote_check: true,
-            } = context
-            {
-                return Err(color_eyre::eyre::eyre!(
-                    "`--skip-git-remote-check` flag is only applicable for docker builds"
-                ));
-            }
-            cargo_near_build::build(self.into())
+            run_no_docker(self, context)
         } else {
-            let docker_opts = docker_opts_from((self, context));
-            cargo_near_build::docker::build(docker_opts)
+            run_docker(self, context)
         }
     }
     pub fn no_docker(&self) -> bool {
@@ -86,6 +79,29 @@ impl BuildCommand {
     }
 }
 
+pub fn run_docker(
+    cmd: BuildCommand,
+    context: BuildContext,
+) -> color_eyre::eyre::Result<()> {
+    println!("run_docker: {:#?} {:?}", cmd, context);
+    Ok(())
+}
+
+pub fn run_no_docker(
+    cmd: BuildCommand,
+    context: BuildContext,
+) -> color_eyre::eyre::Result<()> {
+    if let BuildContext::Deploy {
+        skip_git_remote_check: true,
+    } = context
+    {
+        return Err(color_eyre::eyre::eyre!(
+            "`--skip-git-remote-check` flag is only applicable for docker builds"
+        ));
+    }
+    println!("run_docker: {:#?} {:?}", cmd, context);
+    Ok(())
+}
 impl From<CliBuildCommand> for BuildCommand {
     fn from(value: CliBuildCommand) -> Self {
         Self {
@@ -147,27 +163,6 @@ impl From<BuildCommand> for BuildOpts {
     }
 }
 
-/// this is more or less equivalent to
-/// impl From<(BuildCommand, BuildContext)> for docker::DockerBuildOpts
-/// which is not possible due to BuildContext being a non-local type to current (cli) crate
-fn docker_opts_from(value: (BuildCommand, BuildContext)) -> docker::DockerBuildOpts {
-    docker::DockerBuildOpts {
-        no_locked: value.0.no_locked,
-        no_release: value.0.no_release,
-        no_abi: value.0.no_abi,
-        no_embed_abi: value.0.no_embed_abi,
-        no_doc: value.0.no_doc,
-        no_wasmopt: value.0.no_wasmopt,
-        features: value.0.features,
-        no_default_features: value.0.no_default_features,
-        out_dir: value.0.out_dir.map(Into::into),
-        manifest_path: value.0.manifest_path.map(Into::into),
-        color: value.0.color.map(Into::into),
-        cli_description: Default::default(),
-        env: get_env_key_vals(value.0.env),
-        context: value.1,
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct BuildCommandlContext;

@@ -1,15 +1,15 @@
 use near_cli_rs::commands::contract::deploy::initialize_mode::InitializeMode;
 
-use crate::commands::build_command;
+// use crate::commands::build_command;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = ContractContext)]
 #[interactive_clap(skip_default_from_cli)]
 pub struct Contract {
-    #[interactive_clap(flatten)]
-    /// Specify a build command args:
-    build_command_args: build_command::BuildCommand,
+    // #[interactive_clap(flatten)]
+    // /// Specify a build command args:
+    // build_command_args: build_command::BuildCommand,
     /// whether to check that code has been pushed to repository during docker build
     #[interactive_clap(long)]
     skip_git_remote_check: bool,
@@ -28,20 +28,21 @@ impl ContractContext {
         previous_context: near_cli_rs::GlobalContext,
         scope: &<Contract as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
-        let file_path = scope
-            .build_command_args
-            .clone()
-            .run(cargo_near_build::BuildContext::Deploy {
-                skip_git_remote_check: scope.skip_git_remote_check,
-            })?
-            .path;
+        // let file_path_empty_tuple = scope
+        //     .build_command_args
+        //     .clone()
+        //     .run(cargo_near_build::BuildContext::Deploy {
+        //         skip_git_remote_check: scope.skip_git_remote_check,
+        //     })?
+        //     ;
 
+        let wasm_vec_stub = vec![1, 2, 3];
         Ok(Self(
             near_cli_rs::commands::contract::deploy::ContractFileContext {
                 global_context: previous_context,
                 receiver_account_id: scope.contract_account_id.clone().into(),
                 signer_account_id: scope.contract_account_id.clone().into(),
-                code: std::fs::read(file_path)?,
+                code: wasm_vec_stub,
             },
         ))
     }
@@ -68,12 +69,12 @@ impl interactive_clap::FromCli for Contract {
     {
         let mut clap_variant = optional_clap_variant.unwrap_or_default();
 
-        let build_command_args =
-            if let Some(cli_build_command_args) = &clap_variant.build_command_args {
-                build_command::BuildCommand::from(cli_build_command_args.clone())
-            } else {
-                build_command::BuildCommand::default()
-            };
+        // let build_command_args =
+        //     if let Some(cli_build_command_args) = &clap_variant.build_command_args {
+        //         build_command::BuildCommand::from(cli_build_command_args.clone())
+        //     } else {
+        //         build_command::BuildCommand::default()
+        //     };
 
         if clap_variant.contract_account_id.is_none() {
             clap_variant.contract_account_id = match Self::input_contract_account_id(&context) {
@@ -90,7 +91,7 @@ impl interactive_clap::FromCli for Contract {
         let skip_git_remote_check = clap_variant.skip_git_remote_check;
 
         let new_context_scope = InteractiveClapContextScopeForContract {
-            build_command_args,
+            // build_command_args,
             contract_account_id,
             skip_git_remote_check,
         };
