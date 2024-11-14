@@ -19,9 +19,9 @@ pub enum NearCommand {
     /// Initializes a new project to create a contract
     New(self::new::New),
     #[strum_discriminants(strum(
-        message = "build               -  Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)"
+        message = "build               -  Build a NEAR contract with embed ABI"
     ))]
-    /// Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)
+    /// Build a NEAR contract with embedded ABI 
     Build(self::build_command::BuildCommand),
     #[strum_discriminants(strum(
         message = "abi                 -  Generates ABI for the contract"
