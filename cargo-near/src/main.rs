@@ -1,21 +1,12 @@
 use std::env;
 use std::io::IsTerminal;
 
-use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 
-use indicatif::ProgressStyle;
-use tracing_indicatif::IndicatifLayer;
-use tracing_subscriber::fmt::format;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::prelude::*;
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::EnvFilter;
-
 pub use near_cli_rs::CliResult;
 
-use cargo_near::{CliOpts, Cmd, Opts};
+use cargo_near::{setup_tracing, CliOpts, Cmd, Opts};
 
 fn main() -> CliResult {
     let cli_cmd = match Cmd::try_parse() {
@@ -39,71 +30,7 @@ fn main() -> CliResult {
     };
     let CliOpts::Near(cli_near_args) = cli_opts.clone();
 
-    if env::var("RUST_LOG").is_ok() {
-        let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
-            "container".cyan()
-        } else {
-            "host".purple()
-        };
-        let my_formatter =
-            cargo_near::types::my_formatter::MyFormatter::from_environment(environment);
-
-        let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
-
-        tracing_subscriber::registry()
-            .with(
-                tracing_subscriber::fmt::layer()
-                    .event_format(my_formatter)
-                    .fmt_fields(format)
-                    .with_filter(EnvFilter::from_default_env()),
-            )
-            .init();
-    } else if cli_near_args.teach_me {
-        let env_filter = EnvFilter::from_default_env()
-            .add_directive(tracing::Level::WARN.into())
-            .add_directive("near_teach_me=info".parse()?)
-            .add_directive("near_cli_rs=info".parse()?)
-            .add_directive("tracing_instrument=info".parse()?);
-        tracing_subscriber::registry()
-            .with(
-                tracing_subscriber::fmt::layer()
-                    .without_time()
-                    .with_target(false),
-            )
-            .with(env_filter)
-            .init();
-    } else {
-        let indicatif_layer = IndicatifLayer::new()
-            .with_progress_style(
-                ProgressStyle::with_template(
-                    "{spinner:.blue}{span_child_prefix} {span_name} {msg} {span_fields}",
-                )
-                .unwrap()
-                .tick_strings(&[
-                    "▹▹▹▹▹",
-                    "▸▹▹▹▹",
-                    "▹▸▹▹▹",
-                    "▹▹▸▹▹",
-                    "▹▹▹▸▹",
-                    "▹▹▹▹▸",
-                    "▪▪▪▪▪",
-                ]),
-            )
-            .with_span_child_prefix_symbol("↳ ");
-        let env_filter = EnvFilter::from_default_env()
-            .add_directive(tracing::Level::WARN.into())
-            .add_directive("near_cli_rs=info".parse()?)
-            .add_directive("tracing_instrument=info".parse()?);
-        tracing_subscriber::registry()
-            .with(
-                tracing_subscriber::fmt::layer()
-                    .without_time()
-                    .with_writer(indicatif_layer.get_stderr_writer()),
-            )
-            .with(indicatif_layer)
-            .with(env_filter)
-            .init();
-    };
+    setup_tracing(env::var("RUST_LOG").is_ok(), cli_near_args.teach_me)?;
 
     match env::var("NO_COLOR") {
         Ok(v) if v != "0" => colored::control::set_override(false),
