@@ -84,12 +84,6 @@ pub fn run(
             docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
 
             docker_args.push(&shell_escaped_cargo_cmd);
-            tracing::info!(
-                target: "near_teach_me",
-                parent: &tracing::Span::none(),
-                "Docker command:\n{}",
-                pretty_print::indent_payload(&format!("{:#?}", docker_args))
-            );
             docker_args
         };
 
@@ -98,6 +92,13 @@ pub fn run(
         docker_cmd.args(docker_args);
         docker_cmd
     };
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Docker command:\n{}",
+        pretty_print::indent_payload(&format!("{:#?}", docker_cmd))
+    );
+
     let status_result = docker_cmd.status();
     let status = docker_checks::handle_command_io_error(
         &docker_cmd,
