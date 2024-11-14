@@ -72,6 +72,15 @@ cargo near
 Starts interactive mode that will allow to explore all the available commands.
 
 ---
+Use `--teach-me` flag if you want to know "how it works".
+
+```console
+cargo near --teach-me
+```
+
+Starts an interactive mode with an explanation of the execution of the selected command.
+
+---
 Additionally depends on [Git](https://git-scm.com/) binary being installed, besides [cargo](https://github.com/rust-lang/cargo).
 
 ```console

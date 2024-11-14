@@ -116,7 +116,12 @@ fn get_env_key_vals(input: Vec<String>) -> Vec<(String, String)> {
     let dedup_map: HashMap<String, String> = HashMap::from_iter(iterator);
 
     let result = dedup_map.into_iter().collect();
-    tracing::trace!("passed additional environment pairs: {:#?}", result);
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Passed additional environment pairs:\n{}",
+        near_cli_rs::common::indent_payload(&format!("{:#?}", result))
+    );
     result
 }
 

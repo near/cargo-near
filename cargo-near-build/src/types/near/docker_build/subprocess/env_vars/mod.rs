@@ -1,6 +1,6 @@
 pub mod nep330_build_info;
 
-const RUST_LOG_EXPORT: &str = "RUST_LOG=cargo_near=info";
+const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 use nep330_build_info::BuildInfo;
 
 use crate::env_keys;

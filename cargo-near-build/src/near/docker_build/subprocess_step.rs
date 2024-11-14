@@ -11,6 +11,7 @@ use std::{
 use nix::unistd::{getgid, getuid};
 
 use crate::env_keys;
+use crate::pretty_print;
 use crate::types::near::docker_build::subprocess::{container_paths, env_vars};
 use crate::types::near::docker_build::{cloned_repo, metadata};
 
@@ -83,7 +84,12 @@ pub fn run(
             docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
 
             docker_args.push(&shell_escaped_cargo_cmd);
-            tracing::debug!("docker command : {:#?}", docker_args);
+            tracing::info!(
+                target: "near_teach_me",
+                parent: &tracing::Span::none(),
+                "Docker command:\n{}",
+                pretty_print::indent_payload(&format!("{:#?}", docker_args))
+            );
             docker_args
         };
 

@@ -9,26 +9,7 @@ pub mod from_crates_io {
 }
 
 pub fn setup_tracing() {
-    use colored::Colorize;
-    use tracing_subscriber::layer::SubscriberExt;
-    use tracing_subscriber::util::SubscriberInitExt;
-    use tracing_subscriber::EnvFilter;
-    use tracing_subscriber::{fmt::format, prelude::*};
-    let environment = "test".green();
-    let my_formatter = cargo_near::types::my_formatter::MyFormatter::from_environment(environment);
-
-    let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
-
-    let env_filter = EnvFilter::from_default_env();
-
-    let _e = tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::fmt::layer()
-                .event_format(my_formatter)
-                .fmt_fields(format)
-                .with_filter(env_filter),
-        )
-        .try_init();
+    let _ = cargo_near::setup_tracing(true, false);
 }
 
 /// NOTE: this version is version of near-sdk in arbitrary revision from N.x.x development cycle

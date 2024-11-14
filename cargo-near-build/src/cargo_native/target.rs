@@ -2,6 +2,8 @@ use std::{ffi::OsStr, io::BufRead, path::PathBuf, process::Command};
 
 use eyre::WrapErr;
 
+use crate::pretty_print;
+
 pub const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
 pub fn wasm32_exists() -> bool {
@@ -11,12 +13,16 @@ pub fn wasm32_exists() -> bool {
         Ok(wasm32_target_libdir_path) => {
             if wasm32_target_libdir_path.exists() {
                 tracing::info!(
+                    target: "near_teach_me",
+                    parent: &tracing::Span::none(),
                     "Found {COMPILATION_TARGET} in {:?}",
                     wasm32_target_libdir_path
                 );
                 true
             } else {
                 tracing::info!(
+                    target: "near_teach_me",
+                    parent: &tracing::Span::none(),
                     "Failed to find {COMPILATION_TARGET} in {:?}",
                     wasm32_target_libdir_path
                 );
@@ -38,16 +44,24 @@ pub fn wasm32_exists() -> bool {
 }
 
 fn get_rustc_wasm32_unknown_unknown_target_libdir() -> eyre::Result<PathBuf> {
-    let command = Command::new("rustc")
-        .args(["--target", COMPILATION_TARGET, "--print", "target-libdir"])
-        .output()?;
+    let mut command = Command::new("rustc");
+    command.args(["--target", COMPILATION_TARGET, "--print", "target-libdir"]);
 
-    if command.status.success() {
-        Ok(String::from_utf8(command.stdout)?.trim().into())
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Command execution:\n{}",
+        pretty_print::indent_payload(&format!("`{:?}`", command).replace("\"", ""))
+    );
+
+    let output = command.output()?;
+
+    if output.status.success() {
+        Ok(String::from_utf8(output.stdout)?.trim().into())
     } else {
         eyre::bail!(
             "Getting rustc's wasm32-unknown-unknown target wasn't successful. Got {}",
-            command.status,
+            output.status,
         )
     }
 }
@@ -62,7 +76,12 @@ where
     let mut cmd = Command::new(rustup);
     cmd.args(args);
 
-    tracing::info!("Invoking rustup: {:?}", cmd);
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Invoking rustup:\n{}",
+        pretty_print::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
+    );
 
     let child = cmd
         .stdout(std::process::Stdio::piped())

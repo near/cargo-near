@@ -5,6 +5,7 @@ use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
 use eyre::{ContextCompat, OptionExt, WrapErr};
 
+use crate::pretty_print;
 use crate::types::near::build::buildtime_env;
 
 use super::manifest_path::ManifestPath;
@@ -67,7 +68,11 @@ impl CrateMetadata {
         } else {
             self.target_directory.clone()
         };
-        tracing::debug!("resolved output directory: {}", result);
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "Resolved output directory: {}", result
+        );
         Ok(result)
     }
 
@@ -136,7 +141,11 @@ fn get_cargo_metadata(
     no_locked: bool,
     cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
-    tracing::info!("Fetching cargo metadata for {}", manifest_path.path);
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Fetching cargo metadata for {}", manifest_path.path
+    );
     let mut cmd = MetadataCommand::new();
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
@@ -146,7 +155,12 @@ fn get_cargo_metadata(
         cmd.env(key, value);
     }
     let cmd = cmd.manifest_path(&manifest_path.path);
-    tracing::debug!("metadata command: {:#?}", cmd.cargo_command());
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Command execution:\n{}",
+        pretty_print::indent_payload(&format!("{:#?}", cmd.cargo_command()))
+    );
     let metadata = cmd.exec();
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {

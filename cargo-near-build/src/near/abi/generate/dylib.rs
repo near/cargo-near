@@ -4,6 +4,7 @@ use std::fs;
 use camino::Utf8Path;
 
 use crate::cargo_native::Dylib;
+use crate::pretty_print;
 use crate::types::near::build::output::CompilationArtifact;
 
 pub fn extract_abi_entries(
@@ -12,7 +13,9 @@ pub fn extract_abi_entries(
     let dylib_path: &Utf8Path = &artifact.path;
     let dylib_file_contents = fs::read(dylib_path)?;
     let object = symbolic_debuginfo::Object::parse(&dylib_file_contents)?;
-    tracing::debug!(
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
         "A dylib was built at {:?} with format {} for architecture {}",
         &dylib_path,
         &object.file_format(),
@@ -26,7 +29,12 @@ pub fn extract_abi_entries(
     if near_abi_symbols.is_empty() {
         eyre::bail!("No NEAR ABI symbols found in the dylib");
     }
-    tracing::debug!("Detected NEAR ABI symbols: {:?}", &near_abi_symbols);
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Detected NEAR ABI symbols:\n{}",
+        pretty_print::indent_payload(&format!("{:#?}", &near_abi_symbols))
+    );
 
     let mut entries = vec![];
     unsafe {

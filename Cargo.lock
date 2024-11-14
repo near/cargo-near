@@ -544,6 +544,7 @@ dependencies = [
  "hex",
  "home",
  "humantime",
+ "indenter",
  "libloading",
  "near-abi",
  "nix",
