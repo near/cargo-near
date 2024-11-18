@@ -19,10 +19,10 @@ pub enum NearCommand {
     /// Initializes a new project to create a contract
     New(self::new::New),
     #[strum_discriminants(strum(
-        message = "build               -  Build a NEAR contract with embed ABI"
+        message = "build               -  Build a NEAR contract with embedded ABI"
     ))]
-    /// Build a NEAR contract with embedded ABI 
-    Build(self::build_command::BuildCommand),
+    /// Build a NEAR contract with embedded ABI
+    Build(self::build_command::Command),
     #[strum_discriminants(strum(
         message = "abi                 -  Generates ABI for the contract"
     ))]
@@ -37,5 +37,5 @@ pub enum NearCommand {
     CreateDevAccount(self::create_dev_account::CreateAccount),
     #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
     /// Add a new contract code
-    Deploy(self::deploy::Contract),
+    Deploy(self::deploy::Command),
 }

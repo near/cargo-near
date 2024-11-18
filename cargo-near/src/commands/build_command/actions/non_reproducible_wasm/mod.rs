@@ -1,7 +1,7 @@
-#[derive(Debug, Clone, interactive_clap::InteractiveClap)]
+#[derive(Default, Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = cargo_near_build::BuildContext)]
-#[interactive_clap(output_context = OptsContext)]
-pub struct Opts {
+#[interactive_clap(output_context = context::Context)]
+pub struct BuildOpts {
     /// enable implicit `--locked` flag for all `cargo` commands, disabled by default
     #[interactive_clap(long)]
     pub locked: bool,
@@ -46,35 +46,57 @@ pub struct Opts {
     pub env: Vec<String>,
 }
 
-#[derive(Debug)]
-pub struct OptsContext; 
-
-impl OptsContext {
-    pub fn from_previous_context(
-        _previous_context: cargo_near_build::BuildContext,
-        scope: &<Opts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
-    ) -> color_eyre::eyre::Result<Self> {
-        let opts = Opts {
-            locked: scope.locked,
-            no_release: scope.no_release,
-            no_abi: scope.no_abi,
-            no_embed_abi: scope.no_embed_abi,
-            no_doc: scope.no_doc,
-            no_wasmopt: scope.no_wasmopt,
-            features: scope.features.clone(),
-            no_default_features: scope.no_default_features,
-            env: scope.env.clone(),
-            out_dir: scope.out_dir.clone(),
-            manifest_path: scope.manifest_path.clone(),
-            color: scope.color.clone(),
-        };
-        run_no_docker(opts)?;
-        Ok(Self)
+impl From<CliBuildOpts> for BuildOpts {
+    fn from(value: CliBuildOpts) -> Self {
+        Self {
+            locked: value.locked,
+            no_release: value.no_release,
+            no_abi: value.no_abi,
+            no_embed_abi: value.no_embed_abi,
+            no_doc: value.no_doc,
+            no_wasmopt: value.no_wasmopt,
+            out_dir: value.out_dir,
+            manifest_path: value.manifest_path,
+            features: value.features,
+            no_default_features: value.no_default_features,
+            color: value.color,
+            env: value.env,
+            
+        }
     }
 }
-pub fn run_no_docker(
-    cmd: Opts,
-) -> color_eyre::eyre::Result<()> {
+
+pub mod context {
+    
+    #[derive(Debug)]
+    pub struct Context;
+
+    impl Context {
+        pub fn from_previous_context(
+            _previous_context: cargo_near_build::BuildContext,
+            scope: &<super::BuildOpts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
+        ) -> color_eyre::eyre::Result<Self> {
+            let opts = super::BuildOpts {
+                locked: scope.locked,
+                no_release: scope.no_release,
+                no_abi: scope.no_abi,
+                no_embed_abi: scope.no_embed_abi,
+                no_doc: scope.no_doc,
+                no_wasmopt: scope.no_wasmopt,
+                features: scope.features.clone(),
+                no_default_features: scope.no_default_features,
+                env: scope.env.clone(),
+                out_dir: scope.out_dir.clone(),
+                manifest_path: scope.manifest_path.clone(),
+                color: scope.color.clone(),
+            };
+            super::run(opts)?;
+            Ok(Self)
+        }
+    }
+}
+
+pub fn run(cmd: BuildOpts) -> color_eyre::eyre::Result<String> {
     // if let BuildContext::Deploy {
     //     skip_git_remote_check: true,
     // } = context
@@ -84,5 +106,5 @@ pub fn run_no_docker(
     //     ));
     // }
     println!("run_no_docker: {:#?}", cmd);
-    Ok(())
+    Ok("no_docker artifact path".to_owned())
 }

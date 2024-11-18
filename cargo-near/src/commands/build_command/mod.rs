@@ -1,47 +1,53 @@
-use strum::{EnumDiscriminants, EnumIter, EnumMessage};
+pub mod context {
+    #[derive(Debug, Clone)]
+    pub struct Context;
 
-mod non_reproducible_wasm; 
-mod reproducible_wasm;
+    impl From<Context> for cargo_near_build::BuildContext {
+        fn from(_value: Context) -> Self {
+            Self::Build
+        }
+    }
 
+    impl Context {
+        pub fn from_previous_context(
+            _previous_context: near_cli_rs::GlobalContext,
+            _scope: &<super::actions::Actions as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
+        ) -> color_eyre::eyre::Result<Self> {
+            Ok(Self)
+        }
+    }
+}
 
-#[derive(Debug, Clone, EnumDiscriminants, interactive_clap::InteractiveClap)]
-#[strum_discriminants(derive(EnumMessage, EnumIter))]
-#[interactive_clap(input_context = near_cli_rs::GlobalContext)]
-#[interactive_clap(output_context = BuildCommandlContext)]
-pub enum BuildCommandActions {
-    #[strum_discriminants(strum(
-        message = "non-reproducible-wasm - Runs on current filesystem state without many restrictions"
-    ))]
-    /// Runs on current filesystem state without many restrictions
-    NonReproducibleWasm(self::non_reproducible_wasm::Opts),
-    #[strum_discriminants(strum(
-        message = "reproducible-wasm - Requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty"
-    ))]
-    /// Requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty
-    ReproducibleWasm(self::reproducible_wasm::Opts),
-    
+pub mod actions {
+    pub mod non_reproducible_wasm;
+    pub mod reproducible_wasm;
+
+    use strum::{EnumDiscriminants, EnumIter, EnumMessage};
+
+    #[derive(Debug, Clone, EnumDiscriminants, interactive_clap::InteractiveClap)]
+    #[strum_discriminants(derive(EnumMessage, EnumIter))]
+    #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
+    #[interactive_clap(output_context = super::context::Context)]
+    pub enum Actions {
+        #[strum_discriminants(strum(
+            message = "non-reproducible-wasm - Runs on current filesystem state without many restrictions"
+        ))]
+        /// Runs on current filesystem state without many restrictions
+        NonReproducibleWasm(self::non_reproducible_wasm::BuildOpts),
+        #[strum_discriminants(strum(
+            message = "reproducible-wasm - Requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty"
+        ))]
+        /// Requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty
+        ReproducibleWasm(self::reproducible_wasm::Opts),
+    }
 }
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
-pub struct  BuildCommand {
+pub struct Command {
     #[interactive_clap(subcommand)]
-    actions: BuildCommandActions,
+    actions: actions::Actions,
 }
-
-
-impl BuildCommand {
-    // fn validate_env_opt(&self) -> color_eyre::eyre::Result<()> {
-    //     for pair in self.env.iter() {
-    //         pair.split_once('=').ok_or(color_eyre::eyre::eyre!(
-    //             "invalid \"key=value\" environment argument (must contain '='): {}",
-    //             pair
-    //         ))?;
-    //     }
-    //     Ok(())
-    // }
-}
-
 
 // fn get_env_key_vals(input: Vec<String>) -> Vec<(String, String)> {
 //     let iterator = input.iter().flat_map(|pair_string| {
@@ -61,23 +67,3 @@ impl BuildCommand {
 //     );
 //     result
 // }
-
-
-impl From<BuildCommandlContext> for cargo_near_build::BuildContext {
-    fn from(_value: BuildCommandlContext) -> Self {
-        Self::Build
-    }
-}
-
-
-#[derive(Debug, Clone)]
-pub struct BuildCommandlContext;
-
-impl BuildCommandlContext {
-    pub fn from_previous_context(
-        _previous_context: near_cli_rs::GlobalContext,
-        _scope: &<BuildCommandActions as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
-    ) -> color_eyre::eyre::Result<Self> {
-        Ok(Self)
-    }
-}
