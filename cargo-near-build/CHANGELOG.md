@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.3.1...cargo-near-build-v0.3.2) - 2024-11-19
+
+### Fixed
+
+- Replaced --teach-me printing from docker_args to docker_cmd ([#248](https://github.com/near/cargo-near/pull/248))
+
 ## [0.3.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.3.0...cargo-near-build-v0.3.1) - 2024-11-14
 
 ### Added
