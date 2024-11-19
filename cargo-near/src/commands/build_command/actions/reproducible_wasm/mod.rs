@@ -1,9 +1,9 @@
 use cargo_near_build::BuildContext;
 
-#[derive(Debug, Clone, interactive_clap::InteractiveClap)]
+#[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = cargo_near_build::BuildContext)]
 #[interactive_clap(output_context = context::Context)]
-pub struct Opts {
+pub struct BuildOpts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
     #[interactive_clap(long)]
     pub no_locked: bool,
@@ -22,6 +22,17 @@ pub struct Opts {
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
+impl From<CliBuildOpts> for BuildOpts {
+    fn from(value: CliBuildOpts) -> Self {
+        Self {
+            no_locked: value.no_locked,
+            out_dir: value.out_dir,
+            manifest_path: value.manifest_path,
+            color: value.color,
+        }
+    }
+}
+
 mod context {
     #[derive(Debug)]
     pub struct Context;
@@ -29,22 +40,22 @@ mod context {
     impl Context {
         pub fn from_previous_context(
             previous_context: cargo_near_build::BuildContext,
-            scope: &<super::Opts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
+            scope: &<super::BuildOpts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
         ) -> color_eyre::eyre::Result<Self> {
-            let opts = super::Opts {
+            let opts = super::BuildOpts {
                 no_locked: scope.no_locked,
                 out_dir: scope.out_dir.clone(),
                 manifest_path: scope.manifest_path.clone(),
                 color: scope.color.clone(),
             };
-            super::run_docker(opts, previous_context)?;
+            super::run(opts, previous_context)?;
             Ok(Self)
         }
     }
 }
 
 
-pub fn run_docker(cmd: Opts, context: BuildContext) -> color_eyre::eyre::Result<()> {
+pub fn run(cmd: BuildOpts, context: BuildContext) -> color_eyre::eyre::Result<()> {
     println!("run_docker: {:#?}, context {:?}", cmd, context);
     Ok(())
 }

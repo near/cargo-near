@@ -9,7 +9,10 @@ use crate::commands::build_command;
 pub struct DeployOpts {
     #[interactive_clap(flatten)]
     /// Specify a build command args:
-    build_command_opts: build_command::actions::non_reproducible_wasm::BuildOpts,
+    build_command_opts: build_command::actions::reproducible_wasm::BuildOpts,
+    /// whether to check that code has been pushed to repository during docker build
+    #[interactive_clap(long)]
+    skip_git_remote_check: bool,
     #[interactive_clap(skip_default_input_arg)]
     /// What is the contract account ID?
     contract_account_id: near_cli_rs::types::account_id::AccountId,
@@ -34,8 +37,11 @@ mod context {
             previous_context: near_cli_rs::GlobalContext,
             scope: &<super::DeployOpts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
         ) -> color_eyre::eyre::Result<Self> {
-            let _path = build_command::actions::non_reproducible_wasm::run(
+            let _path = build_command::actions::reproducible_wasm::run(
                 scope.build_command_opts.clone(),
+                cargo_near_build::BuildContext::Deploy {
+                    skip_git_remote_check: scope.skip_git_remote_check,
+                },
             )?;
 
             let wasm_vec_stub = vec![1, 2, 3];
@@ -90,9 +96,9 @@ mod manual_from_cli {
 
             let build_command_opts =
                 if let Some(cli_build_command_opts) = &clap_variant.build_command_opts {
-                    build_command::actions::non_reproducible_wasm::BuildOpts::from(cli_build_command_opts.clone())
+                    build_command::actions::reproducible_wasm::BuildOpts::from(cli_build_command_opts.clone())
                 } else {
-                    build_command::actions::non_reproducible_wasm::BuildOpts::default()
+                    build_command::actions::reproducible_wasm::BuildOpts::default()
                 };
 
             if clap_variant.contract_account_id.is_none() {
@@ -109,10 +115,12 @@ mod manual_from_cli {
                 .clone()
                 .expect("Unexpected error");
 
+            let skip_git_remote_check = clap_variant.skip_git_remote_check;
 
             let new_context_scope = super::InteractiveClapContextScopeForDeployOpts {
                 build_command_opts,
                 contract_account_id,
+                skip_git_remote_check,
             };
 
             let output_context =

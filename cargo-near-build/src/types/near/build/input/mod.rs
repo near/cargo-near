@@ -89,6 +89,7 @@ impl Default for CliDescription {
         Self {
             cli_name_abi: "cargo-near".into(),
             cli_command_prefix: vec!["cargo".into(), "near".into(), "build".into()],
+            // TODO: replace with vec!["cargo".into(), "near".into(), "build".into(), "non-reproducible-wasm".into()]
         }
     }
 }
@@ -103,6 +104,13 @@ impl Opts {
         if self.no_locked {
             cargo_args.push("--no-locked");
         }
+        // TODO: replace with
+        // // explanation: this logical NOT is needed to avoid writing manually `Default` trait impl for `Opts`  
+        // // with `self.locked` field and to keep default (if nothing is specified) to *locked* behavior
+        // if !self.no_locked {
+        //     cargo_args.push("--locked");
+        // }
+
         // `no_docker` field isn't present
         if self.no_release {
             cargo_args.push("--no-release");

@@ -1,5 +1,6 @@
 mod actions {
     mod non_reproducible_wasm;
+    mod reproducible_wasm;
 
     
     use strum::{EnumDiscriminants, EnumIter, EnumMessage};
@@ -14,10 +15,10 @@ mod actions {
         /// Build runs on current filesystem state without many restrictions
         BuildNonReproducibleWasm(self::non_reproducible_wasm::DeployOpts),
         #[strum_discriminants(strum(
-            message = "build-reproducible-wasm - Build requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty"
+            message = "build-reproducible-wasm - Requires `docker` config added to Cargo.toml and build runs on `git`-committed state, which is NOT dirty"
         ))]
-        /// Build requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty
-        BuildReproducibleWasm,
+        /// Requires `docker` config added to Cargo.toml and build runs on `git`-committed state, which is NOT dirty
+        BuildReproducibleWasm(self::reproducible_wasm::DeployOpts),
     }
 }
 

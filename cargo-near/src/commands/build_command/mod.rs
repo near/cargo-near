@@ -35,10 +35,10 @@ pub mod actions {
         /// Runs on current filesystem state without many restrictions
         NonReproducibleWasm(self::non_reproducible_wasm::BuildOpts),
         #[strum_discriminants(strum(
-            message = "reproducible-wasm - Requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty"
+            message = "reproducible-wasm - Requires `docker` config added to Cargo.toml and runs on `git`-committed state, which is NOT dirty"
         ))]
-        /// Requires `docker` config added to Cargo.toml and `git`-committed state, which is NOT dirty
-        ReproducibleWasm(self::reproducible_wasm::Opts),
+        /// Requires `docker` config added to Cargo.toml and runs on `git`-committed state, which is NOT dirty
+        ReproducibleWasm(self::reproducible_wasm::BuildOpts),
     }
 }
 
