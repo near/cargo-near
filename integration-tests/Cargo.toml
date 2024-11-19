@@ -16,7 +16,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
 camino = "1.1.1"
 cargo-near = { path = "../cargo-near" }
-cargo-near-build = { version = "0.3.1", path = "../cargo-near-build", features = ["test_code"] }
+cargo-near-build = { version = "0.3.1", path = "../cargo-near-build", features = [
+    "test_code",
+] }
 color-eyre = "0.6"
 function_name = "0.3"
 git2 = "0.19"
@@ -29,6 +31,6 @@ syn = "2"
 tempfile = "3.3"
 tokio = { version = "1.12.0", features = ["full"] }
 quote = "1.0"
-near-workspaces = "0.14.1"
+near-workspaces = "0.15"
 zstd = "0.13"
 toml = "0.8.19"
