@@ -99,12 +99,14 @@ impl ReproducibleBuild {
         Ok(())
     }
     fn validate_container_build_command(&self) -> eyre::Result<()> {
+        let build_command = self.container_build_command.clone().ok_or(
+            eyre::eyre!("`container_build_command` field is required since 0.13+ version of `cargo-near`" )
+        )?;
         let is_cargo_near = {
-            let build_command = self.container_build_command.clone().unwrap_or_default();
             Some("cargo") == build_command.first().map(AsRef::as_ref)
                 && Some("near") == build_command.get(1).map(AsRef::as_ref)
         };
-        for command_token in self.container_build_command.clone().unwrap_or_default() {
+        for command_token in build_command {
             if command_token
                 .chars()
                 .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
@@ -116,6 +118,8 @@ impl ReproducibleBuild {
                     "`container_build_command`: string token contains invalid characters",
                 ));
             }
+            // for versions of cargo-near inside of container <0.13
+            // versions >=0.13 require `--locked` flag instead, but this isn't validated
             if is_cargo_near && command_token == "--no-locked" {
                 return Err(eyre::eyre!(
                     "{}:\n{}",
@@ -181,13 +185,6 @@ impl ReproducibleBuild {
         self.validate_if_unknown_keys_present()?;
         self.validate_repository()?;
 
-        if self.passed_env.is_some() && self.container_build_command.is_none() {
-            return Err(eyre::eyre!(
-                    "{}: \n{}",
-                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
-                    "using optional `passed_env` field requires that `container_build_command` is set too",
-                ));
-        }
         Ok(())
     }
     pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
@@ -249,11 +246,6 @@ impl ReproducibleBuild {
             .transpose()?;
         build_meta.validate()?;
         println!("{} {}", "reproducible build metadata:".green(), build_meta);
-        if build_meta.container_build_command.is_some() {
-            println!(
-                "{}", "using `container_build_command` from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
-            );
-        }
         Ok(build_meta)
     }
     pub fn concat_image(&self) -> String {
