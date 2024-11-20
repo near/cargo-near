@@ -1,3 +1,5 @@
+use cargo_near_build::BuildArtifact;
+
 #[derive(Default, Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = cargo_near_build::BuildContext)]
 #[interactive_clap(output_context = context::Context)]
@@ -95,15 +97,72 @@ pub mod context {
     }
 }
 
-pub fn run(cmd: BuildOpts) -> color_eyre::eyre::Result<String> {
-    // if let BuildContext::Deploy {
-    //     skip_git_remote_check: true,
-    // } = context
-    // {
-    //     return Err(color_eyre::eyre::eyre!(
-    //         "`--skip-git-remote-check` flag is only applicable for docker builds"
-    //     ));
-    // }
-    println!("run_no_docker: {:#?}", cmd);
-    Ok("no_docker artifact path".to_owned())
+impl From<BuildOpts> for cargo_near_build::BuildOpts {
+    fn from(value: BuildOpts) -> Self {
+        Self {
+            no_locked: !value.locked,
+            no_release: value.no_release,
+            no_abi: value.no_abi,
+            no_embed_abi: value.no_embed_abi,
+            no_doc: value.no_doc,
+            no_wasmopt: value.no_wasmopt,
+            features: value.features,
+            no_default_features: value.no_default_features,
+            out_dir: value.out_dir.map(Into::into),
+            manifest_path: value.manifest_path.map(Into::into),
+            color: value.color.map(Into::into),
+            cli_description: Default::default(),
+            env: env_pairs::get_key_vals(value.env),
+            override_nep330_contract_path: None,
+            override_cargo_target_dir: None,
+        }
+    }
+}
+
+mod env_pairs {
+    use std::collections::HashMap;
+
+    impl super::BuildOpts {
+        pub(super) fn validate_env_opt(&self) -> color_eyre::eyre::Result<()> {
+            for pair in self.env.iter() {
+                pair.split_once('=').ok_or(color_eyre::eyre::eyre!(
+                    "invalid \"key=value\" environment argument (must contain '='): {}",
+                    pair
+                ))?;
+            }
+            Ok(())
+        }
+    }
+
+    pub(super) fn get_key_vals(input: Vec<String>) -> Vec<(String, String)> {
+        let iterator = input.iter().flat_map(|pair_string| {
+            pair_string
+                .split_once('=')
+                .map(|(env_key, value)| (env_key.to_string(), value.to_string()))
+        });
+
+        let dedup_map: HashMap<String, String> = HashMap::from_iter(iterator);
+
+        let result = dedup_map.into_iter().collect();
+        tracing::info!(
+            target: "near_teach_me",
+            parent: &tracing::Span::none(),
+            "Passed additional environment pairs:\n{}",
+            near_cli_rs::common::indent_payload(&format!("{:#?}", result))
+        );
+        result
+    }
+}
+
+pub fn run(opts: BuildOpts) -> color_eyre::eyre::Result<BuildArtifact> {
+    let inside_docker =
+        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).is_ok();
+
+    if inside_docker && !opts.locked {
+        return Err(color_eyre::eyre::eyre!(
+            "`--locked` flag is required when being run in container"
+        ));
+    }
+    opts.validate_env_opt()?;
+    cargo_near_build::build(opts.into())
 }
