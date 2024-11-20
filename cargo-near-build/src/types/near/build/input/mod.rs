@@ -105,13 +105,12 @@ impl Opts {
             cargo_args.push("--no-locked");
         }
         // TODO: replace with
-        // // explanation: this logical NOT is needed to avoid writing manually `Default` trait impl for `Opts`  
+        // // explanation: this logical NOT is needed to avoid writing manually `Default` trait impl for `Opts`
         // // with `self.locked` field and to keep default (if nothing is specified) to *locked* behavior
         // if !self.no_locked {
         //     cargo_args.push("--locked");
         // }
 
-        // `no_docker` field isn't present
         if self.no_release {
             cargo_args.push("--no-release");
         }

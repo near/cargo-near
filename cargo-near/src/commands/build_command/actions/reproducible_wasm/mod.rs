@@ -54,7 +54,6 @@ mod context {
     }
 }
 
-
 pub fn run(cmd: BuildOpts, context: BuildContext) -> color_eyre::eyre::Result<()> {
     println!("run_docker: {:#?}, context {:?}", cmd, context);
     Ok(())

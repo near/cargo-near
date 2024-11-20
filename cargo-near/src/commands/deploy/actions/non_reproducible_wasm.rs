@@ -86,11 +86,12 @@ mod manual_from_cli {
             Self: Sized + interactive_clap::ToCli,
         {
             let mut clap_variant = optional_clap_variant.unwrap_or_default();
-            
 
             let build_command_opts =
                 if let Some(cli_build_command_opts) = &clap_variant.build_command_opts {
-                    build_command::actions::non_reproducible_wasm::BuildOpts::from(cli_build_command_opts.clone())
+                    build_command::actions::non_reproducible_wasm::BuildOpts::from(
+                        cli_build_command_opts.clone(),
+                    )
                 } else {
                     build_command::actions::non_reproducible_wasm::BuildOpts::default()
                 };
@@ -108,7 +109,6 @@ mod manual_from_cli {
                 .contract_account_id
                 .clone()
                 .expect("Unexpected error");
-
 
             let new_context_scope = super::InteractiveClapContextScopeForDeployOpts {
                 build_command_opts,

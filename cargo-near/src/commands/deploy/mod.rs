@@ -2,7 +2,6 @@ mod actions {
     mod non_reproducible_wasm;
     mod reproducible_wasm;
 
-    
     use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
     #[derive(Debug, Clone, EnumDiscriminants, interactive_clap::InteractiveClap)]

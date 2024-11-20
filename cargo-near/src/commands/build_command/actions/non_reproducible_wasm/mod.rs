@@ -61,13 +61,12 @@ impl From<CliBuildOpts> for BuildOpts {
             no_default_features: value.no_default_features,
             color: value.color,
             env: value.env,
-            
         }
     }
 }
 
 pub mod context {
-    
+
     #[derive(Debug)]
     pub struct Context;
 
