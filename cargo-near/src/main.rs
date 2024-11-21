@@ -1,6 +1,7 @@
-use std::env;
 use std::io::IsTerminal;
+use std::{env, ops::Index};
 
+use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 
@@ -9,6 +10,17 @@ pub use near_cli_rs::CliResult;
 use cargo_near::{setup_tracing, CliOpts, Cmd, Opts};
 
 fn main() -> CliResult {
+    let args = std::env::args().collect::<Vec<_>>();
+    if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
+        println!("enforcing stuff in docker");
+        if args.len() < 4 {
+            return Err(color_eyre::eyre::eyre!("it's not cool in docker"));
+        }
+        if args[1..4] != ["near", "build", "non-reproducible-wasm"] {
+            return Err(color_eyre::eyre::eyre!("it's not cool in docker"));
+        }
+        // TODO: clean logic to enforce `binary near build non-reproducible` prefix of command
+    }
     let cli_cmd = match Cmd::try_parse() {
         Ok(cli) => cli,
         Err(error) => error.exit(),
