@@ -1,3 +1,4 @@
+#![allow(clippy::needless_lifetimes)]
 //! ## Crate features
 //!
 //! * **build_script** -
