@@ -48,22 +48,3 @@ pub struct Command {
     #[interactive_clap(subcommand)]
     actions: actions::Actions,
 }
-
-// fn get_env_key_vals(input: Vec<String>) -> Vec<(String, String)> {
-//     let iterator = input.iter().flat_map(|pair_string| {
-//         pair_string
-//             .split_once('=')
-//             .map(|(env_key, value)| (env_key.to_string(), value.to_string()))
-//     });
-
-//     let dedup_map: HashMap<String, String> = HashMap::from_iter(iterator);
-
-//     let result = dedup_map.into_iter().collect();
-//     tracing::info!(
-//         target: "near_teach_me",
-//         parent: &tracing::Span::none(),
-//         "Passed additional environment pairs:\n{}",
-//         near_cli_rs::common::indent_payload(&format!("{:#?}", result))
-//     );
-//     result
-// }

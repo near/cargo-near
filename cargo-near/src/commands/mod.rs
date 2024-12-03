@@ -1,7 +1,7 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 pub mod abi_command;
-pub mod build_command;
+pub mod build;
 pub mod create_dev_account;
 pub mod deploy;
 pub mod new;
@@ -22,7 +22,7 @@ pub enum NearCommand {
         message = "build               -  Build a NEAR contract with embedded ABI"
     ))]
     /// Build a NEAR contract with embedded ABI
-    Build(self::build_command::Command),
+    Build(self::build::Command),
     #[strum_discriminants(strum(
         message = "abi                 -  Generates ABI for the contract"
     ))]

@@ -1,5 +1,5 @@
+use std::env;
 use std::io::IsTerminal;
-use std::{env, ops::Index};
 
 use cargo_near_build::env_keys;
 use colored::Colorize;
@@ -11,7 +11,7 @@ use cargo_near::{setup_tracing, CliOpts, Cmd, Opts};
 
 fn main() -> CliResult {
     let args = std::env::args().collect::<Vec<_>>();
-    if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
+    if env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
         println!("enforcing stuff in docker");
         if args.len() < 4 {
             return Err(color_eyre::eyre::eyre!("it's not cool in docker"));

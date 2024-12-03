@@ -1,6 +1,6 @@
 use near_cli_rs::commands::contract::deploy::initialize_mode::InitializeMode;
 
-use crate::commands::build_command;
+use crate::commands::build as build_command;
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
@@ -18,7 +18,7 @@ pub struct DeployOpts {
 }
 
 mod context {
-    use crate::commands::build_command;
+    use crate::commands::build as build_command;
 
     #[derive(Debug, Clone)]
     pub struct Context(near_cli_rs::commands::contract::deploy::ContractFileContext);
@@ -69,7 +69,7 @@ mod manual_input {
 /// this module is needed because of #[interactive_clap(skip_default_from_cli)]
 /// on `Opts`
 mod manual_from_cli {
-    use crate::commands::build_command;
+    use crate::commands::build as build_command;
     use near_cli_rs::commands::contract::deploy::initialize_mode::InitializeMode;
 
     impl interactive_clap::FromCli for super::DeployOpts {
