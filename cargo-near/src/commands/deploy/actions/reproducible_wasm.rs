@@ -37,20 +37,26 @@ mod context {
             previous_context: near_cli_rs::GlobalContext,
             scope: &<super::DeployOpts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
         ) -> color_eyre::eyre::Result<Self> {
-            let _path = build_command::actions::reproducible_wasm::run(
+            let artifact = build_command::actions::reproducible_wasm::run(
                 scope.build_command_opts.clone(),
                 cargo_near_build::BuildContext::Deploy {
                     skip_git_remote_check: scope.skip_git_remote_check,
                 },
             )?;
+            let code = std::fs::read(&artifact.path).map_err(|err| {
+                color_eyre::eyre::eyre!(
+                    "accessing {} to read wasm contents: {}",
+                    artifact.path,
+                    err
+                )
+            })?;
 
-            let wasm_vec_stub = vec![1, 2, 3];
             Ok(Self(
                 near_cli_rs::commands::contract::deploy::ContractFileContext {
                     global_context: previous_context,
                     receiver_account_id: scope.contract_account_id.clone().into(),
                     signer_account_id: scope.contract_account_id.clone().into(),
-                    code: wasm_vec_stub,
+                    code,
                 },
             ))
         }
