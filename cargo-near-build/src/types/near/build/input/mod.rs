@@ -102,12 +102,9 @@ impl Opts {
     /// this is just 1-to-1 mapping of each struct's field to a cli flag
     /// in order of fields, as specified in struct's definition.
     /// `Default` implementation corresponds to plain `cargo near build` command without any args
-    pub(crate) fn get_cli_command_for_lib_context(&self) -> Vec<String> {
+    pub fn get_cli_command_for_lib_context(&self) -> Vec<String> {
         let cargo_args = self.cli_description.cli_command_prefix.clone();
         let mut cargo_args: Vec<&str> = cargo_args.iter().map(|ele| ele.as_str()).collect();
-        if self.no_locked {
-            cargo_args.push("--no-locked");
-        }
         // this logical NOT is needed to avoid writing manually `Default` trait impl for `Opts`
         // with `self.locked` field and to keep default (if nothing is specified) to *locked* behavior
         // which is a desired default for [crate::extended::build] functionality

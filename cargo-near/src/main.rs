@@ -1,26 +1,38 @@
 use std::env;
 use std::io::IsTerminal;
 
-use cargo_near_build::env_keys;
 use colored::Colorize;
 use interactive_clap::ToCliArgs;
 
 pub use near_cli_rs::CliResult;
 
-use cargo_near::{setup_tracing, CliOpts, Cmd, Opts};
+use cargo_near::{
+    commands::build::actions::non_reproducible_wasm as build_non_reproducible_wasm, setup_tracing,
+    CliOpts, Cmd, Opts,
+};
+
+/// this part of cli setup doesn't depend on command arguments in any way
+fn pre_setup() -> CliResult {
+    match env::var("NO_COLOR") {
+        Ok(v) if v != "0" => colored::control::set_override(false),
+        _ => colored::control::set_override(std::io::stderr().is_terminal()),
+    }
+
+    #[cfg(not(debug_assertions))]
+    let display_env_section = false;
+    #[cfg(debug_assertions)]
+    let display_env_section = true;
+    color_eyre::config::HookBuilder::default()
+        .display_env_section(display_env_section)
+        .install()?;
+    Ok(())
+}
 
 fn main() -> CliResult {
-    let args = std::env::args().collect::<Vec<_>>();
-    if env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
-        println!("enforcing stuff in docker");
-        if args.len() < 4 {
-            return Err(color_eyre::eyre::eyre!("it's not cool in docker"));
-        }
-        if args[1..4] != ["near", "build", "non-reproducible-wasm"] {
-            return Err(color_eyre::eyre::eyre!("it's not cool in docker"));
-        }
-        // TODO: clean logic to enforce `binary near build non-reproducible` prefix of command
-    }
+    pre_setup()?;
+
+    build_non_reproducible_wasm::rule::enforce_this_program_args()?;
+
     let cli_cmd = match Cmd::try_parse() {
         Ok(cli) => cli,
         Err(error) => error.exit(),
@@ -43,19 +55,6 @@ fn main() -> CliResult {
     let CliOpts::Near(cli_near_args) = cli_opts.clone();
 
     setup_tracing(env::var("RUST_LOG").is_ok(), cli_near_args.teach_me)?;
-
-    match env::var("NO_COLOR") {
-        Ok(v) if v != "0" => colored::control::set_override(false),
-        _ => colored::control::set_override(std::io::stderr().is_terminal()),
-    }
-
-    #[cfg(not(debug_assertions))]
-    let display_env_section = false;
-    #[cfg(debug_assertions)]
-    let display_env_section = true;
-    color_eyre::config::HookBuilder::default()
-        .display_env_section(display_env_section)
-        .install()?;
 
     let console_command_path = if env::var("CARGO_HOME").is_ok() {
         "cargo".to_string()

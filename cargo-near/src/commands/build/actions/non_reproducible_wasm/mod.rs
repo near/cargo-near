@@ -154,15 +154,60 @@ mod env_pairs {
     }
 }
 
-pub fn run(opts: BuildOpts) -> color_eyre::eyre::Result<BuildArtifact> {
-    let inside_docker =
-        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).is_ok();
+pub mod rule {
+    use color_eyre::Section;
+    use colored::Colorize;
 
-    if inside_docker && !opts.locked {
-        return Err(color_eyre::eyre::eyre!(
-            "`--locked` flag is required when being run in container"
-        ));
+    const COMMAND_ERR_MSG: &str = "`container_build_command` is required to start with";
+
+    fn is_inside_docker_context() -> bool {
+        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).is_ok()
     }
+    pub fn assert_locked(opts: &super::BuildOpts) {
+        if is_inside_docker_context() {
+            assert!(
+                opts.locked,
+                "build command should have `--locked` flag in docker"
+            );
+        }
+    }
+
+    fn get_docker_image() -> String {
+        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).expect(&format!(
+            "`{}` is set",
+            cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT
+        ))
+    }
+    pub fn enforce_this_program_args() -> color_eyre::eyre::Result<()> {
+        if is_inside_docker_context() {
+            let args = std::env::args().collect::<Vec<_>>();
+            let default_cmd =
+                cargo_near_build::BuildOpts::default().get_cli_command_for_lib_context();
+            let default_cmd_len = default_cmd.len();
+            if (args.len() < default_cmd_len)
+                || (args[1..default_cmd_len] != default_cmd[1..default_cmd_len])
+            {
+                return Err(color_eyre::eyre::eyre!(
+                    "{}\n`{}` for the used image:\n{}",
+                    COMMAND_ERR_MSG,
+                    serde_json::to_string(&default_cmd).unwrap(),
+                    get_docker_image()
+                )
+                .note(format!(
+                    "The default `{}` has changed since `{}` image\n\
+                    See {}",
+                    "container_build_command".cyan(),
+                    "sourcescan/cargo-near:0.13.0-rust-1.83.0".cyan(),
+                    "https://github.com/near/cargo-near/releases".cyan()
+                )));
+            }
+        }
+        Ok(())
+    }
+}
+
+pub fn run(opts: BuildOpts) -> color_eyre::eyre::Result<BuildArtifact> {
+    rule::assert_locked(&opts);
     opts.validate_env_opt()?;
     cargo_near_build::build(opts.into())
 }
