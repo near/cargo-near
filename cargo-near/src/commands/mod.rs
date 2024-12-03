@@ -1,6 +1,6 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
-pub mod abi_command;
+pub mod abi;
 pub mod build;
 pub mod create_dev_account;
 pub mod deploy;
@@ -27,7 +27,7 @@ pub enum NearCommand {
         message = "abi                 -  Generates ABI for the contract"
     ))]
     /// Generates ABI for the contract
-    Abi(self::abi_command::AbiCommand),
+    Abi(self::abi::AbiCommand),
     #[strum_discriminants(strum(
         message = "create-dev-account  -  Create a development account using a faucet service sponsor to receive some NEAR tokens (testnet only).
                          To create an account on a different network, use NEAR CLI [https://near.cli.rs]"
