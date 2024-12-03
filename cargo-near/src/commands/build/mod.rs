@@ -35,9 +35,9 @@ pub mod actions {
         /// Runs on current filesystem state without many restrictions
         NonReproducibleWasm(self::non_reproducible_wasm::BuildOpts),
         #[strum_discriminants(strum(
-            message = "reproducible-wasm - Requires `docker` config added to Cargo.toml and runs on clean (git)working tree state"
+            message = "reproducible-wasm - Requires `docker` config added and (git)committed to Cargo.toml, runs on clean (git)working tree state"
         ))]
-        /// Requires `docker` config added to Cargo.toml and runs on clean (git)working tree state
+        /// Requires `docker` config added and (git)committed to Cargo.toml, runs on clean (git)working tree state
         ReproducibleWasm(self::reproducible_wasm::BuildOpts),
     }
 }

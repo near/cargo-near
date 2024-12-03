@@ -14,9 +14,9 @@ mod actions {
         /// Build runs on current filesystem state without many restrictions
         BuildNonReproducibleWasm(self::non_reproducible_wasm::DeployOpts),
         #[strum_discriminants(strum(
-            message = "build-reproducible-wasm - Requires `docker` config added to Cargo.toml and build runs on `git`-committed state, which is NOT dirty"
+            message = "build-reproducible-wasm - Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state"
         ))]
-        /// Requires `docker` config added to Cargo.toml and build runs on `git`-committed state, which is NOT dirty
+        /// Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state
         BuildReproducibleWasm(self::reproducible_wasm::DeployOpts),
     }
 }
