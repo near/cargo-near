@@ -76,7 +76,7 @@ macro_rules! invoke_cargo_near {
         let path: camino::Utf8PathBuf = match cli_args.cmd {
             Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
                 let args = cargo_near_build::abi::AbiOpts {
-                    no_locked: cmd.no_locked,
+                    no_locked: !cmd.locked,
                     no_doc: cmd.no_doc,
                     compact_abi: cmd.compact_abi,
                     out_dir: cmd.out_dir.map(Into::into),
@@ -87,14 +87,25 @@ macro_rules! invoke_cargo_near {
                 let path = cargo_near_build::abi::build(args)?;
                 path
             },
-            Some(cargo_near::commands::CliNearCommand::Build(cmd)) => {
-                let args = {
-                  let mut args = cargo_near::commands::build_command::BuildCommand::from(cmd)  ;
-                  args.manifest_path = Some(cargo_path.into());
-                  args
+            Some(cargo_near::commands::CliNearCommand::Build(
+                cargo_near::commands::build::CliCommand {
+                    actions:
+                        Some(cargo_near::commands::build::actions::CliActions::NonReproducibleWasm(
+                            cli_build_otps,
+                        )),
+                },
+            )) => {
+                let build_opts = {
+                    let mut build_opts =
+                        cargo_near::commands::build::actions::non_reproducible_wasm::BuildOpts::from(
+                            cli_build_otps,
+                        );
+                    build_opts.manifest_path = Some(cargo_path.into());
+                    build_opts
                 };
-                tracing::debug!("BuildCommand: {:#?}", args);
-                let artifact = args.run(cargo_near_build::BuildContext::Build)?;
+                tracing::debug!("non_reproducible_wasm::BuildOpts: {:#?}", build_opts);
+
+                let artifact = cargo_near::commands::build::actions::non_reproducible_wasm::run(build_opts)?;
                 artifact.path
             },
             Some(_) => todo!(),
@@ -108,8 +119,8 @@ macro_rules! invoke_cargo_near {
 #[macro_export]
 macro_rules! generate_abi_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near abi --no-locked";
-        $(let opts = format!("cargo near abi --no-locked {}", $cli_opts);)?;
+        let opts = "cargo near abi";
+        $(let opts = format!("cargo near abi {}", $cli_opts);)?;
         let result_file = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;
@@ -178,8 +189,8 @@ pub struct BuildResult {
 #[macro_export]
 macro_rules! build_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near build --no-docker --no-locked";
-        $(let opts = format!("cargo near build --no-docker --no-locked {}", $cli_opts);)?;
+        let opts = "cargo near build non-reproducible-wasm";
+        $(let opts = format!("cargo near build non-reproducible-wasm {}", $cli_opts);)?;
         let result_file = $crate::invoke_cargo_near! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
             Opts: &opts;

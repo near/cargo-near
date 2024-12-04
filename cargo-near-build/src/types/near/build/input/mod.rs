@@ -228,6 +228,8 @@ mod tests {
         assert_eq!(opts.get_cli_command_for_lib_context(), ["cargo".to_string(),
              "near".to_string(),
              "build".to_string(),
+             "non-reproducible-wasm".to_string(),
+             "--locked".to_string(),
              "--env".to_string(),
              "KEY=VALUE".to_string(),
              "--env".to_string(),
