@@ -9,12 +9,12 @@ mod actions {
     #[interactive_clap(context = near_cli_rs::GlobalContext)]
     pub enum Actions {
         #[strum_discriminants(strum(
-            message = "build-non-reproducible-wasm - Build runs on current filesystem state without many restrictions"
+            message = "build-non-reproducible-wasm  - Build runs on current filesystem state without many restrictions"
         ))]
         /// Build runs on current filesystem state without many restrictions
         BuildNonReproducibleWasm(self::non_reproducible_wasm::DeployOpts),
         #[strum_discriminants(strum(
-            message = "build-reproducible-wasm - Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state"
+            message = "build-reproducible-wasm      - Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state"
         ))]
         /// Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state
         BuildReproducibleWasm(self::reproducible_wasm::DeployOpts),
