@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use cargo_near_build::camino;
 
 /// NOTE: `near-sdk` version, published on crates.io
@@ -41,92 +43,128 @@ pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
     workspace_dir
 }
 
-#[macro_export]
-macro_rules! invoke_cargo_near {
-    ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? Opts: $cli_opts:expr; Code: $($code:tt)*) => {{
-        let workspace_dir = $crate::common_root_for_test_projects_build();
-        let crate_dir = workspace_dir.join(function_name!());
-        let src_dir = crate_dir.join("src");
-        std::fs::create_dir_all(&src_dir)?;
+pub fn invoke_cargo_near(
+    function_name: &str,
+    cargo_path: Option<&str>,
+    mut cargo_vars: HashMap<&str, String>,
+    lib_rs_file: syn::File,
+    cli_opts: String,
+) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+    let workspace_dir = crate::common_root_for_test_projects_build();
+    let crate_dir = workspace_dir.join(function_name);
+    let src_dir = crate_dir.join("src");
+    std::fs::create_dir_all(&src_dir)?;
 
-        let mut cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/_Cargo.toml")).to_string();
-        $(cargo_toml = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $cargo_path)).to_string())?;
-        let mut cargo_vars = std::collections::HashMap::new();
-        $(cargo_vars = $cargo_vars)?;
-        cargo_vars.insert("sdk-cratesio-version", $crate::from_crates_io::SDK_VERSION);
-        cargo_vars.insert("sdk-cratesio-version-toml", $crate::from_crates_io::SDK_VERSION_TOML);
-        cargo_vars.insert("sdk-git-version", $crate::from_git::SDK_VERSION);
-        cargo_vars.insert("sdk-git-short-version-toml", $crate::from_git::SDK_SHORT_VERSION_TOML);
-        cargo_vars.insert("sdk-git-version-toml", $crate::from_git::SDK_VERSION_TOML);
-        cargo_vars.insert("sdk-git-version-toml-table", $crate::from_git::SDK_VERSION_TOML_TABLE);
-        cargo_vars.insert("name", function_name!());
-        for (k, v) in cargo_vars {
-            cargo_toml = cargo_toml.replace(&format!("::{}::", k), v);
+    let mut cargo_toml = match cargo_path {
+        Some(cargo_path) => {
+            let file = [env!("CARGO_MANIFEST_DIR"), cargo_path].concat();
+            let content = String::from_utf8(std::fs::read(&file)?)?;
+            content
         }
-        let cargo_path = crate_dir.join("Cargo.toml");
-        std::fs::write(&cargo_path, cargo_toml)?;
+        None => include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/templates/_Cargo.toml"
+        ))
+        .to_string(),
+    };
+    cargo_vars.insert(
+        "sdk-cratesio-version",
+        crate::from_crates_io::SDK_VERSION.into(),
+    );
+    cargo_vars.insert(
+        "sdk-cratesio-version-toml",
+        crate::from_crates_io::SDK_VERSION_TOML.into(),
+    );
+    cargo_vars.insert("sdk-git-version", crate::from_git::SDK_VERSION.into());
+    cargo_vars.insert(
+        "sdk-git-short-version-toml",
+        crate::from_git::SDK_SHORT_VERSION_TOML.into(),
+    );
+    cargo_vars.insert(
+        "sdk-git-version-toml",
+        crate::from_git::SDK_VERSION_TOML.into(),
+    );
+    cargo_vars.insert(
+        "sdk-git-version-toml-table",
+        crate::from_git::SDK_VERSION_TOML_TABLE.into(),
+    );
+    cargo_vars.insert("name", function_name.into());
+    for (k, v) in cargo_vars {
+        cargo_toml = cargo_toml.replace(&format!("::{}::", k), &v);
+    }
+    let cargo_path = crate_dir.join("Cargo.toml");
+    std::fs::write(&cargo_path, cargo_toml)?;
 
-        let lib_rs_file = syn::parse_file(&quote::quote! { $($code)* }.to_string()).unwrap();
-        let lib_rs = prettyplease::unparse(&lib_rs_file);
-        let lib_rs_path = src_dir.join("lib.rs");
-        std::fs::write(lib_rs_path, lib_rs)?;
+    let lib_rs = prettyplease::unparse(&lib_rs_file);
+    let lib_rs_path = src_dir.join("lib.rs");
+    std::fs::write(lib_rs_path, lib_rs)?;
 
-        let cargo_near::CliOpts::Near(cli_args) = cargo_near::Opts::try_parse_from($cli_opts.split(" "))?;
+    let cargo_near::CliOpts::Near(cli_args) =
+        cargo_near::Opts::try_parse_from(cli_opts.split(" "))?;
 
-        let path: camino::Utf8PathBuf = match cli_args.cmd {
-            Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
-                let args = cargo_near_build::abi::AbiOpts {
-                    no_locked: !cmd.locked,
-                    no_doc: cmd.no_doc,
-                    compact_abi: cmd.compact_abi,
-                    out_dir: cmd.out_dir.map(Into::into),
-                    manifest_path: Some(cargo_path.into()),
-                    color: cmd.color.map(Into::into),
-                };
-                tracing::debug!("AbiOpts: {:#?}", args);
-                let path = cargo_near_build::abi::build(args)?;
-                path
+    let path: camino::Utf8PathBuf = match cli_args.cmd {
+        Some(cargo_near::commands::CliNearCommand::Abi(cmd)) => {
+            let args = cargo_near_build::abi::AbiOpts {
+                no_locked: !cmd.locked,
+                no_doc: cmd.no_doc,
+                compact_abi: cmd.compact_abi,
+                out_dir: cmd.out_dir.map(Into::into),
+                manifest_path: Some(cargo_path.into()),
+                color: cmd.color.map(Into::into),
+            };
+            tracing::debug!("AbiOpts: {:#?}", args);
+            let path = cargo_near_build::abi::build(args)?;
+            path
+        }
+        Some(cargo_near::commands::CliNearCommand::Build(
+            cargo_near::commands::build::CliCommand {
+                actions:
+                    Some(cargo_near::commands::build::actions::CliActions::NonReproducibleWasm(
+                        cli_build_otps,
+                    )),
             },
-            Some(cargo_near::commands::CliNearCommand::Build(
-                cargo_near::commands::build::CliCommand {
-                    actions:
-                        Some(cargo_near::commands::build::actions::CliActions::NonReproducibleWasm(
-                            cli_build_otps,
-                        )),
-                },
-            )) => {
-                let build_opts = {
-                    let mut build_opts =
-                        cargo_near::commands::build::actions::non_reproducible_wasm::BuildOpts::from(
-                            cli_build_otps,
-                        );
-                    build_opts.manifest_path = Some(cargo_path.into());
-                    build_opts
-                };
-                tracing::debug!("non_reproducible_wasm::BuildOpts: {:#?}", build_opts);
+        )) => {
+            let build_opts = {
+                let mut build_opts =
+                    cargo_near::commands::build::actions::non_reproducible_wasm::BuildOpts::from(
+                        cli_build_otps,
+                    );
+                build_opts.manifest_path = Some(cargo_path.into());
+                build_opts
+            };
+            tracing::debug!("non_reproducible_wasm::BuildOpts: {:#?}", build_opts);
 
-                let artifact = cargo_near::commands::build::actions::non_reproducible_wasm::run(build_opts)?;
-                artifact.path
-            },
-            Some(_) => todo!(),
-            None => unreachable!(),
-        };
-        path
-
-    }};
+            let artifact =
+                cargo_near::commands::build::actions::non_reproducible_wasm::run(build_opts)?;
+            artifact.path
+        }
+        Some(_) => todo!(),
+        None => unreachable!(),
+    };
+    Ok(path)
 }
 
 #[macro_export]
 macro_rules! generate_abi_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near abi";
+        let opts: String = "cargo near abi".into();
         $(let opts = format!("cargo near abi {}", $cli_opts);)?;
-        let result_file = $crate::invoke_cargo_near! {
-            $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
-            Opts: &opts;
-            Code:
-            $($code)*
-        };
+
+        let cargo_vars: std::collections::HashMap<&str, String> = std::collections::HashMap::new();
+        $(let cargo_vars = $cargo_vars)?;
+
+        let cargo_path: Option<&str> = None;
+        $(let cargo_path = Some($cargo_path))?;
+
+        let lib_rs_file = syn::parse_file(&quote::quote! { $($code)* }.to_string()).unwrap();
+
+        let result_file = $crate::invoke_cargo_near(
+            function_name!(),
+            cargo_path,
+            cargo_vars,
+            lib_rs_file,
+            opts,
+        )?;
         let result_dir = result_file.as_std_path().parent().expect("has parent");
 
         let abi_root: cargo_near_build::near_abi::AbiRoot =
@@ -189,14 +227,24 @@ pub struct BuildResult {
 #[macro_export]
 macro_rules! build_with {
     ($(Cargo: $cargo_path:expr;)? $(Vars: $cargo_vars:expr;)? $(Opts: $cli_opts:expr;)? Code: $($code:tt)*) => {{
-        let opts = "cargo near build non-reproducible-wasm";
+        let opts: String = "cargo near build non-reproducible-wasm".into();
         $(let opts = format!("cargo near build non-reproducible-wasm {}", $cli_opts);)?;
-        let result_file = $crate::invoke_cargo_near! {
-            $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)?
-            Opts: &opts;
-            Code:
-            $($code)*
-        };
+
+        let cargo_vars: std::collections::HashMap<&str, String> = std::collections::HashMap::new();
+        $(let cargo_vars = $cargo_vars)?;
+
+        let cargo_path: Option<&str> = None;
+        $(let cargo_path = Some($cargo_path))?;
+
+        let lib_rs_file = syn::parse_file(&quote::quote! { $($code)* }.to_string()).unwrap();
+
+        let result_file = $crate::invoke_cargo_near(
+            function_name!(),
+            cargo_path,
+            cargo_vars,
+            lib_rs_file,
+            opts,
+        )?;
         let result_dir = result_file.as_std_path().parent().expect("has parent");
 
         let wasm_path = result_dir.
