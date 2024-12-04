@@ -572,7 +572,6 @@ dependencies = [
  "tokio",
  "toml",
  "tracing",
- "tracing-subscriber",
  "zstd 0.13.2",
 ]
 

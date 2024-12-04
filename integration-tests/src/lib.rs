@@ -58,8 +58,7 @@ pub fn invoke_cargo_near(
     let mut cargo_toml = match cargo_path {
         Some(cargo_path) => {
             let file = [env!("CARGO_MANIFEST_DIR"), cargo_path].concat();
-            let content = String::from_utf8(std::fs::read(&file)?)?;
-            content
+            String::from_utf8(std::fs::read(&file)?)?
         }
         None => include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -109,12 +108,11 @@ pub fn invoke_cargo_near(
                 no_doc: cmd.no_doc,
                 compact_abi: cmd.compact_abi,
                 out_dir: cmd.out_dir.map(Into::into),
-                manifest_path: Some(cargo_path.into()),
+                manifest_path: Some(cargo_path),
                 color: cmd.color.map(Into::into),
             };
             tracing::debug!("AbiOpts: {:#?}", args);
-            let path = cargo_near_build::abi::build(args)?;
-            path
+            cargo_near_build::abi::build(args)?
         }
         Some(cargo_near::commands::CliNearCommand::Build(
             cargo_near::commands::build::CliCommand {
