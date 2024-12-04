@@ -173,10 +173,12 @@ pub mod rule {
     }
 
     fn get_docker_image() -> String {
-        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).expect(&format!(
-            "`{}` is set",
-            cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT
-        ))
+        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).unwrap_or_else(|_| {
+            panic!(
+                "`{}` is expected to be set",
+                cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT
+            )
+        })
     }
     pub fn enforce_this_program_args() -> color_eyre::eyre::Result<()> {
         if is_inside_docker_context() {
