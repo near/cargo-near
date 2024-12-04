@@ -100,7 +100,7 @@ impl ReproducibleBuild {
     }
     fn validate_container_build_command(&self) -> eyre::Result<()> {
         let build_command = self.container_build_command.clone().ok_or(eyre::eyre!(
-            "`container_build_command` field is required since 0.13+ version of `cargo-near`"
+            "`container_build_command` field not found! It is required since 0.13.0 version of `cargo-near`"
         ))?;
         let is_cargo_near = {
             Some("cargo") == build_command.first().map(AsRef::as_ref)
@@ -197,10 +197,10 @@ impl ReproducibleBuild {
         let mut build_meta: ReproducibleBuild = match build_meta_value {
             None => {
                 println!(
-                    "{}{}{}",
-                    "An error with missing ".yellow(),
-                    "`[package.metadata.near.reproducible_build]`".magenta(),
-                    " in Cargo.toml has been encountered...".yellow()
+                    "{}",
+                    "Metadata section in contract's Cargo.toml, \
+                    that is prerequisite for reproducible builds, has not been found..."
+                        .yellow()
                 );
                 thread::sleep(Duration::new(7, 0));
                 println!();
