@@ -4,9 +4,9 @@ use cargo_near_build::abi::AbiOpts;
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = AbiCommandlContext)]
 pub struct AbiCommand {
-    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    /// enable implicit `--locked` flag for all `cargo` commands, disabled by default
     #[interactive_clap(long)]
-    pub no_locked: bool,
+    pub locked: bool,
     /// Include rustdocs in the ABI file
     #[interactive_clap(long)]
     pub no_doc: bool,
@@ -31,7 +31,7 @@ pub struct AbiCommand {
 impl From<AbiCommand> for AbiOpts {
     fn from(value: AbiCommand) -> Self {
         Self {
-            no_locked: value.no_locked,
+            no_locked: !value.locked,
             no_doc: value.no_doc,
             compact_abi: value.compact_abi,
             out_dir: value.out_dir.map(Into::into),
@@ -50,7 +50,7 @@ impl AbiCommandlContext {
         scope: &<AbiCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let args = AbiCommand {
-            no_locked: scope.no_locked,
+            locked: scope.locked,
             no_doc: scope.no_doc,
             compact_abi: scope.compact_abi,
             out_dir: scope.out_dir.clone(),
