@@ -170,7 +170,9 @@ fn get_cargo_metadata(
             );
             println!(
                 "{}",
-                "You can choose to disable `--locked` flag for downstream `cargo` command with `--no-locked` flag.".cyan()
+                "You can choose to disable `--locked` flag for downstream `cargo` command \
+                by adding `--no-locked` flag OR by removing `--locked` flag"
+                    .cyan()
             );
             thread::sleep(Duration::new(5, 0));
             return Err(cargo_metadata::Error::CargoMetadata {
