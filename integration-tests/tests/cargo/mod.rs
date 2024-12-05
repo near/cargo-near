@@ -26,7 +26,7 @@ fn test_dependency_local_path() -> cargo_near::CliResult {
     // near-sdk = { path = "::path::", features = ["abi"] }
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_local_path.toml";
-        Vars: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
+        Vars: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap().to_owned())]);
         Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
@@ -47,7 +47,7 @@ fn test_dependency_local_path_with_version() -> cargo_near::CliResult {
 
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_local_path_with_version.toml";
-        Vars: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap())]);
+        Vars: HashMap::from([("path", near_sdk_dep_path.to_str().unwrap().to_owned())]);
         Code:
         pub fn foo(&self, a: bool, b: u32) {}
     };
