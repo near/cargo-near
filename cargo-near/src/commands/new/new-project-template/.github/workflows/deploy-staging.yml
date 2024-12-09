@@ -41,7 +41,7 @@ jobs:
         # 
         # WASM reproducibility check akin to SourceScan won't be available for staging contracts, deployed from PRs 
         run: |
-          cargo near deploy --skip-git-remote-check "${{ env.NEAR_CONTRACT_PR_STAGING_ACCOUNT_ID }}" \
+          cargo near deploy build-reproducible-wasm --skip-git-remote-check "${{ env.NEAR_CONTRACT_PR_STAGING_ACCOUNT_ID }}" \
             without-init-call \
             network-config "${{ vars.NEAR_CONTRACT_STAGING_NETWORK }}" \
             sign-with-plaintext-private-key \
