@@ -23,7 +23,7 @@ pub struct Cmd {
 /// Near
 pub enum Opts {
     #[strum_discriminants(strum(message = "near"))]
-    /// Which cargo extension do you want to use?
+    /// Which subcommand of `near` extension do you want to use?
     Near(NearArgs),
 }
 
