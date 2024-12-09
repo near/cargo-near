@@ -13,7 +13,10 @@ impl super::Opts {
             ));
         };
         println!(
-            "{}", "using `container_build_command` from `[package.metadata.near.reproducible_build]` in Cargo.toml".cyan()
+            "{}`{}`{}",
+            "using `container_build_command` from ".cyan(),
+            "[package.metadata.near.reproducible_build]".magenta(),
+            " in Cargo.toml".cyan()
         );
         self.append_env_suffix(
             manifest_command.clone(),
