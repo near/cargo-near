@@ -130,16 +130,20 @@ Why is it needed? Explanation of these points and a step-by-step tutorial is pre
 <details>
   <summary>Additional (optional) details on possible <code>[package.metadata.near.reproducible_build]</code> configuration</summary><p>
   
-- available images can be found by this link https://hub.docker.com/r/sourcescan/cargo-near/tags 
+1. available images can be found by this link https://hub.docker.com/r/sourcescan/cargo-near/tags 
   - [`image`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L18) and [`image_digest`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L19) are straightforward to configure:
   ![image_and_digest_pinpoint](./docs/image_and_digest_pinpoint.png)
-- build command flags can be configured, if needed, by changing [`container_build_command`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L29) field
+2. build command flags can be configured, if needed, by changing [`container_build_command`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L29) field
   - base `container_build_command` for images prior to **sourcescan/cargo-near:0.13.0-rust-1.83.0** is `["cargo", "near", "build"]` 
   - base `container_build_command` for images starting with **sourcescan/cargo-near:0.13.0-rust-1.83.0** and after it  is `["cargo", "near", "build", "non-reproducible-wasm", "--locked"]`, where the `--locked` flag is required
   - additional flags, if needed, can be looked up on
     - `cargo near build non-reproducible-wasm --help` for newer/latest images 
     - `cargo near build --help` for older ones 
     - running `docker run -it sourcescan/cargo-near:0.11.0-rust-1.82.0` (or another specific image) and checking the `--help` message of exact `cargo-near` in container may be helpful when in doubt    
+3. `cargo near` allows parameterizing build with values of environment variables, present at the time of the build and not present in a contract's source code,
+   by specifying their names in [`passed_env`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L24) array
+  - supported by `sourcescan/cargo-near:0.10.1-rust-1.82.0` image or later images
+  - SourceScan/Nearblocks does not support verifying such contracts yet. 
 
 </p></details>
 
