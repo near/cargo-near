@@ -101,7 +101,7 @@ Builds a NEAR smart contract along with its [ABI](https://github.com/near/abi) (
 
 Running the above command opens a menu with following variants: 
 
-### **non-reproducible-wasm**
+### `non-reproducible-wasm`
 
 This is a regular build, which behaves much like and is a thin wrapper around a regular `cargo build --target wasm32-unknown-unknown --release`.
 
@@ -112,7 +112,7 @@ cargo near build non-reproducible-wasm --help
 ```
 if needed.
 
-### **reproducible-wasm** variant
+### `reproducible-wasm`
 
 This variant runs a reproducible build in a [Docker](https://docs.docker.com/) container, which:
 
@@ -171,13 +171,13 @@ Builds the smart contract (equivalent to `cargo near build`) and guides you to d
 
 Similar to `build`, running the above command opens a menu with following variants: 
 
-### **build-non-reproducible-wasm**
+### `build-non-reproducible-wasm`
 
 This forwards to [non-reproducible-wasm](#non-reproducible-wasm) variant of `build` command.
 
-### **build-reproducible-wasm**
+### `build-reproducible-wasm`
 
-This forwards to [reproducible-wasm-variant](#reproducible-wasm-variant) variant of `build` command.
+This forwards to [reproducible-wasm](#reproducible-wasm) variant of `build` command.
 
 `deploy` command from Docker build requires that contract's source code:
 
