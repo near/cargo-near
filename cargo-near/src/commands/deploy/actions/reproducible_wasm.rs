@@ -79,7 +79,7 @@ mod manual_input {
 }
 
 /// this module is needed because of #[interactive_clap(skip_default_from_cli)]
-/// on `Opts`
+/// on `DeployOpts`
 mod manual_from_cli {
     use crate::commands::build as build_command;
     use near_cli_rs::commands::contract::deploy::initialize_mode::InitializeMode;
