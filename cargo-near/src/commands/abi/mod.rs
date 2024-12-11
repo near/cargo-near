@@ -3,7 +3,7 @@ use cargo_near_build::abi::AbiOpts;
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = AbiCommandlContext)]
-pub struct AbiCommand {
+pub struct Command {
     /// enable implicit `--locked` flag for all `cargo` commands, disabled by default
     #[interactive_clap(long)]
     pub locked: bool,
@@ -28,8 +28,8 @@ pub struct AbiCommand {
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
-impl From<AbiCommand> for AbiOpts {
-    fn from(value: AbiCommand) -> Self {
+impl From<Command> for AbiOpts {
+    fn from(value: Command) -> Self {
         Self {
             no_locked: !value.locked,
             no_doc: value.no_doc,
@@ -47,9 +47,9 @@ pub struct AbiCommandlContext;
 impl AbiCommandlContext {
     pub fn from_previous_context(
         _previous_context: near_cli_rs::GlobalContext,
-        scope: &<AbiCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
+        scope: &<Command as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
-        let args = AbiCommand {
+        let args = Command {
             locked: scope.locked,
             no_doc: scope.no_doc,
             compact_abi: scope.compact_abi,
