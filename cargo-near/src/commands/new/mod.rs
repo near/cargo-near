@@ -210,7 +210,7 @@ const NEW_PROJECT_FILES: &[NewProjectFile] = &[
     },
     NewProjectFile {
         file_path: "Cargo.toml",
-        content: include_str!("new-project-template/Cargo.toml.template"),
+        content: include_str!("new-project-template/Cargo.template.toml"),
     },
     NewProjectFile {
         file_path: "README.md",

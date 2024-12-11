@@ -22,7 +22,7 @@ Deployment is automated with GitHub Actions CI/CD pipeline.
 To deploy manually, install [`cargo-near`](https://github.com/near/cargo-near) and run:
 
 ```bash
-cargo near deploy <account-id>
+cargo near deploy build-reproducible-wasm <account-id>
 ```
 
 ## Useful Links

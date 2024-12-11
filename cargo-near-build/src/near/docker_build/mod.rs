@@ -1,5 +1,7 @@
 use std::process::{Command, ExitStatus};
 
+use colored::Colorize;
+
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
@@ -33,10 +35,13 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         },
     )?;
 
-    let docker_build_meta =
-        pretty_print::handle_step("Parsing and validating `Cargo.toml` metadata...", || {
-            metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata())
-        })?;
+    let docker_build_meta = pretty_print::handle_step(
+        &format!(
+            "Parsing and validating `{}` section of contract's `Cargo.toml` ...",
+            "[package.metadata.near.reproducible_build]".magenta()
+        ),
+        || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
+    )?;
 
     if let BuildContext::Deploy {
         skip_git_remote_check,
