@@ -4,6 +4,7 @@ use crate::types::near::build::buildtime_env;
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
+use tempfile::NamedTempFile;
 
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build::side_effects::ArtifactMessages;
@@ -162,19 +163,14 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         color,
     )?;
 
-    wasm_artifact.path = crate::fs::copy(&wasm_artifact.path, &out_dir)?;
-
-    if !args.no_wasmopt {
-        println!();
-        pretty_print::handle_step(
-            "Running an optimize for size post-step with wasm-opt...",
-            || {
-                wasm_opt::OptimizationOptions::new_optimize_for_size()
-                    .run(&wasm_artifact.path, &wasm_artifact.path)?;
-                Ok(())
-            },
-        )?;
-    }
+    wasm_artifact.path = {
+        let (from_path, _maybe_tmpfile) =
+            maybe_wasm_opt_step(&wasm_artifact.path, args.no_wasmopt)?;
+        crate::fs::copy_to_file(
+            &from_path,
+            &out_dir.join(wasm_artifact.path.file_name().expect("has filename")),
+        )?
+    };
 
     wasm_artifact.builder_version_info = Some(builder_version_info);
 
@@ -205,4 +201,38 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     messages.pretty_print();
     pretty_print::duration(start, "cargo near build");
     Ok(wasm_artifact)
+}
+
+fn maybe_wasm_opt_step(
+    input_path: &Utf8PathBuf,
+    no_wasmopt: bool,
+) -> eyre::Result<(Utf8PathBuf, Option<NamedTempFile>)> {
+    let result = if !no_wasmopt {
+        let opt_destination = tempfile::Builder::new()
+            .prefix("optimized-")
+            .suffix(".wasm")
+            .tempfile()?;
+        println!();
+        pretty_print::handle_step(
+            "Running an optimize for size post-step with wasm-opt...",
+            || {
+                println!(
+                    "{} -> {}",
+                    format!("{}", input_path).cyan(),
+                    format!("{}", opt_destination.path().to_string_lossy()).cyan()
+                );
+                wasm_opt::OptimizationOptions::new_optimize_for_size()
+                    .run(input_path, &opt_destination.path())?;
+                Ok(())
+            },
+        )?;
+
+        (
+            Utf8PathBuf::try_from(opt_destination.path().to_path_buf())?,
+            Some(opt_destination),
+        )
+    } else {
+        (input_path.clone(), None)
+    };
+    Ok(result)
 }
