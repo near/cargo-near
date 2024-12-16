@@ -103,6 +103,8 @@ Running the above command opens a menu with following variants:
 
 ### `non-reproducible-wasm`
 
+**Recommended variant for local development.**
+
 This is a regular build, which behaves much like and is a thin wrapper around a regular `cargo build --target wasm32-unknown-unknown --release`.
 
 Additional flags for build configuration can be looked up by
@@ -113,6 +115,8 @@ cargo near build non-reproducible-wasm --help
 if needed.
 
 ### `reproducible-wasm`
+
+**Recommended variant for production releases.**
 
 This variant runs a reproducible build in a [Docker](https://docs.docker.com/) container, which:
 
