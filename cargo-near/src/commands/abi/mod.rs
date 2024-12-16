@@ -4,7 +4,7 @@ use cargo_near_build::abi::AbiOpts;
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = AbiCommandlContext)]
 pub struct Command {
-    /// enable implicit `--locked` flag for all `cargo` commands, disabled by default
+    /// enable `--locked` flag for all `cargo` commands, disabled by default
     #[interactive_clap(long)]
     pub locked: bool,
     /// Include rustdocs in the ABI file
