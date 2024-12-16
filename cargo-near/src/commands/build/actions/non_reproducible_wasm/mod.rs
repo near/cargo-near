@@ -4,7 +4,7 @@ use cargo_near_build::BuildArtifact;
 #[interactive_clap(input_context = cargo_near_build::BuildContext)]
 #[interactive_clap(output_context = context::Context)]
 pub struct BuildOpts {
-    /// enable implicit `--locked` flag for all `cargo` commands, disabled by default
+    /// enable `--locked` flag for all `cargo` commands, disabled by default
     #[interactive_clap(long)]
     pub locked: bool,
     /// Build contract in debug mode, without optimizations and bigger is size
