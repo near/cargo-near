@@ -30,14 +30,14 @@ pub mod actions {
     #[interactive_clap(output_context = super::context::Context)]
     pub enum Actions {
         #[strum_discriminants(strum(
-            message = "non-reproducible-wasm  - Runs on current filesystem state without many restrictions"
+            message = "non-reproducible-wasm  - Fast and simple (recommended for use during local development)"
         ))]
-        /// Runs on current filesystem state without many restrictions
+        /// Fast and simple (recommended for use during local development)
         NonReproducibleWasm(self::non_reproducible_wasm::BuildOpts),
         #[strum_discriminants(strum(
-            message = "reproducible-wasm      - Requires `docker` config added and (git)committed to Cargo.toml, runs on clean (git)working tree state"
+            message = "reproducible-wasm      - Requires [reproducible_build] section in Cargo.toml, and all changes committed to git (recommended for the production release)"
         ))]
-        /// Requires `docker` config added and (git)committed to Cargo.toml, runs on clean (git)working tree state
+        /// Requires [reproducible_build] section in Cargo.toml, and all changes committed to git (recommended for the production release)
         ReproducibleWasm(self::reproducible_wasm::BuildOpts),
     }
 }
