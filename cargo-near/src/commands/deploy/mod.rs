@@ -9,14 +9,14 @@ mod actions {
     #[interactive_clap(context = near_cli_rs::GlobalContext)]
     pub enum Actions {
         #[strum_discriminants(strum(
-            message = "build-non-reproducible-wasm  - Build runs on current filesystem state without many restrictions"
+            message = "build-non-reproducible-wasm  - Fast and simple build (recommended for use during local development)"
         ))]
-        /// Build runs on current filesystem state without many restrictions
+        /// Fast and simple build (recommended for use during local development)
         BuildNonReproducibleWasm(self::non_reproducible_wasm::DeployOpts),
         #[strum_discriminants(strum(
-            message = "build-reproducible-wasm      - Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state"
+            message = "build-reproducible-wasm      - Build requires [reproducible_build] section in Cargo.toml, and all changes committed and pushed to git (recommended for the production release)"
         ))]
-        /// Requires `docker` config added and (git)committed to Cargo.toml, build runs on clean (git)working tree state
+        /// Build requires [reproducible_build] section in Cargo.toml, and all changes committed and pushed to git (recommended for the production release)
         BuildReproducibleWasm(self::reproducible_wasm::DeployOpts),
     }
 }
