@@ -16,7 +16,7 @@ mod actions {
         #[strum_discriminants(strum(
             message = "build-reproducible-wasm      - Build requires [reproducible_build] section in Cargo.toml, and all changes committed and pushed to git (recommended for the production release)"
         ))]
-        /// Build requires [reproducible_build] section in Cargo.toml, and all changes committed and pushed to git (recommended for the production release)
+        /// Build requires `[reproducible_build]` section in Cargo.toml, and all changes committed and pushed to git (recommended for the production release)
         BuildReproducibleWasm(self::reproducible_wasm::DeployOpts),
     }
 }
