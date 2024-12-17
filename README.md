@@ -135,7 +135,7 @@ Why is it needed? Explanation of these points and a step-by-step tutorial is pre
   <summary>Additional (optional) details on possible <code>[package.metadata.near.reproducible_build]</code> configuration</summary><p>
   
 1. available images can be found by this link https://hub.docker.com/r/sourcescan/cargo-near/tags 
-    - [`image`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L18) and [`image_digest`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L19) are straightforward to configure:
+    - [`image`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L18) and [`image_digest`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L20) are straightforward to configure:
   ![image_and_digest_pinpoint](./docs/image_and_digest_pinpoint.png)
 2. flags of build command, run inside of docker container, can be configured, if needed, by changing [`container_build_command`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L29) field
       - base `container_build_command` for images starting with **sourcescan/cargo-near:0.13.0-rust-1.83.0** and after it  is `["cargo", "near", "build", "non-reproducible-wasm", "--locked"]`, where the `--locked` flag is required
