@@ -6,11 +6,13 @@ publish = false
 
 [dependencies]
 const_format = "0.2"
+color-eyre = "0.6"
 cargo-near-build = { version = "0.3.2", path = "../cargo-near-build" }
 cargo-near = { path = "../cargo-near" }
 colored = "2.0"
 tracing = "0.1.40"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+prettyplease = "0.2"
+syn = "2"
 
 [dev-dependencies]
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }

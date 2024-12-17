@@ -3,10 +3,10 @@ use cargo_near_build::abi::AbiOpts;
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = AbiCommandlContext)]
-pub struct AbiCommand {
-    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+pub struct Command {
+    /// enable `--locked` flag for all `cargo` commands, disabled by default
     #[interactive_clap(long)]
-    pub no_locked: bool,
+    pub locked: bool,
     /// Include rustdocs in the ABI file
     #[interactive_clap(long)]
     pub no_doc: bool,
@@ -28,10 +28,10 @@ pub struct AbiCommand {
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
 }
 
-impl From<AbiCommand> for AbiOpts {
-    fn from(value: AbiCommand) -> Self {
+impl From<Command> for AbiOpts {
+    fn from(value: Command) -> Self {
         Self {
-            no_locked: value.no_locked,
+            no_locked: !value.locked,
             no_doc: value.no_doc,
             compact_abi: value.compact_abi,
             out_dir: value.out_dir.map(Into::into),
@@ -47,10 +47,10 @@ pub struct AbiCommandlContext;
 impl AbiCommandlContext {
     pub fn from_previous_context(
         _previous_context: near_cli_rs::GlobalContext,
-        scope: &<AbiCommand as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
+        scope: &<Command as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
-        let args = AbiCommand {
-            no_locked: scope.no_locked,
+        let args = Command {
+            locked: scope.locked,
             no_doc: scope.no_doc,
             compact_abi: scope.compact_abi,
             out_dir: scope.out_dir.clone(),
