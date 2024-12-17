@@ -1,7 +1,7 @@
 use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
-pub mod abi_command;
-pub mod build_command;
+pub mod abi;
+pub mod build;
 pub mod create_dev_account;
 pub mod deploy;
 pub mod new;
@@ -19,15 +19,15 @@ pub enum NearCommand {
     /// Initializes a new project to create a contract
     New(self::new::New),
     #[strum_discriminants(strum(
-        message = "build               -  Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)"
+        message = "build               -  Build a NEAR contract with embedded ABI"
     ))]
-    /// Build a NEAR contract with embed ABI (opt out by passing `--no-embed-abi`)
-    Build(self::build_command::BuildCommand),
+    /// Build a NEAR contract with embedded ABI
+    Build(self::build::Command),
     #[strum_discriminants(strum(
         message = "abi                 -  Generates ABI for the contract"
     ))]
     /// Generates ABI for the contract
-    Abi(self::abi_command::AbiCommand),
+    Abi(self::abi::Command),
     #[strum_discriminants(strum(
         message = "create-dev-account  -  Create a development account using a faucet service sponsor to receive some NEAR tokens (testnet only).
                          To create an account on a different network, use NEAR CLI [https://near.cli.rs]"
@@ -37,5 +37,5 @@ pub enum NearCommand {
     CreateDevAccount(self::create_dev_account::CreateAccount),
     #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
     /// Add a new contract code
-    Deploy(self::deploy::Contract),
+    Deploy(self::deploy::Command),
 }

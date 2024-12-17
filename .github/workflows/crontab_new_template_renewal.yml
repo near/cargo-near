@@ -30,7 +30,7 @@ jobs:
           let record = http get "https://hub.docker.com/v2/namespaces/sourcescan/repositories/cargo-near/tags" | get results | first;
 
           let mod_content = (
-            open cargo-near/src/commands/new/new-project-template/Cargo.toml.template --raw | lines
+            open cargo-near/src/commands/new/new-project-template/Cargo.template.toml --raw | lines
             | each { 
               |line| if ($line | str starts-with "image = ") { 
                 $'image = "sourcescan/cargo-near:($record.name)"' 
@@ -44,7 +44,7 @@ jobs:
             | to text
           );
 
-          $mod_content | save -f cargo-near/src/commands/new/new-project-template/Cargo.toml.template
+          $mod_content | save -f cargo-near/src/commands/new/new-project-template/Cargo.template.toml
 
           git diff
 

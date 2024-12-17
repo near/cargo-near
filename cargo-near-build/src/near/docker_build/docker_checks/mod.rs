@@ -19,7 +19,6 @@ pub fn handle_command_io_error<T>(
             println!();
             println!("{}", "`docker` executable isn't available".yellow());
             print_installation_links();
-            print_non_docker_suggestion();
             Err(report)
         }
         Err(io_err) => {
@@ -33,7 +32,6 @@ pub fn handle_command_io_error<T>(
                 .yellow()
             );
             println!("{}", format!("Error `{:?}`", io_err).yellow());
-            print_non_docker_suggestion();
             Err(report)
         }
     }
@@ -126,14 +124,5 @@ pub fn print_command_status(status: std::process::ExitStatus, command: std::proc
             command
         )
         .yellow()
-    );
-    print_non_docker_suggestion();
-}
-
-fn print_non_docker_suggestion() {
-    println!(
-        "{}",
-        "You can choose to opt out into non-docker build behaviour by using `--no-docker` flag."
-            .cyan()
     );
 }
