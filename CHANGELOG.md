@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0](https://github.com/near/cargo-near/compare/cargo-near-v0.12.2...cargo-near-v0.13.0) - 2024-12-17
+
+### Added
+
+- reproducible choice interactive (#262)
+
+### Other
+
+- update `cargo near new` template `image` and `image_digest` ([#259](https://github.com/near/cargo-near/pull/259))
+- update `cargo near new` template `image` and `image_digest` ([#257](https://github.com/near/cargo-near/pull/257))
+
 ## [0.12.2](https://github.com/near/cargo-near/compare/cargo-near-v0.12.1...cargo-near-v0.12.2) - 2024-11-20
 
 ### Other
