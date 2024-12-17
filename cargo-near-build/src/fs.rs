@@ -23,6 +23,13 @@ pub fn copy(from: &Utf8Path, out_dir: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
 pub fn copy_to_file(from: &Utf8Path, to: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
     tracing::debug!("Copying file `{}` -> `{}`", from, to,);
 
+    if !from.is_file() {
+        return Err(eyre::eyre!(
+            "`{}` is expected to exist and be a file \
+            or point to a file in case of a symlink",
+            from
+        ));
+    }
     if from != to && to.is_file() {
         let from_content = std::fs::read(from)?;
         let to_content = std::fs::read(to)?;
