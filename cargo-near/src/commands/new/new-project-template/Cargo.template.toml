@@ -26,7 +26,7 @@ passed_env = []
 # if docker image from default gallery is used https://hub.docker.com/r/sourcescan/cargo-near/tags,
 # the command may be any combination of flags of `cargo-near`,
 # supported by respective version of binary inside the container besides `--no-locked` flag
-container_build_command = ["cargo", "near", "build"]
+container_build_command = ["cargo", "near", "build", "non-reproducible-wasm", "--locked"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
