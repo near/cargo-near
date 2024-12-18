@@ -15,9 +15,9 @@ crate-type = ["cdylib", "rlib"]
 # in https://github.com/near/NEPs/blob/master/neps/nep-0330.md 
 [package.metadata.near.reproducible_build]
 # docker image, descriptor of build environment
-image = "sourcescan/cargo-near:0.12.2-rust-1.83.0"
+image = "sourcescan/cargo-near:0.13.0-rust-1.83.0"
 # tag after colon above serves only descriptive purpose; image is identified by digest
-image_digest = "sha256:331af57ff315784c9e27e9e01be3882400986d2398fe150511fd5f3dbc569f38"
+image_digest = "sha256:a2584ef8c9381d157da4f30100047cbf04adbe04339f1407f6bf0af7712b84a3"
 # list of environment variables names, whose values, if set, will be used as external build parameters
 # in a reproducible manner
 # supported by `sourcescan/cargo-near:0.10.1-rust-1.82.0` image or later images
@@ -26,7 +26,7 @@ passed_env = []
 # if docker image from default gallery is used https://hub.docker.com/r/sourcescan/cargo-near/tags,
 # the command may be any combination of flags of `cargo-near`,
 # supported by respective version of binary inside the container besides `--no-locked` flag
-container_build_command = ["cargo", "near", "build"]
+container_build_command = ["cargo", "near", "build", "non-reproducible-wasm", "--locked"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
