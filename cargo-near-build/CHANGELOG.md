@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.1...cargo-near-build-v0.4.2) - 2024-12-19
+
+### Other
+
+- update deps , pin `cc` (#282)
+
 ## [0.4.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.0...cargo-near-build-v0.4.1) - 2024-12-18
 
 ### Fixed
