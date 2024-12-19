@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2](https://github.com/near/cargo-near/compare/cargo-near-v0.13.1...cargo-near-v0.13.2) - 2024-12-19
+
+### Other
+
+- near-* crates to 0.28 (#279)
+- update `cargo near new` template `image` and `image_digest` ([#273](https://github.com/near/cargo-near/pull/273))
+
 ## [0.13.1](https://github.com/near/cargo-near/compare/cargo-near-v0.13.0...cargo-near-v0.13.1) - 2024-12-18
 
 ### Other
