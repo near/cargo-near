@@ -13,15 +13,15 @@ codegen-units = 1
 inherits = "release"
 lto = "thin"
 
-# Config for 'cargo dist'
+# Config for 'dist'
 [workspace.metadata.dist]
-# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.25.1"
 # CI backends to support
 ci = "github"
 # The installers to generate for each app
 installers = ["shell", "powershell", "npm", "msi"]
-# Enable additional publishing steps
+# Publish jobs to run in CI
 publish-jobs = ["npm"]
 # Target platforms to build apps for (Rust target-triple syntax)
 targets = [
