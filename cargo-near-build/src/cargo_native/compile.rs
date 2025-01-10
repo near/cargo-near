@@ -118,6 +118,11 @@ where
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let mut cmd = Command::new(cargo);
 
+    // removing env, which may be implicitly passed when bulding from within a build-script
+    // see https://github.com/near/cargo-near/issues/287
+    // CARGO_ENCODED_RUSTFLAGS="-Awarnings" and RUSTFLAGS="-Awarnings" both result
+    // in mysterious failures of `cargo build --target wasm32-unknown-unknown` (rustc bug)
+    cmd.env_remove("CARGO_ENCODED_RUSTFLAGS");
     cmd.envs(env);
 
     if let Some(path) = working_dir {
