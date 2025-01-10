@@ -24,28 +24,14 @@ where
 {
     let mut final_env = BTreeMap::new();
 
+    // this will overwrite any other RUSTFLAGS specified
     if hide_warnings {
         env.push(("RUSTFLAGS", "-Awarnings"));
     }
 
+    // last instance of a key gets inserted
     for (key, value) in env {
-        match key {
-            "RUSTFLAGS" => {
-                let rustflags: &mut String = final_env
-                    .entry(key)
-                    .or_insert_with(|| std::env::var(key).unwrap_or_default());
-                // helps avoids situation on complete match `RUSTFLAGS="-C link-arg=-s -C link-arg=-s"`
-                if !rustflags.contains(value) {
-                    if !rustflags.is_empty() {
-                        rustflags.push(' ');
-                    }
-                    rustflags.push_str(value);
-                }
-            }
-            _ => {
-                final_env.insert(key, value.to_string());
-            }
-        }
+        final_env.insert(key, value.to_string());
     }
 
     let artifacts = invoke_cargo(
