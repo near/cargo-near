@@ -33,9 +33,6 @@ unix_path = { version = "1.0.1", optional = true }
 tempfile = { version = "3.10.1" }
 shell-words = { version = "1.0.0", optional = true }
 wasm-opt = "=0.116.1"
-# bug on https://github.com/brson/wasm-opt-rs/blob/8854bd8a58d7393c7bacd950884aea521ce8e19f/components/wasm-opt-sys/build.rs#L365 
-# for `x86_64-pc-windows-msvc` platform
-cc = "=1.2.1"
 humantime = "2.1.0"
 indenter = "0.3"
 
