@@ -36,7 +36,7 @@ pub fn wasm32_exists() -> bool {
                 .map(|stdout| {
                     stdout
                         .lines()
-                        .any(|target| target.as_ref().map_or(false, |t| t == COMPILATION_TARGET))
+                        .any(|target| target.as_ref().is_ok_and(|t| t == COMPILATION_TARGET))
                 })
                 .is_ok()
         }
