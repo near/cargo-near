@@ -15,30 +15,32 @@ use super::ArtifactType;
 pub fn run<T>(
     manifest_path: &ManifestPath,
     args: &[&str],
-    mut env: Vec<(&str, &str)>,
+    env: Vec<(&str, &str)>,
     hide_warnings: bool,
     color: ColorPreference,
 ) -> eyre::Result<CompilationArtifact<T>>
 where
     T: ArtifactType,
 {
-    let mut final_env = BTreeMap::new();
-
-    // this will overwrite any other RUSTFLAGS specified
-    if hide_warnings {
-        env.push(("RUSTFLAGS", "-Awarnings"));
-    }
-
-    // last instance of a key gets inserted
-    for (key, value) in env {
-        final_env.insert(key, value.to_string());
-    }
+    let final_env = {
+        let mut env: BTreeMap<_, _> = env.into_iter().collect();
+        if hide_warnings {
+            env.insert("RUSTFLAGS", "-Awarnings");
+        }
+        env
+    };
+    // removing env, which may be implicitly passed when bulding from within a build-script
+    // see https://github.com/near/cargo-near/issues/287
+    // CARGO_ENCODED_RUSTFLAGS="-Awarnings" and RUSTFLAGS="-Awarnings" both result
+    // in mysterious failures of `cargo build --target wasm32-unknown-unknown` (**cargo** bug)
+    let removed_env = ["CARGO_ENCODED_RUSTFLAGS"];
 
     let artifacts = invoke_cargo(
         "build",
         [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
         final_env.iter(),
+        &removed_env,
         color,
     )?;
 
@@ -91,6 +93,7 @@ fn invoke_cargo<A, P, E, S, EK, EV>(
     args: A,
     working_dir: Option<P>,
     env: E,
+    removed_env: &[&str],
     color: ColorPreference,
 ) -> eyre::Result<Vec<Artifact>>
 where
@@ -104,11 +107,9 @@ where
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let mut cmd = Command::new(cargo);
 
-    // removing env, which may be implicitly passed when bulding from within a build-script
-    // see https://github.com/near/cargo-near/issues/287
-    // CARGO_ENCODED_RUSTFLAGS="-Awarnings" and RUSTFLAGS="-Awarnings" both result
-    // in mysterious failures of `cargo build --target wasm32-unknown-unknown` (rustc bug)
-    cmd.env_remove("CARGO_ENCODED_RUSTFLAGS");
+    for key in removed_env {
+        cmd.env_remove(key);
+    }
     cmd.envs(env);
 
     if let Some(path) = working_dir {
