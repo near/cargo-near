@@ -80,6 +80,21 @@ pub fn write_to_file(
         crate_metadata.formatted_package_name(),
         abi_types::file_extension(format, compression)
     ));
+
+    // this prevents doing `touch target/near/{contract_crate_name}_abi.zst` and similar
+    // and doing a partial project's rebuild during 2nd phase of build (into wasm)
+    if out_path_abi.is_file() {
+        let existing_content = std::fs::read(&out_path_abi)?;
+
+        if existing_content == near_abi_compressed {
+            tracing::debug!(
+                "skipped wrting file `{}` on identical contents",
+                out_path_abi,
+            );
+            return Ok(abi_types::Result { path: out_path_abi });
+        }
+    }
+
     std::fs::write(&out_path_abi, near_abi_compressed)?;
 
     Ok(abi_types::Result { path: out_path_abi })
