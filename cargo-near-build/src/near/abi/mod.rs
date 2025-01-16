@@ -91,6 +91,11 @@ pub fn write_to_file(
                 "skipped wrting file `{}` on identical contents",
                 out_path_abi,
             );
+
+            println!(
+                "skipped wrting file `{}` on identical contents",
+                out_path_abi,
+            );
             return Ok(abi_types::Result { path: out_path_abi });
         }
     }
