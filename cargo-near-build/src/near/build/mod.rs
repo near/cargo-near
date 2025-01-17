@@ -164,12 +164,20 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     )?;
 
     wasm_artifact.path = {
-        let (from_path, _maybe_tmpfile) =
-            maybe_wasm_opt_step(&wasm_artifact.path, args.no_wasmopt)?;
-        crate::fs::copy_to_file(
-            &from_path,
-            &out_dir.join(wasm_artifact.path.file_name().expect("has filename")),
-        )?
+        let target_path = out_dir.join(wasm_artifact.path.file_name().expect("has filename"));
+        if std::fs::metadata(&wasm_artifact.path)
+            .and_then(|m| m.modified())
+            .unwrap_or_else(|_| std::time::SystemTime::now())
+            > std::fs::metadata(&target_path)
+                .and_then(|m| m.modified())
+                .unwrap_or_else(|_| std::time::SystemTime::UNIX_EPOCH)
+        {
+            let (from_path, _maybe_tmpfile) =
+                maybe_wasm_opt_step(&wasm_artifact.path, args.no_wasmopt)?;
+            crate::fs::copy_to_file(&from_path, &target_path)?
+        } else {
+            target_path
+        }
     };
 
     wasm_artifact.builder_version_info = Some(builder_version_info);
