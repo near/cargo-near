@@ -34,6 +34,16 @@ pub fn duration(start: Instant, activity: &str) {
     );
 }
 
+pub fn duration_millis(start: Instant, activity: &str) {
+    let duration = std::time::Duration::from_millis(start.elapsed().as_millis() as u64);
+    println!(
+        "    {} {} in {}",
+        "Finished".bold().cyan(),
+        activity,
+        humantime::format_duration(duration)
+    );
+}
+
 pub fn indent_payload(s: &str) -> String {
     use std::fmt::Write;
 
