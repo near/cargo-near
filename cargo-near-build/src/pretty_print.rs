@@ -38,7 +38,7 @@ pub fn duration_millis(start: Instant, activity: &str) {
     let duration = std::time::Duration::from_millis(start.elapsed().as_millis() as u64);
     println!(
         "    {} {} in {}",
-        "Finished".bold().cyan(),
+        "Finished".bold().truecolor(90, 90, 90),
         activity,
         humantime::format_duration(duration)
     );
