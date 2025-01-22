@@ -255,6 +255,11 @@ fn maybe_wasm_opt_step(
             "Running an optimize for size post-step with wasm-opt...",
             || {
                 let start = std::time::Instant::now();
+                tracing::debug!(
+                    "{} -> {}",
+                    format!("{}", input_path).cyan(),
+                    format!("{}", opt_destination.path().to_string_lossy()).cyan()
+                );
                 wasm_opt::OptimizationOptions::new_optimize_for_size()
                     .run(input_path, opt_destination.path())?;
                 pretty_print::duration_millis(start, "wasm-opt -O");
