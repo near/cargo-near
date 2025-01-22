@@ -164,12 +164,23 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     )?;
 
     wasm_artifact.path = {
-        let (from_path, _maybe_tmpfile) =
-            maybe_wasm_opt_step(&wasm_artifact.path, args.no_wasmopt)?;
-        crate::fs::copy_to_file(
-            &from_path,
-            &out_dir.join(wasm_artifact.path.file_name().expect("has filename")),
-        )?
+        let prev_artifact_path = wasm_artifact.path;
+        let target_path = out_dir.join(prev_artifact_path.file_name().expect("has filename"));
+
+        // target file does not yet exist `!target_path.is_file()` condition is implied by
+        // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
+        if !target_path.is_file() || is_newer_than(&prev_artifact_path, &target_path) {
+            let (from_path, _maybe_tmpfile) =
+                maybe_wasm_opt_step(&prev_artifact_path, args.no_wasmopt)?;
+            crate::fs::copy_to_file(&from_path, &target_path)?;
+        } else {
+            println!();
+            pretty_print::step(
+                "Skipped running wasm-opt as final target exists and is newer than wasm produced by cargo",
+            );
+            println!();
+        }
+        target_path
     };
 
     wasm_artifact.builder_version_info = Some(builder_version_info);
@@ -203,6 +214,33 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     Ok(wasm_artifact)
 }
 
+fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
+    // (1) if `next` does not yet exist, `metadata_of_prev.modified()` will be greater than
+    // `std::time::SystemTime::UNIX_EPOCH`;
+    // (2) if `m.modified()` isn't available on current platform, the predicate will always
+    // return true
+    // (3) non-monotonic nature of `std::time::SystemTime` won't be a problem:
+    // if the next_time and prev_time are too close in time so that next_time registers
+    // before prev_time, it will only affect that skipping build won't occur, but doesn't
+    // affect correctnes, as the build will run next time due to prev_time > next_time
+    let prev_time = std::fs::metadata(prev)
+        .and_then(|m| m.modified())
+        .unwrap_or_else(|_| std::time::SystemTime::now());
+    let next_time = std::fs::metadata(next)
+        .and_then(|m| m.modified())
+        .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+    let debug_msg = format!(
+        "{prev:?} = {prev_time:?}\n\
+        {next:?} = {next_time:?}"
+    );
+    println!();
+    println!(
+        "Modification timestamps of:\n{}",
+        pretty_print::indent_payload(&debug_msg)
+    );
+    prev_time > next_time
+}
+
 fn maybe_wasm_opt_step(
     input_path: &Utf8PathBuf,
     no_wasmopt: bool,
@@ -216,13 +254,15 @@ fn maybe_wasm_opt_step(
         pretty_print::handle_step(
             "Running an optimize for size post-step with wasm-opt...",
             || {
-                println!(
+                let start = std::time::Instant::now();
+                tracing::debug!(
                     "{} -> {}",
                     format!("{}", input_path).cyan(),
                     format!("{}", opt_destination.path().to_string_lossy()).cyan()
                 );
                 wasm_opt::OptimizationOptions::new_optimize_for_size()
                     .run(input_path, opt_destination.path())?;
+                pretty_print::duration_millis(start, "wasm-opt -O");
                 Ok(())
             },
         )?;
