@@ -20,7 +20,7 @@ pub fn copy(from: &Utf8Path, out_dir: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
 /// Copy a file to a file destination.
 ///
 /// Does nothing if the destination is the same as the source to avoid truncating the file.
-pub fn copy_to_file(from: &Utf8Path, to: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
+pub fn copy_to_file(from: &Utf8Path, to: &Utf8Path) -> eyre::Result<()> {
     tracing::debug!("Copying file `{}` -> `{}`", from, to,);
 
     if !from.is_file() {
@@ -40,14 +40,14 @@ pub fn copy_to_file(from: &Utf8Path, to: &Utf8Path) -> eyre::Result<Utf8PathBuf>
                 from,
                 to,
             );
-            return Ok(to.to_path_buf());
+            return Ok(());
         }
     }
     if from != to {
         std::fs::copy(from, to)
             .wrap_err_with(|| format!("failed to copy `{}` to `{}`", from, to))?;
     }
-    Ok(to.to_path_buf())
+    Ok(())
 }
 
 /// Create the directory if it doesn't exist, and return the absolute path to it.
