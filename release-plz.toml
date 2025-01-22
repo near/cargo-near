@@ -7,6 +7,8 @@ changelog_update = false
 name = "cargo-near"
 changelog_update = true
 changelog_path = "./CHANGELOG.md"
+# include commits from `cargo-near-build` in the changelog
+changelog_include = ["cargo-near-build"] 
 
 [[package]]
 name = "cargo-near-build"
