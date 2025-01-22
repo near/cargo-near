@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.2...cargo-near-build-v0.4.3) - 2025-01-22
+
+### Fixed
+
+- remove from env CARGO_ENCODED_RUSTFLAGS for easier nested builds, simplify RUSTFLAGS computation rule (#289)
+
+### Other
+
+- optimize out retriggering 2nd stage of build + of wasmopt stage in tests context (#292)
+- update `cargo near new` template `image` and `image_digest` ([#288](https://github.com/near/cargo-near/pull/288))
+- unpin `cc` after issue resolution (#285)
+
 ## [0.4.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.1...cargo-near-build-v0.4.2) - 2024-12-19
 
 ### Other
