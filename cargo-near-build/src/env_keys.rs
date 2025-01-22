@@ -3,6 +3,25 @@ pub const CARGO_TARGET_DIR: &str = "CARGO_TARGET_DIR";
 /// this variable is set to `"true"` during ABI generation operation  
 pub const BUILD_RS_ABI_STEP_HINT: &str = "CARGO_NEAR_ABI_GENERATION";
 
+/// <https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags>
+///
+/// this behaviour that
+/// 1. default value for RUSTFLAGS for wasm build is "-C link-arg=-s"
+/// 2. it can be overriden with values from --env arguments
+/// 3. default RUSTFLAGS for abi gen are "-Awarnings"
+/// 4. RUSTFLAGS aren't concatenated (implicitly) with values from environment
+///
+/// is documented in RUSTFLAGS section of README.md
+pub const RUSTFLAGS: &str = "RUSTFLAGS";
+
+/// <https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags>
+///
+/// this behaviour that
+/// 1. CARGO_ENCODED_RUSTFLAGS gets unset by default
+///
+/// is documented in CARGO_ENCODED_RUSTFLAGS section of README.md
+pub const CARGO_ENCODED_RUSTFLAGS: &str = "CARGO_ENCODED_RUSTFLAGS";
+
 pub(crate) const CARGO_NEAR_ABI_PATH: &str = "CARGO_NEAR_ABI_PATH";
 
 pub(crate) const CARGO_NEAR_VERSION: &str = "CARGO_NEAR_VERSION";

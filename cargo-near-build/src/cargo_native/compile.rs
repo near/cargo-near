@@ -25,15 +25,12 @@ where
     let final_env = {
         let mut env: BTreeMap<_, _> = env.into_iter().collect();
         if hide_warnings {
-            env.insert("RUSTFLAGS", "-Awarnings");
+            env.insert(crate::env_keys::RUSTFLAGS, "-Awarnings");
         }
         env
     };
-    // removing env, which may be implicitly passed when bulding from within a build-script
-    // see https://github.com/near/cargo-near/issues/287
-    // CARGO_ENCODED_RUSTFLAGS="-Awarnings" and RUSTFLAGS="-Awarnings" both result
-    // in mysterious failures of `cargo build --target wasm32-unknown-unknown` (**cargo** bug)
-    let removed_env = ["CARGO_ENCODED_RUSTFLAGS"];
+
+    let removed_env = [crate::env_keys::CARGO_ENCODED_RUSTFLAGS];
 
     let artifacts = invoke_cargo(
         "build",

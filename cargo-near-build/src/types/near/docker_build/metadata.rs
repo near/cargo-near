@@ -109,7 +109,7 @@ impl ReproducibleBuild {
         for command_token in build_command {
             if command_token
                 .chars()
-                .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
+                .any(|c| !c.is_ascii() || c.is_ascii_control())
             {
                 return Err(eyre::eyre!(
                     "{}: `{}`\n{}",

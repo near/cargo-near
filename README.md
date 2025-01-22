@@ -193,6 +193,44 @@ This forwards to [reproducible-wasm](#reproducible-wasm) variant of `build` comm
 2. has been pushed to remote repository, identified by 
    [`package.repository`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L9).
 
+## Special `cargo` environment variables
+
+Both of the following are mentioned on https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags
+
+### `RUSTFLAGS`  
+
+running e.g.
+
+```bash
+RUSTFLAGS="your_custom_value" cargo near build non-reproducible-wasm
+```
+won't result in `"your_custom_value"` affecting the build.
+
+`RUSTFLAGS="-Awarnings"` is always used for abi build stage, and `RUSTFLAGS="-C link-arg=-s"` for wasm build stage.
+
+Logic for concatenating default values of this variable with values from env was removed in `cargo-near-0.13.3`/`cargo-near-build-0.4.3`, as it was seen as
+an unnecessary complication.
+
+There's still a way to override this parameter for wasm build stage, e.g.:
+
+```lang
+cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose'
+RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s'
+```
+
+### `CARGO_ENCODED_RUSTFLAGS`
+
+This variable is always unset during build, so
+
+```bash
+CARGO_ENCODED_RUSTFLAGS="your_custom_value" cargo near build non-reproducible-wasm
+```
+won't result in `"your_custom_value"` affecting the build.
+
+This is so to avoid weird issues like [#287](https://github.com/near/cargo-near/issues/287) when composing multiple builds via build scripts.
+
+
+
 
 ## Contribution
 
