@@ -15,44 +15,29 @@ use super::ArtifactType;
 pub fn run<T>(
     manifest_path: &ManifestPath,
     args: &[&str],
-    mut env: Vec<(&str, &str)>,
+    env: Vec<(&str, &str)>,
     hide_warnings: bool,
     color: ColorPreference,
 ) -> eyre::Result<CompilationArtifact<T>>
 where
     T: ArtifactType,
 {
-    let mut final_env = BTreeMap::new();
-
-    if hide_warnings {
-        env.push(("RUSTFLAGS", "-Awarnings"));
-    }
-
-    for (key, value) in env {
-        match key {
-            "RUSTFLAGS" => {
-                let rustflags: &mut String = final_env
-                    .entry(key)
-                    .or_insert_with(|| std::env::var(key).unwrap_or_default());
-                // helps avoids situation on complete match `RUSTFLAGS="-C link-arg=-s -C link-arg=-s"`
-                if !rustflags.contains(value) {
-                    if !rustflags.is_empty() {
-                        rustflags.push(' ');
-                    }
-                    rustflags.push_str(value);
-                }
-            }
-            _ => {
-                final_env.insert(key, value.to_string());
-            }
+    let final_env = {
+        let mut env: BTreeMap<_, _> = env.into_iter().collect();
+        if hide_warnings {
+            env.insert(crate::env_keys::RUSTFLAGS, "-Awarnings");
         }
-    }
+        env
+    };
+
+    let removed_env = [crate::env_keys::CARGO_ENCODED_RUSTFLAGS];
 
     let artifacts = invoke_cargo(
         "build",
         [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
         final_env.iter(),
+        &removed_env,
         color,
     )?;
 
@@ -105,6 +90,7 @@ fn invoke_cargo<A, P, E, S, EK, EV>(
     args: A,
     working_dir: Option<P>,
     env: E,
+    removed_env: &[&str],
     color: ColorPreference,
 ) -> eyre::Result<Vec<Artifact>>
 where
@@ -118,6 +104,9 @@ where
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let mut cmd = Command::new(cargo);
 
+    for key in removed_env {
+        cmd.env_remove(key);
+    }
     cmd.envs(env);
 
     if let Some(path) = working_dir {
