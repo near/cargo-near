@@ -230,13 +230,12 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
         .and_then(|m| m.modified())
         .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
     let debug_msg = format!(
-        "{:?} = {:?}\n\
-        {:?} = {:?}",
-        prev, prev_time, next, next_time
+        "{prev:?} = {prev_time:?}\n\
+        {next:?} = {next_time:?}"
     );
     println!();
     println!(
-        "Modification times of:\n{}",
+        "Modification timestamps of:\n{}",
         pretty_print::indent_payload(&debug_msg)
     );
     prev_time > next_time
