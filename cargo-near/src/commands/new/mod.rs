@@ -13,7 +13,6 @@ use crate::posthog_tracking;
 #[interactive_clap(output_context = NewContext)]
 pub struct New {
     /// Enter a new folder name to create a skeleton contract with the same [package.name] inside:
-    #[interactive_clap(verbatim_doc_comment)]
     pub project_dir: near_cli_rs::types::path_buf::PathBuf,
 }
 
