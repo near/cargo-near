@@ -50,3 +50,7 @@ libudev-dev = { version = "*", targets = [
     "x86_64-unknown-linux-gnu",
     "aarch64-unknown-linux-gnu",
 ] }
+
+[patch.crates-io]
+interactive-clap = { version = "0.3.1", git = "https://github.com/dj8yfo/interactive-clap.git", rev = "3db17e1e90c56ab7707c875d6d527ff0387c08e9"}
+interactive-clap-derive = { version = "0.3.1", git = "https://github.com/dj8yfo/interactive-clap.git", rev = "3db17e1e90c56ab7707c875d6d527ff0387c08e9"}
