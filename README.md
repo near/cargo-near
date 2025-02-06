@@ -113,12 +113,12 @@ Running the above command opens a menu with following variants:
 
 This is a regular build, which behaves much like and is a thin wrapper around a regular `cargo build --target wasm32-unknown-unknown --release`.
 
-Additional flags for build configuration can be looked up by
+Additional flags for build configuration can be looked up if needed by:
 
 ```bash
-cargo near build non-reproducible-wasm --help
+cargo near build non-reproducible-wasm -h      # brief summary
+cargo near build non-reproducible-wasm --help  # detailed description of command 
 ```
-if needed.
 
 ### `reproducible-wasm`
 
@@ -156,6 +156,12 @@ Why is it needed? Explanation of these points and a step-by-step tutorial is pre
     - SourceScan/Nearblocks does not support verifying such contracts with additional parameters present in their metadata yet 
 
 </p></details>
+
+Additional flags for build configuration can be looked up if needed by:
+
+```bash
+cargo near build reproducible-wasm -h      # replace `-h` with `--help` for more details
+```
 
 ---
 
