@@ -7,18 +7,40 @@ use cargo_near_build::BuildArtifact;
 #[interactive_clap(input_context = cargo_near_build::BuildContext)]
 #[interactive_clap(output_context = context::Context)]
 pub struct BuildOpts {
-    /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
+    /// Disable implicit `--locked` flag for all `cargo` commands, enabled by default (NOT RECOMMENDED, DEMO MODE)
+    ///
+    /// Default behaviour without this flag: `--locked` flag is passed to `cargo metadata`
+    /// downstream command being called.
+    /// Enabling this flag will disable passing `--locked` downstream, and makes build NOT reproducible.  
+    ///
+    /// Running a `cargo` command with `--locked` will fail, if
+    /// 1. the contract's crate doesn't have a Cargo.lock file,
+    ///    which locks in place the versions of all of the contract's dependencies
+    ///    (and, recursively, dependencies of dependencies ...), or
+    /// 2. if it has Cargo.lock file, but it needs to be updated (happens if Cargo.toml manifest was updated)
     #[interactive_clap(long)]
+    #[interactive_clap(verbatim_doc_comment)]
     pub no_locked: bool,
-    /// Copy final artifacts to this directory
+    /// Copy final artifacts (`contract.wasm`) to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Path to the `Cargo.toml` of the contract to build
+    /// Path to the `Cargo.toml` manifest of the contract crate to build
+    ///
+    /// If this argument is not specified, by default the `Cargo.toml` in current directory is assumed
+    /// as the manifest of target crate to build.
+    ///
+    /// 1. Build command in docker container and other options are configured via [config in manifest](scaffold-project-manifest).
+    /// 2. Flags of build command in docker container can be looked up on `cargo near build non-reproducible-wasm --help`.
+    /// 3. See also [verification-guide](sourcescan-verification-guide).
+    ///
+    /// [sourcescan-verification-guide]: https://github.com/SourceScan/verification-guide
+    /// [scaffold-project-manifest]: https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L14-L29
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
     pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Coloring: auto, always, never
+    /// Whether to color output to stdout and stderr by printing ANSI escape sequences: auto, always, never
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
