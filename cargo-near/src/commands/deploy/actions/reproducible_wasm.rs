@@ -8,13 +8,24 @@ use crate::commands::build as build_command;
 #[interactive_clap(skip_default_from_cli)]
 pub struct DeployOpts {
     #[interactive_clap(flatten)]
-    /// Specify a build command args:
+    /// Build reproducible wasm step options
     build_command_opts: build_command::actions::reproducible_wasm::BuildOpts,
-    /// whether to check that code has been pushed to repository during docker build
+    /// Whether to check that code has been pushed to repository during docker build
+    ///
+    /// When flag is not specified, a sanity check that code being built has been pushed to remote repo
+    /// is done before building+deploying a reproducible build.   
+    /// This flag is used to skip this sanity check,
+    ///
+    /// Need for this was flag was discovered when deploying on Github into temporary accounts,
+    /// created in CI for each pull request to test the PR's code.
+    /// Merge commits were created for each CI run, which resided neither in base, nor target branches.
+    /// These temporary per-PR contracts didn't need to be linked back to their source code,
+    /// i.e. did not need reproducibility verification.
     #[interactive_clap(long)]
+    #[interactive_clap(verbatim_doc_comment)]
     skip_git_remote_check: bool,
     #[interactive_clap(skip_default_input_arg)]
-    /// What is the contract account ID?
+    /// What is the target contract account ID to deploy to?
     contract_account_id: near_cli_rs::types::account_id::AccountId,
     #[interactive_clap(subcommand)]
     initialize: InitializeMode,

@@ -8,10 +8,10 @@ use crate::commands::build as build_command;
 #[interactive_clap(skip_default_from_cli)]
 pub struct DeployOpts {
     #[interactive_clap(flatten)]
-    /// Specify a build command args:
+    /// Build non-reproducible wasm step options
     build_command_opts: build_command::actions::non_reproducible_wasm::BuildOpts,
     #[interactive_clap(skip_default_input_arg)]
-    /// What is the contract account ID?
+    /// What is the target contract account ID to deploy to?
     contract_account_id: near_cli_rs::types::account_id::AccountId,
     #[interactive_clap(subcommand)]
     initialize: InitializeMode,
