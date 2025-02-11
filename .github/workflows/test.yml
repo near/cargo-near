@@ -119,7 +119,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
     - name: Check spelling of the repo
-      uses: crate-ci/typos@v1.11.1
+      uses: crate-ci/typos@v1.29.5
 
   audit:
     runs-on: ubuntu-latest
