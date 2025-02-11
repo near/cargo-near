@@ -38,7 +38,7 @@ linked-hash-map = { version = "0.5", features = ["serde_impl"] }
 names = { version = "0.14.0", default-features = false }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
-interactive-clap = "0.3.1"
+interactive-clap = "0.3.2"
 near-cli-rs = { version = "0.18.0", default-features = false }
 reqwest = "0.12.5"
 indicatif = "0.17.8"
