@@ -88,7 +88,7 @@ pub fn write_to_file(
 
         if existing_content == near_abi_compressed {
             tracing::debug!(
-                "skipped wrting file `{}` on identical contents",
+                "skipped writing file `{}` on identical contents",
                 out_path_abi,
             );
             return Ok(abi_types::Result { path: out_path_abi });

@@ -18,7 +18,7 @@ pub struct BuildOpts {
     /// Build contract in `dev` profile, without optimizations and MUCH bigger in size
     ///
     /// Without the flag `cargo-near` passes `--release` to downstream `cargo` command during wasm build step.
-    /// When the flag is specified, `--relase` isn't passed to `cargo`, and default `dev` profile is used
+    /// When the flag is specified, `--release` isn't passed to `cargo`, and default `dev` profile is used
     #[interactive_clap(verbatim_doc_comment)]
     #[interactive_clap(long)]
     pub no_release: bool,

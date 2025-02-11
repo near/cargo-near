@@ -13,7 +13,7 @@ pub struct ReproducibleBuild {
     image_digest: String,
     pub passed_env: Option<Vec<String>>,
     pub container_build_command: Option<Vec<String>>,
-    /// a clonable git remote url,
+    /// a cloneable git remote url,
     /// currently, only ones, starting with `https://`, are supported;
     /// parsed from `package.repository`
     #[serde(skip)]
@@ -57,7 +57,7 @@ impl std::fmt::Display for ReproducibleBuild {
         writeln!(
             f,
             "    {}: {}",
-            "clonable remote of git repository",
+            "cloneable remote of git repository",
             self.repository
                 .clone()
                 .map(|url| format!("{}", url))
