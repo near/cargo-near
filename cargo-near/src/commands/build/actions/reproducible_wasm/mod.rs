@@ -25,17 +25,23 @@ pub struct BuildOpts {
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Path to the `Cargo.toml` manifest of the contract crate to build
+    /// Path to the `Cargo.toml` manifest of the contract crate to build in a docker container
     ///
     /// If this argument is not specified, by default the `Cargo.toml` in current directory is assumed
     /// as the manifest of target crate to build.
     ///
-    /// 1. Build command in docker container and other options are configured via [config in manifest](scaffold-project-manifest).
-    /// 2. Flags of build command in docker container can be looked up on `cargo near build non-reproducible-wasm --help`.
-    /// 3. See also [verification-guide](sourcescan-verification-guide).
+    /// 1. Contract is built inside of a docker container with rust toolchain installed therein.
+    /// 2. Build command inside of the docker container and other options are configured via [config in manifest](template-project-manifest).
+    /// 3. Possible flags of build command inside of the docker container can be looked up with `--help` on respetive `cargo-near` version,
+    ///    and on the container itself, e.g.:
+    ///     ```bash
+    ///     docker run sourcescan/cargo-near:0.13.4-rust-1.84.0 cargo near build non-reproducible-wasm --help
+    ///     docker run sourcescan/cargo-near:0.11.0-rust-1.82.0 cargo near build --help
+    ///     ```
+    /// 4. See also [verification-guide](sourcescan-verification-guide).
     ///
+    /// [template-project-manifest]: https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L14-L29
     /// [sourcescan-verification-guide]: https://github.com/SourceScan/verification-guide
-    /// [scaffold-project-manifest]: https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L14-L29
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]

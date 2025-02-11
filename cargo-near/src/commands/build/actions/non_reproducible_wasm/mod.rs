@@ -62,7 +62,7 @@ pub struct BuildOpts {
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Path to the `Cargo.toml` manifest of the contract crate to build
+    /// Path to the `Cargo.toml` manifest of the contract crate to build with rust toolchain installed on host
     ///
     /// If this argument is not specified, by default the `Cargo.toml` in current directory is assumed
     /// as the manifest of target crate to build.
