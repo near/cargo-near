@@ -11,7 +11,7 @@
 //!
 //! ### Default features
 //!
-//! ome are enabled by default
+//! None are enabled by default
 //!
 //! ## Re-exports
 //!
