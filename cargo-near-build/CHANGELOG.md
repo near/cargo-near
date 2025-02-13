@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.3...cargo-near-build-v0.4.4) - 2025-02-13
+
+### Added
+
+- embed docs for flags/arguments for `-h`/`--help` (#304)
+
 ## [0.4.3](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.2...cargo-near-build-v0.4.3) - 2025-01-22
 
 ### Fixed
