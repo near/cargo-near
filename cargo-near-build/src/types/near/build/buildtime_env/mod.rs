@@ -26,7 +26,7 @@ use crate::BuildOpts;
 
 use super::output::version_info::VersionInfo;
 
-/// varibles, common for both steps of build, abi-gen and wasm build
+/// variables, common for both steps of build, abi-gen and wasm build
 pub struct CommonVariables {
     pub nep330_version: Nep330Version,
     pub nep330_link: Nep330Link,

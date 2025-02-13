@@ -222,7 +222,7 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
     // (3) non-monotonic nature of `std::time::SystemTime` won't be a problem:
     // if the next_time and prev_time are too close in time so that next_time registers
     // before prev_time, it will only affect that skipping build won't occur, but doesn't
-    // affect correctnes, as the build will run next time due to prev_time > next_time
+    // affect correctness, as the build will run next time due to prev_time > next_time
     let prev_time = std::fs::metadata(prev)
         .and_then(|m| m.modified())
         .unwrap_or_else(|_| std::time::SystemTime::now());

@@ -4,24 +4,41 @@ use cargo_near_build::abi::AbiOpts;
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = AbiCommandlContext)]
 pub struct Command {
-    /// enable `--locked` flag for all `cargo` commands, disabled by default
+    /// Enable `--locked` flag for all `cargo` commands, disabled by default
+    ///
+    /// Running with `--locked` will fail, if
+    /// 1. the contract's crate doesn't have a Cargo.lock file,
+    ///    which locks in place the versions of all of the contract's dependencies
+    ///    (and, recursively, dependencies of dependencies ...), or
+    /// 2. if it has Cargo.lock file, but it needs to be updated (happens if Cargo.toml manifest was updated)
+    ///    This just passes `--locked` to all downstream `cargo` commands being called.
     #[interactive_clap(long)]
+    #[interactive_clap(verbatim_doc_comment)]
     pub locked: bool,
-    /// Include rustdocs in the ABI file
+    /// Do not include rustdocs in the ABI file
+    ///
+    /// Specifying this flag results in not including human-readable documentation strings
+    /// over contract's methods parsed from source code into ABI.
+    /// More info about near ABI can be found here: [near/ABI](https://github.com/near/abi).
+    #[interactive_clap(verbatim_doc_comment)]
     #[interactive_clap(long)]
     pub no_doc: bool,
-    /// Generate compact (minified) JSON
+    /// Generate compact (minified) JSON, no prettyprint, no whitespace
     #[interactive_clap(long)]
     pub compact_abi: bool,
-    /// Copy final artifacts to this directory
+    /// Copy final artifacts (`ABI.json`) to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub out_dir: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Path to the `Cargo.toml` of the contract to build
+    /// Path to the `Cargo.toml` manifest of the contract crate to build
+    ///
+    /// If this argument is not specified, by default the `Cargo.toml` in current directory is assumed
+    /// as the manifest of target crate to build.
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
     pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Coloring: auto, always, never
+    /// Whether to color output to stdout and stderr by printing ANSI escape sequences: auto, always, never
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]

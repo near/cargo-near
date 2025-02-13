@@ -105,7 +105,7 @@ impl CrateMetadata {
 
         if root_nodes.len() != 1 {
             return Err(eyre::eyre!(
-                "expected to find extactly 1 root node in dependency graph: {:#?}",
+                "expected to find exactly 1 root node in dependency graph: {:#?}",
                 root_nodes
             ));
         }

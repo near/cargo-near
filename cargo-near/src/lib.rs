@@ -30,7 +30,7 @@ pub enum Opts {
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 pub struct NearArgs {
-    /// TEACH-ME mode
+    /// TEACH-ME mode, more verbose logging for each action that the CLI performs
     #[interactive_clap(long)]
     teach_me: bool,
     #[interactive_clap(subcommand)]

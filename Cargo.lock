@@ -2149,9 +2149,9 @@ dependencies = [
 
 [[package]]
 name = "interactive-clap"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b0f7ba4a74027eb091780d5f44c60ab8d7d7bcb0770af33ef024d4e7d1c8cf3"
+checksum = "93c7080dbdf772629c410ce9bbbdef8c4af5b65fa4189228455f9198ad4ed115"
 dependencies = [
  "interactive-clap-derive",
  "strum",
@@ -2160,9 +2160,9 @@ dependencies = [
 
 [[package]]
 name = "interactive-clap-derive"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdced66b21ea0b5ce63c96e34ebfdadf05cf74594a5659d2bdd5d2c8cf586fa0"
+checksum = "96b2db8ecbc1135dc411e6c737e6239d25248bc64b39bbea50a732e6faa5deab"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -3295,9 +3295,9 @@ dependencies = [
 
 [[package]]
 name = "openssl"
-version = "0.10.68"
+version = "0.10.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6174bc48f102d208783c2c84bf931bb75927a617866870de8a4ea85597f871f5"
+checksum = "61cfb4e166a8bb8c9b55c500bc2308550148ece889be90f609377e58140f42c6"
 dependencies = [
  "bitflags 2.6.0",
  "cfg-if",
@@ -3336,9 +3336,9 @@ dependencies = [
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.104"
+version = "0.9.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45abf306cbf99debc8195b66b7346498d7b10c210de50418b5ccd7ceba08c741"
+checksum = "8b22d5b84be05a8d6947c7cb71f7c849aa0f112acd4bf51c2a7c1c988ac0a9dc"
 dependencies = [
  "cc",
  "libc",

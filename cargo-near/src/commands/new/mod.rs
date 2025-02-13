@@ -12,7 +12,7 @@ use crate::posthog_tracking;
 #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
 #[interactive_clap(output_context = NewContext)]
 pub struct New {
-    /// Enter a new project name (path to the project) to create a contract:
+    /// Enter a new folder name to create a skeleton contract with the same [package.name] inside:
     pub project_dir: near_cli_rs::types::path_buf::PathBuf,
 }
 

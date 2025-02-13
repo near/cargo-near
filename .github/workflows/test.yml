@@ -112,6 +112,15 @@ jobs:
         RUSTDOCFLAGS="-D warnings" cargo doc --workspace --features cargo-near-build/build_script
         cargo test --workspace --features cargo-near-build/build_script --doc
 
+  typos_check:
+    name: Spell Check with typos-cli (rs crate)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    - name: Check spelling of the repo
+      uses: crate-ci/typos@v1.29.5
+
   audit:
     runs-on: ubuntu-latest
 
