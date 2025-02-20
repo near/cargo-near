@@ -16,6 +16,7 @@ pub struct Cmd {
     pub opts: Opts,
 }
 
+// add comment (no meaning)
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
 #[strum_discriminants(derive(EnumMessage, EnumIter))]
