@@ -55,7 +55,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         )
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.clone().map(Into::into))?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.clone())?;
 
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     let cargo_feature_args = {

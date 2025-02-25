@@ -26,7 +26,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
         CrateMetadata::collect(manifest_path, args.no_locked, None)
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.map(Into::into))?;
+    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
 
     let format = if args.compact_abi {
         abi_types::Format::JsonMin
