@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.4...cargo-near-build-v0.4.5) - 2025-02-26
+
+### Other
+
+- fix clippy 1.85 (#311)
+
 ## [0.4.4](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.3...cargo-near-build-v0.4.4) - 2025-02-13
 
 ### Added
