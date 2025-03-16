@@ -154,7 +154,7 @@ fn run_cargo_near_new() -> color_eyre::Result<camino::Utf8PathBuf> {
         cargo_near::GlobalContext {
             config: Default::default(),
             offline: false,
-            teach_me: false,
+            verbosity: cargo_near::Verbosity::Interactive,
         },
         &scope,
     )?;

@@ -40,7 +40,7 @@ fn main() -> CliResult {
     let config = near_cli_rs::config::Config::get_config_toml()?;
     let global_context = near_cli_rs::GlobalContext {
         config,
-        teach_me: false,
+        verbosity: near_cli_rs::Verbosity::Interactive,
         offline: false,
     };
 
