@@ -8,6 +8,7 @@ use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
 use crate::{env_keys, pretty_print};
 
+pub mod docker_checks;
 pub mod docker_command;
 pub mod git_checks;
 pub mod subprocess_step;
@@ -69,11 +70,11 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     }
     if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
         pretty_print::handle_step("Performing `docker` sanity check...", || {
-            docker_command::sanity_check()
+            docker_checks::sanity::check()
         })?;
 
         pretty_print::handle_step("Checking that specified image is available...", || {
-            docker_command::pull_image(&docker_build_meta)
+            docker_checks::pull_image::check(&docker_build_meta)
         })?;
     }
 
