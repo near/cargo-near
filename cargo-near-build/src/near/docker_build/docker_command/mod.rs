@@ -1,11 +1,5 @@
 use colored::Colorize;
 
-pub use self::hello_world::check as sanity_check;
-pub use self::pull_image::check as pull_image;
-
-mod hello_world;
-mod pull_image;
-
 pub fn handle_io_error<T>(
     command: &std::process::Command,
     command_result: std::io::Result<T>,
