@@ -10,13 +10,10 @@ pub fn check(docker_build_meta: &ReproducibleBuild) -> eyre::Result<()> {
 
     let err_report = format!("Image `{}` could not be found in registry!", docker_image);
     let status_result = docker_cmd.status();
-    let status = super::handle_command_io_error(
-        &docker_cmd,
-        status_result,
-        eyre::eyre!(err_report.clone()),
-    )?;
+    let status =
+        super::handle_io_error(&docker_cmd, status_result, eyre::eyre!(err_report.clone()))?;
     if !status.success() {
-        super::print_command_status(status, docker_cmd);
+        super::print::command_status(status, docker_cmd);
         return Err(eyre::eyre!(err_report));
     }
     Ok(())
