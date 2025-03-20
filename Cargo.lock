@@ -530,6 +530,7 @@ dependencies = [
  "indenter",
  "libloading",
  "near-abi",
+ "near-verify-rs",
  "nix",
  "pathdiff",
  "rustc_version",
@@ -3048,6 +3049,14 @@ dependencies = [
  "borsh",
  "interactive-clap",
  "serde",
+]
+
+[[package]]
+name = "near-verify-rs"
+version = "0.1.0"
+dependencies = [
+ "eyre",
+ "url",
 ]
 
 [[package]]
