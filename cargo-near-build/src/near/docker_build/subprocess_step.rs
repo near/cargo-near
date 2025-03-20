@@ -1,4 +1,4 @@
-use super::docker_checks;
+use super::docker_command;
 use crate::docker::DockerBuildOpts;
 use colored::Colorize;
 use std::io::IsTerminal;
@@ -100,7 +100,7 @@ pub fn run(
     );
 
     let status_result = docker_cmd.status();
-    let status = docker_checks::handle_command_io_error(
+    let status = docker_command::handle_io_error(
         &docker_cmd,
         status_result,
         eyre::eyre!(super::ERR_REPRODUCIBLE),
