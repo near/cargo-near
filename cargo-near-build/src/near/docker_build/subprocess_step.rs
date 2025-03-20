@@ -1,6 +1,6 @@
-use super::docker_command;
 use crate::docker::DockerBuildOpts;
 use colored::Colorize;
+use near_verify_rs::docker_command;
 use std::io::IsTerminal;
 use std::{
     process::{Command, ExitStatus},

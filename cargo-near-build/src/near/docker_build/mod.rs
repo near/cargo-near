@@ -1,6 +1,7 @@
 use std::process::{Command, ExitStatus};
 
 use colored::Colorize;
+use near_verify_rs::{docker_checks, docker_command};
 
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
@@ -8,8 +9,6 @@ use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
 use crate::{env_keys, pretty_print};
 
-pub mod docker_checks;
-pub mod docker_command;
 pub mod git_checks;
 pub mod subprocess_step;
 
@@ -74,7 +73,8 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         })?;
 
         pretty_print::handle_step("Checking that specified image is available...", || {
-            docker_checks::pull_image::check(&docker_build_meta)
+            let docker_image = docker_build_meta.concat_image();
+            docker_checks::pull_image::check(&docker_image)
         })?;
     }
 
