@@ -3055,6 +3055,7 @@ dependencies = [
 name = "near-verify-rs"
 version = "0.1.0"
 dependencies = [
+ "colored",
  "eyre",
  "url",
 ]
