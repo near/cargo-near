@@ -1,7 +1,7 @@
 use crate::env_keys;
 use crate::types::near::docker_build::{cloned_repo, metadata};
 use eyre::ContextCompat;
-use near_verify_rs::source_id;
+use near_verify_rs::types::source_id;
 
 pub(super) struct BuildInfo {
     build_environment: String,
