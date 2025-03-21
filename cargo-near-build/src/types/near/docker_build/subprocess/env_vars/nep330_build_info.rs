@@ -3,13 +3,43 @@ use crate::types::near::docker_build::{cloned_repo, metadata};
 use eyre::ContextCompat;
 use near_verify_rs::types::source_id;
 
-pub(super) struct BuildInfo {
+pub(super) struct BuildInfoMixed {
+    /// env_keys::nep330::BUILD_ENVIRONMENT
     build_environment: String,
+    /// env_keys::nep330::CONTRACT_PATH
     contract_path: String,
+    /// env_keys::nep330::SOURCE_CODE_SNAPSHOT
     source_code_snapshot: source_id::SourceId,
+    /// env_keys::nep330::LINK
+    link: Option<String>,
+}
+fn compute_repo_link_hint(
+    docker_build_meta: &metadata::ReproducibleBuild,
+    cloned_repo: &cloned_repo::ClonedRepo,
+) -> Option<String> {
+    let repo_link = docker_build_meta.repository.clone().unwrap();
+    let revision = cloned_repo.initial_crate_in_repo.head.to_string();
+    let url = repo_link.clone();
+
+    if url.host_str() == Some("github.com") {
+        let existing_path = url.path();
+        let existing_path = if existing_path.ends_with(".git") {
+            existing_path.trim_end_matches(".git")
+        } else {
+            existing_path
+        };
+
+        Some(
+            url.join(&format!("{}/tree/{}", existing_path, revision))
+                .ok()?
+                .to_string(),
+        )
+    } else {
+        cloned_repo.crate_metadata().root_package.repository.clone()
+    }
 }
 
-impl BuildInfo {
+impl BuildInfoMixed {
     pub fn new(
         docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
@@ -28,10 +58,13 @@ impl BuildInfo {
             source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
         )
         .map_err(|err| eyre::eyre!("compute SourceId {}", err))?;
+
+        let link = compute_repo_link_hint(docker_build_meta, cloned_repo);
         Ok(Self {
             build_environment,
             contract_path,
             source_code_snapshot,
+            link,
         })
     }
 
@@ -55,6 +88,12 @@ impl BuildInfo {
             "--env".to_string(),
             format!("{}={}", env_keys::nep330::CONTRACT_PATH, self.contract_path),
         ]);
+        if let Some(ref repo_link_hint) = self.link {
+            result.extend(vec![
+                "--env".to_string(),
+                format!("{}={}", env_keys::nep330::LINK, repo_link_hint),
+            ]);
+        }
 
         result
     }
