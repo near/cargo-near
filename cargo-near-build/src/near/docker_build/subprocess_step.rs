@@ -15,6 +15,10 @@ use crate::pretty_print;
 use crate::types::near::docker_build::subprocess::{container_paths, env_vars};
 use crate::types::near::docker_build::{cloned_repo, metadata};
 
+// TODO #F: set input params to be `ContractSourceMetadata` and `contract_sources_workdir`
+// TODO #E:  the `contract_source_workdir` is defined as `cloned_repo.tmp_repo_dir.path().to_string_lossy()`
+// TODO #C:  remove dependency on `opts` arg
+// TODO #C3: remove dependency on `docker_build_meta` arg
 pub fn run(
     opts: DockerBuildOpts,
     docker_build_meta: metadata::ReproducibleBuild,
@@ -43,11 +47,13 @@ pub fn run(
             format!("cargo-near-{}-{}", timestamp, pid)
         };
         let container_paths = container_paths::Paths::compute(cloned_repo)?;
+        // TODO #C1: reuse `build_envrironment` field of `BuildInfoMixed`
         let docker_image = docker_build_meta.concat_image();
 
         let env = env_vars::EnvVars::new(&docker_build_meta, cloned_repo)?;
         let env_args = env.docker_args();
         let shell_escaped_cargo_cmd = {
+            // TODO #A: move out this block into `BuildInfoMixed::new`
             let cargo_cmd = opts.get_cli_build_command_in_docker(&docker_build_meta)?;
             tracing::debug!("cli_build_command_in_docker {:#?}", cargo_cmd);
             shell_words::join(cargo_cmd)
