@@ -11,19 +11,18 @@ use nix::unistd::{getgid, getuid};
 
 use crate::env_keys;
 use crate::pretty_print;
+use crate::types::near::docker_build::cloned_repo;
 use crate::types::near::docker_build::subprocess::container_paths;
 use crate::types::near::docker_build::subprocess::env_vars;
 use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::BuildInfoMixed;
-use crate::types::near::docker_build::{cloned_repo, metadata};
 
 /// TODO #F: set input params to be [near_verify_rs::types::nep330::ContractSourceMetadata] and `contract_sources_workdir`  of [std::path::PathBuf]
 /// TODO: #F1: add [Vec<String>] `additional_docker_args` parameter
 // TODO #E:  the `contract_source_workdir` is defined as `cloned_repo.tmp_repo_dir.path()`
-// TODO #C:  remove dependency on `opts` arg
-// TODO #C3: remove dependency on `docker_build_meta` arg
+/// TODO #H2: add validation of [BuildInfoMixed::build_environment] with `images_whitelist` [Vec<String>] argument
+/// TODO #H1: check [BuildInfoMixed::build_environment] for regex match
 pub fn run(
     build_info_mixed: BuildInfoMixed,
-    docker_build_meta: metadata::ReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> eyre::Result<(ExitStatus, Command)> {
     let mut docker_cmd: Command = {
@@ -49,11 +48,12 @@ pub fn run(
             format!("cargo-near-{}-{}", timestamp, pid)
         };
         let container_paths = container_paths::Paths::compute(cloned_repo)?;
-        // TODO #C1: reuse `build_envrironment` field of `BuildInfoMixed`
-        let docker_image = docker_build_meta.concat_image();
 
-        let env = env_vars::EnvVars::new(build_info_mixed.clone())?;
-        let env_args = env.docker_args();
+        let docker_env_args = {
+            let env = env_vars::EnvVars::new(build_info_mixed.clone())?;
+            env.docker_args()
+        };
+        /// TODO #C4: extract this build_command transform rule as a public function on [near_verify_rs]
         let shell_escaped_cargo_cmd = {
             tracing::debug!(
                 "cli_build_command_in_docker {:#?}",
@@ -88,9 +88,9 @@ pub fn run(
                 docker_args.push("-it");
             }
 
-            docker_args.extend(env_args.iter().map(|string| string.as_str()));
+            docker_args.extend(docker_env_args.iter().map(|string| string.as_str()));
 
-            docker_args.extend(vec![&docker_image, "/bin/bash", "-c"]);
+            docker_args.extend(vec![&build_info_mixed.build_environment, "/bin/bash", "-c"]);
 
             docker_args.push(&shell_escaped_cargo_cmd);
             docker_args
