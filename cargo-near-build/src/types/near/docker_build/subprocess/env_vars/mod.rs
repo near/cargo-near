@@ -8,8 +8,7 @@ pub struct EnvVars {
     rust_log: String,
 }
 
-/// TODO #C2: change arg type to [`BuildInfoMixed`] and remove both `docker_build_meta` and `cloned_repo`
-/// TODO: #G move out this type to [near_verify_rs::types::internal] with pub(crate) visibility
+/// TODO #G: move out this type to [near_verify_rs::types::internal] with pub(crate) visibility
 impl EnvVars {
     pub fn new(build_info_mixed: BuildInfoMixed) -> eyre::Result<Self> {
         // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
