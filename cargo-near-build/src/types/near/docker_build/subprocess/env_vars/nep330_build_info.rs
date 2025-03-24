@@ -1,17 +1,21 @@
+use crate::docker::DockerBuildOpts;
 use crate::env_keys;
 use crate::types::near::docker_build::{cloned_repo, metadata};
 use eyre::ContextCompat;
 use near_verify_rs::types::source_id;
 
+/// TODO #D: add field for [env_keys::nep_330::VERSION] env variable [Option<String>]
 pub(super) struct BuildInfoMixed {
-    /// env_keys::nep330::BUILD_ENVIRONMENT
+    /// [env_keys::nep330::BUILD_ENVIRONMENT]
     build_environment: String,
-    /// env_keys::nep330::CONTRACT_PATH
+    /// [env_keys::nep330::CONTRACT_PATH]
     contract_path: String,
-    /// env_keys::nep330::SOURCE_CODE_SNAPSHOT
+    /// [env_keys::nep330::SOURCE_CODE_SNAPSHOT]
     source_code_snapshot: source_id::SourceId,
-    /// env_keys::nep330::LINK
+    /// [env_keys::nep330::LINK]
     link: Option<String>,
+    /// [env_keys::nep330::BUILD_COMMAND]
+    build_command: Vec<String>,
 }
 fn compute_repo_link_hint(
     docker_build_meta: &metadata::ReproducibleBuild,
@@ -41,6 +45,7 @@ fn compute_repo_link_hint(
 
 impl BuildInfoMixed {
     pub fn new(
+        opts: DockerBuildOpts,
         docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> eyre::Result<Self> {
@@ -60,11 +65,13 @@ impl BuildInfoMixed {
         .map_err(|err| eyre::eyre!("compute SourceId {}", err))?;
 
         let link = compute_repo_link_hint(docker_build_meta, cloned_repo);
+        let build_command = opts.get_cli_build_command_in_docker(&docker_build_meta)?;
         Ok(Self {
             build_environment,
             contract_path,
             source_code_snapshot,
             link,
+            build_command,
         })
     }
 

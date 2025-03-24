@@ -1,3 +1,4 @@
+use crate::docker::DockerBuildOpts;
 pub mod nep330_build_info;
 
 const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
@@ -10,14 +11,15 @@ pub struct EnvVars {
     rust_log: String,
 }
 
-// TODO #C2: change arg type to `BuildInfoMixed` and remove both `docker_build_meta` and `cloned_repo`
+/// TODO #C2: change arg type to [`BuildInfoMixed`] and remove both `docker_build_meta` and `cloned_repo`
+/// TODO #B: move out [`BuildInfoMixed::new`] before `run` in cargo-near/cargo-near-build/src/near/docker_build/subprocess_step.rs
 impl EnvVars {
     pub fn new(
+        opts: DockerBuildOpts,
         docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> eyre::Result<Self> {
-        // TODO #B: move out `BuildInfoMixed` before `run` in cargo-near/cargo-near-build/src/near/docker_build/subprocess_step.rs
-        let build_info = BuildInfoMixed::new(docker_build_meta, cloned_repo)?;
+        let build_info = BuildInfoMixed::new(opts, docker_build_meta, cloned_repo)?;
         // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
         Ok(Self {
             build_info,
