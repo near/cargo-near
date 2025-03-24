@@ -3,12 +3,12 @@ pub mod nep330_build_info;
 const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 use nep330_build_info::BuildInfoMixed;
 
+/// TODO #G: move out this type to [near_verify_rs::types]::internal with pub(crate) visibility
 pub struct EnvVars {
     build_info_mixed: BuildInfoMixed,
     rust_log: String,
 }
 
-/// TODO #G: move out this type to [near_verify_rs::types::internal] with pub(crate) visibility
 impl EnvVars {
     pub fn new(build_info_mixed: BuildInfoMixed) -> eyre::Result<Self> {
         // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
