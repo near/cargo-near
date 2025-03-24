@@ -53,14 +53,10 @@ pub fn run(
             let env = env_vars::EnvVars::new(build_info_mixed.clone())?;
             env.docker_args()
         };
-        /// TODO #C4: extract this build_command transform rule as a public function on [near_verify_rs]
-        let shell_escaped_cargo_cmd = {
-            tracing::debug!(
-                "cli_build_command_in_docker {:#?}",
-                build_info_mixed.build_command
-            );
-            shell_words::join(build_info_mixed.build_command)
-        };
+
+        let shell_escaped_cargo_cmd = near_verify_rs::nep330::shell_escape_nep330_build_command(
+            build_info_mixed.build_command,
+        );
         println!(
             "{} {}",
             "build command in container:".green(),
