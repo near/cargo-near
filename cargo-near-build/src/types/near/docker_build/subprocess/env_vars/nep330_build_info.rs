@@ -4,7 +4,6 @@ use crate::types::near::docker_build::{cloned_repo, metadata};
 use eyre::ContextCompat;
 use near_verify_rs::types::source_id;
 
-/// TODO #D: add field for [env_keys::nep330::VERSION] env variable [Option<String>]
 #[derive(Clone, Debug)]
 pub struct BuildInfoMixed {
     /// [env_keys::nep330::BUILD_ENVIRONMENT]
@@ -17,6 +16,8 @@ pub struct BuildInfoMixed {
     pub link: Option<String>,
     /// [env_keys::nep330::BUILD_COMMAND]
     pub build_command: Vec<String>,
+    /// [env_keys::nep330::VERSION]
+    pub version: Option<String>,
 }
 fn compute_repo_link_hint(
     docker_build_meta: &metadata::ReproducibleBuild,
@@ -69,12 +70,20 @@ impl BuildInfoMixed {
 
         let link = compute_repo_link_hint(docker_build_meta, cloned_repo);
         let build_command = opts.get_cli_build_command_in_docker(&docker_build_meta)?;
+        let version = Some(
+            cloned_repo
+                .crate_metadata()
+                .root_package
+                .version
+                .to_string(),
+        );
         Ok(Self {
             build_environment,
             contract_path,
             source_code_snapshot,
             link,
             build_command,
+            version,
         })
     }
 
@@ -102,6 +111,12 @@ impl BuildInfoMixed {
             result.extend(vec![
                 "--env".to_string(),
                 format!("{}={}", env_keys::nep330::LINK, repo_link_hint),
+            ]);
+        }
+        if let Some(ref version) = self.version {
+            result.extend(vec![
+                "--env".to_string(),
+                format!("{}={}", env_keys::nep330::VERSION, version),
             ]);
         }
 
