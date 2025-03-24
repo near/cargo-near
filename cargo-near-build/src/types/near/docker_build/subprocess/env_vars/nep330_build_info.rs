@@ -22,12 +22,13 @@ fn compute_repo_link_hint(
     docker_build_meta: &metadata::ReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> Option<String> {
-    let repo_link = docker_build_meta.repository.clone().unwrap();
+    let repo_link_url = docker_build_meta.repository.clone().expect(
+        "expected to be [Option::Some] due to [metadata::ReproducibleBuild::validate_repository] rule"
+    );
     let revision = cloned_repo.initial_crate_in_repo.head.to_string();
-    let url = repo_link.clone();
 
-    if url.host_str() == Some("github.com") {
-        let existing_path = url.path();
+    if repo_link_url.host_str() == Some("github.com") {
+        let existing_path = repo_link_url.path();
         let existing_path = if existing_path.ends_with(".git") {
             existing_path.trim_end_matches(".git")
         } else {
@@ -35,12 +36,13 @@ fn compute_repo_link_hint(
         };
 
         Some(
-            url.join(&format!("{}/tree/{}", existing_path, revision))
+            repo_link_url
+                .join(&format!("{}/tree/{}", existing_path, revision))
                 .ok()?
                 .to_string(),
         )
     } else {
-        cloned_repo.crate_metadata().root_package.repository.clone()
+        Some(repo_link_url.to_string())
     }
 }
 
