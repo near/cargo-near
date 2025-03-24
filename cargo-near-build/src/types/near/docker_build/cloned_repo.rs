@@ -93,6 +93,10 @@ impl ClonedRepo {
     pub fn crate_metadata(&self) -> &CrateMetadata {
         &self.tmp_crate_metadata
     }
+    pub fn contract_source_workdir(&self) -> eyre::Result<camino::Utf8PathBuf> {
+        let path = camino::Utf8PathBuf::try_from(self.tmp_repo_dir.path().to_path_buf())?;
+        Ok(path)
+    }
     pub fn copy_artifact(
         self,
         cli_override: Option<camino::Utf8PathBuf>,

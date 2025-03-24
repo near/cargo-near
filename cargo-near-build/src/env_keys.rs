@@ -29,6 +29,7 @@ pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VE
 
 /// module contains variables, which are set to configure build with WASM reproducibility,
 /// which correspond to some fields of `ContractSourceMetadata` in <https://github.com/near/NEPs/blob/master/neps/nep-0330.md>
+/// TODO #G1: move out this module to [near_verify_rs]
 pub mod nep330 {
     use crate::pretty_print;
     use std::collections::HashMap;
