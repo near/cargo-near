@@ -82,7 +82,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
     let build_info_mixed = BuildInfoMixed::new(opts, &docker_build_meta, &cloned_repo)?;
-    // TODO #F2: add `additional_docker_args` usage here from TODO: #F3
+    // TODO #E6: add `additional_docker_args` usage here from TODO: #F3
     let (status, docker_cmd) =
         subprocess_step::run(build_info_mixed, cloned_repo.contract_source_workdir()?)?;
 

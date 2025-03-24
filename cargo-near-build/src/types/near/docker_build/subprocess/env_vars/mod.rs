@@ -18,7 +18,7 @@ impl EnvVars {
         })
     }
 
-    /// TODO #F3: replace with `additional_docker_args` parameter usage
+    /// TODO #E6: replace with `additional_docker_args` parameter usage
     pub fn docker_args(&self) -> Vec<String> {
         let mut result = self.build_info_mixed.docker_args();
 

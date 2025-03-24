@@ -15,8 +15,8 @@ use crate::types::near::docker_build::subprocess::container_paths;
 use crate::types::near::docker_build::subprocess::env_vars;
 use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::BuildInfoMixed;
 
-/// TODO #F: set input params to be [near_verify_rs::types::nep330::ContractSourceMetadata] and `contract_sources_workdir`  of [std::path::PathBuf]
-/// TODO: #F1: add [Vec<String>] `additional_docker_args` parameter
+/// TODO #F: set input params to be [near_verify_rs::types::nep330::ContractSourceMetadata]
+/// TODO #E7: add [Vec<String>] `additional_docker_args` parameter
 /// TODO #H2: add validation of [BuildInfoMixed::build_environment] with `images_whitelist` [Vec<String>] argument
 /// TODO #H1: check [BuildInfoMixed::build_environment] for regex match
 pub fn run(
