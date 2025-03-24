@@ -4,18 +4,19 @@ use crate::types::near::docker_build::{cloned_repo, metadata};
 use eyre::ContextCompat;
 use near_verify_rs::types::source_id;
 
-/// TODO #D: add field for [env_keys::nep_330::VERSION] env variable [Option<String>]
-pub(super) struct BuildInfoMixed {
+/// TODO #D: add field for [env_keys::nep330::VERSION] env variable [Option<String>]
+#[derive(Clone, Debug)]
+pub struct BuildInfoMixed {
     /// [env_keys::nep330::BUILD_ENVIRONMENT]
-    build_environment: String,
+    pub build_environment: String,
     /// [env_keys::nep330::CONTRACT_PATH]
-    contract_path: String,
+    pub contract_path: String,
     /// [env_keys::nep330::SOURCE_CODE_SNAPSHOT]
-    source_code_snapshot: source_id::SourceId,
+    pub source_code_snapshot: source_id::SourceId,
     /// [env_keys::nep330::LINK]
-    link: Option<String>,
+    pub link: Option<String>,
     /// [env_keys::nep330::BUILD_COMMAND]
-    build_command: Vec<String>,
+    pub build_command: Vec<String>,
 }
 fn compute_repo_link_hint(
     docker_build_meta: &metadata::ReproducibleBuild,

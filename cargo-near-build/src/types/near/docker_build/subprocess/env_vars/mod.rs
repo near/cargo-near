@@ -1,34 +1,27 @@
-use crate::docker::DockerBuildOpts;
 pub mod nep330_build_info;
 
 const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 use nep330_build_info::BuildInfoMixed;
 
-use crate::types::near::docker_build::{cloned_repo, metadata};
-
 pub struct EnvVars {
-    build_info: BuildInfoMixed,
+    build_info_mixed: BuildInfoMixed,
     rust_log: String,
 }
 
 /// TODO #C2: change arg type to [`BuildInfoMixed`] and remove both `docker_build_meta` and `cloned_repo`
-/// TODO #B: move out [`BuildInfoMixed::new`] before `run` in cargo-near/cargo-near-build/src/near/docker_build/subprocess_step.rs
+/// TODO: #G move out this type to [near_verify_rs::types::internal] with pub(crate) visibility
 impl EnvVars {
-    pub fn new(
-        opts: DockerBuildOpts,
-        docker_build_meta: &metadata::ReproducibleBuild,
-        cloned_repo: &cloned_repo::ClonedRepo,
-    ) -> eyre::Result<Self> {
-        let build_info = BuildInfoMixed::new(opts, docker_build_meta, cloned_repo)?;
+    pub fn new(build_info_mixed: BuildInfoMixed) -> eyre::Result<Self> {
         // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
         Ok(Self {
-            build_info,
+            build_info_mixed,
             rust_log: RUST_LOG_EXPORT.to_string(),
         })
     }
 
+    /// TODO #F3: replace with `additional_docker_args` parameter usage
     pub fn docker_args(&self) -> Vec<String> {
-        let mut result = self.build_info.docker_args();
+        let mut result = self.build_info_mixed.docker_args();
 
         result.extend(vec!["--env".to_string(), self.rust_log.clone()]);
         result

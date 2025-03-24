@@ -6,6 +6,7 @@ use near_verify_rs::{docker_checks, docker_command};
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
+use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::BuildInfoMixed;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
 use crate::{env_keys, pretty_print};
 
@@ -80,7 +81,10 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
 
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
-    let (status, docker_cmd) = subprocess_step::run(opts, docker_build_meta, &cloned_repo)?;
+    let build_info_mixed = BuildInfoMixed::new(opts, &docker_build_meta, &cloned_repo)?;
+    /// TODO #F2: add `additional_docker_args` usage here from TODO: #F3
+    let (status, docker_cmd) =
+        subprocess_step::run(build_info_mixed, docker_build_meta, &cloned_repo)?;
 
     handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
 }

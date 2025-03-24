@@ -1,4 +1,3 @@
-use crate::docker::DockerBuildOpts;
 use colored::Colorize;
 use near_verify_rs::docker_command;
 use std::io::IsTerminal;
@@ -12,15 +11,18 @@ use nix::unistd::{getgid, getuid};
 
 use crate::env_keys;
 use crate::pretty_print;
-use crate::types::near::docker_build::subprocess::{container_paths, env_vars};
+use crate::types::near::docker_build::subprocess::container_paths;
+use crate::types::near::docker_build::subprocess::env_vars;
+use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::BuildInfoMixed;
 use crate::types::near::docker_build::{cloned_repo, metadata};
 
-// TODO #F: set input params to be `ContractSourceMetadata` and `contract_sources_workdir`
-// TODO #E:  the `contract_source_workdir` is defined as `cloned_repo.tmp_repo_dir.path().to_string_lossy()`
+/// TODO #F: set input params to be [near_verify_rs::types::nep330::ContractSourceMetadata] and `contract_sources_workdir`  of [std::path::PathBuf]
+/// TODO: #F1: add [Vec<String>] `additional_docker_args` parameter
+// TODO #E:  the `contract_source_workdir` is defined as `cloned_repo.tmp_repo_dir.path()`
 // TODO #C:  remove dependency on `opts` arg
 // TODO #C3: remove dependency on `docker_build_meta` arg
 pub fn run(
-    opts: DockerBuildOpts,
+    build_info_mixed: BuildInfoMixed,
     docker_build_meta: metadata::ReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> eyre::Result<(ExitStatus, Command)> {
@@ -50,13 +52,14 @@ pub fn run(
         // TODO #C1: reuse `build_envrironment` field of `BuildInfoMixed`
         let docker_image = docker_build_meta.concat_image();
 
-        let env = env_vars::EnvVars::new(opts.clone(), &docker_build_meta, cloned_repo)?;
+        let env = env_vars::EnvVars::new(build_info_mixed.clone())?;
         let env_args = env.docker_args();
-        /// TODO #B1: use [BuildInfoMixed::build_command] field
         let shell_escaped_cargo_cmd = {
-            let cargo_cmd = opts.get_cli_build_command_in_docker(&docker_build_meta)?;
-            tracing::debug!("cli_build_command_in_docker {:#?}", cargo_cmd);
-            shell_words::join(cargo_cmd)
+            tracing::debug!(
+                "cli_build_command_in_docker {:#?}",
+                build_info_mixed.build_command
+            );
+            shell_words::join(build_info_mixed.build_command)
         };
         println!(
             "{} {}",
