@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.5](https://github.com/near/cargo-near/compare/cargo-near-v0.13.4...cargo-near-v0.13.5) - 2025-03-20
+
+### Other
+
+- updates near-* dependencies to 0.29 release ([#314](https://github.com/near/cargo-near/pull/314))
+- update `cargo near new` template `image` and `image_digest` : 0.13.4-rust-1.85.1 ([#315](https://github.com/near/cargo-near/pull/315))
+- update `cargo near new` template `image` and `image_digest` ([#310](https://github.com/near/cargo-near/pull/310))
+- update `cargo near new` template `image` and `image_digest` ([#306](https://github.com/near/cargo-near/pull/306))
+- fix clippy 1.85 ([#311](https://github.com/near/cargo-near/pull/311))
+
 ## [0.13.4](https://github.com/near/cargo-near/compare/cargo-near-v0.13.3...cargo-near-v0.13.4) - 2025-02-13
 
 ### Added
