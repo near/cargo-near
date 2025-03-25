@@ -49,7 +49,7 @@ fn compute_repo_link_hint(
 
 impl BuildInfoMixed {
     pub fn new(
-        opts: DockerBuildOpts,
+        opts: &DockerBuildOpts,
         docker_build_meta: &metadata::ReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> eyre::Result<Self> {
