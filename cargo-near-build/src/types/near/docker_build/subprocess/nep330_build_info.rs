@@ -1,5 +1,4 @@
 use crate::docker::DockerBuildOpts;
-use crate::env_keys;
 use crate::types::near::docker_build::{cloned_repo, metadata};
 use eyre::ContextCompat;
 use near_verify_rs::types::source_id;
@@ -85,43 +84,6 @@ impl BuildInfoMixed {
             build_command,
             version,
         })
-    }
-
-    /// TODO #E9: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
-    pub fn docker_env_args(&self) -> Vec<String> {
-        let mut result = vec![
-            "--env".to_string(),
-            format!(
-                "{}={}",
-                env_keys::nep330::BUILD_ENVIRONMENT,
-                self.build_environment
-            ),
-            "--env".to_string(),
-            format!(
-                "{}={}",
-                env_keys::nep330::SOURCE_CODE_SNAPSHOT,
-                self.source_code_snapshot.as_url()
-            ),
-        ];
-
-        result.extend(vec![
-            "--env".to_string(),
-            format!("{}={}", env_keys::nep330::CONTRACT_PATH, self.contract_path),
-        ]);
-        if let Some(ref repo_link_hint) = self.link {
-            result.extend(vec![
-                "--env".to_string(),
-                format!("{}={}", env_keys::nep330::LINK, repo_link_hint),
-            ]);
-        }
-        if let Some(ref version) = self.version {
-            result.extend(vec![
-                "--env".to_string(),
-                format!("{}={}", env_keys::nep330::VERSION, version),
-            ]);
-        }
-
-        result
     }
 }
 
