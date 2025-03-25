@@ -46,7 +46,9 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     )?;
     let contract_source_metadata = {
         let local_crate_info = BuildInfoMixed::new(&opts, &docker_build_meta, &cloned_repo)?;
-        near_verify_rs::types::nep330::ContractSourceMetadata::from(local_crate_info)
+        near_verify_rs::types::contract_source_metadata::ContractSourceMetadata::from(
+            local_crate_info,
+        )
     };
 
     if let BuildContext::Deploy {

@@ -1,5 +1,6 @@
 use colored::Colorize;
 use near_verify_rs::docker_command;
+use near_verify_rs::types::internal::container_paths;
 use std::io::IsTerminal;
 use std::{
     process::{Command, ExitStatus},
@@ -11,14 +12,14 @@ use nix::unistd::{getgid, getuid};
 
 use crate::env_keys;
 use crate::pretty_print;
-use crate::types::near::docker_build::subprocess::container_paths;
 
 /// TODO #H4: add validation of [BuildInfoMixed::build_environment] with `images_whitelist` [Vec<String>] argument
 /// TODO #H3: check [BuildInfoMixed::build_environment] for regex match
 /// TODO #H1: add validation for `contract_path` that unix_path::Path can parsed from it
 /// TODO #H2: add validation for `build_command`, that the vec isn't empty, and all tokens aren't empty
+/// TODO #B: move this module to [near_verify_rs::types]
 fn validate_meta(
-    contract_source_metadata: &near_verify_rs::types::nep330::ContractSourceMetadata,
+    contract_source_metadata: &near_verify_rs::types::contract_source_metadata::ContractSourceMetadata,
 ) -> eyre::Result<()> {
     if contract_source_metadata.build_info.is_none() {
         return Err(eyre::eyre!(
@@ -29,7 +30,7 @@ fn validate_meta(
 }
 
 pub fn run(
-    contract_source_metadata: near_verify_rs::types::nep330::ContractSourceMetadata,
+    contract_source_metadata: near_verify_rs::types::contract_source_metadata::ContractSourceMetadata,
     contract_source_workdir: camino::Utf8PathBuf,
     additional_docker_args: Vec<String>,
 ) -> eyre::Result<(ExitStatus, Command)> {
@@ -65,7 +66,7 @@ pub fn run(
 
         let docker_env_args = contract_source_metadata.docker_env_args();
         let shell_escaped_cargo_cmd =
-            near_verify_rs::shell_escape_nep330_build_command(build_info.build_command);
+            near_verify_rs::logic::shell_escape_nep330_build_command(build_info.build_command);
         println!(
             "{} {}",
             "build command in container:".green(),
