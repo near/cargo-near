@@ -36,8 +36,7 @@ wasm-opt = "=0.116.1"
 humantime = "2.1.0"
 indenter = "0.3"
 
-[target.'cfg(target_os = "linux")'.dependencies]
-nix = { version = "0.29.0", features = ["user", "process"], optional = true }
+
 
 [package.metadata.docs.rs]
 features = ["build_script"]
@@ -58,6 +57,5 @@ docker = [
   "dep:home",
   "dep:pathdiff",
   "dep:unix_path",
-  "dep:nix",
 ]
 test_code = []
