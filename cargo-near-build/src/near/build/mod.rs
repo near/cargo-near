@@ -29,7 +29,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let override_cargo_target_path_env =
         buildtime_env::CargoTargetDir::maybe_new(args.override_cargo_target_dir.clone());
 
-    env_keys::nep330::print_env();
+    env_keys::print_nep330_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
