@@ -66,7 +66,7 @@ pub fn run(
         /// TODO #E9: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
         // let docker_env_args = contract_source_metadata.docker_env_args();
         let shell_escaped_cargo_cmd =
-            near_verify_rs::nep330::shell_escape_nep330_build_command(build_info.build_command);
+            near_verify_rs::shell_escape_nep330_build_command(build_info.build_command);
         println!(
             "{} {}",
             "build command in container:".green(),
