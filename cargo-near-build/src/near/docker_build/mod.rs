@@ -44,7 +44,10 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         ),
         || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
     )?;
-    let build_info_mixed = BuildInfoMixed::new(&opts, &docker_build_meta, &cloned_repo)?;
+    let contract_source_metadata = {
+        let local_crate_info = BuildInfoMixed::new(&opts, &docker_build_meta, &cloned_repo)?;
+        near_verify_rs::types::nep330::ContractSourceMetadata::from(local_crate_info)
+    };
 
     if let BuildContext::Deploy {
         skip_git_remote_check,
@@ -85,7 +88,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     let out_dir_arg = opts.out_dir.clone();
 
     let (status, docker_cmd) = subprocess_step::run(
-        build_info_mixed,
+        contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),
     )?;

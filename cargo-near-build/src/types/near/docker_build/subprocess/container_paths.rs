@@ -2,8 +2,6 @@ use std::str::FromStr;
 
 use eyre::ContextCompat;
 
-use super::nep330_build_info::BuildInfoMixed;
-
 pub struct Paths {
     pub host_volume_arg: String,
     pub crate_path: String,
@@ -13,7 +11,7 @@ const NEP330_REPO_MOUNT: &str = "/home/near/code";
 
 impl Paths {
     pub fn compute(
-        build_info_mixed: &BuildInfoMixed,
+        build_info_mixed: &near_verify_rs::types::nep330::BuildInfo,
         contract_source_workdir: camino::Utf8PathBuf,
     ) -> eyre::Result<Self> {
         let mounted_repo = NEP330_REPO_MOUNT.to_string();

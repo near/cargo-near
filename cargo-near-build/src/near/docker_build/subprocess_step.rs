@@ -12,17 +12,32 @@ use nix::unistd::{getgid, getuid};
 use crate::env_keys;
 use crate::pretty_print;
 use crate::types::near::docker_build::subprocess::container_paths;
-use crate::types::near::docker_build::subprocess::nep330_build_info::BuildInfoMixed;
 
-/// TODO #F: set input params to be [near_verify_rs::types::nep330::ContractSourceMetadata]
-/// TODO #E7: add [Vec<String>] `additional_docker_args` parameter
-/// TODO #H2: add validation of [BuildInfoMixed::build_environment] with `images_whitelist` [Vec<String>] argument
-/// TODO #H1: check [BuildInfoMixed::build_environment] for regex match
+/// TODO #H4: add validation of [BuildInfoMixed::build_environment] with `images_whitelist` [Vec<String>] argument
+/// TODO #H3: check [BuildInfoMixed::build_environment] for regex match
+/// TODO #H1: add validation for `contract_path` that unix_path::Path can parsed from it
+/// TODO #H2: add validation for `build_command`, that the vec isn't empty, and all tokens aren't empty
+fn validate_meta(
+    contract_source_metadata: &near_verify_rs::types::nep330::ContractSourceMetadata,
+) -> eyre::Result<()> {
+    if contract_source_metadata.build_info.is_none() {
+        return Err(eyre::eyre!(
+            "`build_info` field of `ContractSourceMetadata` cannot be null"
+        ));
+    }
+    Ok(())
+}
+
 pub fn run(
-    build_info_mixed: BuildInfoMixed,
+    contract_source_metadata: near_verify_rs::types::nep330::ContractSourceMetadata,
     contract_source_workdir: camino::Utf8PathBuf,
     additional_docker_args: Vec<String>,
 ) -> eyre::Result<(ExitStatus, Command)> {
+    validate_meta(&contract_source_metadata)?;
+    let build_info = contract_source_metadata
+        .build_info
+        .clone()
+        .expect("cannot be [Option::None] as per `validate_meta` check");
     let mut docker_cmd: Command = {
         // Platform-specific UID/GID retrieval
 
@@ -43,14 +58,15 @@ pub fn run(
                 .unwrap()
                 .as_secs()
                 .to_string();
-            format!("cargo-near-{}-{}", timestamp, pid)
+            format!("near-verify-rs-{}-{}", timestamp, pid)
         };
         let container_paths =
-            container_paths::Paths::compute(&build_info_mixed, contract_source_workdir)?;
-        let docker_env_args = build_info_mixed.docker_env_args();
-        let shell_escaped_cargo_cmd = near_verify_rs::nep330::shell_escape_nep330_build_command(
-            build_info_mixed.build_command,
-        );
+            container_paths::Paths::compute(&build_info, contract_source_workdir)?;
+
+        /// TODO #E9: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
+        // let docker_env_args = contract_source_metadata.docker_env_args();
+        let shell_escaped_cargo_cmd =
+            near_verify_rs::nep330::shell_escape_nep330_build_command(build_info.build_command);
         println!(
             "{} {}",
             "build command in container:".green(),
@@ -78,10 +94,10 @@ pub fn run(
                 docker_args.push("-it");
             }
 
-            docker_args.extend(docker_env_args.iter().map(|string| string.as_str()));
-
+            /// TODO #E9: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
+            // docker_args.extend(docker_env_args.iter().map(|string| string.as_str()));
             docker_args.extend(additional_docker_args.iter().map(|string| string.as_str()));
-            docker_args.extend(vec![&build_info_mixed.build_environment, "/bin/bash", "-c"]);
+            docker_args.extend(vec![&build_info.build_environment, "/bin/bash", "-c"]);
 
             docker_args.push(&shell_escaped_cargo_cmd);
             docker_args
