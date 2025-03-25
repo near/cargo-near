@@ -6,7 +6,7 @@ use near_verify_rs::{docker_checks, docker_command};
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
-use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::BuildInfoMixed;
+use crate::types::near::docker_build::subprocess::nep330_build_info::BuildInfoMixed;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
 use crate::{env_keys, pretty_print};
 
@@ -14,6 +14,7 @@ pub mod git_checks;
 pub mod subprocess_step;
 
 pub const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
+const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 
 pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     let color = opts.color.unwrap_or(crate::ColorPreference::Auto);
@@ -82,13 +83,19 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
     let build_info_mixed = BuildInfoMixed::new(opts, &docker_build_meta, &cloned_repo)?;
-    // TODO #E6: add `additional_docker_args` usage here from TODO: #F3
-    let (status, docker_cmd) =
-        subprocess_step::run(build_info_mixed, cloned_repo.contract_source_workdir()?)?;
+
+    let (status, docker_cmd) = subprocess_step::run(
+        build_info_mixed,
+        cloned_repo.contract_source_workdir()?,
+        additional_docker_args(),
+    )?;
 
     handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
 }
 
+fn additional_docker_args() -> Vec<String> {
+    vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()]
+}
 fn handle_docker_run_status(
     status: ExitStatus,
     command: Command,

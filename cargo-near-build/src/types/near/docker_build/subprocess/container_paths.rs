@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use eyre::ContextCompat;
 
-use super::env_vars::nep330_build_info::BuildInfoMixed;
+use super::nep330_build_info::BuildInfoMixed;
 
 pub struct Paths {
     pub host_volume_arg: String,
