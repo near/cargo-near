@@ -1,2 +1,2 @@
 pub mod container_paths;
-pub mod env_vars;
+pub mod nep330_build_info;

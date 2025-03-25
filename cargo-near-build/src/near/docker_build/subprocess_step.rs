@@ -12,8 +12,7 @@ use nix::unistd::{getgid, getuid};
 use crate::env_keys;
 use crate::pretty_print;
 use crate::types::near::docker_build::subprocess::container_paths;
-use crate::types::near::docker_build::subprocess::env_vars;
-use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::BuildInfoMixed;
+use crate::types::near::docker_build::subprocess::nep330_build_info::BuildInfoMixed;
 
 /// TODO #F: set input params to be [near_verify_rs::types::nep330::ContractSourceMetadata]
 /// TODO #E7: add [Vec<String>] `additional_docker_args` parameter
@@ -22,6 +21,7 @@ use crate::types::near::docker_build::subprocess::env_vars::nep330_build_info::B
 pub fn run(
     build_info_mixed: BuildInfoMixed,
     contract_source_workdir: camino::Utf8PathBuf,
+    additional_docker_args: Vec<String>,
 ) -> eyre::Result<(ExitStatus, Command)> {
     let mut docker_cmd: Command = {
         // Platform-specific UID/GID retrieval
@@ -47,12 +47,7 @@ pub fn run(
         };
         let container_paths =
             container_paths::Paths::compute(&build_info_mixed, contract_source_workdir)?;
-
-        let docker_env_args = {
-            let env = env_vars::EnvVars::new(build_info_mixed.clone())?;
-            env.docker_args()
-        };
-
+        let docker_env_args = build_info_mixed.docker_env_args();
         let shell_escaped_cargo_cmd = near_verify_rs::nep330::shell_escape_nep330_build_command(
             build_info_mixed.build_command,
         );
@@ -85,6 +80,7 @@ pub fn run(
 
             docker_args.extend(docker_env_args.iter().map(|string| string.as_str()));
 
+            docker_args.extend(additional_docker_args.iter().map(|string| string.as_str()));
             docker_args.extend(vec![&build_info_mixed.build_environment, "/bin/bash", "-c"]);
 
             docker_args.push(&shell_escaped_cargo_cmd);

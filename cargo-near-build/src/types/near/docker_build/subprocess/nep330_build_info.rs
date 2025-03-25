@@ -88,7 +88,7 @@ impl BuildInfoMixed {
     }
 
     /// TODO #E8: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
-    pub fn docker_args(&self) -> Vec<String> {
+    pub fn docker_env_args(&self) -> Vec<String> {
         let mut result = vec![
             "--env".to_string(),
             format!(
