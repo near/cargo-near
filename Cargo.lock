@@ -3054,11 +3054,14 @@ dependencies = [
 name = "near-verify-rs"
 version = "0.1.0"
 dependencies = [
+ "camino",
  "colored",
  "eyre",
+ "indenter",
  "serde",
  "shell-words",
  "tracing",
+ "unix_path",
  "url",
 ]
 

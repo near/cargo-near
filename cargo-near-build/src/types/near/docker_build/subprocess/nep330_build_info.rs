@@ -87,13 +87,17 @@ impl BuildInfoMixed {
     }
 }
 
-impl From<BuildInfoMixed> for near_verify_rs::types::nep330::ContractSourceMetadata {
-    fn from(value: BuildInfoMixed) -> near_verify_rs::types::nep330::ContractSourceMetadata {
-        near_verify_rs::types::nep330::ContractSourceMetadata {
+impl From<BuildInfoMixed>
+    for near_verify_rs::types::contract_source_metadata::ContractSourceMetadata
+{
+    fn from(
+        value: BuildInfoMixed,
+    ) -> near_verify_rs::types::contract_source_metadata::ContractSourceMetadata {
+        near_verify_rs::types::contract_source_metadata::ContractSourceMetadata {
             version: value.version,
             link: value.link,
             standards: vec![],
-            build_info: Some(near_verify_rs::types::nep330::BuildInfo {
+            build_info: Some(near_verify_rs::types::contract_source_metadata::BuildInfo {
                 build_command: value.build_command,
                 build_environment: value.build_environment,
                 source_code_snapshot: value.source_code_snapshot.as_url().to_string(),
