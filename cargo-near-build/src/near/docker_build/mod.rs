@@ -1,6 +1,7 @@
 use std::process::{Command, ExitStatus};
 
 use colored::Colorize;
+use near_verify_rs::logic::ERR_REPRODUCIBLE;
 use near_verify_rs::{docker_checks, docker_command};
 
 use crate::docker::DockerBuildOpts;
@@ -11,9 +12,7 @@ use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
 use crate::{env_keys, pretty_print};
 
 pub mod git_checks;
-pub mod subprocess_step;
 
-pub const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
 const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 
 pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
@@ -89,7 +88,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
 
-    let (status, docker_cmd) = subprocess_step::run(
+    let (status, docker_cmd) = near_verify_rs::logic::nep330_build::run(
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),
@@ -101,6 +100,9 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
 fn additional_docker_args() -> Vec<String> {
     vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()]
 }
+
+/// TODO #B: figure out stuff with output_path, split this logic and move it to
+/// [near_verify_rs::logic::nep330_build]
 fn handle_docker_run_status(
     status: ExitStatus,
     command: Command,
