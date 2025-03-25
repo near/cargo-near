@@ -63,8 +63,7 @@ pub fn run(
         let container_paths =
             container_paths::Paths::compute(&build_info, contract_source_workdir)?;
 
-        /// TODO #E9: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
-        // let docker_env_args = contract_source_metadata.docker_env_args();
+        let docker_env_args = contract_source_metadata.docker_env_args();
         let shell_escaped_cargo_cmd =
             near_verify_rs::shell_escape_nep330_build_command(build_info.build_command);
         println!(
@@ -94,8 +93,7 @@ pub fn run(
                 docker_args.push("-it");
             }
 
-            /// TODO #E9: move this as a method of [near_verify_rs::types::nep330::ContractSourceMetadata]
-            // docker_args.extend(docker_env_args.iter().map(|string| string.as_str()));
+            docker_args.extend(docker_env_args.iter().map(|string| string.as_str()));
             docker_args.extend(additional_docker_args.iter().map(|string| string.as_str()));
             docker_args.extend(vec![&build_info.build_environment, "/bin/bash", "-c"]);
 
