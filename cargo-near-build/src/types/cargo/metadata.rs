@@ -19,7 +19,6 @@ pub struct CrateMetadata {
     pub raw_metadata: cargo_metadata::Metadata,
 }
 
-/// TODO #A: partially move this type to [near_verify_rs]
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
     pub fn collect(
