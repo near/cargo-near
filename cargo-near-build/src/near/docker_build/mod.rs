@@ -1,8 +1,5 @@
-use std::process::{Command, ExitStatus};
-
 use colored::Colorize;
 use near_verify_rs::docker_checks;
-use near_verify_rs::logic::ERR_REPRODUCIBLE;
 
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
