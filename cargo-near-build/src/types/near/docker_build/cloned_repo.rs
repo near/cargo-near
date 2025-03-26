@@ -99,10 +99,9 @@ impl ClonedRepo {
     }
     pub fn copy_artifact(
         self,
+        in_wasm_path: camino::Utf8PathBuf,
         cli_override: Option<camino::Utf8PathBuf>,
     ) -> eyre::Result<BuildArtifact> {
-        let tmp_out_dir = self.tmp_crate_metadata.resolve_output_dir(None)?;
-
         let destination_crate_metadata = {
             let cargo_toml_path: camino::Utf8PathBuf = {
                 let mut path = self.initial_crate_in_repo.crate_root.clone();
@@ -115,34 +114,19 @@ impl ClonedRepo {
 
         let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;
 
-        copy(tmp_out_dir, self.tmp_crate_metadata, destination_dir)
+        copy(in_wasm_path, destination_dir)
     }
 }
 
 fn copy(
-    tmp_out_dir: camino::Utf8PathBuf,
-    tmp_crate_metadata: CrateMetadata,
+    in_wasm_path: camino::Utf8PathBuf,
     mut destination_dir: camino::Utf8PathBuf,
 ) -> eyre::Result<BuildArtifact> {
-    println!(
-        " {} {}",
-        "artifact search location in temporary build site:".green(),
-        tmp_out_dir
-    );
-
-    let filename = format!("{}.wasm", tmp_crate_metadata.formatted_package_name());
-
-    let in_wasm_path = tmp_out_dir.join(filename.clone());
-
-    if !in_wasm_path.exists() {
-        return Err(eyre::eyre!(
-            "Temporary build site result wasm file not found: `{:?}`.",
-            in_wasm_path
-        ));
-    }
-
+    let file_name = in_wasm_path
+        .file_name()
+        .expect("expected to be a wasm file path name as the result of [near_verify_rs::logic::nep330_build::run]");
     let out_wasm_path = {
-        destination_dir.push(filename);
+        destination_dir.push(file_name);
         destination_dir
     };
     if out_wasm_path.exists() {
