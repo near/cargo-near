@@ -3054,7 +3054,9 @@ name = "near-verify-rs"
 version = "0.1.0"
 dependencies = [
  "camino",
+ "cargo_metadata",
  "colored",
+ "dunce",
  "eyre",
  "indenter",
  "nix",
