@@ -1,5 +1,5 @@
 use colored::Colorize;
-use near_verify_rs::docker_checks;
+use near_verify_rs::logic::docker_checks;
 
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
