@@ -1,8 +1,8 @@
 use std::process::{Command, ExitStatus};
 
 use colored::Colorize;
+use near_verify_rs::docker_checks;
 use near_verify_rs::logic::ERR_REPRODUCIBLE;
-use near_verify_rs::{docker_checks, docker_command};
 
 use crate::docker::DockerBuildOpts;
 use crate::types::near::build::input::BuildContext;
@@ -88,34 +88,15 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
 
-    let (status, docker_cmd) = near_verify_rs::logic::nep330_build::run(
+    let docker_build_out_wasm = near_verify_rs::logic::nep330_build::run(
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),
     )?;
 
-    handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
+    cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)
 }
 
 fn additional_docker_args() -> Vec<String> {
     vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()]
-}
-
-/// TODO #B: figure out stuff with output_path, split this logic and move it to
-/// [near_verify_rs::logic::nep330_build]
-fn handle_docker_run_status(
-    status: ExitStatus,
-    command: Command,
-    cloned_repo: cloned_repo::ClonedRepo,
-    out_dir_arg: Option<camino::Utf8PathBuf>,
-) -> eyre::Result<CompilationArtifact> {
-    if status.success() {
-        pretty_print::success("Running docker command step (finished)");
-        pretty_print::handle_step("Copying artifact from temporary build site...", || {
-            cloned_repo.copy_artifact(out_dir_arg)
-        })
-    } else {
-        docker_command::print::command_status(status, command);
-        Err(eyre::eyre!(ERR_REPRODUCIBLE))
-    }
 }
