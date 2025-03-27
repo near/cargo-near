@@ -69,7 +69,7 @@ impl BuildInfoMixed {
         .map_err(|err| eyre::eyre!("compute SourceId {}", err))?;
 
         let link = compute_repo_link_hint(docker_build_meta, cloned_repo);
-        let build_command = opts.get_cli_build_command_in_docker(&docker_build_meta)?;
+        let build_command = opts.get_cli_build_command_in_docker(docker_build_meta)?;
         let version = Some(
             cloned_repo
                 .crate_metadata()
