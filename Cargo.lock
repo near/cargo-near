@@ -3052,6 +3052,7 @@ dependencies = [
 [[package]]
 name = "near-verify-rs"
 version = "0.1.0"
+source = "git+https://github.com/dj8yfo/near-verify-rs.git?rev=fcad609bc3122282b885098e489aae786ea679b9#fcad609bc3122282b885098e489aae786ea679b9"
 dependencies = [
  "bs58 0.5.1",
  "camino",
