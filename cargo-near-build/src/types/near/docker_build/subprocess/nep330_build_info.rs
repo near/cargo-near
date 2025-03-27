@@ -5,19 +5,16 @@ use near_verify_rs::types::source_id;
 
 #[derive(Clone, Debug)]
 pub struct BuildInfoMixed {
-    /// [env_keys::nep330::BUILD_ENVIRONMENT]
+    /// [near_verify_rs::env_keys::BUILD_ENVIRONMENT]
     pub build_environment: String,
-    /// [env_keys::nep330::CONTRACT_PATH]
+    /// [near_verify_rs::env_keys::CONTRACT_PATH]
     pub contract_path: String,
-    /// [env_keys::nep330::SOURCE_CODE_SNAPSHOT]
+    /// [near_verify_rs::env_keys::SOURCE_CODE_SNAPSHOT]
     pub source_code_snapshot: source_id::SourceId,
-    /// [env_keys::nep330::LINK]
+    /// [near_verify_rs::env_keys::LINK]
     pub link: Option<String>,
-    /// [env_keys::nep330::BUILD_COMMAND]
+    /// [near_verify_rs::env_keys::BUILD_COMMAND]
     pub build_command: Vec<String>,
-    /// TODO #A: remove this field after testing all examples in ci
-    /// [env_keys::nep330::VERSION]
-    pub version: Option<String>,
 }
 fn compute_repo_link_hint(
     docker_build_meta: &metadata::ReproducibleBuild,
@@ -70,20 +67,13 @@ impl BuildInfoMixed {
 
         let link = compute_repo_link_hint(docker_build_meta, cloned_repo);
         let build_command = opts.get_cli_build_command_in_docker(docker_build_meta)?;
-        let version = Some(
-            cloned_repo
-                .crate_metadata()
-                .root_package
-                .version
-                .to_string(),
-        );
+
         Ok(Self {
             build_environment,
             contract_path,
             source_code_snapshot,
             link,
             build_command,
-            version,
         })
     }
 }
@@ -95,7 +85,7 @@ impl From<BuildInfoMixed>
         value: BuildInfoMixed,
     ) -> near_verify_rs::types::contract_source_metadata::ContractSourceMetadata {
         near_verify_rs::types::contract_source_metadata::ContractSourceMetadata {
-            version: value.version,
+            version: None,
             link: value.link,
             standards: vec![],
             build_info: Some(near_verify_rs::types::contract_source_metadata::BuildInfo {
