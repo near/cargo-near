@@ -24,7 +24,7 @@ zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
 bon = "2.3.0"
-near-verify-rs = { version = "0.1.0", git = "https://github.com/dj8yfo/near-verify-rs.git", rev = "fcad609bc3122282b885098e489aae786ea679b9", optional = true }
+near-verify-rs = { version = "0.1.0", git = "https://github.com/dj8yfo/near-verify-rs.git", rev = "3e8a1baab7e3e84546dd9c5e111fb4d03f845fec", optional = true }
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }
