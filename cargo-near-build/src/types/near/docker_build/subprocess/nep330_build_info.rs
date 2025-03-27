@@ -15,6 +15,7 @@ pub struct BuildInfoMixed {
     pub link: Option<String>,
     /// [env_keys::nep330::BUILD_COMMAND]
     pub build_command: Vec<String>,
+    /// TODO #A: remove this field after testing all examples in ci
     /// [env_keys::nep330::VERSION]
     pub version: Option<String>,
 }
