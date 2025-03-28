@@ -50,3 +50,7 @@ libudev-dev = { version = "*", targets = [
     "x86_64-unknown-linux-gnu",
     "aarch64-unknown-linux-gnu",
 ] }
+
+
+# [patch.'https://github.com/dj8yfo/near-verify-rs.git']
+# near-verify-rs = { version = "0.1.0", path = "../../../../near-verify-rs-worktrees/near-verify-rs/" }
