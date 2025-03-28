@@ -89,6 +89,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),
+        None,
     )?;
 
     cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)

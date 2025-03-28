@@ -3052,7 +3052,7 @@ dependencies = [
 [[package]]
 name = "near-verify-rs"
 version = "0.1.0"
-source = "git+https://github.com/dj8yfo/near-verify-rs.git?rev=6bccf9d369ed486354fbb566fa0e89a4cad1e14c#6bccf9d369ed486354fbb566fa0e89a4cad1e14c"
+source = "git+https://github.com/dj8yfo/near-verify-rs.git?rev=ae31eaf2cfaefb1139d31783d22e5d1ffa0fd2f6#ae31eaf2cfaefb1139d31783d22e5d1ffa0fd2f6"
 dependencies = [
  "bs58 0.5.1",
  "camino",
@@ -3063,6 +3063,7 @@ dependencies = [
  "hex",
  "indenter",
  "nix",
+ "regex",
  "serde",
  "sha2 0.10.8",
  "shell-words",
