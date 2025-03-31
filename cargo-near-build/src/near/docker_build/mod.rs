@@ -85,11 +85,11 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
 
+    contract_source_metadata.validate(None)?;
     let docker_build_out_wasm = near_verify_rs::logic::nep330_build::run(
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),
-        None,
     )?;
 
     cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)
