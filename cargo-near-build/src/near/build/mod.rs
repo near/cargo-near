@@ -55,6 +55,8 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         )
     })?;
 
+    // TODO #B: add rule forbidding to use `--out-dir` inside docker
+    /// https://github.com/near/cargo-near/blob/075d7b6dc9ab1f5c199edb6931512ccaf5af848e/cargo-near-build/src/types/near/docker_build/cloned_repo.rs#L100
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.clone())?;
 
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -165,6 +167,9 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
+        // TODO #A0: test in comparison with `main` build that output path stuff hasn't changed
+        // TODO #A: replace with the same logic as in `near-verify-rs`
+
         let target_path = out_dir.join(prev_artifact_path.file_name().expect("has filename"));
 
         // target file does not yet exist `!target_path.is_file()` condition is implied by

@@ -59,6 +59,11 @@ impl CrateMetadata {
         Ok(crate_metadata)
     }
 
+    // NOTE important!: the way the output path for wasm is resolved now cannot change,
+    // as the implementation in contracts' verification will continue to compute output path
+    // according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
+    //
+    // and implementation of initial docker build also assumes the same destination
     pub fn resolve_output_dir(
         &self,
         cli_override: Option<Utf8PathBuf>,
