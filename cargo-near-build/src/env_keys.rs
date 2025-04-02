@@ -30,6 +30,11 @@ pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VE
 use std::collections::HashMap;
 
 pub use near_verify_rs::env_keys as nep330;
+
+pub fn is_inside_docker_context() -> bool {
+    std::env::var(nep330::BUILD_ENVIRONMENT).is_ok()
+}
+
 use near_verify_rs::env_keys::{BUILD_ENVIRONMENT, CONTRACT_PATH, SOURCE_CODE_SNAPSHOT};
 
 pub fn print_nep330_env() {

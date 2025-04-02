@@ -218,11 +218,8 @@ pub mod rule {
 
     const COMMAND_ERR_MSG: &str = "`container_build_command` is required to start with";
 
-    fn is_inside_docker_context() -> bool {
-        std::env::var(cargo_near_build::env_keys::nep330::BUILD_ENVIRONMENT).is_ok()
-    }
     pub fn assert_locked(opts: &super::BuildOpts) {
-        if is_inside_docker_context() {
+        if cargo_near_build::env_keys::is_inside_docker_context() {
             assert!(
                 opts.locked,
                 "build command should have `--locked` flag in docker"
@@ -239,7 +236,7 @@ pub mod rule {
         })
     }
     pub fn enforce_this_program_args() -> color_eyre::eyre::Result<()> {
-        if is_inside_docker_context() {
+        if cargo_near_build::env_keys::is_inside_docker_context() {
             let args = std::env::args().collect::<Vec<_>>();
             let default_cmd =
                 cargo_near_build::BuildOpts::default().get_cli_command_for_lib_context();

@@ -55,8 +55,14 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         )
     })?;
 
-    // TODO #B: add rule forbidding to use `--out-dir` inside docker
-    /// https://github.com/near/cargo-near/blob/075d7b6dc9ab1f5c199edb6931512ccaf5af848e/cargo-near-build/src/types/near/docker_build/cloned_repo.rs#L100
+    // addition of this check wasn't a change in logic, as previously output path was
+    // assumed without `--out-dir` too, so docker-build was just failing if the arg was supplied:
+    // https://github.com/near/cargo-near/blob/075d7b6dc9ab1f5c199edb6931512ccaf5af848e/cargo-near-build/src/types/near/docker_build/cloned_repo.rs#L100
+    if env_keys::is_inside_docker_context() {
+        if args.out_dir.is_some() {
+            return Err(eyre::eyre!("inside docker build `--out-dir` is forbidden to be used in order to predict build output path in a straightforward way"));
+        }
+    }
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.clone())?;
 
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
@@ -167,7 +173,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
-        // TODO #A0: test in comparison with `main` build that output path stuff hasn't changed
 
         // NOTE important!: the way the output path for wasm is resolved now cannot change,
         // see more detail on [CrateMetadata::get_legacy_cargo_near_output_path]
