@@ -39,7 +39,7 @@ impl OutputPaths {
         )
     }
 
-    pub fn abi_filename(
+    fn abi_filename(
         crate_metadata: &CrateMetadata,
         format: abi::Format,
         compression: abi::Compression,
@@ -49,5 +49,17 @@ impl OutputPaths {
             crate_metadata.formatted_package_name(),
             abi::file_extension(format, compression)
         )
+    }
+
+    pub fn intermediate_abi_file(
+        crate_metadata: &CrateMetadata,
+        format: abi::Format,
+        compression: abi::Compression,
+    ) -> Utf8PathBuf {
+        crate_metadata.target_directory.join(Self::abi_filename(
+            crate_metadata,
+            format,
+            compression,
+        ))
     }
 }

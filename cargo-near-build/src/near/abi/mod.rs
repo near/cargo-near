@@ -77,13 +77,7 @@ pub fn write_to_file(
         )?,
     };
 
-    let out_path_abi = crate_metadata
-        .target_directory
-        .join(OutputPaths::abi_filename(
-            crate_metadata,
-            format,
-            compression,
-        ));
+    let out_path_abi = OutputPaths::intermediate_abi_file(crate_metadata, format, compression);
 
     // this prevents doing `touch target/near/{contract_crate_name}_abi.zst` and similar
     // and doing a partial project's rebuild during 2nd phase of build (into wasm)
