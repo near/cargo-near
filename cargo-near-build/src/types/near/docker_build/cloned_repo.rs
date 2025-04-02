@@ -112,7 +112,9 @@ impl ClonedRepo {
             CrateMetadata::collect(manifest_path, self.no_locked, None)?
         };
 
-        let destination_dir = destination_crate_metadata.resolve_output_dir(cli_override)?;
+        let destination_dir = destination_crate_metadata
+            .get_legacy_cargo_near_output_path(cli_override)?
+            .out_dir;
 
         copy(in_wasm_path, destination_dir)
     }

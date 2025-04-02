@@ -60,10 +60,7 @@ impl CrateMetadata {
         Ok(crate_metadata)
     }
 
-    pub fn resolve_output_dir(
-        &self,
-        cli_override: Option<Utf8PathBuf>,
-    ) -> eyre::Result<Utf8PathBuf> {
+    fn resolve_output_dir(&self, cli_override: Option<Utf8PathBuf>) -> eyre::Result<Utf8PathBuf> {
         let result = if let Some(cli_override) = cli_override {
             crate::fs::force_canonicalize_dir(&cli_override)?
         } else {
@@ -80,7 +77,7 @@ impl CrateMetadata {
     pub fn formatted_package_name(&self) -> String {
         self.root_package.name.replace('-', "_")
     }
-    /// NOTE important!: the way the output path for wasm is resolved now cannot change,
+    /// NOTE important!: the way the output path for wasm file is resolved now cannot change,
     /// as the implementation in contracts' verification will continue to compute output path
     /// according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
     ///
@@ -88,12 +85,16 @@ impl CrateMetadata {
     pub fn get_legacy_cargo_near_output_path(
         &self,
         cli_override: Option<Utf8PathBuf>,
-    ) -> eyre::Result<camino::Utf8PathBuf> {
-        let output_dir = self.resolve_output_dir(cli_override)?;
+    ) -> eyre::Result<OutputPaths> {
+        let out_dir = self.resolve_output_dir(cli_override)?;
 
         let filename = format!("{}.{}", self.formatted_package_name(), EXPECTED_EXTENSION);
 
-        Ok(output_dir.join(filename))
+        let result = OutputPaths {
+            out_dir: out_dir.clone(),
+            wasm_file: out_dir.join(filename),
+        };
+        Ok(result)
     }
 
     pub fn find_direct_dependency(
@@ -149,6 +150,10 @@ impl CrateMetadata {
         }
         Ok(result)
     }
+}
+pub struct OutputPaths {
+    pub out_dir: Utf8PathBuf,
+    pub wasm_file: Utf8PathBuf,
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
