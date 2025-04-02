@@ -1,5 +1,5 @@
 use crate::types::cargo::metadata::CrateMetadata;
-use crate::types::near::abi as abi_types;
+use crate::types::near::{abi as abi_types, OutputPaths};
 
 pub mod generate;
 
@@ -77,11 +77,13 @@ pub fn write_to_file(
         )?,
     };
 
-    let out_path_abi = crate_metadata.target_directory.join(format!(
-        "{}_abi.{}",
-        crate_metadata.formatted_package_name(),
-        abi_types::file_extension(format, compression)
-    ));
+    let out_path_abi = crate_metadata
+        .target_directory
+        .join(OutputPaths::abi_filename(
+            crate_metadata,
+            format,
+            compression,
+        ));
 
     // this prevents doing `touch target/near/{contract_crate_name}_abi.zst` and similar
     // and doing a partial project's rebuild during 2nd phase of build (into wasm)

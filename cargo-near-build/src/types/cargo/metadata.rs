@@ -7,9 +7,9 @@ use eyre::{ContextCompat, OptionExt, WrapErr};
 
 use crate::pretty_print;
 use crate::types::near::build::buildtime_env;
+use crate::types::near::OutputPaths;
 
 use super::manifest_path::ManifestPath;
-pub const EXPECTED_EXTENSION: &str = "wasm";
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
@@ -60,7 +60,10 @@ impl CrateMetadata {
         Ok(crate_metadata)
     }
 
-    fn resolve_output_dir(&self, cli_override: Option<Utf8PathBuf>) -> eyre::Result<Utf8PathBuf> {
+    pub(in crate::types) fn resolve_output_dir(
+        &self,
+        cli_override: Option<Utf8PathBuf>,
+    ) -> eyre::Result<Utf8PathBuf> {
         let result = if let Some(cli_override) = cli_override {
             crate::fs::force_canonicalize_dir(&cli_override)?
         } else {
@@ -86,15 +89,7 @@ impl CrateMetadata {
         &self,
         cli_override: Option<Utf8PathBuf>,
     ) -> eyre::Result<OutputPaths> {
-        let out_dir = self.resolve_output_dir(cli_override)?;
-
-        let filename = format!("{}.{}", self.formatted_package_name(), EXPECTED_EXTENSION);
-
-        let result = OutputPaths {
-            out_dir: out_dir.clone(),
-            wasm_file: out_dir.join(filename),
-        };
-        Ok(result)
+        OutputPaths::new(self, cli_override)
     }
 
     pub fn find_direct_dependency(
@@ -150,10 +145,6 @@ impl CrateMetadata {
         }
         Ok(result)
     }
-}
-pub struct OutputPaths {
-    pub out_dir: Utf8PathBuf,
-    pub wasm_file: Utf8PathBuf,
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
