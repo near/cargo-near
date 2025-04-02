@@ -1,6 +1,6 @@
 use camino::Utf8PathBuf;
 
-use crate::CrateMetadata;
+use crate::types::cargo::metadata::CrateMetadata;
 
 pub mod abi;
 pub mod build;
