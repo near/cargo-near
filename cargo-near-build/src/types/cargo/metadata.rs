@@ -9,6 +9,7 @@ use crate::pretty_print;
 use crate::types::near::build::buildtime_env;
 
 use super::manifest_path::ManifestPath;
+pub const EXPECTED_EXTENSION: &str = "wasm";
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
@@ -59,11 +60,6 @@ impl CrateMetadata {
         Ok(crate_metadata)
     }
 
-    // NOTE important!: the way the output path for wasm is resolved now cannot change,
-    // as the implementation in contracts' verification will continue to compute output path
-    // according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
-    //
-    // and implementation of initial docker build also assumes the same destination
     pub fn resolve_output_dir(
         &self,
         cli_override: Option<Utf8PathBuf>,
@@ -83,6 +79,21 @@ impl CrateMetadata {
 
     pub fn formatted_package_name(&self) -> String {
         self.root_package.name.replace('-', "_")
+    }
+    /// NOTE important!: the way the output path for wasm is resolved now cannot change,
+    /// as the implementation in contracts' verification will continue to compute output path
+    /// according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
+    ///
+    /// and implementation of initial docker build also assumes the same destination
+    pub fn get_legacy_cargo_near_output_path(
+        &self,
+        cli_override: Option<Utf8PathBuf>,
+    ) -> eyre::Result<camino::Utf8PathBuf> {
+        let output_dir = self.resolve_output_dir(cli_override)?;
+
+        let filename = format!("{}.{}", self.formatted_package_name(), EXPECTED_EXTENSION);
+
+        Ok(output_dir.join(filename))
     }
 
     pub fn find_direct_dependency(

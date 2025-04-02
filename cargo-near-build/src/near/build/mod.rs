@@ -168,9 +168,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
         // TODO #A0: test in comparison with `main` build that output path stuff hasn't changed
-        // TODO #A: replace with the same logic as in `near-verify-rs`
 
-        let target_path = out_dir.join(prev_artifact_path.file_name().expect("has filename"));
+        // NOTE important!: the way the output path for wasm is resolved now cannot change,
+        // see more detail on [CrateMetadata::get_legacy_cargo_near_output_path]
+        let target_path = crate_metadata.get_legacy_cargo_near_output_path(args.out_dir.clone())?;
 
         // target file does not yet exist `!target_path.is_file()` condition is implied by
         // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
