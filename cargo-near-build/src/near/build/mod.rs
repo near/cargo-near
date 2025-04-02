@@ -58,10 +58,8 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     // addition of this check wasn't a change in logic, as previously output path was
     // assumed without `--out-dir` too, so docker-build was just failing if the arg was supplied:
     // https://github.com/near/cargo-near/blob/075d7b6dc9ab1f5c199edb6931512ccaf5af848e/cargo-near-build/src/types/near/docker_build/cloned_repo.rs#L100
-    if env_keys::is_inside_docker_context() {
-        if args.out_dir.is_some() {
-            return Err(eyre::eyre!("inside docker build `--out-dir` is forbidden to be used in order to predict build output path in a straightforward way"));
-        }
+    if env_keys::is_inside_docker_context() && args.out_dir.is_some() {
+        return Err(eyre::eyre!("inside docker build `--out-dir` is forbidden to be used in order to predict build output path in a straightforward way"));
     }
     let out_dir = crate_metadata.resolve_output_dir(args.out_dir.clone())?;
 
