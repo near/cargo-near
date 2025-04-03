@@ -59,6 +59,7 @@ pub fn print_nep330_env() {
         nep330::BUILD_ENVIRONMENT,
         nep330::CONTRACT_PATH,
         nep330::SOURCE_CODE_SNAPSHOT,
+        NEP330_OUTPUT_WASM_PATH,
     ] {
         let value = std::env::var(key).unwrap_or("unset".to_string());
         env_map.insert(key, value);
