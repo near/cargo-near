@@ -1,6 +1,6 @@
 use colored::Colorize;
 
-use crate::CrateMetadata;
+use crate::types::cargo::metadata::CrateMetadata;
 use std::time::Duration;
 
 const MIN_CUTOFF: semver::Version = semver::Version::new(5, 2, 0);
