@@ -47,6 +47,7 @@ pub mod nep330 {
     /// NEP-330 1.1.0
     pub const VERSION: &str = "NEP330_VERSION";
 }
+pub const NEP330_OUTPUT_WASM_PATH: &str = "NEP330_BUILD_INFO_OUTPUT_WASM_PATH";
 
 pub fn is_inside_docker_context() -> bool {
     std::env::var(nep330::BUILD_ENVIRONMENT).is_ok()

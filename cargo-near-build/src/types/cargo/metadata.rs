@@ -15,6 +15,7 @@ use super::manifest_path::ManifestPath;
 #[derive(Debug)]
 pub struct CrateMetadata {
     pub root_package: Package,
+    /// it's always an absolute path as per current implementation with [crate::fs::force_canonicalize_dir]
     pub target_directory: Utf8PathBuf,
     pub manifest_path: ManifestPath,
     pub raw_metadata: cargo_metadata::Metadata,
@@ -60,6 +61,7 @@ impl CrateMetadata {
         Ok(crate_metadata)
     }
 
+    /// always returns absolute canonicalized path
     pub(in crate::types) fn resolve_output_dir(
         &self,
         cli_override: Option<Utf8PathBuf>,

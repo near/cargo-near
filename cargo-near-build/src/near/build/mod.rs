@@ -94,6 +94,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         &builder_version_info,
         &crate_metadata,
         override_cargo_target_path_env,
+        &output_paths,
     )?;
 
     if !args.no_abi {
