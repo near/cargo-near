@@ -14,20 +14,20 @@ pub fn suggest(crate_metadata: &CrateMetadata) {
                 if package.version < MIN_CUTOFF {
                     println!(
                         "{}: {}",
-                        "WARNING".red(),
-                        "a `near-sdk` package version has been detected, which doesn't support reproducible builds at all!".truecolor(220, 77, 1) // deep orange
+                        "WARNING".truecolor(220, 77, 1),
+                        "a `near-sdk` package version has been detected, which doesn't support reproducible builds at all!".red()
                     );
                     println!(
                         "{} < {}",
-                        format!("{}", package.version).truecolor(220, 77, 1),
+                        format!("{}", package.version).red(),
                         format!("{}", MIN_CUTOFF).cyan()
                     );
                     println!(
                         "{} {}",
-                        "An upgrade recommended up to".truecolor(220, 77, 1),
+                        "An upgrade recommended up to".red(),
                         format!("{}", MIN_CUTOFF).cyan()
                     );
-                    std::thread::sleep(Duration::new(5, 0));
+                    std::thread::sleep(Duration::new(10, 0));
                     println!();
                 } else if package.version < NEP330_1_3_0_CUTOFF {
                     println!(
