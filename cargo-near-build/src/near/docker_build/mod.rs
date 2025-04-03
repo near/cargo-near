@@ -9,6 +9,7 @@ use crate::types::near::docker_build::subprocess::nep330_build_info::BuildInfoMi
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
 
 pub mod git_checks;
+pub mod warn_near_sdk_upgrades;
 
 const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 
@@ -32,6 +33,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
             )
         },
     )?;
+    warn_near_sdk_upgrades::suggest(cloned_repo.crate_metadata());
 
     let docker_build_meta = pretty_print::handle_step(
         &format!(
