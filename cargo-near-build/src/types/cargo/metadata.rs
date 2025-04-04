@@ -27,10 +27,15 @@ impl CrateMetadata {
         manifest_path: ManifestPath,
         no_locked: bool,
         cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
+        completely_remove_target_dir: bool,
     ) -> eyre::Result<Self> {
         let (metadata, root_package) = {
-            let (mut metadata, root_package) =
-                get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
+            let (mut metadata, root_package) = get_cargo_metadata(
+                &manifest_path,
+                no_locked,
+                cargo_target_dir,
+                completely_remove_target_dir,
+            )?;
             metadata.target_directory =
                 crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
             metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
@@ -148,12 +153,29 @@ impl CrateMetadata {
         Ok(result)
     }
 }
+/// Runs configured `cargo metadata` and returns parsed `Metadata`.
+pub fn exec_metadata_command(
+    mut command: std::process::Command,
+) -> cargo_metadata::Result<cargo_metadata::Metadata> {
+    let output = command.output()?;
+    if !output.status.success() {
+        return Err(cargo_metadata::Error::CargoMetadata {
+            stderr: String::from_utf8(output.stderr)?,
+        });
+    }
+    let stdout = std::str::from_utf8(&output.stdout)?
+        .lines()
+        .find(|line| line.starts_with('{'))
+        .ok_or(cargo_metadata::Error::NoJson)?;
+    cargo_metadata::MetadataCommand::parse(stdout)
+}
 
 /// Get the result of `cargo metadata`, together with the root package id.
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
     cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
+    completely_remove_target_dir: bool,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     tracing::info!(
         target: "near_teach_me",
@@ -175,7 +197,12 @@ fn get_cargo_metadata(
         "Command execution:\n{}",
         pretty_print::indent_payload(&format!("{:#?}", cmd.cargo_command()))
     );
-    let metadata = cmd.exec();
+    let mut std_process_command = cmd.cargo_command();
+
+    if completely_remove_target_dir {
+        std_process_command.env_remove(crate::env_keys::CARGO_TARGET_DIR);
+    }
+    let metadata = exec_metadata_command(std_process_command);
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {
             println!(

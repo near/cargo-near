@@ -56,7 +56,7 @@ impl CommonVariables {
         let override_nep330_contract_path =
             Nep330ContractPath::maybe_new(opts.override_nep330_contract_path.clone());
 
-        let nep330_output_wasm_path = Nep330OutputWasmPath::new(output_paths);
+        let nep330_output_wasm_path = Nep330OutputWasmPath::new(output_paths, opts);
         let result = Self {
             nep330_version,
             nep330_link,

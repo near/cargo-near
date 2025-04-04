@@ -3,8 +3,12 @@ fn get_locked_package_version(
     manifest_path: &camino::Utf8PathBuf,
     package_name: &str,
 ) -> color_eyre::Result<Vec<semver::Version>> {
-    let meta =
-        cargo_near_build::CrateMetadata::collect(manifest_path.clone().try_into()?, false, None)?;
+    let meta = cargo_near_build::CrateMetadata::collect(
+        manifest_path.clone().try_into()?,
+        false,
+        None,
+        false,
+    )?;
 
     let packages = meta.find_direct_dependency(package_name)?;
 

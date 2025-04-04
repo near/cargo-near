@@ -173,6 +173,7 @@ impl From<BuildOpts> for cargo_near_build::BuildOpts {
             env: env_pairs::get_key_vals(value.env),
             override_nep330_contract_path: None,
             override_cargo_target_dir: None,
+            override_output_wasm_path: None,
         }
     }
 }
