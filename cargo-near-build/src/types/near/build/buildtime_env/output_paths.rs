@@ -1,4 +1,4 @@
-use crate::{env_keys, types::near::OutputPaths};
+use crate::{env_keys::nep330::OUTPUT_WASM_PATH, types::near::OutputPaths};
 
 pub struct Nep330OutputWasmPath {
     pub value: String,
@@ -11,6 +11,6 @@ impl Nep330OutputWasmPath {
         }
     }
     pub fn append_borrowed_to<'a>(&'a self, env: &mut Vec<(&str, &'a str)>) {
-        env.push((env_keys::NEP330_OUTPUT_WASM_PATH, self.value.as_str()));
+        env.push((OUTPUT_WASM_PATH, self.value.as_str()));
     }
 }
