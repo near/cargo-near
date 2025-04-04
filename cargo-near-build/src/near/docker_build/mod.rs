@@ -2,11 +2,11 @@ use colored::Colorize;
 use near_verify_rs::logic::docker_checks;
 
 use crate::docker::DockerBuildOpts;
+use crate::pretty_print;
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::docker_build::subprocess::nep330_build_info::BuildInfoMixed;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
-use crate::{env_keys, pretty_print};
 
 pub mod git_checks;
 
@@ -71,7 +71,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
             )?;
         }
     }
-    if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
+    if std::env::var(near_verify_rs::env_keys::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
         pretty_print::handle_step("Performing `docker` sanity check...", || {
             docker_checks::sanity::check()
         })?;

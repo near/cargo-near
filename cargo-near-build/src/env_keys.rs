@@ -29,17 +29,36 @@ pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VE
 
 use std::collections::HashMap;
 
-pub use near_verify_rs::env_keys as nep330;
+pub mod nep330 {
+    // ====================== NEP-330 1.2.0 - Build Details Extension ===========
+    /// NEP-330 1.2.0
+    pub const BUILD_ENVIRONMENT: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
+    /// NEP-330 1.2.0
+    pub const BUILD_COMMAND: &str = "NEP330_BUILD_INFO_BUILD_COMMAND";
+    /// NEP-330 1.2.0
+    pub const CONTRACT_PATH: &str = "NEP330_BUILD_INFO_CONTRACT_PATH";
+    /// NEP-330 1.2.0
+    pub const SOURCE_CODE_SNAPSHOT: &str = "NEP330_BUILD_INFO_SOURCE_CODE_SNAPSHOT";
+    // ====================== End section =======================================
+
+    // ====================== NEP-330 1.1.0 - Contract Metadata Extension ===========
+    /// NEP-330 1.1.0
+    pub const LINK: &str = "NEP330_LINK";
+    /// NEP-330 1.1.0
+    pub const VERSION: &str = "NEP330_VERSION";
+}
 
 pub fn is_inside_docker_context() -> bool {
     std::env::var(nep330::BUILD_ENVIRONMENT).is_ok()
 }
 
-use near_verify_rs::env_keys::{BUILD_ENVIRONMENT, CONTRACT_PATH, SOURCE_CODE_SNAPSHOT};
-
 pub fn print_nep330_env() {
     let mut env_map: HashMap<&str, String> = HashMap::new();
-    for key in [BUILD_ENVIRONMENT, CONTRACT_PATH, SOURCE_CODE_SNAPSHOT] {
+    for key in [
+        nep330::BUILD_ENVIRONMENT,
+        nep330::CONTRACT_PATH,
+        nep330::SOURCE_CODE_SNAPSHOT,
+    ] {
         let value = std::env::var(key).unwrap_or("unset".to_string());
         env_map.insert(key, value);
     }
