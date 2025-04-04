@@ -1,7 +1,7 @@
 use crate::{env_keys, types::near::OutputPaths};
 
 pub struct Nep330OutputWasmPath {
-    value: String,
+    pub value: String,
 }
 
 impl Nep330OutputWasmPath {

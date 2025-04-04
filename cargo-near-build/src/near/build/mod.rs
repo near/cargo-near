@@ -29,8 +29,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let override_cargo_target_path_env =
         buildtime_env::CargoTargetDir::maybe_new(args.override_cargo_target_dir.clone());
 
-    env_keys::print_nep330_env();
-
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
@@ -96,6 +94,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         override_cargo_target_path_env,
         &output_paths,
     )?;
+    env_keys::print_nep330_env(
+        &common_vars_env.nep330_output_wasm_path,
+        &common_vars_env.nep330_link,
+    );
 
     if !args.no_abi {
         let mut contract_abi = {
