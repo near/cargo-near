@@ -94,10 +94,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         override_cargo_target_path_env,
         &output_paths,
     )?;
-    env_keys::print_nep330_env(
-        &common_vars_env.nep330_output_wasm_path,
-        &common_vars_env.nep330_link,
-    );
+    env_keys::print_nep330_env();
 
     if !args.no_abi {
         let mut contract_abi = {
