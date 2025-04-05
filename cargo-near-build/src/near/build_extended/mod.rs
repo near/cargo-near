@@ -55,10 +55,8 @@ pub(crate) fn skip_or_compile(
         (artifact, true)
     } else {
         if build_opts.override_cargo_target_dir.is_some() {
-            let override_cargo_target_path_env = buildtime_env::CargoTargetDir::maybe_new(
-                build_opts.override_cargo_target_dir.clone(),
-            );
-            let metadata = get_crate_metadata(&build_opts, &override_cargo_target_path_env, true)?;
+            let metadata =
+                get_crate_metadata(&build_opts, &buildtime_env::CargoTargetDir::UnsetExternal)?;
             let output_paths = metadata.get_legacy_cargo_near_output_path(None)?;
             build_opts.override_output_wasm_path = Some(output_paths.wasm_file.to_string());
         }

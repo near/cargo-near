@@ -1,19 +1,33 @@
 use crate::env_keys;
 
-pub struct CargoTargetDir {
-    path: String,
+pub enum CargoTargetDir {
+    Set(String),
+    NoOp,
+    UnsetExternal,
 }
 
 impl CargoTargetDir {
-    pub fn maybe_new(path: Option<String>) -> Option<Self> {
-        path.map(|path| Self { path })
+    pub fn new(path: Option<String>) -> Self {
+        match path {
+            Some(path) => Self::Set(path),
+            None => Self::NoOp,
+        }
     }
-
-    pub fn entry(&self) -> (&'static str, &str) {
-        (env_keys::CARGO_TARGET_DIR, self.path.as_str())
-    }
-
     pub fn append_borrowed_to<'a>(&'a self, env: &mut Vec<(&str, &'a str)>) {
-        env.push(self.entry());
+        if let Self::Set(path) = self {
+            env.push((env_keys::CARGO_TARGET_DIR, path.as_str()))
+        }
+    }
+
+    pub fn into_std_command(&self, cmd: &mut std::process::Command) {
+        match self {
+            Self::NoOp => {}
+            Self::Set(path) => {
+                cmd.env(env_keys::CARGO_TARGET_DIR, path.as_str());
+            }
+            Self::UnsetExternal => {
+                cmd.env_remove(env_keys::CARGO_TARGET_DIR);
+            }
+        }
     }
 }

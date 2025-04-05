@@ -5,6 +5,7 @@ use std::time::Duration;
 use crate::pretty_print;
 use crate::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use crate::types::cargo::metadata::CrateMetadata;
+use crate::types::near::build::buildtime_env::CargoTargetDir;
 use crate::types::near::build::output::version_info::VersionInfo;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::types::near::docker_build::WARN_BECOMES_ERR;
@@ -68,7 +69,7 @@ impl ClonedRepo {
                 path
             };
             let manifest_path = ManifestPath::try_from(cargo_toml_path)?;
-            CrateMetadata::collect(manifest_path, no_locked, None, false).inspect_err(|err| {
+            CrateMetadata::collect(manifest_path, no_locked, &CargoTargetDir::NoOp).inspect_err(|err| {
             if !no_locked && err.to_string().contains("Cargo.lock is absent") {
                 no_locked_warn_pause(false);
                 println!();
@@ -109,7 +110,7 @@ impl ClonedRepo {
                 path
             };
             let manifest_path = ManifestPath::try_from(cargo_toml_path)?;
-            CrateMetadata::collect(manifest_path, self.no_locked, None, false)?
+            CrateMetadata::collect(manifest_path, self.no_locked, &CargoTargetDir::NoOp)?
         };
 
         let destination_dir = destination_crate_metadata

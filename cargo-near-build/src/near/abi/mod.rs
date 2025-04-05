@@ -8,7 +8,10 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
     // imports #[cfg(feature = "abi_build")]
     use crate::{
         pretty_print,
-        types::{cargo::manifest_path::ManifestPath, near::build::input::ColorPreference},
+        types::{
+            cargo::manifest_path::ManifestPath,
+            near::build::{buildtime_env::CargoTargetDir, input::ColorPreference},
+        },
     };
     use camino::Utf8PathBuf;
     use colored::Colorize;
@@ -23,7 +26,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
             "Cargo.toml".into()
         };
         let manifest_path = ManifestPath::try_from(manifest_path)?;
-        CrateMetadata::collect(manifest_path, args.no_locked, None, false)
+        CrateMetadata::collect(manifest_path, args.no_locked, &CargoTargetDir::NoOp)
     })?;
 
     let out_dir = crate_metadata

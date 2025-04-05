@@ -37,7 +37,7 @@ pub struct CommonVariables {
     pub nep330_output_wasm_path: Nep330OutputWasmPath,
     pub builder_abi_versions: BuilderAbiVersions,
     pub override_nep330_contract_path: Nep330ContractPath,
-    pub override_cargo_target_path: Option<CargoTargetDir>,
+    pub override_cargo_target_path: CargoTargetDir,
 }
 
 impl CommonVariables {
@@ -45,7 +45,7 @@ impl CommonVariables {
         opts: &BuildOpts,
         builder_version_info: &VersionInfo,
         crate_metadata: &CrateMetadata,
-        override_cargo_target_path: Option<CargoTargetDir>,
+        override_cargo_target_path: CargoTargetDir,
         output_paths: &OutputPaths,
     ) -> eyre::Result<Self> {
         let nep330_version = Nep330Version::new(crate_metadata);
@@ -75,8 +75,6 @@ impl CommonVariables {
         self.nep330_output_wasm_path.append_borrowed_to(env);
         self.builder_abi_versions.append_borrowed_to(env);
         self.override_nep330_contract_path.append_borrowed_to(env);
-        if let Some(ref target_dir) = self.override_cargo_target_path {
-            target_dir.append_borrowed_to(env);
-        }
+        self.override_cargo_target_path.append_borrowed_to(env);
     }
 }

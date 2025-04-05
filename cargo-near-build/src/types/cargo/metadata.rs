@@ -26,16 +26,11 @@ impl CrateMetadata {
     pub fn collect(
         manifest_path: ManifestPath,
         no_locked: bool,
-        cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
-        completely_remove_target_dir: bool,
+        cargo_target_dir: &buildtime_env::CargoTargetDir,
     ) -> eyre::Result<Self> {
         let (metadata, root_package) = {
-            let (mut metadata, root_package) = get_cargo_metadata(
-                &manifest_path,
-                no_locked,
-                cargo_target_dir,
-                completely_remove_target_dir,
-            )?;
+            let (mut metadata, root_package) =
+                get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
             metadata.target_directory =
                 crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
             metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
@@ -153,7 +148,10 @@ impl CrateMetadata {
         Ok(result)
     }
 }
+
 /// Runs configured `cargo metadata` and returns parsed `Metadata`.
+/// this is copy-pasted body of [cargo_metadata::MetadataCommand::exec]
+/// which was needed for more flexibility
 pub fn exec_metadata_command(
     mut command: std::process::Command,
 ) -> cargo_metadata::Result<cargo_metadata::Metadata> {
@@ -174,8 +172,7 @@ pub fn exec_metadata_command(
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
-    cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
-    completely_remove_target_dir: bool,
+    cargo_target_dir: &buildtime_env::CargoTargetDir,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     tracing::info!(
         target: "near_teach_me",
@@ -186,10 +183,7 @@ fn get_cargo_metadata(
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
     }
-    if let Some(target_dir) = cargo_target_dir {
-        let (key, value) = target_dir.entry();
-        cmd.env(key, value);
-    }
+
     let cmd = cmd.manifest_path(&manifest_path.path);
     tracing::info!(
         target: "near_teach_me",
@@ -199,9 +193,8 @@ fn get_cargo_metadata(
     );
     let mut std_process_command = cmd.cargo_command();
 
-    if completely_remove_target_dir {
-        std_process_command.env_remove(crate::env_keys::CARGO_TARGET_DIR);
-    }
+    cargo_target_dir.into_std_command(&mut std_process_command);
+
     let metadata = exec_metadata_command(std_process_command);
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {

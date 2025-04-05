@@ -25,8 +25,7 @@ use super::abi;
 
 pub fn get_crate_metadata(
     args: &Opts,
-    override_cargo_target_path_env: &Option<buildtime_env::CargoTargetDir>,
-    completely_remove_target_dir: bool,
+    override_cargo_target_path_env: &buildtime_env::CargoTargetDir,
 ) -> eyre::Result<CrateMetadata> {
     let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path.clone() {
         manifest_path
@@ -37,15 +36,14 @@ pub fn get_crate_metadata(
     CrateMetadata::collect(
         manifest_path,
         args.no_locked,
-        override_cargo_target_path_env.as_ref(),
-        completely_remove_target_dir,
+        override_cargo_target_path_env,
     )
 }
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
     let override_cargo_target_path_env =
-        buildtime_env::CargoTargetDir::maybe_new(args.override_cargo_target_dir.clone());
+        buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
@@ -58,7 +56,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     })?;
 
     let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
-        get_crate_metadata(&args, &override_cargo_target_path_env, false)
+        get_crate_metadata(&args, &override_cargo_target_path_env)
     })?;
 
     // addition of this check wasn't a change in logic, as previously output path was
