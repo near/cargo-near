@@ -532,6 +532,7 @@ dependencies = [
  "near-abi",
  "near-verify-rs",
  "pathdiff",
+ "regex",
  "rustc_version",
  "schemars",
  "semver",

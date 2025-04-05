@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use camino::Utf8PathBuf;
-use cargo_metadata::{MetadataCommand, Package};
+use cargo_metadata::{DepKindInfo, MetadataCommand, Package};
 use colored::Colorize;
 use eyre::{ContextCompat, OptionExt, WrapErr};
 
@@ -102,7 +102,7 @@ impl CrateMetadata {
     pub fn find_direct_dependency(
         &self,
         dependency_name: &str,
-    ) -> eyre::Result<Vec<&cargo_metadata::Package>> {
+    ) -> eyre::Result<Vec<(&cargo_metadata::Package, Vec<DepKindInfo>)>> {
         let Some(ref dependency_graph) = self.raw_metadata.resolve else {
             return Err(eyre::eyre!(
                 "crate_metadata.raw_metadata.resolve dependency graph is expected to be set\n\
@@ -148,7 +148,7 @@ impl CrateMetadata {
                     "expected to find a package for package id : {:#?}",
                     dependency_node.pkg
                 ))?;
-            result.push(dependency_package);
+            result.push((dependency_package, dependency_node.dep_kinds.clone()));
         }
         Ok(result)
     }

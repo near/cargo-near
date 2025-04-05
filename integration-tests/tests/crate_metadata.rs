@@ -14,7 +14,7 @@ fn get_locked_package_version(
 
     Ok(packages
         .into_iter()
-        .map(|pkg| pkg.version.clone())
+        .map(|pkg| pkg.0.version.clone())
         .collect())
 }
 

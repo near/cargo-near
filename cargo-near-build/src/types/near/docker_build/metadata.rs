@@ -9,8 +9,8 @@ use crate::types::cargo::metadata::CrateMetadata;
 #[derive(Deserialize, Debug)]
 /// parsed from `[package.metadata.near.reproducible_build]` in Cargo.toml
 pub struct ReproducibleBuild {
-    image: String,
-    image_digest: String,
+    pub image: String,
+    pub image_digest: String,
     pub passed_env: Option<Vec<String>>,
     pub container_build_command: Option<Vec<String>>,
     /// a cloneable git remote url,

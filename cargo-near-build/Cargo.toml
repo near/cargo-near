@@ -36,6 +36,7 @@ wasm-opt = "=0.116.1"
 humantime = "2.1.0"
 indenter = "0.3"
 semver = "1.0.26"
+regex = "1.11.1"
 
 
 [package.metadata.docs.rs]
