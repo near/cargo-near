@@ -17,7 +17,9 @@ lto = "thin"
 [workspace.metadata.dist]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.28.0"
-# CI backends to support
+
+allow-dirty = ["ci"]# CI backends to support
+
 ci = "github"
 # The installers to generate for each app
 installers = ["shell", "powershell", "npm", "msi"]
