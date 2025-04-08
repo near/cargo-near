@@ -85,7 +85,7 @@ mod output_wasm_path {
                         "WARNING".red(),
                         "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected: addition of `output_wasm_path` field to BuildInfo".yellow() // deep orange
                     );
-                println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successfull.".yellow());
+                println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successful.".yellow());
                 println!(
                     "cargo-near(docker image)            : {} >= {}",
                     format!("{}", cargo_near).yellow(),
@@ -111,7 +111,7 @@ mod output_wasm_path {
                         "WARNING".red(),
                         "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected (addition of `output_wasm_path` field to BuildInfo)".yellow() // deep orange
                     );
-                println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successfull.".yellow());
+                println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successful.".yellow());
                 println!(
                     "cargo-near(docker image)            : {} < {}",
                     format!("{}", cargo_near).yellow(),
