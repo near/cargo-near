@@ -1,5 +1,5 @@
 use crate::types::cargo::metadata::CrateMetadata;
-use crate::types::near::abi as abi_types;
+use crate::types::near::{abi as abi_types, OutputPaths};
 
 pub mod generate;
 
@@ -26,7 +26,9 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
         CrateMetadata::collect(manifest_path, args.no_locked, None)
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir)?;
+    let out_dir = crate_metadata
+        .get_legacy_cargo_near_output_path(args.out_dir)?
+        .out_dir;
 
     let format = if args.compact_abi {
         abi_types::Format::JsonMin
@@ -75,11 +77,7 @@ pub fn write_to_file(
         )?,
     };
 
-    let out_path_abi = crate_metadata.target_directory.join(format!(
-        "{}_abi.{}",
-        crate_metadata.formatted_package_name(),
-        abi_types::file_extension(format, compression)
-    ));
+    let out_path_abi = OutputPaths::intermediate_abi_file(crate_metadata, format, compression);
 
     // this prevents doing `touch target/near/{contract_crate_name}_abi.zst` and similar
     // and doing a partial project's rebuild during 2nd phase of build (into wasm)

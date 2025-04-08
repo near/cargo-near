@@ -38,7 +38,7 @@ pub enum Compression {
     Zstd,
 }
 
-pub(crate) fn file_extension(format: Format, compression: Compression) -> &'static str {
+pub(super) fn file_extension(format: Format, compression: Compression) -> &'static str {
     match compression {
         Compression::NoOp => match format {
             Format::Json | Format::JsonMin => "json",

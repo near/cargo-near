@@ -29,7 +29,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let override_cargo_target_path_env =
         buildtime_env::CargoTargetDir::maybe_new(args.override_cargo_target_dir.clone());
 
-    env_keys::nep330::print_env();
+    env_keys::print_nep330_env();
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
@@ -55,7 +55,15 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         )
     })?;
 
-    let out_dir = crate_metadata.resolve_output_dir(args.out_dir.clone())?;
+    // addition of this check wasn't a change in logic, as previously output path was
+    // assumed without `--out-dir` too, so docker-build was just failing if the arg was supplied:
+    // https://github.com/near/cargo-near/blob/075d7b6dc9ab1f5c199edb6931512ccaf5af848e/cargo-near-build/src/types/near/docker_build/cloned_repo.rs#L100
+    if env_keys::is_inside_docker_context() && args.out_dir.is_some() {
+        return Err(eyre::eyre!("inside docker build `--out-dir` is forbidden to be used in order to predict build output path in a straightforward way"));
+    }
+    // NOTE important!: the way the output path for wasm is resolved now cannot change,
+    // see more detail on [CrateMetadata::get_legacy_cargo_near_output_path]
+    let output_paths = crate_metadata.get_legacy_cargo_near_output_path(args.out_dir.clone())?;
 
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
     let cargo_feature_args = {
@@ -128,7 +136,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 )?;
                 Ok(path)
             })?;
-            min_abi_path.replace(crate::fs::copy(&path, &out_dir)?);
+            min_abi_path.replace(crate::fs::copy(&path, &output_paths.out_dir)?);
         }
         abi = Some(contract_abi);
     }
@@ -165,7 +173,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
-        let target_path = out_dir.join(prev_artifact_path.file_name().expect("has filename"));
+        let target_path = output_paths.wasm_file;
 
         // target file does not yet exist `!target_path.is_file()` condition is implied by
         // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
@@ -202,7 +210,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             abi_types::Format::Json,
             abi_types::Compression::NoOp,
         )?;
-        let pretty_abi_path = crate::fs::copy(&path, &out_dir)?;
+        let pretty_abi_path = crate::fs::copy(&path, &output_paths.out_dir)?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {

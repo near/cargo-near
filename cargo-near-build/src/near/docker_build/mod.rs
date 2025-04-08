@@ -1,18 +1,16 @@
-use std::process::{Command, ExitStatus};
-
 use colored::Colorize;
+use near_verify_rs::logic::docker_checks;
 
 use crate::docker::DockerBuildOpts;
+use crate::pretty_print;
 use crate::types::near::build::input::BuildContext;
 use crate::types::near::build::output::CompilationArtifact;
+use crate::types::near::docker_build::subprocess::nep330_build_info::BuildInfoMixed;
 use crate::types::near::docker_build::{cloned_repo, crate_in_repo, metadata};
-use crate::{env_keys, pretty_print};
 
-pub mod docker_checks;
 pub mod git_checks;
-pub mod subprocess_step;
 
-pub const ERR_REPRODUCIBLE: &str = "Reproducible build in docker container failed.";
+const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 
 pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     let color = opts.color.unwrap_or(crate::ColorPreference::Auto);
@@ -42,6 +40,12 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         ),
         || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
     )?;
+    let contract_source_metadata = {
+        let local_crate_info = BuildInfoMixed::new(&opts, &docker_build_meta, &cloned_repo)?;
+        near_verify_rs::types::contract_source_metadata::ContractSourceMetadata::from(
+            local_crate_info,
+        )
+    };
 
     if let BuildContext::Deploy {
         skip_git_remote_check,
@@ -67,36 +71,30 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
             )?;
         }
     }
-    if std::env::var(env_keys::nep330::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
+    if std::env::var(near_verify_rs::env_keys::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
         pretty_print::handle_step("Performing `docker` sanity check...", || {
-            docker_checks::sanity_check()
+            docker_checks::sanity::check()
         })?;
 
         pretty_print::handle_step("Checking that specified image is available...", || {
-            docker_checks::pull_image(&docker_build_meta)
+            let docker_image = docker_build_meta.concat_image();
+            docker_checks::pull_image::check(&docker_image)
         })?;
     }
 
     pretty_print::step("Running build in docker command step...");
     let out_dir_arg = opts.out_dir.clone();
-    let (status, docker_cmd) = subprocess_step::run(opts, docker_build_meta, &cloned_repo)?;
 
-    handle_docker_run_status(status, docker_cmd, cloned_repo, out_dir_arg)
+    contract_source_metadata.validate(None)?;
+    let docker_build_out_wasm = near_verify_rs::logic::nep330_build::run(
+        contract_source_metadata,
+        cloned_repo.contract_source_workdir()?,
+        additional_docker_args(),
+    )?;
+
+    cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)
 }
 
-fn handle_docker_run_status(
-    status: ExitStatus,
-    command: Command,
-    cloned_repo: cloned_repo::ClonedRepo,
-    out_dir_arg: Option<camino::Utf8PathBuf>,
-) -> eyre::Result<CompilationArtifact> {
-    if status.success() {
-        pretty_print::success("Running docker command step (finished)");
-        pretty_print::handle_step("Copying artifact from temporary build site...", || {
-            cloned_repo.copy_artifact(out_dir_arg)
-        })
-    } else {
-        docker_checks::print_command_status(status, command);
-        Err(eyre::eyre!(ERR_REPRODUCIBLE))
-    }
+fn additional_docker_args() -> Vec<String> {
+    vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()]
 }

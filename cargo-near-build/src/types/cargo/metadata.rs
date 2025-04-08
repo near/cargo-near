@@ -7,6 +7,7 @@ use eyre::{ContextCompat, OptionExt, WrapErr};
 
 use crate::pretty_print;
 use crate::types::near::build::buildtime_env;
+use crate::types::near::OutputPaths;
 
 use super::manifest_path::ManifestPath;
 
@@ -59,7 +60,7 @@ impl CrateMetadata {
         Ok(crate_metadata)
     }
 
-    pub fn resolve_output_dir(
+    pub(in crate::types) fn resolve_output_dir(
         &self,
         cli_override: Option<Utf8PathBuf>,
     ) -> eyre::Result<Utf8PathBuf> {
@@ -78,6 +79,17 @@ impl CrateMetadata {
 
     pub fn formatted_package_name(&self) -> String {
         self.root_package.name.replace('-', "_")
+    }
+    /// NOTE important!: the way the output path for wasm file is resolved now cannot change,
+    /// as the implementation in contracts' verification will continue to compute output path
+    /// according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
+    ///
+    /// and implementation of initial docker build also assumes the same destination
+    pub fn get_legacy_cargo_near_output_path(
+        &self,
+        cli_override: Option<Utf8PathBuf>,
+    ) -> eyre::Result<OutputPaths> {
+        OutputPaths::new(self, cli_override)
     }
 
     pub fn find_direct_dependency(

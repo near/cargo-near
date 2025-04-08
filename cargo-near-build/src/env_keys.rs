@@ -27,12 +27,9 @@ pub(crate) const CARGO_NEAR_ABI_PATH: &str = "CARGO_NEAR_ABI_PATH";
 pub(crate) const CARGO_NEAR_VERSION: &str = "CARGO_NEAR_VERSION";
 pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
 
-/// module contains variables, which are set to configure build with WASM reproducibility,
-/// which correspond to some fields of `ContractSourceMetadata` in <https://github.com/near/NEPs/blob/master/neps/nep-0330.md>
-pub mod nep330 {
-    use crate::pretty_print;
-    use std::collections::HashMap;
+use std::collections::HashMap;
 
+pub mod nep330 {
     // ====================== NEP-330 1.2.0 - Build Details Extension ===========
     /// NEP-330 1.2.0
     pub const BUILD_ENVIRONMENT: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
@@ -49,23 +46,26 @@ pub mod nep330 {
     pub const LINK: &str = "NEP330_LINK";
     /// NEP-330 1.1.0
     pub const VERSION: &str = "NEP330_VERSION";
-    // ====================== End section =======================================
-    #[cfg(feature = "docker")]
-    pub(crate) mod nonspec {
-        pub const SERVER_DISABLE_INTERACTIVE: &str = "CARGO_NEAR_SERVER_BUILD_DISABLE_INTERACTIVE";
-    }
+}
 
-    pub(crate) fn print_env() {
-        let mut env_map: HashMap<&str, String> = HashMap::new();
-        for key in [BUILD_ENVIRONMENT, CONTRACT_PATH, SOURCE_CODE_SNAPSHOT] {
-            let value = std::env::var(key).unwrap_or("unset".to_string());
-            env_map.insert(key, value);
-        }
-        tracing::info!(
-            target: "near_teach_me",
-            parent: &tracing::Span::none(),
-            "Variables, relevant for reproducible builds:\n{}",
-            pretty_print::indent_payload(&format!("{:#?}", env_map))
-        );
+pub fn is_inside_docker_context() -> bool {
+    std::env::var(nep330::BUILD_ENVIRONMENT).is_ok()
+}
+
+pub fn print_nep330_env() {
+    let mut env_map: HashMap<&str, String> = HashMap::new();
+    for key in [
+        nep330::BUILD_ENVIRONMENT,
+        nep330::CONTRACT_PATH,
+        nep330::SOURCE_CODE_SNAPSHOT,
+    ] {
+        let value = std::env::var(key).unwrap_or("unset".to_string());
+        env_map.insert(key, value);
     }
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Variables, relevant for reproducible builds:\n{}",
+        crate::pretty_print::indent_payload(&format!("{:#?}", env_map))
+    );
 }

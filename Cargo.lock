@@ -530,14 +530,13 @@ dependencies = [
  "indenter",
  "libloading",
  "near-abi",
- "nix",
+ "near-verify-rs",
  "pathdiff",
  "rustc_version",
  "schemars",
  "serde",
  "serde_json",
  "sha2 0.10.8",
- "shell-words",
  "symbolic-debuginfo",
  "tempfile",
  "tracing",
@@ -759,7 +758,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2420,7 +2419,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -3048,6 +3047,31 @@ dependencies = [
  "borsh",
  "interactive-clap",
  "serde",
+]
+
+[[package]]
+name = "near-verify-rs"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "493aed798fecece7a9ad24317b3562b95afc2bebfd79328d6c3f96bbd416bc3d"
+dependencies = [
+ "bs58 0.5.1",
+ "camino",
+ "cargo_metadata",
+ "colored",
+ "dunce",
+ "eyre",
+ "hex",
+ "indenter",
+ "nix",
+ "regex",
+ "serde",
+ "sha2 0.10.8",
+ "shell-words",
+ "tracing",
+ "unix_path",
+ "unix_str",
+ "url",
 ]
 
 [[package]]
@@ -5447,7 +5471,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
