@@ -138,14 +138,11 @@ pub fn suggest_cargo_near_build_checks(
     crate_metadata: &CrateMetadata,
     reproducible_build: &ReproducibleBuild,
 ) {
-    let cargo_near_version = find_cargo_near_in_docker_img_tag(reproducible_build);
-    let build_script_cargo_version = find_cargo_near_build_build_dep(crate_metadata);
+    let cargo_near = find_cargo_near_in_docker_img_tag(reproducible_build);
+    let build_script = find_cargo_near_build_build_dep(crate_metadata);
 
-    match (cargo_near_version, build_script_cargo_version) {
-        (Some(cargo_near), Some(build_script)) => {
-            output_wasm_path::versions_check(cargo_near, build_script);
-        }
-        _ => {}
+    if let (Some(cargo_near), Some(build_script)) = (cargo_near, build_script) {
+        output_wasm_path::versions_check(cargo_near, build_script);
     }
 }
 
@@ -156,32 +153,24 @@ fn find_cargo_near_in_docker_img_tag(
     reproducible_build: &ReproducibleBuild,
 ) -> Option<semver::Version> {
     let regex = regex::Regex::new(DOCKER_IMAGE_REGEX_PATTERN).expect("no error");
-    let image = regex
+    let image_match = regex
         .captures(&reproducible_build.image)
-        .and_then(|captures| captures.name("image"));
+        .and_then(|captures| captures.name("image"))?;
 
-    let Some(image_match) = image else {
-        return None;
-    };
     if image_match.as_str() != PROD_IMAGE && image_match.as_str() != DEV_IMAGE {
         return None;
     }
 
-    let tag = regex
+    let tag_match = regex
         .captures(&reproducible_build.image)
-        .and_then(|captures| captures.name("tag"));
-
-    let Some(tag_match) = tag else { return None };
+        .and_then(|captures| captures.name("tag"))?;
 
     let regex2 = regex::Regex::new(SOURCE_SCAN_TAG_PATTERN).expect("no error");
-    let cargo_near_version = regex2
+    let cargo_near_version_match = regex2
         .captures(tag_match.as_str())
-        .and_then(|captures| captures.get(1));
+        .and_then(|captures| captures.get(1))?;
 
-    let Some(cargo_near_semver_match) = cargo_near_version else {
-        return None;
-    };
-    semver::Version::from_str(cargo_near_semver_match.as_str()).ok()
+    semver::Version::from_str(cargo_near_version_match.as_str()).ok()
 }
 
 fn find_cargo_near_build_build_dep(crate_metadata: &CrateMetadata) -> Option<semver::Version> {
@@ -191,9 +180,8 @@ fn find_cargo_near_build_build_dep(crate_metadata: &CrateMetadata) -> Option<sem
                 .into_iter()
                 .find(|(_package, dep_kinds)| {
                     dep_kinds
-                        .into_iter()
-                        .find(|dep_kind_info| dep_kind_info.kind == DependencyKind::Build)
-                        .is_some()
+                        .iter()
+                        .any(|dep_kind_info| dep_kind_info.kind == DependencyKind::Build)
                 })
                 .map(|(package, _dep_kinds)| package);
 
