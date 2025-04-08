@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.5.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.5...cargo-near-build-v0.5.0) - 2025-04-08
+## [0.4.6](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.5...cargo-near-build-v0.4.6) - 2025-04-08
 
 ### Added
 
