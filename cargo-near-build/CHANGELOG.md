@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.5...cargo-near-build-v0.5.0) - 2025-04-08
+
+### Added
+
+- extract `near-verify-rs` dependency ([#320](https://github.com/near/cargo-near/pull/320))
+
 ## [0.4.5](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.4...cargo-near-build-v0.4.5) - 2025-03-20
 
 ### Other
