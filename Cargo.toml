@@ -17,6 +17,7 @@ lto = "thin"
 [workspace.metadata.dist]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.28.0"
+allow-dirty = ["ci"]
 # A prefix git tags must include for dist to care about them
 tag-namespace = "cargo-near-v"
 # CI backends to support
@@ -46,6 +47,7 @@ install-updater = false
 
 [workspace.metadata.dist.github-custom-runners]
 aarch64-unknown-linux-gnu = "ubuntu-24.04-arm"
+x86_64-unknown-linux-gnu = "ubuntu-22.04"
 
 [workspace.metadata.dist.dependencies.apt]
 libudev-dev = { version = "*", targets = [
