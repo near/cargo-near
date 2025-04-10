@@ -1,7 +1,7 @@
 use crate::{env_keys, types::cargo::metadata::CrateMetadata};
 
 pub struct Nep330Link {
-    link: Option<String>,
+    pub link: Option<String>,
 }
 
 impl Nep330Link {

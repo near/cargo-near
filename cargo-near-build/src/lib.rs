@@ -125,6 +125,8 @@ pub mod docker {
 
 #[cfg(feature = "test_code")]
 pub use crate::types::cargo::metadata::CrateMetadata;
+#[cfg(feature = "test_code")]
+pub use crate::types::near::build::buildtime_env::CargoTargetDir;
 
 pub use bon;
 pub use camino;

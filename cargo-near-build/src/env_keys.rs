@@ -31,6 +31,8 @@ use std::collections::HashMap;
 
 pub mod nep330 {
     // ====================== NEP-330 1.2.0 - Build Details Extension ===========
+    /// NEP-330 1.3.0
+    pub const OUTPUT_WASM_PATH: &str = "NEP330_BUILD_INFO_OUTPUT_WASM_PATH";
     /// NEP-330 1.2.0
     pub const BUILD_ENVIRONMENT: &str = "NEP330_BUILD_INFO_BUILD_ENVIRONMENT";
     /// NEP-330 1.2.0
@@ -58,6 +60,7 @@ pub fn print_nep330_env() {
         nep330::BUILD_ENVIRONMENT,
         nep330::CONTRACT_PATH,
         nep330::SOURCE_CODE_SNAPSHOT,
+        nep330::LINK,
     ] {
         let value = std::env::var(key).unwrap_or("unset".to_string());
         env_map.insert(key, value);

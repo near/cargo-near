@@ -12,7 +12,9 @@ pub mod docker_build;
 pub const EXPECTED_WASM_EXTENSION: &str = "wasm";
 
 pub struct OutputPaths {
+    /// is always an absolute canonicalized path
     pub out_dir: Utf8PathBuf,
+    /// is always an absolute canonicalized path
     pub wasm_file: Utf8PathBuf,
 }
 

@@ -93,6 +93,7 @@ impl From<BuildInfoMixed>
                 build_environment: value.build_environment,
                 source_code_snapshot: value.source_code_snapshot.as_url().to_string(),
                 contract_path: value.contract_path,
+                output_wasm_path: None,
             }),
         }
     }
