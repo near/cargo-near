@@ -25,7 +25,7 @@ async fn test_docker_build() -> Result<(), Box<dyn std::error::Error>> {
         .context(cargo_near_build::BuildContext::Build)
         .build();
 
-    let artifact = cargo_near_build::docker::build(opts)?;
+    let artifact = cargo_near_build::docker::build(opts, false)?;
 
     let contract_wasm = std::fs::read(artifact.path)?;
 

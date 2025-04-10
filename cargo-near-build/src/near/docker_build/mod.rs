@@ -13,7 +13,7 @@ pub mod warn_versions_upgrades;
 
 const RUST_LOG_EXPORT: &str = "RUST_LOG=info";
 
-pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
+pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifact> {
     let color = opts.color.unwrap_or(crate::ColorPreference::Auto);
     color.apply();
     let crate_in_repo = pretty_print::handle_step(
@@ -79,12 +79,12 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
     }
     if std::env::var(near_verify_rs::env_keys::nonspec::SERVER_DISABLE_INTERACTIVE).is_err() {
         pretty_print::handle_step("Performing `docker` sanity check...", || {
-            docker_checks::sanity::check()
+            docker_checks::sanity::check(quiet)
         })?;
 
         pretty_print::handle_step("Checking that specified image is available...", || {
             let docker_image = docker_build_meta.concat_image();
-            docker_checks::pull_image::check(&docker_image)
+            docker_checks::pull_image::check(&docker_image, quiet)
         })?;
     }
 
@@ -96,6 +96,7 @@ pub fn run(opts: DockerBuildOpts) -> eyre::Result<CompilationArtifact> {
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),
+        quiet,
     )?;
 
     cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)

@@ -100,5 +100,5 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
 
 pub fn run(opts: BuildOpts, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
     let docker_opts = docker_opts_from((opts, context));
-    cargo_near_build::docker::build(docker_opts)
+    cargo_near_build::docker::build(docker_opts, false)
 }
