@@ -3053,8 +3053,9 @@ dependencies = [
 
 [[package]]
 name = "near-verify-rs"
-version = "0.1.0"
-source = "git+https://github.com/dj8yfo/near-verify-rs.git?rev=bb59fd9fe474697a98fca34bca7c9651ae40e9b4#bb59fd9fe474697a98fca34bca7c9651ae40e9b4"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9972223eb20e83596883c618ba974eecad30034190bd28e75409a970a89e7443"
 dependencies = [
  "bs58 0.5.1",
  "camino",
