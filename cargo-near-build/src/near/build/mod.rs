@@ -142,7 +142,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 )?;
                 Ok(path)
             })?;
-            min_abi_path.replace(crate::fs::copy(&path, &output_paths.get_out_dir())?);
+            min_abi_path.replace(crate::fs::copy(&path, output_paths.get_out_dir())?);
         }
         abi = Some(contract_abi);
     }
@@ -216,7 +216,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             abi_types::Format::Json,
             abi_types::Compression::NoOp,
         )?;
-        let pretty_abi_path = crate::fs::copy(&path, &output_paths.get_out_dir())?;
+        let pretty_abi_path = crate::fs::copy(&path, output_paths.get_out_dir())?;
         messages.push_free(("ABI", pretty_abi_path.to_string().yellow().bold()));
     }
     if let Some(abi_path) = min_abi_path {

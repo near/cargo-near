@@ -58,7 +58,7 @@ pub(crate) fn skip_or_compile(
             let metadata =
                 get_crate_metadata(&build_opts, &buildtime_env::CargoTargetDir::UnsetExternal)?;
             let output_paths = metadata.get_legacy_cargo_near_output_path(None)?;
-            build_opts.override_output_wasm_path = Some(output_paths.wasm_file.to_string());
+            build_opts.override_output_wasm_path = Some(output_paths.get_wasm_file().to_string());
         }
         let artifact = crate::build(build_opts)?;
         (artifact, false)
