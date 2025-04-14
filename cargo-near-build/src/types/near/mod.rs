@@ -12,8 +12,8 @@ pub mod docker_build;
 pub const EXPECTED_WASM_EXTENSION: &str = "wasm";
 
 pub struct OutputPaths {
-    pub out_dir: Utf8PathBuf,
-    pub wasm_file: Utf8PathBuf,
+    out_dir: Utf8PathBuf,
+    wasm_file: Utf8PathBuf,
 }
 
 impl OutputPaths {
@@ -24,11 +24,24 @@ impl OutputPaths {
         let out_dir = crate_metadata.resolve_output_dir(cli_override)?;
 
         let filename = Self::wasm_filename(crate_metadata);
-        let result = Self {
-            out_dir: out_dir.clone(),
-            wasm_file: out_dir.join(filename),
-        };
+        let wasm_file = out_dir.join(filename);
+        assert!(
+            out_dir.is_absolute(),
+            "{out_dir} expected to be an absolute path"
+        );
+        assert!(
+            wasm_file.is_absolute(),
+            "{wasm_file} expected to be an absolute path"
+        );
+        let result = Self { out_dir, wasm_file };
+
         Ok(result)
+    }
+    pub fn get_wasm_file(&self) -> &Utf8PathBuf {
+        &self.wasm_file
+    }
+    pub fn get_out_dir(&self) -> &Utf8PathBuf {
+        &self.out_dir
     }
 
     fn wasm_filename(crate_metadata: &CrateMetadata) -> String {

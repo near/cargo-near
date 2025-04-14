@@ -15,12 +15,15 @@ const DEPRECATE_SINGLE_COLON_SINCE: Version = Version::new(1, 77, 0);
 
 mod build_script;
 
+use crate::types::near::build::buildtime_env;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build_extended::OptsExtended;
 use crate::BuildOpts;
 use rustc_version::Version;
 
 use crate::extended::BuildScriptOpts;
+
+use super::build::get_crate_metadata;
 
 pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error::Error>> {
     let actual_version = rustc_version::version()?;
@@ -43,7 +46,7 @@ pub fn run(args: OptsExtended) -> Result<CompilationArtifact, Box<dyn std::error
 }
 
 pub(crate) fn skip_or_compile(
-    build_opts: BuildOpts,
+    mut build_opts: BuildOpts,
     build_script_opts: &BuildScriptOpts,
     version: &Version,
 ) -> Result<(CompilationArtifact, bool), Box<dyn std::error::Error>> {
@@ -51,6 +54,12 @@ pub(crate) fn skip_or_compile(
         let artifact = build_script_opts.create_empty_stub()?;
         (artifact, true)
     } else {
+        if build_opts.override_cargo_target_dir.is_some() {
+            let metadata =
+                get_crate_metadata(&build_opts, &buildtime_env::CargoTargetDir::UnsetExternal)?;
+            let output_paths = metadata.get_legacy_cargo_near_output_path(None)?;
+            build_opts.override_output_wasm_path = Some(output_paths.get_wasm_file().to_string());
+        }
         let artifact = crate::build(build_opts)?;
         (artifact, false)
     };

@@ -24,7 +24,7 @@ zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
 bon = "2.3.0"
-near-verify-rs = { version = "0.1.0", optional = true }
+near-verify-rs = { version = "0.2.1", optional = true }
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }
@@ -35,6 +35,8 @@ tempfile = { version = "3.10.1" }
 wasm-opt = "=0.116.1"
 humantime = "2.1.0"
 indenter = "0.3"
+semver = "1.0.26"
+regex = "1.11.1"
 
 
 [package.metadata.docs.rs]

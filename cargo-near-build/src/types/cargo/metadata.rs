@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use camino::Utf8PathBuf;
-use cargo_metadata::{MetadataCommand, Package};
+use cargo_metadata::{DepKindInfo, MetadataCommand, Package};
 use colored::Colorize;
 use eyre::{ContextCompat, OptionExt, WrapErr};
 
@@ -25,7 +25,7 @@ impl CrateMetadata {
     pub fn collect(
         manifest_path: ManifestPath,
         no_locked: bool,
-        cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
+        cargo_target_dir: &buildtime_env::CargoTargetDir,
     ) -> eyre::Result<Self> {
         let (metadata, root_package) = {
             let (mut metadata, root_package) =
@@ -74,6 +74,10 @@ impl CrateMetadata {
             parent: &tracing::Span::none(),
             "Resolved output directory: {}", result
         );
+        assert!(
+            result.is_absolute(),
+            "{result} expected to be an absolute path"
+        );
         Ok(result)
     }
 
@@ -95,7 +99,7 @@ impl CrateMetadata {
     pub fn find_direct_dependency(
         &self,
         dependency_name: &str,
-    ) -> eyre::Result<Vec<&cargo_metadata::Package>> {
+    ) -> eyre::Result<Vec<(&cargo_metadata::Package, Vec<DepKindInfo>)>> {
         let Some(ref dependency_graph) = self.raw_metadata.resolve else {
             return Err(eyre::eyre!(
                 "crate_metadata.raw_metadata.resolve dependency graph is expected to be set\n\
@@ -141,17 +145,36 @@ impl CrateMetadata {
                     "expected to find a package for package id : {:#?}",
                     dependency_node.pkg
                 ))?;
-            result.push(dependency_package);
+            result.push((dependency_package, dependency_node.dep_kinds.clone()));
         }
         Ok(result)
     }
+}
+
+/// Runs configured `cargo metadata` and returns parsed `Metadata`.
+/// this is copy-pasted body of [cargo_metadata::MetadataCommand::exec]
+/// which was needed for more flexibility
+pub fn exec_metadata_command(
+    mut command: std::process::Command,
+) -> cargo_metadata::Result<cargo_metadata::Metadata> {
+    let output = command.output()?;
+    if !output.status.success() {
+        return Err(cargo_metadata::Error::CargoMetadata {
+            stderr: String::from_utf8(output.stderr)?,
+        });
+    }
+    let stdout = std::str::from_utf8(&output.stdout)?
+        .lines()
+        .find(|line| line.starts_with('{'))
+        .ok_or(cargo_metadata::Error::NoJson)?;
+    cargo_metadata::MetadataCommand::parse(stdout)
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
-    cargo_target_dir: Option<&buildtime_env::CargoTargetDir>,
+    cargo_target_dir: &buildtime_env::CargoTargetDir,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     tracing::info!(
         target: "near_teach_me",
@@ -162,10 +185,7 @@ fn get_cargo_metadata(
     if !no_locked {
         cmd.other_options(["--locked".to_string()]);
     }
-    if let Some(target_dir) = cargo_target_dir {
-        let (key, value) = target_dir.entry();
-        cmd.env(key, value);
-    }
+
     let cmd = cmd.manifest_path(&manifest_path.path);
     tracing::info!(
         target: "near_teach_me",
@@ -173,7 +193,11 @@ fn get_cargo_metadata(
         "Command execution:\n{}",
         pretty_print::indent_payload(&format!("{:#?}", cmd.cargo_command()))
     );
-    let metadata = cmd.exec();
+    let mut std_process_command = cmd.cargo_command();
+
+    cargo_target_dir.into_std_command(&mut std_process_command);
+
+    let metadata = exec_metadata_command(std_process_command);
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {
             println!(
