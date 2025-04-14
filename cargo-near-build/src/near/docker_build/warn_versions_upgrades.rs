@@ -35,7 +35,7 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
                 } else if package.0.version < NEP330_1_3_0_CUTOFF {
                     println!(
                         "{}: {} {} {}",
-                        "INFO".red(),
+                        "INFO".truecolor(220, 77, 1),
                         "a".yellow(),
                         "near-sdk".cyan(),
                         "package version has been detected, which doesn't support latest reproducible builds NEP330 1.3.0 extension".yellow()
@@ -82,11 +82,11 @@ mod output_wasm_path {
     const CARGO_NEAR_BUILD_MIN: semver::Version = semver::Version::new(0, 5, 0);
     const CARGO_NEAR_MIN: semver::Version = semver::Version::new(0, 14, 0);
 
-    pub fn versions_check(cargo_near: semver::Version, build_script: semver::Version) {
+    pub fn version_check(cargo_near: semver::Version) {
         if cargo_near < CARGO_NEAR_MIN {
             println!(
                         "{}: {} {} {}",
-                        "INFO".red(),
+                        "INFO".truecolor(220, 77, 1),
                         "a".yellow(),
                         "[package.metadata.near.reproducible_build.image]".cyan(),
                         "docker image has been detected, which doesn't support latest reproducible builds NEP330 1.3.0 extension".yellow()
@@ -98,15 +98,21 @@ mod output_wasm_path {
             );
             println!(
                 "{} {}",
-                "An upgrade recommended up to".yellow(),
-                "sourcescan/cargo-near:0.14.0-rust-1.86.0".cyan()
+                "An upgrade of docker image is recommended up to".yellow(),
+                format!("{}", CARGO_NEAR_MIN).cyan()
             );
             println!(
                     "{}",
                     "docker image upgrade is optional. Build is verifiable for WASM reproducibility without it.".cyan(),
                 );
+            println!();
             std::thread::sleep(Duration::new(2, 0));
         }
+    }
+    pub fn with_buildscript_versions_check(
+        cargo_near: semver::Version,
+        build_script: semver::Version,
+    ) {
         match (
             cargo_near >= CARGO_NEAR_MIN,
             build_script >= CARGO_NEAR_BUILD_MIN,
@@ -175,8 +181,12 @@ pub fn suggest_cargo_near_build_checks(
     let cargo_near = find_cargo_near_in_docker_img_tag(reproducible_build);
     let build_script = find_cargo_near_build_build_dep(crate_metadata);
 
+    if let Some(cargo_near) = cargo_near.clone() {
+        output_wasm_path::version_check(cargo_near);
+    }
+
     if let (Some(cargo_near), Some(build_script)) = (cargo_near, build_script) {
-        output_wasm_path::versions_check(cargo_near, build_script);
+        output_wasm_path::with_buildscript_versions_check(cargo_near, build_script);
     }
 }
 
