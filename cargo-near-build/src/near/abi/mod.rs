@@ -31,7 +31,8 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
 
     let out_dir = crate_metadata
         .get_legacy_cargo_near_output_path(args.out_dir)?
-        .out_dir;
+        .get_out_dir()
+        .clone();
 
     let format = if args.compact_abi {
         abi_types::Format::JsonMin
