@@ -8,8 +8,7 @@ use std::{str::FromStr, time::Duration};
 
 const MIN_CUTOFF: semver::Version = semver::Version::new(5, 2, 0);
 
-// TODO #A: update to 5.12.0 after near-sdk-rs   pr release
-const NEP330_1_3_0_CUTOFF: semver::Version = semver::Version::new(5, 11, 0);
+const NEP330_1_3_0_CUTOFF: semver::Version = semver::Version::new(5, 12, 0);
 
 pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
     match crate_metadata.find_direct_dependency("near_sdk") {
@@ -35,10 +34,13 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
                     println!();
                 } else if package.0.version < NEP330_1_3_0_CUTOFF {
                     println!(
-                        "{}: {}",
-                        "WARNING".red(),
-                        "a `near-sdk` package version has been detected, which doesn't support latest reproducible builds NEP330 1.3.0 extension".yellow() // deep orange
+                        "{}: {} {} {}",
+                        "INFO".red(),
+                        "a".yellow(),
+                        "near-sdk".cyan(),
+                        "package version has been detected, which doesn't support latest reproducible builds NEP330 1.3.0 extension".yellow()
                     );
+
                     println!(
                         "{} < {}",
                         format!("{}", package.0.version).yellow(),
@@ -49,6 +51,10 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
                         "An upgrade recommended up to".yellow(),
                         format!("{}", NEP330_1_3_0_CUTOFF).cyan()
                     );
+                    println!(
+                        "{}",
+                        "`near-sdk` upgrade is optional. Build is verifiable for WASM reproducibility without it.".cyan(),
+                    );
                     std::thread::sleep(Duration::new(2, 0));
                     println!();
                 }
@@ -57,7 +63,10 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
         Err(err) => {
             // we cannot return this error, as this warning is only a recommendation,
             // and isn't a showstopper
-            println!("Encountered error when querying `near-sdk` dependency version");
+            println!(
+                "{}",
+                "Encountered error when querying `near-sdk` dependency version".red()
+            );
             println!("{}", err);
         }
     }
@@ -69,10 +78,35 @@ pub const SOURCE_SCAN_TAG_PATTERN: &str = r#"^((?P<MAJOR>0|(?:[1-9]\d*))\.(?P<MI
 mod output_wasm_path {
     use colored::Colorize;
     use std::time::Duration;
+
     const CARGO_NEAR_BUILD_MIN: semver::Version = semver::Version::new(0, 5, 0);
     const CARGO_NEAR_MIN: semver::Version = semver::Version::new(0, 14, 0);
 
     pub fn versions_check(cargo_near: semver::Version, build_script: semver::Version) {
+        if cargo_near < CARGO_NEAR_MIN {
+            println!(
+                        "{}: {} {} {}",
+                        "INFO".red(),
+                        "a".yellow(),
+                        "[package.metadata.near.reproducible_build.image]".cyan(),
+                        "docker image has been detected, which doesn't support latest reproducible builds NEP330 1.3.0 extension".yellow()
+                    );
+            println!(
+                "{} < {}",
+                format!("{}", cargo_near).yellow(),
+                format!("{}", CARGO_NEAR_MIN).cyan()
+            );
+            println!(
+                "{} {}",
+                "An upgrade recommended up to".yellow(),
+                "sourcescan/cargo-near:0.14.0-rust-1.86.0".cyan()
+            );
+            println!(
+                    "{}",
+                    "docker image upgrade is optional. Build is verifiable for WASM reproducibility without it.".cyan(),
+                );
+            std::thread::sleep(Duration::new(2, 0));
+        }
         match (
             cargo_near >= CARGO_NEAR_MIN,
             build_script >= CARGO_NEAR_BUILD_MIN,
@@ -103,7 +137,7 @@ mod output_wasm_path {
                     format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
                 );
                 println!();
-                std::thread::sleep(Duration::new(2, 0));
+                std::thread::sleep(Duration::new(5, 0));
             }
             (false, true) => {
                 println!(
@@ -128,7 +162,7 @@ mod output_wasm_path {
                     format!("{}", CARGO_NEAR_MIN).cyan()
                 );
                 println!();
-                std::thread::sleep(Duration::new(2, 0));
+                std::thread::sleep(Duration::new(5, 0));
             }
         }
     }
@@ -190,7 +224,10 @@ fn find_cargo_near_build_build_dep(crate_metadata: &CrateMetadata) -> Option<sem
         Err(err) => {
             // we cannot return this error, as this warning is only a recommendation,
             // and isn't a showstopper
-            println!("Encountered error when querying `cargo_near_build` dependency version");
+            println!(
+                "{}",
+                "Encountered error when querying `cargo_near_build` dependency version".red()
+            );
             println!("{}", err);
             None
         }
