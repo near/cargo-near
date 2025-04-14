@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use cargo_near_build::camino;
 
 /// NOTE: `near-sdk` version, published on crates.io
+/// add a comment to trigger next commit event
 pub mod from_crates_io {
     use const_format::formatcp;
 
