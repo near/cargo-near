@@ -24,7 +24,7 @@ zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
 bon = "2.3.0"
-near-verify-rs = { version = "0.2.1", optional = true }
+near-verify-rs = { version = "0.2.1", git = "https://github.com/dj8yfo/near-verify-rs.git", rev = "1c4b967910fe69d9ac9639105c9573f752a3817c", optional = true }
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }
@@ -48,7 +48,6 @@ dist = false
 
 [features]
 default = []
-build_script = []
 abi_build = []
 docker = [
   "dep:near-verify-rs",
