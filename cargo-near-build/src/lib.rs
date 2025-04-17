@@ -1,8 +1,6 @@
 #![allow(clippy::needless_lifetimes)]
 //! ## Crate features
 //!
-//! * **build_script** -
-//!   Adds [extended] module for use in build scripts
 //! * **abi_build** -
 //!   Additional functionality, needed for build of ABI separately
 //! * **docker** -
