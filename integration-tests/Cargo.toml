@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 const_format = "0.2"
 color-eyre = "0.6"
-cargo-near-build = { version = "0.4.6", path = "../cargo-near-build" }
+cargo-near-build = { version = "0.5.0", path = "../cargo-near-build" }
 cargo-near = { path = "../cargo-near" }
 colored = "2.0"
 tracing = "0.1.40"
@@ -18,7 +18,7 @@ syn = "2"
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
 camino = "1.1.1"
 cargo-near = { path = "../cargo-near" }
-cargo-near-build = { version = "0.4.6", path = "../cargo-near-build", features = [
+cargo-near-build = { version = "0.5.0", path = "../cargo-near-build", features = [
     "test_code",
 ] }
 color-eyre = "0.6"
