@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.7](https://github.com/near/cargo-near/compare/cargo-near-v0.13.6...cargo-near-v0.13.7) - 2025-04-17
+
+### Added
+
+- populate `output_wasm_path` into `ContractSourceMetadata` ([#323](https://github.com/near/cargo-near/pull/323))
+
+### Other
+
+- update `cargo near new` template `image` and `image_digest` ([#327](https://github.com/near/cargo-near/pull/327))
+
 ## [0.13.6](https://github.com/near/cargo-near/compare/cargo-near-v0.13.5...cargo-near-v0.13.6) - 2025-04-08
 
 ### Added
