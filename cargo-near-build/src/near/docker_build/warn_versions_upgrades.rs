@@ -56,10 +56,10 @@ mod output_wasm_path {
 
     const CARGO_NEAR_BUILD_MIN: semver::Version = semver::Version::new(0, 5, 0);
     const CARGO_NEAR_MIN: semver::Version = semver::Version::new(0, 14, 0);
-    const NEAD_SDK_MIN: semver::Version = semver::Version::new(5, 12, 0);
+    const NEAR_SDK_MIN: semver::Version = semver::Version::new(5, 12, 0);
 
     pub fn near_sdk_version_check(near_sdk: semver::Version) {
-        if near_sdk < NEAD_SDK_MIN && near_sdk >= super::MIN_SDK_REPRODUCIBLE {
+        if near_sdk < NEAR_SDK_MIN && near_sdk >= super::MIN_SDK_REPRODUCIBLE {
             println!(
                         "{}: {} {} {}",
                         "INFO".truecolor(220, 77, 1),
@@ -71,12 +71,12 @@ mod output_wasm_path {
             println!(
                 "{} < {}",
                 format!("{}", near_sdk).yellow(),
-                format!("{}", NEAD_SDK_MIN).cyan()
+                format!("{}", NEAR_SDK_MIN).cyan()
             );
             println!(
                 "{} {}",
                 "An upgrade recommended up to".yellow(),
-                format!("{}", NEAD_SDK_MIN).cyan()
+                format!("{}", NEAR_SDK_MIN).cyan()
             );
             println!(
                         "{}",
