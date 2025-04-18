@@ -8,7 +8,14 @@ use std::{str::FromStr, time::Duration};
 
 const MIN_SDK_REPRODUCIBLE: semver::Version = semver::Version::new(5, 2, 0);
 
-pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
+pub struct NearSdkFeatureSupport {
+    pub output_wasm_path: bool,
+}
+
+pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) -> NearSdkFeatureSupport {
+    let mut result = NearSdkFeatureSupport {
+        output_wasm_path: false,
+    };
     match crate_metadata.find_direct_dependency("near_sdk") {
         Ok(packages) => {
             for package in packages {
@@ -32,7 +39,11 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
                     std::thread::sleep(Duration::new(10, 0));
                     println!();
                 }
-                output_wasm_path::near_sdk_version_check(near_sdk_version);
+                let support = output_wasm_path::near_sdk_version_check(near_sdk_version);
+
+                if support.0 {
+                    result.output_wasm_path = true;
+                }
             }
         }
         Err(err) => {
@@ -45,6 +56,7 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) {
             println!("{}", err);
         }
     }
+    result
 }
 
 pub const DOCKER_IMAGE_REGEX_PATTERN: &str = r#"^(?P<image>[^:@\s]+?)(?::(?P<tag>[^@\s]+?))?$"#;
@@ -57,8 +69,12 @@ mod output_wasm_path {
     const CARGO_NEAR_BUILD_MIN: semver::Version = semver::Version::new(0, 5, 0);
     const CARGO_NEAR_MIN: semver::Version = semver::Version::new(0, 14, 0);
     const NEAR_SDK_MIN: semver::Version = semver::Version::new(5, 12, 0);
+    pub struct NearSDKSupports(pub bool);
 
-    pub fn near_sdk_version_check(near_sdk: semver::Version) {
+    pub fn near_sdk_version_check(near_sdk: semver::Version) -> NearSDKSupports {
+        if near_sdk >= NEAR_SDK_MIN {
+            return NearSDKSupports(true);
+        }
         if near_sdk < NEAR_SDK_MIN && near_sdk >= super::MIN_SDK_REPRODUCIBLE {
             println!(
                         "{}: {} {} {}",
@@ -85,6 +101,7 @@ mod output_wasm_path {
             std::thread::sleep(Duration::new(2, 0));
             println!();
         }
+        NearSDKSupports(false)
     }
 
     pub fn cargo_near_version_check(cargo_near: semver::Version) {
@@ -128,8 +145,13 @@ mod output_wasm_path {
                 println!(
                         "{}: {}",
                         "WARNING".red(),
-                        "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected: addition of `output_wasm_path` field to BuildInfo".yellow() // deep orange
+                        "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected: ".yellow()
                     );
+                println!(
+                    "{}",
+                    "addition of `output_wasm_path` field to BuildInfo (NEP330 1.3.0 extension)"
+                        .yellow()
+                );
                 println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successful.".yellow());
                 println!(
                     "cargo-near(docker image)            : {} >= {}",
@@ -159,6 +181,7 @@ mod output_wasm_path {
 pub fn suggest_cargo_near_build_checks(
     crate_metadata: &CrateMetadata,
     reproducible_build: &ReproducibleBuild,
+    near_sdk_support: NearSdkFeatureSupport,
 ) {
     let cargo_near = find_cargo_near_in_docker_img_tag(reproducible_build);
     let build_script = find_cargo_near_build_build_dep(crate_metadata);
@@ -167,8 +190,10 @@ pub fn suggest_cargo_near_build_checks(
         output_wasm_path::cargo_near_version_check(cargo_near);
     }
 
-    if let (Some(cargo_near), Some(build_script)) = (cargo_near, build_script) {
-        output_wasm_path::with_buildscript_versions_check(cargo_near, build_script);
+    if near_sdk_support.output_wasm_path {
+        if let (Some(cargo_near), Some(build_script)) = (cargo_near, build_script) {
+            output_wasm_path::with_buildscript_versions_check(cargo_near, build_script);
+        }
     }
 }
 
