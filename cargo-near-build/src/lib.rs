@@ -56,6 +56,18 @@ mod build_exports {
     pub use crate::types::near::build::output::SHA256Checksum;
 }
 pub use build_exports::*;
+/// `[cargo_near_build::extended::build]` functionality has been removed for the time being.
+///
+/// Instead a set of examples how to do a factory build script by running `cargo-near` binary
+/// with [std::process::Command] is presented. This approach saves on compilation time when compared
+/// to removed `[cargo_near_build::extended::build]`.
+///
+/// `cargo-near` became a required binary dependency, which needs to be [added](https://github.com/near/cargo-near?tab=readme-ov-file#installation) to build environment and be available in `PATH`.
+///
+/// - [base example](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script/workspace_root_folder/factory/build.rs#L25-L64)
+/// - [adding command flags](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-build-cmd-flags/workspace_root_folder/factory/build.rs#L44-L46)
+/// - [realizing logic of passed in environment parameters, not present in source code](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-passed-env/workspace_root_folder/factory/build.rs#L26-L37)
+pub mod extended {}
 
 #[cfg(feature = "docker")]
 pub mod docker {
