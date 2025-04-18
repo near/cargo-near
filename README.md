@@ -205,6 +205,11 @@ This forwards to [reproducible-wasm](#reproducible-wasm) variant of `build` comm
 2. has been pushed to remote repository, identified by 
    [`package.repository`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L9).
 
+## Factories
+
+See [`cargo_near_build::extended`](https://docs.rs/cargo-near-build/latest/cargo_near_build/extended/index.html) module documentation on 
+how to write `build.rs` for subcontracts. 
+
 ## Special `cargo` environment variables
 
 Both of the following are mentioned on https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags

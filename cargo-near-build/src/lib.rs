@@ -1,8 +1,6 @@
 #![allow(clippy::needless_lifetimes)]
 //! ## Crate features
 //!
-//! * **build_script** -
-//!   Adds [extended] module for use in build scripts
 //! * **abi_build** -
 //!   Additional functionality, needed for build of ABI separately
 //! * **docker** -
@@ -58,64 +56,18 @@ mod build_exports {
     pub use crate::types::near::build::output::SHA256Checksum;
 }
 pub use build_exports::*;
-
-/// module is available if crate is built with `features = ["build_script"]`.
+/// `[cargo_near_build::extended::build]` functionality has been removed for the time being.
 ///
-/// Contains an extended `build` method used to build contracts, that current crate
-/// depends on, in `build.rs` of current crate
-/// Potential import may look like this:
-/// ```ignore
-/// [build-dependencies.cargo-near-build]
-/// version = "x.y.z"
-/// features = ["build_script"]
-/// ```
+/// Instead a set of examples how to do a factory build script by running `cargo-near` binary
+/// with [std::process::Command] is presented. This approach saves on compilation time when compared
+/// to removed `[cargo_near_build::extended::build]`.
 ///
-/// Usage example:
+/// `cargo-near` became a required binary dependency, which needs to be [added](https://github.com/near/cargo-near?tab=readme-ov-file#installation) to build environment and be available in `PATH`.
 ///
-/// ```no_run
-/// use cargo_near_build::{bon, extended};
-/// use cargo_near_build::BuildOpts;
-/// use std::str::FromStr;
-///
-/// // directory of target sub-contract's crate
-/// let workdir = "../another-contract";
-/// // unix path to target sub-contract's crate from root of the repo
-/// let nep330_contract_path = "another-contract";
-/// let manifest = camino::Utf8PathBuf::from_str(workdir)
-///     .expect("pathbuf from str")
-///     .join("Cargo.toml");
-///
-/// let build_opts = BuildOpts::builder()
-///     .manifest_path(manifest)
-///     .override_nep330_contract_path(nep330_contract_path)
-///     // a distinct target is needed to avoid deadlock during build
-///     .override_cargo_target_dir("../target/build-rs-another-contract")
-///     .build(); // default opts
-///
-/// let build_script_opts = extended::BuildScriptOpts::builder()
-///     .rerun_if_changed_list(bon::vec![workdir, "../Cargo.toml", "../Cargo.lock",])
-///     .build_skipped_when_env_is(vec![
-///         // shorter build for `cargo check`
-///         ("PROFILE", "debug"),
-///         (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
-///     ])
-///     .stub_path("../target/stub.bin")
-///     .result_env_key("BUILD_RS_SUB_BUILD_ARTIFACT_1")
-///     .build();
-///
-/// let extended_opts = extended::BuildOptsExtended::builder()
-///     .build_opts(build_opts)
-///     .build_script_opts(build_script_opts)
-///     .build();
-///
-/// cargo_near_build::extended::build(extended_opts).expect("sub-contract build error");
-/// ```
-#[cfg(feature = "build_script")]
-pub mod extended {
-    pub use crate::near::build_extended::run as build;
-    pub use crate::types::near::build_extended::build_script::{EnvPairs, Opts as BuildScriptOpts};
-    pub use crate::types::near::build_extended::OptsExtended as BuildOptsExtended;
-}
+/// - [base example](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script/workspace_root_folder/factory/build.rs#L25-L64)
+/// - [adding command flags](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-build-cmd-flags/workspace_root_folder/factory/build.rs#L44-L46)
+/// - [realizing logic of passed in environment parameters, not present in source code](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-passed-env/workspace_root_folder/factory/build.rs#L26-L37)
+pub mod extended {}
 
 #[cfg(feature = "docker")]
 pub mod docker {

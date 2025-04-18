@@ -41,10 +41,12 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         ),
         || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
     )?;
-    warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
+    let near_sdk_support =
+        warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
     warn_versions_upgrades::suggest_cargo_near_build_checks(
         cloned_repo.crate_metadata(),
         &docker_build_meta,
+        near_sdk_support,
     );
     let contract_source_metadata = {
         let local_crate_info = BuildInfoMixed::new(&opts, &docker_build_meta, &cloned_repo)?;

@@ -48,7 +48,6 @@ dist = false
 
 [features]
 default = []
-build_script = []
 abi_build = []
 docker = [
   "dep:near-verify-rs",

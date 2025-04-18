@@ -57,22 +57,18 @@ pub struct Opts {
     #[builder(default)]
     pub env: Vec<(String, String)>,
     /// override value of [crate::env_keys::nep330::CONTRACT_PATH] environment variable,
-    /// needed in context of [crate::extended::build] logic, when a sub-contract being built inside of `build.rs`
+    /// needed when a sub-contract being built inside of `build.rs`
     /// resides in different [crate::env_keys::nep330::CONTRACT_PATH] than the current contract
     #[builder(into)]
     pub override_nep330_contract_path: Option<String>,
     /// override value of [crate::env_keys::CARGO_TARGET_DIR] environment variable,
-    /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938> in context of [crate::extended::build] logic
+    /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938>
     /// when a sub-contract is built in `build.rs`
     ///
     /// should best be a subfolder of [crate::env_keys::CARGO_TARGET_DIR]
     /// of crate being built to work normally
     #[builder(into)]
     pub override_cargo_target_dir: Option<String>,
-    /// override value of [crate::env_keys::nep330::OUTPUT_WASM_PATH] environment variable,
-    ///
-    #[builder(into)]
-    pub override_output_wasm_path: Option<String>,
 }
 
 /// used as field in [BuildOpts](crate::BuildOpts)

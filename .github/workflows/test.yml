@@ -109,8 +109,8 @@ jobs:
       run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
     - name: run cargo doc
       run: |
-        RUSTDOCFLAGS="-D warnings" cargo doc --workspace --features cargo-near-build/build_script
-        cargo test --workspace --features cargo-near-build/build_script --doc
+        RUSTDOCFLAGS="-D warnings" cargo doc --workspace
+        cargo test --workspace --doc
 
   typos_check:
     name: Spell Check with typos-cli (rs crate)
