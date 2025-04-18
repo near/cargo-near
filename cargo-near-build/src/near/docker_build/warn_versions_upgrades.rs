@@ -141,9 +141,10 @@ mod output_wasm_path {
                     format!("{}", build_script).yellow(),
                     format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
                 );
+                println!("{}", "It's recommended to update build script and remove `cargo_near_build` from `build-dependencies`.".yellow());
                 println!(
                     "{} {}",
-                    "It's recommended to update build script and remove `cargo_near_build` from `build-dependencies`. See examples at: ".yellow(),
+                    "See examples at: ".yellow(),
                     "https://docs.rs/cargo-near-build/0.5.0/cargo_near_build/extended/index.html"
                         .cyan()
                 );
