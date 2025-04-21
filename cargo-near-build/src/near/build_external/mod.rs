@@ -1,12 +1,27 @@
 use eyre::{Context, ContextCompat};
 
-use crate::types::near::build::input::Opts;
+use crate::types::{
+    cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
+    near::build::input::Opts,
+};
 
-pub fn run(args: Opts) -> eyre::Result<camino::Utf8PathBuf> {
+pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
     let command = {
         let mut cmd = std::process::Command::new("cargo");
 
-        cmd.args(args.get_cli_command_for_lib_context().into_iter().skip(1));
+        let workdir = {
+            let manifest_path: camino::Utf8PathBuf =
+                if let Some(manifest_path) = opts.manifest_path.clone() {
+                    manifest_path
+                } else {
+                    MANIFEST_FILE_NAME.into()
+                };
+            let manifest_path = ManifestPath::try_from(manifest_path)?;
+            manifest_path.directory()?.to_path_buf()
+        };
+
+        cmd.current_dir(workdir);
+        cmd.args(opts.get_cli_command_for_lib_context().into_iter().skip(1));
 
         // TODO #B: implement CARGO_TARGET_DIR
         // cmd.env("CARGO_TARGET_DIR", &override_cargo_target_dir);
