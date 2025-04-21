@@ -167,7 +167,7 @@ mod output_wasm_path {
                 println!(
                     "{} {}",
                     "See examples at: ".yellow(),
-                    "https://docs.rs/cargo-near-build/0.5.0/cargo_near_build/extended/index.html"
+                    "https://docs.rs/cargo-near-build/latest/cargo_near_build/extended/index.html"
                         .cyan()
                 );
                 println!();
