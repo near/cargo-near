@@ -36,8 +36,10 @@ pub struct Opts {
     #[builder(default)]
     pub no_wasmopt: bool,
     /// Copy final artifacts to this directory
+    #[builder(into)]
     pub out_dir: Option<camino::Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
+    #[builder(into)]
     pub manifest_path: Option<camino::Utf8PathBuf>,
     /// Set compile-time feature flags.
     #[builder(into)]
