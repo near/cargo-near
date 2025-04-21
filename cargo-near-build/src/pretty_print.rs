@@ -24,6 +24,7 @@ pub fn success(msg: &str) {
     eprintln!("{} {}", "✓".bold().green(), msg);
 }
 
+#[cfg(feature = "build_internal")]
 pub fn duration(start: Instant, activity: &str) {
     let duration = std::time::Duration::from_secs(start.elapsed().as_secs());
     println!(
@@ -34,6 +35,7 @@ pub fn duration(start: Instant, activity: &str) {
     );
 }
 
+#[cfg(feature = "build_internal")]
 pub fn duration_millis(start: Instant, activity: &str) {
     let duration = std::time::Duration::from_millis(start.elapsed().as_millis() as u64);
     println!(

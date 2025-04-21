@@ -14,7 +14,7 @@
 //! ## Re-exports
 //!
 //! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact] as type of some of fields
-//! 2. [near_abi] is re-exported, because details of ABI generated depends on specific version of `near-abi` dependency  
+//! 2. `near_abi` is re-exported (under `build_internal` feature), because details of ABI generated depends on specific version of `near-abi` dependency  
 //! 3. [bon] is re-exported for the convenience of [bon::vec] helper macro
 //!
 //! ## Sample usage:
@@ -91,4 +91,5 @@ pub use crate::types::near::build::buildtime_env::CargoTargetDir;
 
 pub use bon;
 pub use camino;
+#[cfg(feature = "build_internal")]
 pub use near_abi;

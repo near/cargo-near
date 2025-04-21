@@ -7,7 +7,7 @@ repository = "https://github.com/near/cargo-near"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-# always present deps
+## deps of default features
 eyre = "0.6.12"
 camino = "1.1.1"
 bs58 = "0.5"
@@ -16,30 +16,33 @@ sha2 = "0.10"
 dunce = "1"
 bon = "2.3.0"
 cargo_metadata = "0.18.1"
-
-# under features deps
 colored = "2.0"
 tracing = "0.1.40"
-symbolic-debuginfo = "8.8"
-libloading = "0.8.3"
-serde_json = "1.0"
-near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
-zstd = "0.13"
-schemars = "0.8"
-rustc_version = "0.4"
+indenter = "0.3"
+
+## deps of non-default features
+# build_internal
+symbolic-debuginfo = { version = "8.8", optional = true }
+libloading = { version = "0.8.3", optional = true }
+serde_json = { version = "1.0", optional = true }
+near-abi = { version = "0.4.0", features = [
+  "__chunked-entries",
+], optional = true }
+zstd = { version = "0.13", optional = true }
+schemars = { version = "0.8", optional = true }
+rustc_version = { version = "0.4", optional = true }
 near-verify-rs = { version = "0.2.1", optional = true }
+tempfile = { version = "3.10.1", optional = true }
+wasm-opt = { version = "=0.116.1", optional = true }
+# docker
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }
 home = { version = "0.5.9", optional = true }
 pathdiff = { version = "0.2.1", features = ["camino"], optional = true }
 unix_path = { version = "1.0.1", optional = true }
-tempfile = { version = "3.10.1" }
-wasm-opt = "=0.116.1"
-humantime = "2.1.0"
-indenter = "0.3"
-semver = "1.0.26"
-regex = "1.11.1"
+humantime = { version = "2.1.0", optional = true }
+regex = { version = "1.11.1", optional = true }
 
 
 [package.metadata.docs.rs]
@@ -51,14 +54,28 @@ dist = false
 
 [features]
 default = []
-build_internal = []
+build_internal = [
+  "dep:symbolic-debuginfo",
+  "dep:libloading",
+  "dep:serde_json",
+  "dep:near-abi",
+  "dep:zstd",
+  "dep:schemars",
+  "dep:rustc_version",
+  "dep:tempfile",
+  "dep:wasm-opt",
+  "dep:humantime",
+]
 docker = [
   "dep:near-verify-rs",
+  "dep:serde_json",
   "dep:url",
   "dep:serde",
   "dep:git2",
   "dep:home",
   "dep:pathdiff",
   "dep:unix_path",
+  "dep:tempfile",
+  "dep:regex",
 ]
 test_code = []

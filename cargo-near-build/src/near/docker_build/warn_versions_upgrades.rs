@@ -6,7 +6,8 @@ use crate::types::{
 };
 use std::{str::FromStr, time::Duration};
 
-const MIN_SDK_REPRODUCIBLE: semver::Version = semver::Version::new(5, 2, 0);
+const MIN_SDK_REPRODUCIBLE: cargo_metadata::semver::Version =
+    cargo_metadata::semver::Version::new(5, 2, 0);
 
 pub struct NearSdkFeatureSupport {
     pub output_wasm_path: bool,
@@ -66,12 +67,15 @@ mod output_wasm_path {
     use colored::Colorize;
     use std::time::Duration;
 
-    const CARGO_NEAR_BUILD_MIN: semver::Version = semver::Version::new(0, 5, 0);
-    const CARGO_NEAR_MIN: semver::Version = semver::Version::new(0, 14, 0);
-    const NEAR_SDK_MIN: semver::Version = semver::Version::new(5, 12, 0);
+    const CARGO_NEAR_BUILD_MIN: cargo_metadata::semver::Version =
+        cargo_metadata::semver::Version::new(0, 5, 0);
+    const CARGO_NEAR_MIN: cargo_metadata::semver::Version =
+        cargo_metadata::semver::Version::new(0, 14, 0);
+    const NEAR_SDK_MIN: cargo_metadata::semver::Version =
+        cargo_metadata::semver::Version::new(5, 12, 0);
     pub struct NearSDKSupports(pub bool);
 
-    pub fn near_sdk_version_check(near_sdk: semver::Version) -> NearSDKSupports {
+    pub fn near_sdk_version_check(near_sdk: cargo_metadata::semver::Version) -> NearSDKSupports {
         if near_sdk >= NEAR_SDK_MIN {
             return NearSDKSupports(true);
         }
@@ -104,7 +108,7 @@ mod output_wasm_path {
         NearSDKSupports(false)
     }
 
-    pub fn cargo_near_version_check(cargo_near: semver::Version) {
+    pub fn cargo_near_version_check(cargo_near: cargo_metadata::semver::Version) {
         if cargo_near < CARGO_NEAR_MIN {
             println!(
                         "{}: {} {} {}",
@@ -132,8 +136,8 @@ mod output_wasm_path {
         }
     }
     pub fn with_buildscript_versions_check(
-        cargo_near: semver::Version,
-        build_script: semver::Version,
+        cargo_near: cargo_metadata::semver::Version,
+        build_script: cargo_metadata::semver::Version,
     ) {
         match (
             cargo_near >= CARGO_NEAR_MIN,
@@ -202,7 +206,7 @@ const DEV_IMAGE: &str = "dj8yfo/sourcescan";
 
 fn find_cargo_near_in_docker_img_tag(
     reproducible_build: &ReproducibleBuild,
-) -> Option<semver::Version> {
+) -> Option<cargo_metadata::semver::Version> {
     let regex = regex::Regex::new(DOCKER_IMAGE_REGEX_PATTERN).expect("no error");
     let image_match = regex
         .captures(&reproducible_build.image)
@@ -221,10 +225,12 @@ fn find_cargo_near_in_docker_img_tag(
         .captures(tag_match.as_str())
         .and_then(|captures| captures.get(1))?;
 
-    semver::Version::from_str(cargo_near_version_match.as_str()).ok()
+    cargo_metadata::semver::Version::from_str(cargo_near_version_match.as_str()).ok()
 }
 
-fn find_cargo_near_build_build_dep(crate_metadata: &CrateMetadata) -> Option<semver::Version> {
+fn find_cargo_near_build_build_dep(
+    crate_metadata: &CrateMetadata,
+) -> Option<cargo_metadata::semver::Version> {
     match crate_metadata.find_direct_dependency("cargo_near_build") {
         Ok(packages) => {
             let maybe_package = packages
