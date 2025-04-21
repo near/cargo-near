@@ -1,7 +1,7 @@
 use cargo_near_build::BuildArtifact;
 
 #[derive(Default, Debug, Clone, interactive_clap::InteractiveClap)]
-#[interactive_clap(input_context = cargo_near_build::BuildContext)]
+#[interactive_clap(input_context = cargo_near_build::docker::BuildContext)]
 #[interactive_clap(output_context = context::Context)]
 pub struct BuildOpts {
     /// Enable `--locked` flag for all `cargo` commands, disabled by default
@@ -132,7 +132,7 @@ pub mod context {
 
     impl Context {
         pub fn from_previous_context(
-            _previous_context: cargo_near_build::BuildContext,
+            _previous_context: cargo_near_build::docker::BuildContext,
             scope: &<super::BuildOpts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
         ) -> color_eyre::eyre::Result<Self> {
             let opts = super::BuildOpts {

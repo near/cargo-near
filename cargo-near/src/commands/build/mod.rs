@@ -2,7 +2,7 @@ pub mod context {
     #[derive(Debug, Clone)]
     pub struct Context;
 
-    impl From<Context> for cargo_near_build::BuildContext {
+    impl From<Context> for cargo_near_build::docker::BuildContext {
         fn from(_value: Context) -> Self {
             Self::Build
         }
