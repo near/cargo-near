@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.6...cargo-near-build-v0.5.0) - 2025-04-21
+
+### Added
+
+- [**breaking**] pass in external nep330_wasm_output path from env as override ([#328](https://github.com/near/cargo-near/pull/328))
+- populate `output_wasm_path` into `ContractSourceMetadata` ([#323](https://github.com/near/cargo-near/pull/323))
+
 ## [0.4.6](https://github.com/near/cargo-near/compare/cargo-near-build-v0.4.5...cargo-near-build-v0.4.6) - 2025-04-08
 
 ### Added
