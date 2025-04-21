@@ -64,6 +64,9 @@ pub use crate::near::build::run as build;
 
 #[cfg(any(feature = "build_internal", feature = "docker"))]
 pub use crate::types::near::build::output::CompilationArtifact as BuildArtifact;
+
+#[cfg(feature = "build_external")]
+pub use crate::near::build_external::run as build_with_cli;
 /// `[cargo_near_build::extended::build]` functionality has been removed for the time being.
 ///
 /// Instead a set of examples how to do a factory build script by running `cargo-near` binary

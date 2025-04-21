@@ -6,6 +6,7 @@ use colored::Colorize;
 use near_abi::BuildInfo;
 use tempfile::NamedTempFile;
 
+use crate::types::near::build::input::Opts;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::{cargo_native, env_keys, ColorPreference};
@@ -17,7 +18,7 @@ use crate::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::build::{input::Opts, output::version_info::VersionInfo},
+        near::build::output::version_info::VersionInfo,
     },
 };
 

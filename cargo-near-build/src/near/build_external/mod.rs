@@ -1,0 +1,69 @@
+use eyre::{Context, ContextCompat};
+
+use crate::types::near::build::input::Opts;
+
+pub fn run(args: Opts) -> eyre::Result<camino::Utf8PathBuf> {
+    let command = {
+        let mut cmd = std::process::Command::new("cargo");
+
+        cmd.args(args.get_cli_command_for_lib_context().into_iter().skip(1));
+
+        // TODO #B: implement CARGO_TARGET_DIR
+        // cmd.env("CARGO_TARGET_DIR", &override_cargo_target_dir);
+        // TODO #B: implement NEP330_BUILD_INFO_CONTRACT_PATH
+        // cmd.env("NEP330_BUILD_INFO_CONTRACT_PATH", nep330_contract_path);
+        // TODO #B: implement NEP330_BUILD_INFO_OUTPUT_WASM_PATH
+        // cmd.env(
+        //     "NEP330_BUILD_INFO_OUTPUT_WASM_PATH",
+        //     nep330_output_wasm_path,
+        // );
+        cmd.env("NO_COLOR", "true");
+        cmd.stdout(std::process::Stdio::piped());
+        cmd.stderr(std::process::Stdio::piped());
+        cmd
+    };
+
+    run_command(command)
+}
+
+const RESULT_PREFIX: &str = "     -                Binary: ";
+
+fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8PathBuf> {
+    let process = command
+        .spawn()
+        .wrap_err("could not spawn `cargo-near` process")?;
+
+    let output = process
+        .wait_with_output()
+        .wrap_err("err waiting for `cargo-near` to finish")?;
+
+    let output_string = {
+        let mut output_string = String::new();
+        output_string.push_str(&String::from_utf8_lossy(&output.stderr));
+        output_string.push_str(&String::from_utf8_lossy(&output.stdout));
+        output_string
+    };
+
+    if !output.status.success() {
+        return Err(eyre::eyre!(
+            "error running a build command with `cargo-near`:\n {}",
+            output_string
+        ));
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let result_line = stderr
+        .lines()
+        .filter(|x| x.starts_with(RESULT_PREFIX))
+        .last();
+
+    let out_path = result_line
+        .wrap_err(format!(
+            "a line starting with `{}` not found!",
+            RESULT_PREFIX
+        ))?
+        .strip_prefix(RESULT_PREFIX)
+        .expect("always starts with expected prefix");
+
+    Ok(camino::Utf8PathBuf::from(out_path.to_string()))
+}

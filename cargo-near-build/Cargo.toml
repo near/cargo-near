@@ -53,7 +53,8 @@ targets = ["x86_64-unknown-linux-gnu"]
 dist = false
 
 [features]
-default = []
+default = ["build_external"]
+build_external = []
 build_internal = [
   "dep:symbolic-debuginfo",
   "dep:libloading",
