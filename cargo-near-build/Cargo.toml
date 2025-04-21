@@ -7,15 +7,19 @@ repository = "https://github.com/near/cargo-near"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+# always present deps
 eyre = "0.6.12"
 camino = "1.1.1"
-colored = "2.0"
-dunce = "1"
-tracing = "0.1.40"
 bs58 = "0.5"
 hex = "0.4.3"
 sha2 = "0.10"
+dunce = "1"
+bon = "2.3.0"
 cargo_metadata = "0.18.1"
+
+# under features deps
+colored = "2.0"
+tracing = "0.1.40"
 symbolic-debuginfo = "8.8"
 libloading = "0.8.3"
 serde_json = "1.0"
@@ -23,7 +27,6 @@ near-abi = { version = "0.4.0", features = ["__chunked-entries"] }
 zstd = "0.13"
 schemars = "0.8"
 rustc_version = "0.4"
-bon = "2.3.0"
 near-verify-rs = { version = "0.2.1", optional = true }
 url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }

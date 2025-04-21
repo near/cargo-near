@@ -22,9 +22,12 @@ pub const RUSTFLAGS: &str = "RUSTFLAGS";
 /// is documented in CARGO_ENCODED_RUSTFLAGS section of README.md
 pub const CARGO_ENCODED_RUSTFLAGS: &str = "CARGO_ENCODED_RUSTFLAGS";
 
+#[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_ABI_PATH: &str = "CARGO_NEAR_ABI_PATH";
 
+#[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_VERSION: &str = "CARGO_NEAR_VERSION";
+#[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
 
 use std::collections::HashMap;

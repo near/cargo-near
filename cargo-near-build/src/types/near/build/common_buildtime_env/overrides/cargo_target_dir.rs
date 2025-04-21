@@ -1,11 +1,16 @@
 use crate::env_keys;
 
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 pub enum CargoTargetDir {
     Set(String),
     NoOp,
+    #[allow(unused)]
     UnsetExternal,
 }
 
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 impl CargoTargetDir {
     pub fn new(path: Option<String>) -> Self {
         match path {

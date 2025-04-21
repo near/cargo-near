@@ -20,13 +20,13 @@ pub use output_paths::Nep330OutputWasmPath;
 
 pub use abi_builder_version::BuilderAbiVersions;
 
-pub use overrides::cargo_target_dir::CargoTargetDir;
 pub use overrides::nep330_path::Nep330ContractPath;
 
 use crate::types::cargo::metadata::CrateMetadata;
 use crate::types::near::OutputPaths;
 use crate::BuildOpts;
 
+use super::common_buildtime_env::overrides::cargo_target_dir::CargoTargetDir;
 use super::output::version_info::VersionInfo;
 
 /// variables, common for both steps of build, abi-gen and wasm build

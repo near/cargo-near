@@ -5,7 +5,7 @@ use std::time::Duration;
 use crate::pretty_print;
 use crate::types::cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME};
 use crate::types::cargo::metadata::CrateMetadata;
-use crate::types::near::build::buildtime_env::CargoTargetDir;
+use crate::types::near::build::common_buildtime_env::CargoTargetDir;
 use crate::types::near::build::output::version_info::VersionInfo;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::types::near::docker_build::WARN_BECOMES_ERR;

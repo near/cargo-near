@@ -2,8 +2,7 @@
 //! ## Crate features
 //!
 //! * **build_internal** -
-//!   The whole functionality, needed for build and ABI generation, for internal use by `cargo-near`
-//!   cli.
+//!   The whole functionality, needed for build and ABI generation, mostly for internal use by `cargo-near` CLI implementation
 //! * **docker** -
 //!   Adds `docker` module for functionality of
 //!   building in docker with WASM reproducibility.
@@ -32,12 +31,15 @@
 //! let build_opts = cargo_near_build::BuildOpts::builder().features("some_contract_feature_1").build();
 //! let artifact = cargo_near_build::build(build_opts).expect("some error during build");
 //! ```
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 pub(crate) mod cargo_native;
 /// module contains names of environment variables, exported during
 /// various operations of the library
 pub mod env_keys;
 pub(crate) mod fs;
 pub(crate) mod near;
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 pub(crate) mod pretty_print;
 pub(crate) mod types;
 
@@ -47,17 +49,21 @@ pub mod abi {
     pub use crate::types::near::abi::Opts as AbiOpts;
 }
 
-// TODO #B: extract separate build_exports for `BuildOpts` only and everything it entails
+/// these are exports of types, used for both `internal` and `external` build methods
 mod build_exports {
-    pub use crate::near::build::run as build;
-    #[cfg(feature = "docker")]
-    pub use crate::types::near::build::input::BuildContext;
+
+    pub use crate::types::near::build::checksum::SHA256Checksum;
     pub use crate::types::near::build::input::Opts as BuildOpts;
     pub use crate::types::near::build::input::{CliDescription, ColorPreference};
-    pub use crate::types::near::build::output::CompilationArtifact as BuildArtifact;
-    pub use crate::types::near::build::output::SHA256Checksum;
 }
+
 pub use build_exports::*;
+
+#[cfg(feature = "build_internal")]
+pub use crate::near::build::run as build;
+
+#[cfg(any(feature = "build_internal", feature = "docker"))]
+pub use crate::types::near::build::output::CompilationArtifact as BuildArtifact;
 /// `[cargo_near_build::extended::build]` functionality has been removed for the time being.
 ///
 /// Instead a set of examples how to do a factory build script by running `cargo-near` binary
@@ -74,6 +80,7 @@ pub mod extended {}
 #[cfg(feature = "docker")]
 pub mod docker {
     pub use crate::near::docker_build::run as build;
+    pub use crate::types::near::build::input::BuildContext;
     pub use crate::types::near::docker_build::Opts as DockerBuildOpts;
 }
 

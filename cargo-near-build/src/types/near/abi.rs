@@ -1,9 +1,5 @@
-use camino::Utf8PathBuf;
-
-#[cfg(feature = "build_internal")]
 use crate::types::near::build::input::ColorPreference;
 
-#[cfg(feature = "build_internal")]
 #[derive(Debug, Default)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
@@ -23,7 +19,7 @@ pub struct Opts {
 /// ABI generation result.
 pub struct Result {
     /// Path to the resulting ABI file.
-    pub path: Utf8PathBuf,
+    pub path: camino::Utf8PathBuf,
 }
 
 #[derive(Clone, Debug)]

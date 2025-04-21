@@ -42,6 +42,10 @@ jobs:
         run: | 
           rustc -vV
           cargo check -p cargo-near
+          # default features
+          cargo check -p cargo-near-build
+          cargo check -p cargo-near-build --features build_internal
+          cargo check -p cargo-near-build --features docker
           cargo check -p cargo-near-build --all-features
 
   tests:

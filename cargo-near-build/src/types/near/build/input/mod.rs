@@ -1,4 +1,4 @@
-use std::env;
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 use std::io::IsTerminal;
 
 #[cfg(feature = "docker")]
@@ -183,8 +183,9 @@ impl std::fmt::Display for ColorPreference {
     }
 }
 
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 fn default_mode() -> ColorPreference {
-    match env::var("NO_COLOR") {
+    match std::env::var("NO_COLOR") {
         Ok(v) if v != "0" => ColorPreference::Never,
         _ => {
             if std::io::stderr().is_terminal() {
@@ -196,6 +197,7 @@ fn default_mode() -> ColorPreference {
     }
 }
 
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 impl ColorPreference {
     pub(crate) fn apply(&self) {
         match self {

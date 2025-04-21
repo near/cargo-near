@@ -1,18 +1,26 @@
 use std::{thread, time::Duration};
 
 use camino::Utf8PathBuf;
-use cargo_metadata::{DepKindInfo, MetadataCommand, Package};
+#[cfg(any(feature = "test_code", feature = "docker"))]
+use cargo_metadata::DepKindInfo;
+
+use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
-use eyre::{ContextCompat, OptionExt, WrapErr};
+#[cfg(any(feature = "test_code", feature = "docker"))]
+use eyre::OptionExt;
+use eyre::{ContextCompat, WrapErr};
 
 use crate::pretty_print;
-use crate::types::near::build::buildtime_env;
+use crate::types::near::build::common_buildtime_env;
 use crate::types::near::OutputPaths;
 
 use super::manifest_path::ManifestPath;
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
+
 pub struct CrateMetadata {
     pub root_package: Package,
     pub target_directory: Utf8PathBuf,
@@ -22,10 +30,12 @@ pub struct CrateMetadata {
 
 impl CrateMetadata {
     /// Parses the contract manifest and returns relevant metadata.
+    // TODO #F: uncomment for `build_external_extended` method
+    #[allow(unused)]
     pub fn collect(
         manifest_path: ManifestPath,
         no_locked: bool,
-        cargo_target_dir: &buildtime_env::CargoTargetDir,
+        cargo_target_dir: &common_buildtime_env::CargoTargetDir,
     ) -> eyre::Result<Self> {
         let (metadata, root_package) = {
             let (mut metadata, root_package) =
@@ -89,6 +99,8 @@ impl CrateMetadata {
     /// according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
     ///
     /// and implementation of initial docker build also assumes the same destination
+    // TODO #F: uncomment for `build_external_extended` method
+    #[allow(unused)]
     pub fn get_legacy_cargo_near_output_path(
         &self,
         cli_override: Option<Utf8PathBuf>,
@@ -96,6 +108,7 @@ impl CrateMetadata {
         OutputPaths::new(self, cli_override)
     }
 
+    #[cfg(any(feature = "test_code", feature = "docker"))]
     pub fn find_direct_dependency(
         &self,
         dependency_name: &str,
@@ -171,10 +184,12 @@ pub fn exec_metadata_command(
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
-    cargo_target_dir: &buildtime_env::CargoTargetDir,
+    cargo_target_dir: &common_buildtime_env::CargoTargetDir,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     tracing::info!(
         target: "near_teach_me",

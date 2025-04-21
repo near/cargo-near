@@ -21,6 +21,7 @@ impl<'a> ArtifactMessages<'a> {
         ));
         Ok(())
     }
+    #[cfg(feature = "build_internal")]
     pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
         self.messages.push(msg);
     }

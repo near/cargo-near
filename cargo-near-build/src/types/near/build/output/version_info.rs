@@ -1,15 +1,16 @@
+#[cfg(feature = "build_internal")]
 use crate::types::near::build::buildtime_env::BuilderAbiVersions;
 
 pub type Version = String;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub(crate) enum VersionInfo {
     EnvMismatch {
         environment: Version,
         current_process: Version,
     },
     CurrentProcess(Version),
-    #[cfg(feature = "docker")]
     UnknownFromDocker,
 }
 
@@ -27,18 +28,17 @@ impl std::fmt::Display for VersionInfo {
                 )
             }
             Self::CurrentProcess { .. } => write!(f, "no `cargo-near` version mismatch in nested builds detected",),
-            #[cfg(feature = "docker")]
             Self::UnknownFromDocker => write!(f, "it's unknown if `cargo-near` version mismatch has occurred in docker build environment",),
         }
     }
 }
 
+#[cfg(feature = "build_internal")]
 impl VersionInfo {
     pub fn result_builder_version(&self) -> eyre::Result<Version> {
         match self {
             Self::EnvMismatch { environment, .. } => Ok(environment.clone()),
             Self::CurrentProcess(current_process) => Ok(current_process.clone()),
-            #[cfg(feature = "docker")]
             Self::UnknownFromDocker => Err(eyre::eyre!(
                 "info about Version mismatch is unknown \
                 for docker build",
