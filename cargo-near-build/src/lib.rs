@@ -1,8 +1,9 @@
 #![allow(clippy::needless_lifetimes)]
 //! ## Crate features
 //!
-//! * **abi_build** -
-//!   Additional functionality, needed for build of ABI separately
+//! * **build_internal** -
+//!   The whole functionality, needed for build and ABI generation, for internal use by `cargo-near`
+//!   cli.
 //! * **docker** -
 //!   Adds `docker` module for functionality of
 //!   building in docker with WASM reproducibility.
@@ -40,12 +41,13 @@ pub(crate) mod near;
 pub(crate) mod pretty_print;
 pub(crate) mod types;
 
-#[cfg(feature = "abi_build")]
+#[cfg(feature = "build_internal")]
 pub mod abi {
     pub use crate::near::abi::build;
     pub use crate::types::near::abi::Opts as AbiOpts;
 }
 
+// TODO #B: extract separate build_exports for `BuildOpts` only and everything it entails
 mod build_exports {
     pub use crate::near::build::run as build;
     #[cfg(feature = "docker")]

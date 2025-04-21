@@ -48,7 +48,7 @@ dist = false
 
 [features]
 default = []
-abi_build = []
+build_internal = []
 docker = [
   "dep:near-verify-rs",
   "dep:url",

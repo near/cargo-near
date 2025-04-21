@@ -3,7 +3,7 @@ use crate::types::near::{abi as abi_types, OutputPaths};
 
 pub mod generate;
 
-#[cfg(feature = "abi_build")]
+#[cfg(feature = "build_internal")]
 pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
     // imports #[cfg(feature = "abi_build")]
     use crate::{

@@ -24,7 +24,7 @@ eula = false
 
 [dependencies]
 cargo-near-build = { version = "0.5.1", path = "../cargo-near-build", features = [
-    "abi_build",
+    "build_internal",
     "docker",
 ] }
 clap = { version = "4.0.18", features = ["derive", "env"] }
