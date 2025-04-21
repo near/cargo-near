@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1](https://github.com/near/cargo-near/compare/cargo-near-v0.14.0...cargo-near-v0.14.1) - 2025-04-21
+
+### Fixed
+
+- doc publish. Change reference to `latest` instead of specific version ([#329](https://github.com/near/cargo-near/pull/329))
+
 ## [0.14.0](https://github.com/near/cargo-near/compare/cargo-near-v0.13.6...cargo-near-v0.14.0) - 2025-04-21
 
 ### Added
