@@ -23,8 +23,12 @@ pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
         cmd.current_dir(workdir);
         cmd.args(opts.get_cli_command_for_lib_context().into_iter().skip(1));
 
-        // TODO #B: implement CARGO_TARGET_DIR
-        // cmd.env("CARGO_TARGET_DIR", &override_cargo_target_dir);
+        if let Some(override_cargo_target_dir) = opts.override_cargo_target_dir {
+            cmd.env(
+                crate::env_keys::CARGO_TARGET_DIR,
+                &override_cargo_target_dir,
+            );
+        }
         // TODO #B: implement NEP330_BUILD_INFO_CONTRACT_PATH
         // cmd.env("NEP330_BUILD_INFO_CONTRACT_PATH", nep330_contract_path);
         // TODO #B: implement NEP330_BUILD_INFO_OUTPUT_WASM_PATH
