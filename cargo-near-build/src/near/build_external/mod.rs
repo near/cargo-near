@@ -64,7 +64,7 @@ fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8P
             "error running a build command with `cargo-near`:\n {}",
             output_string
         ))
-        .wrap_err("see installation variants https://github.com/near/cargo-near?tab=readme-ov-file#installation");
+        .wrap_err("`cargo-near` CLI not installed. See https://github.com/near/cargo-near?tab=readme-ov-file#installation");
     }
 
     let stderr = String::from_utf8_lossy(&output.stderr);
