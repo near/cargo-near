@@ -38,7 +38,7 @@ pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
                 nep330_output_wasm_path,
             );
         }
-        cmd.env("NO_COLOR", "true");
+        cmd.env(crate::env_keys::COLOR_PREFERENCE_NO_COLOR, "true");
         cmd.stdout(std::process::Stdio::piped());
         cmd.stderr(std::process::Stdio::piped());
         cmd

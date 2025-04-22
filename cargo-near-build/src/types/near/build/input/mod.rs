@@ -190,7 +190,7 @@ impl std::fmt::Display for ColorPreference {
 
 #[cfg(any(feature = "build_internal", feature = "docker"))]
 fn default_mode() -> ColorPreference {
-    match std::env::var("NO_COLOR") {
+    match std::env::var(crate::env_keys::COLOR_PREFERENCE_NO_COLOR) {
         Ok(v) if v != "0" => ColorPreference::Never,
         _ => {
             if std::io::stderr().is_terminal() {
