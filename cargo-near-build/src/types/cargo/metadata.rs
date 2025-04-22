@@ -20,7 +20,6 @@ use super::manifest_path::ManifestPath;
 #[derive(Debug)]
 // TODO #F: uncomment for `build_external_extended` method
 #[allow(unused)]
-
 pub struct CrateMetadata {
     pub root_package: Package,
     pub target_directory: Utf8PathBuf,

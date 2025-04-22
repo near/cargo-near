@@ -77,7 +77,7 @@ fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8P
     let result_line = stderr
         .lines()
         .filter(|x| x.starts_with(RESULT_PREFIX))
-        .last();
+        .next_back();
 
     let out_path = result_line
         .wrap_err(format!(
