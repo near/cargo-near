@@ -29,8 +29,9 @@ pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
                 &override_cargo_target_dir,
             );
         }
-        // TODO #B: implement NEP330_BUILD_INFO_CONTRACT_PATH
-        // cmd.env("NEP330_BUILD_INFO_CONTRACT_PATH", nep330_contract_path);
+        if let Some(nep330_contract_path) = opts.override_nep330_contract_path {
+            cmd.env(crate::env_keys::nep330::CONTRACT_PATH, nep330_contract_path);
+        }
         // TODO #B: implement NEP330_BUILD_INFO_OUTPUT_WASM_PATH
         // cmd.env(
         //     "NEP330_BUILD_INFO_OUTPUT_WASM_PATH",
