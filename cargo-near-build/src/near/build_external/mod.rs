@@ -46,8 +46,7 @@ const RESULT_PREFIX: &str = "     -                Binary: ";
 fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8PathBuf> {
     let process = command
         .spawn()
-        .wrap_err("could not spawn `cargo-near` process")
-        .wrap_err("see installation variants https://github.com/near/cargo-near?tab=readme-ov-file#installation")?;
+        .wrap_err("could not spawn `cargo-near` process")?;
 
     let output = process
         .wait_with_output()
@@ -64,7 +63,8 @@ fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8P
         return Err(eyre::eyre!(
             "error running a build command with `cargo-near`:\n {}",
             output_string
-        ));
+        ))
+        .wrap_err("see installation variants https://github.com/near/cargo-near?tab=readme-ov-file#installation");
     }
 
     let stderr = String::from_utf8_lossy(&output.stderr);
