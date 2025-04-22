@@ -71,6 +71,9 @@ pub struct Opts {
     /// of crate being built to work normally
     #[builder(into)]
     pub override_cargo_target_dir: Option<String>,
+    /// override value of [crate::env_keys::nep330::OUTPUT_WASM_PATH] environment variable,
+    #[builder(into)]
+    pub override_nep330_output_wasm_path: Option<String>,
 }
 
 /// used as field in [BuildOpts](crate::BuildOpts)

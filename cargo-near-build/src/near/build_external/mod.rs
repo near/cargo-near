@@ -32,11 +32,12 @@ pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
         if let Some(nep330_contract_path) = opts.override_nep330_contract_path {
             cmd.env(crate::env_keys::nep330::CONTRACT_PATH, nep330_contract_path);
         }
-        // TODO #B: implement NEP330_BUILD_INFO_OUTPUT_WASM_PATH
-        // cmd.env(
-        //     "NEP330_BUILD_INFO_OUTPUT_WASM_PATH",
-        //     nep330_output_wasm_path,
-        // );
+        if let Some(nep330_output_wasm_path) = opts.override_nep330_output_wasm_path {
+            cmd.env(
+                crate::env_keys::nep330::OUTPUT_WASM_PATH,
+                nep330_output_wasm_path,
+            );
+        }
         cmd.env("NO_COLOR", "true");
         cmd.stdout(std::process::Stdio::piped());
         cmd.stderr(std::process::Stdio::piped());
