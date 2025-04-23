@@ -15,10 +15,29 @@ pub struct BuildOptsExtended {
 
 #[bon]
 impl BuildOptsExtended {
-    #[builder]
+    #[builder(finish_fn = prepare)]
     pub fn new(
         mut build_opts: crate::BuildOpts,
-        #[builder(default, into)] mut build_skipped_when_env_is: EnvPairs,
+        /// vector of (`environment_variable_key`, `skip_value`),
+        ///
+        /// which are config on when to
+        /// skip the build of subcontract's wasm
+        /// (when value of `environment_variable_key` is equal to `skip_value`)
+        ///
+        /// Default value:
+        /// ```rust
+        /// # let value: EnvPairs =
+        /// vec![
+        ///        // shorter build for `cargo check`
+        ///        (crate::env_keys::RUST_PROFILE, "debug"),
+        ///        // skip build of subcontract when ABI is being generated for current contract
+        ///        (crate::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+        ///    ]
+        ///    .into()
+        /// # ;
+        /// ```
+        #[builder(default, into)]
+        mut build_skipped_when_env_is: EnvPairs,
         #[builder(default)] mut rerun_if_changed_list: Vec<String>,
         #[builder(into)] result_file_path_env_key: String,
     ) -> eyre::Result<Self> {
