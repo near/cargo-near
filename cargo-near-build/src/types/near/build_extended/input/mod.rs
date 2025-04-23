@@ -2,10 +2,13 @@ use bon::bon;
 use camino::Utf8PathBuf;
 use eyre::Context;
 
+use crate::types::cargo::manifest_path::ManifestPath;
+
 #[derive(Debug, Clone)]
 pub struct BuildOptsExtended {
     pub build_opts: crate::BuildOpts,
     pub build_skipped_when_env_is: EnvPairs,
+    pub rerun_if_changed_list: Vec<String>,
 }
 
 #[bon]
@@ -14,6 +17,7 @@ impl BuildOptsExtended {
     pub fn new(
         mut build_opts: crate::BuildOpts,
         #[builder(default, into)] mut build_skipped_when_env_is: EnvPairs,
+        #[builder(default)] mut rerun_if_changed_list: Vec<String>,
     ) -> eyre::Result<Self> {
         if let None = build_opts.override_cargo_target_dir {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
@@ -28,9 +32,16 @@ impl BuildOptsExtended {
             .into();
         }
 
+        let workdir = ManifestPath::get_manifest_workdir(build_opts.manifest_path.clone())?;
+
+        if !rerun_if_changed_list.contains(&workdir.to_string()) {
+            rerun_if_changed_list.push(workdir.to_string());
+        }
+
         Ok(Self {
             build_opts,
             build_skipped_when_env_is,
+            rerun_if_changed_list,
         })
     }
 }
