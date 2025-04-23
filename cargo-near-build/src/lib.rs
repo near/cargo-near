@@ -43,8 +43,6 @@ pub(crate) mod cargo_native;
 pub mod env_keys;
 pub(crate) mod fs;
 pub(crate) mod near;
-// TODO #F: uncomment for `build_external_extended` method
-#[allow(unused)]
 pub(crate) mod pretty_print;
 pub(crate) mod types;
 

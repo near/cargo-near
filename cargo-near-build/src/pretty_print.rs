@@ -1,7 +1,10 @@
+#[cfg(feature = "build_internal")]
 use std::time::Instant;
 
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 use colored::Colorize;
 
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 pub fn handle_step<F, T>(msg: &str, f: F) -> eyre::Result<T>
 where
     F: FnOnce() -> eyre::Result<T>,
@@ -16,10 +19,12 @@ where
     result
 }
 
+#[cfg(any(feature = "build_internal", feature = "docker"))]
 pub fn step(msg: &str) {
     eprintln!("{} {}", "•".bold().cyan(), msg);
 }
 
+#[cfg(feature = "build_internal")]
 pub fn success(msg: &str) {
     eprintln!("{} {}", "✓".bold().green(), msg);
 }
