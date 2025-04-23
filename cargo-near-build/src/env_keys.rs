@@ -56,6 +56,9 @@ pub mod nep330 {
     pub const LINK: &str = "NEP330_LINK";
     /// NEP-330 1.1.0
     pub const VERSION: &str = "NEP330_VERSION";
+
+    /// NEP-330 1.2.0
+    pub const NEP330_REPO_MOUNT: &str = "/home/near/code";
 }
 
 pub fn is_inside_docker_context() -> bool {

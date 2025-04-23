@@ -1,6 +1,6 @@
 use bon::bon;
 use camino::Utf8PathBuf;
-use eyre::Context;
+use eyre::{Context, ContextCompat};
 
 use crate::types::cargo::metadata::CrateMetadata;
 use crate::types::{cargo::manifest_path::ManifestPath, near::build::common_buildtime_env};
@@ -44,9 +44,16 @@ impl BuildOptsExtended {
         if let None = build_opts.override_cargo_target_dir {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
         }
+        let workdir = ManifestPath::get_manifest_workdir(build_opts.manifest_path.clone())?;
 
-        build_opts.override_nep330_output_wasm_path =
-            Some(override_nep330_output_wasm_path(&build_opts)?);
+        if let None = build_opts.override_nep330_contract_path {
+            build_opts.override_nep330_contract_path = override_nep330_contract_path(&workdir)?;
+        }
+
+        if let None = build_opts.override_nep330_output_wasm_path {
+            build_opts.override_nep330_output_wasm_path =
+                Some(override_nep330_output_wasm_path(&build_opts)?);
+        }
 
         if build_skipped_when_env_is.0.is_empty() {
             build_skipped_when_env_is = vec![
@@ -56,8 +63,6 @@ impl BuildOptsExtended {
             ]
             .into();
         }
-
-        let workdir = ManifestPath::get_manifest_workdir(build_opts.manifest_path.clone())?;
 
         if !rerun_if_changed_list.contains(&workdir.to_string()) {
             rerun_if_changed_list.push(workdir.to_string());
@@ -72,6 +77,43 @@ impl BuildOptsExtended {
     }
 }
 
+/// we don't have to honeslty compute a canonicalized relative path by appending
+/// relative `build_opts.manifest` path to relative [`crate::env_keys::nep330::CONTRACT_PATH`]
+/// and then bringing it to canonicalized form;
+///
+/// for all we know midterm [`crate::env_keys::nep330::CONTRACT_PATH`] is only
+/// expected to be relevant in nep330 conformant build environments, and all of those have
+/// repository roots mounted to [`crate::env_keys::nep330::NEP330_REPO_MOUNT`]
+fn override_nep330_contract_path(workdir: &Utf8PathBuf) -> eyre::Result<Option<String>> {
+    if let Ok(_contract_path) = std::env::var(crate::env_keys::nep330::CONTRACT_PATH) {
+        if workdir.starts_with(crate::env_keys::nep330::NEP330_REPO_MOUNT) {
+            let workdir_pathdiff = pathdiff::diff_utf8_paths(
+                &workdir,
+                Utf8PathBuf::from(crate::env_keys::nep330::NEP330_REPO_MOUNT.to_string()),
+            )
+            .wrap_err(format!(
+                "cannot compute workdir `{}` relative path to base `{}`",
+                workdir,
+                crate::env_keys::nep330::NEP330_REPO_MOUNT,
+            ))?;
+
+            if !workdir_pathdiff.is_relative() {
+                return Err(eyre::eyre!(
+                    "workdir `{}` in `{}` isn't relative : {:?}",
+                    workdir,
+                    crate::env_keys::nep330::NEP330_REPO_MOUNT,
+                    workdir_pathdiff.as_str()
+                ));
+            }
+
+            // there's no need to additionally transform `workdir_pathdiff` into a valid
+            // [unix_path::PathBuf], as the [`crate::env_keys::nep330::CONTRACT_PATH`] override
+            // is only relevant inside of docker linux containers
+            return Ok(Some(workdir_pathdiff.to_string()));
+        }
+    }
+    Ok(None)
+}
 /// this is equal to wasm result path of `cargo near build non-reproducible-wasm`
 /// for target sub-contract, when [`crate::env_keys::CARGO_TARGET_DIR`] is not set to any value,
 /// which is the case when the sub-contract is being built as a stand-alone primary contract

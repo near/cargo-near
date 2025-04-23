@@ -19,6 +19,7 @@ cargo_metadata = "0.18.1"
 colored = "2.0"
 tracing = "0.1.40"
 indenter = "0.3"
+pathdiff = { version = "0.2.1", features = ["camino"] }
 
 ## deps of non-default features
 # build_internal
@@ -39,7 +40,6 @@ url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }
 home = { version = "0.5.9", optional = true }
-pathdiff = { version = "0.2.1", features = ["camino"], optional = true }
 unix_path = { version = "1.0.1", optional = true }
 humantime = { version = "2.1.0", optional = true }
 regex = { version = "1.11.1", optional = true }
@@ -74,7 +74,6 @@ docker = [
   "dep:serde",
   "dep:git2",
   "dep:home",
-  "dep:pathdiff",
   "dep:unix_path",
   "dep:tempfile",
   "dep:regex",
