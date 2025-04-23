@@ -3,14 +3,13 @@ use crate::types::near::{abi as abi_types, OutputPaths};
 
 pub mod generate;
 
-#[cfg(feature = "abi_build")]
 pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
     // imports #[cfg(feature = "abi_build")]
     use crate::{
         pretty_print,
         types::{
             cargo::manifest_path::ManifestPath,
-            near::build::{buildtime_env::CargoTargetDir, input::ColorPreference},
+            near::build::{common_buildtime_env::CargoTargetDir, input::ColorPreference},
         },
     };
     use camino::Utf8PathBuf;

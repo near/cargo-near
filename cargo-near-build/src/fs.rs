@@ -4,6 +4,7 @@ use eyre::WrapErr;
 /// Copy a file to a destination.
 ///
 /// Does nothing if the destination is the same as the source to avoid truncating the file.
+#[cfg(feature = "build_internal")]
 pub fn copy(from: &Utf8Path, out_dir: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
     if !out_dir.is_dir() {
         return Err(eyre::eyre!("`{}` should be a directory", out_dir));
@@ -20,6 +21,7 @@ pub fn copy(from: &Utf8Path, out_dir: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
 /// Copy a file to a file destination.
 ///
 /// Does nothing if the destination is the same as the source to avoid truncating the file.
+#[cfg(feature = "build_internal")]
 pub fn copy_to_file(from: &Utf8Path, to: &Utf8Path) -> eyre::Result<()> {
     tracing::debug!("Copying file `{}` -> `{}`", from, to,);
 

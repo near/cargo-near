@@ -1,4 +1,6 @@
+#[cfg(feature = "build_internal")]
 pub mod compile;
+#[cfg(feature = "build_internal")]
 pub mod target;
 
 pub trait ArtifactType {

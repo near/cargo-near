@@ -1,11 +1,12 @@
 use crate::cargo_native::Wasm;
 use crate::types::near::abi as abi_types;
-use crate::types::near::build::buildtime_env;
+use crate::types::near::build::{buildtime_env, common_buildtime_env};
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
 use tempfile::NamedTempFile;
 
+use crate::types::near::build::input::Opts;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build::side_effects::ArtifactMessages;
 use crate::{cargo_native, env_keys, ColorPreference};
@@ -17,7 +18,7 @@ use crate::{
             manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
             metadata::CrateMetadata,
         },
-        near::build::{input::Opts, output::version_info::VersionInfo},
+        near::build::output::version_info::VersionInfo,
     },
 };
 
@@ -25,7 +26,7 @@ use super::abi;
 
 pub fn get_crate_metadata(
     args: &Opts,
-    override_cargo_target_path_env: &buildtime_env::CargoTargetDir,
+    override_cargo_target_path_env: &common_buildtime_env::CargoTargetDir,
 ) -> eyre::Result<CrateMetadata> {
     let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path.clone() {
         manifest_path
@@ -43,7 +44,7 @@ pub fn get_crate_metadata(
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
     let override_cargo_target_path_env =
-        buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
+        common_buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();

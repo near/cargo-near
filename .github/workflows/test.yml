@@ -42,6 +42,10 @@ jobs:
         run: | 
           rustc -vV
           cargo check -p cargo-near
+          # default features
+          cargo check -p cargo-near-build
+          cargo check -p cargo-near-build --features build_internal
+          cargo check -p cargo-near-build --features docker
           cargo check -p cargo-near-build --all-features
 
   tests:
@@ -109,8 +113,8 @@ jobs:
       run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
     - name: run cargo doc
       run: |
-        RUSTDOCFLAGS="-D warnings" cargo doc --workspace
-        cargo test --workspace --doc
+        RUSTDOCFLAGS="-D warnings" cargo doc -p cargo-near-build
+        cargo test -p cargo-near-build --doc
 
   typos_check:
     name: Spell Check with typos-cli (rs crate)

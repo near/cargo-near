@@ -22,7 +22,7 @@ async fn test_docker_build() -> Result<(), Box<dyn std::error::Error>> {
 
     let opts = cargo_near_build::docker::DockerBuildOpts::builder()
         .manifest_path(generated_manifest.clone())
-        .context(cargo_near_build::BuildContext::Build)
+        .context(cargo_near_build::docker::BuildContext::Build)
         .build();
 
     let artifact = cargo_near_build::docker::build(opts, false)?;

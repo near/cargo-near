@@ -2,6 +2,7 @@ use camino::Utf8PathBuf;
 
 use crate::types::cargo::metadata::CrateMetadata;
 
+#[cfg(feature = "build_internal")]
 pub mod abi;
 pub mod build;
 
@@ -10,12 +11,16 @@ pub mod docker_build;
 
 pub const EXPECTED_WASM_EXTENSION: &str = "wasm";
 
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 pub struct OutputPaths {
     out_dir: Utf8PathBuf,
     wasm_file: Utf8PathBuf,
 }
 
 impl OutputPaths {
+    // TODO #F: uncomment for `build_external_extended` method
+    #[allow(unused)]
     pub fn new(
         crate_metadata: &CrateMetadata,
         cli_override: Option<Utf8PathBuf>,
@@ -36,9 +41,12 @@ impl OutputPaths {
 
         Ok(result)
     }
+    // TODO #F: uncomment for `build_external_extended` method
+    #[allow(unused)]
     pub fn get_wasm_file(&self) -> &Utf8PathBuf {
         &self.wasm_file
     }
+    #[cfg(feature = "build_internal")]
     pub fn get_out_dir(&self) -> &Utf8PathBuf {
         &self.out_dir
     }
@@ -51,6 +59,7 @@ impl OutputPaths {
         )
     }
 
+    #[cfg(feature = "build_internal")]
     fn abi_filename(
         crate_metadata: &CrateMetadata,
         format: abi::Format,
@@ -63,7 +72,8 @@ impl OutputPaths {
         )
     }
 
-    pub fn intermediate_abi_file(
+    #[cfg(feature = "build_internal")]
+    pub(crate) fn intermediate_abi_file(
         crate_metadata: &CrateMetadata,
         format: abi::Format,
         compression: abi::Compression,

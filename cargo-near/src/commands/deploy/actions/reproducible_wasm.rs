@@ -50,7 +50,7 @@ mod context {
         ) -> color_eyre::eyre::Result<Self> {
             let artifact = build_command::actions::reproducible_wasm::run(
                 scope.build_command_opts.clone(),
-                cargo_near_build::BuildContext::Deploy {
+                cargo_near_build::docker::BuildContext::Deploy {
                     skip_git_remote_check: scope.skip_git_remote_check,
                 },
             )?;
