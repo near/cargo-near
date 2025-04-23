@@ -22,6 +22,9 @@ pub const RUSTFLAGS: &str = "RUSTFLAGS";
 /// is documented in CARGO_ENCODED_RUSTFLAGS section of README.md
 pub const CARGO_ENCODED_RUSTFLAGS: &str = "CARGO_ENCODED_RUSTFLAGS";
 
+/// see `PROFILE` in https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-build-scripts
+pub const RUST_PROFILE: &str = "PROFILE";
+
 #[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_ABI_PATH: &str = "CARGO_NEAR_ABI_PATH";
 

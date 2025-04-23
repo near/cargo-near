@@ -5,17 +5,33 @@ use eyre::Context;
 #[derive(Debug, Clone)]
 pub struct BuildOptsExtended {
     pub build_opts: crate::BuildOpts,
+    pub build_skipped_when_env_is: EnvPairs,
 }
 
 #[bon]
 impl BuildOptsExtended {
     #[builder]
-    pub fn new(mut build_opts: crate::BuildOpts) -> eyre::Result<Self> {
+    pub fn new(
+        mut build_opts: crate::BuildOpts,
+        #[builder(default, into)] mut build_skipped_when_env_is: EnvPairs,
+    ) -> eyre::Result<Self> {
         if let None = build_opts.override_cargo_target_dir {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
         }
 
-        Ok(Self { build_opts })
+        if build_skipped_when_env_is.0.is_empty() {
+            build_skipped_when_env_is = vec![
+                // shorter build for `cargo check`
+                (crate::env_keys::RUST_PROFILE, "debug"),
+                (crate::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+            ]
+            .into();
+        }
+
+        Ok(Self {
+            build_opts,
+            build_skipped_when_env_is,
+        })
     }
 }
 
@@ -28,4 +44,21 @@ fn override_cargo_target_dir() -> eyre::Result<Utf8PathBuf> {
 
     std::fs::create_dir_all(&dir).wrap_err(format!("couldn't create dir `{}`", dir))?;
     Ok(dir)
+}
+
+/// utility type which can be initialized with vector of 2-element tuples of literal strings,
+/// by using [core::convert::Into]
+/// like so: `vec![("key1", "value1"), ("key2", "value2")].into()`
+#[derive(Default, Debug, Clone)]
+pub struct EnvPairs(pub Vec<(String, String)>);
+
+impl From<Vec<(&str, &str)>> for EnvPairs {
+    fn from(value: Vec<(&str, &str)>) -> Self {
+        let vector = value
+            .into_iter()
+            .map(|(key, value)| (key.into(), value.into()))
+            .collect();
+
+        Self(vector)
+    }
 }
