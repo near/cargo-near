@@ -2,7 +2,8 @@ use bon::bon;
 use camino::Utf8PathBuf;
 use eyre::Context;
 
-use crate::types::cargo::manifest_path::ManifestPath;
+use crate::types::cargo::metadata::CrateMetadata;
+use crate::types::{cargo::manifest_path::ManifestPath, near::build::common_buildtime_env};
 
 #[derive(Debug, Clone)]
 pub struct BuildOptsExtended {
@@ -24,6 +25,9 @@ impl BuildOptsExtended {
         if let None = build_opts.override_cargo_target_dir {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
         }
+
+        build_opts.override_nep330_output_wasm_path =
+            Some(override_nep330_output_wasm_path(&build_opts)?);
 
         if build_skipped_when_env_is.0.is_empty() {
             build_skipped_when_env_is = vec![
@@ -47,6 +51,19 @@ impl BuildOptsExtended {
             result_file_path_env_key,
         })
     }
+}
+
+/// this is equal to wasm result path of `cargo near build non-reproducible-wasm`
+/// for target sub-contract, when [`crate::env_keys::CARGO_TARGET_DIR`] is not set to any value,
+/// which is the case when the sub-contract is being built as a stand-alone primary contract
+/// outside of build.rs context
+fn override_nep330_output_wasm_path(build_opts: &crate::BuildOpts) -> eyre::Result<String> {
+    let metadata_with_no_target_override = CrateMetadata::get_with_build_opts(
+        build_opts,
+        &common_buildtime_env::CargoTargetDir::UnsetExternal,
+    )?;
+    let output_paths = metadata_with_no_target_override.get_legacy_cargo_near_output_path(None)?;
+    Ok(output_paths.get_wasm_file().to_string())
 }
 
 fn override_cargo_target_dir() -> eyre::Result<Utf8PathBuf> {

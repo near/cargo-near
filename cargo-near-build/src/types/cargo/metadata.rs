@@ -28,6 +28,17 @@ pub struct CrateMetadata {
 }
 
 impl CrateMetadata {
+    pub(crate) fn get_with_build_opts(
+        args: &crate::BuildOpts,
+        override_cargo_target_path_env: &common_buildtime_env::CargoTargetDir,
+    ) -> eyre::Result<CrateMetadata> {
+        let manifest_path = ManifestPath::from_manifest_path_opt(args.manifest_path.clone())?;
+        CrateMetadata::collect(
+            manifest_path,
+            args.no_locked,
+            override_cargo_target_path_env,
+        )
+    }
     /// Parses the contract manifest and returns relevant metadata.
     // TODO #F: uncomment for `build_external_extended` method
     #[allow(unused)]
