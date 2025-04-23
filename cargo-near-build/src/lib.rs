@@ -83,7 +83,9 @@ pub use crate::near::build_external::run as build_with_cli;
 /// - [base example](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script/workspace_root_folder/factory/build.rs#L25-L64)
 /// - [adding command flags](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-build-cmd-flags/workspace_root_folder/factory/build.rs#L44-L46)
 /// - [realizing logic of passed in environment parameters, not present in source code](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-passed-env/workspace_root_folder/factory/build.rs#L26-L37)
-pub mod extended {}
+pub mod extended {
+    pub use crate::types::near::build_extended::input::BuildOptsExtended;
+}
 
 #[cfg(feature = "docker")]
 pub mod docker {
