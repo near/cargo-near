@@ -1,35 +1,40 @@
 #![allow(clippy::needless_lifetimes)]
 //! ## Crate features
 //!
+//! * **build_external** -
+//!   Exports [`crate::build_with_cli`] function which builds contracts by running external `cargo-near` binary
+//!   with [`std::process::Command`]
 //! * **build_internal** -
 //!   The whole functionality, needed for build and ABI generation, mostly for internal use by `cargo-near` CLI implementation
 //! * **docker** -
 //!   Adds `docker` module for functionality of
 //!   building in docker with WASM reproducibility.
+//! * **test_code** -
+//!   Adds exports needed for integration tests.
 //!
 //! ### Default features
 //!
-//! None are enabled by default
+//! **build_external**
 //!
 //! ## Re-exports
 //!
-//! 1. [camino] is re-exported, because it is used in [BuildOpts], and [BuildArtifact] as type of some of fields
-//! 2. `near_abi` is re-exported (under `build_internal` feature), because details of ABI generated depends on specific version of `near-abi` dependency  
-//! 3. [bon] is re-exported for the convenience of [bon::vec] helper macro
+//! 1. [`camino`] is re-exported, because it is used in [`BuildOpts`] as type of some of fields
+//! 2. [`near_abi`](https://docs.rs/near-abi/latest/near_abi/) is re-exported (under `build_internal` feature), because details of ABI generated depends on specific version of `near-abi` dependency  
+//! 3. [`bon`] is re-exported for the convenience of [`bon::vec`] helper macro
 //!
 //! ## Sample usage:
 //!
 //! Default:
 //!
 //! ```no_run
-//! let artifact = cargo_near_build::build(Default::default()).expect("some error during build");
+//! let artifact = cargo_near_build::build_with_cli(Default::default()).expect("some error during build");
 //! ```
 //!
 //! With some options set:
 //!
 //! ```no_run
 //! let build_opts = cargo_near_build::BuildOpts::builder().features("some_contract_feature_1").build();
-//! let artifact = cargo_near_build::build(build_opts).expect("some error during build");
+//! let artifact = cargo_near_build::build_with_cli(build_opts).expect("some error during build");
 //! ```
 #[cfg(any(feature = "build_internal", feature = "docker"))]
 pub(crate) mod cargo_native;
@@ -70,7 +75,7 @@ pub use crate::near::build_external::run as build_with_cli;
 /// `[cargo_near_build::extended::build]` functionality has been removed for the time being.
 ///
 /// Instead a set of examples how to do a factory build script by running `cargo-near` binary
-/// with [std::process::Command] is presented. This approach saves on compilation time when compared
+/// with [`std::process::Command`] is presented. This approach saves on compilation time when compared
 /// to removed `[cargo_near_build::extended::build]`.
 ///
 /// `cargo-near` became a required binary dependency, which needs to be [added](https://github.com/near/cargo-near?tab=readme-ov-file#installation) to build environment and be available in `PATH`.

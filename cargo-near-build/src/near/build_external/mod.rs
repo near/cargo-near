@@ -5,6 +5,7 @@ use crate::types::{
     near::build::input::Opts,
 };
 
+/// Return value: [`Result::Ok`] is path to the wasm artifact obtained.
 pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
     let command = {
         let mut cmd = std::process::Command::new("cargo");

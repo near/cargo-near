@@ -12,6 +12,7 @@ pub mod checksum {
     use camino::Utf8PathBuf;
     use sha2::{Digest, Sha256};
 
+    /// convenience helper to compute resulting artifact hashsum if needed
     pub struct SHA256Checksum {
         pub hash: Vec<u8>,
     }

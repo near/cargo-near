@@ -8,13 +8,13 @@ pub enum BuildContext {
     Deploy { skip_git_remote_check: bool },
 }
 
-/// argument of [build](crate::build) function
+/// argument of [`build_with_cli`](crate::build_with_cli) function
 ///
-/// [std::default::Default] implementation is derived:
+/// [`std::default::Default`] implementation is derived:
 /// - `false` for `bool`-s,
 /// - `None` - for `Option`-s
 /// - empty vector - for `Vec`
-/// - delegates to [impl Default for CliDescription](struct.CliDescription.html#impl-Default-for-CliDescription)
+/// - delegates to [`impl Default for CliDescription`](struct.CliDescription.html#impl-Default-for-CliDescription)
 #[derive(Debug, Default, Clone, bon::Builder)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
@@ -50,7 +50,7 @@ pub struct Opts {
     /// Coloring: auto, always, never;
     /// assumed to be auto when `None`
     pub color: Option<ColorPreference>,
-    /// description of cli command, where [BuildOpts](crate::BuildOpts) are being used from, either real
+    /// description of cli command, where [`BuildOpts`](crate::BuildOpts) are being used from, either real
     /// or emulated
     #[builder(default)]
     pub cli_description: CliDescription,
@@ -58,37 +58,37 @@ pub struct Opts {
     /// build commands
     #[builder(default)]
     pub env: Vec<(String, String)>,
-    /// override value of [crate::env_keys::nep330::CONTRACT_PATH] environment variable,
+    /// override value of [`crate::env_keys::nep330::CONTRACT_PATH`] environment variable,
     /// needed when a sub-contract being built inside of `build.rs`
-    /// resides in different [crate::env_keys::nep330::CONTRACT_PATH] than the current contract
+    /// resides in different [`crate::env_keys::nep330::CONTRACT_PATH`] than the current contract
     #[builder(into)]
     pub override_nep330_contract_path: Option<String>,
-    /// override value of [crate::env_keys::CARGO_TARGET_DIR] environment variable,
+    /// override value of [`crate::env_keys::CARGO_TARGET_DIR`] environment variable,
     /// which is required to avoid deadlock <https://github.com/rust-lang/cargo/issues/8938>
     /// when a sub-contract is built in `build.rs`
     ///
-    /// should best be a subfolder of [crate::env_keys::CARGO_TARGET_DIR]
+    /// should best be a subfolder of [`crate::env_keys::CARGO_TARGET_DIR`]
     /// of crate being built to work normally
     #[builder(into)]
     pub override_cargo_target_dir: Option<String>,
-    /// override value of [crate::env_keys::nep330::OUTPUT_WASM_PATH] environment variable,
+    /// override value of [`crate::env_keys::nep330::OUTPUT_WASM_PATH`] environment variable,
     #[builder(into)]
     pub override_nep330_output_wasm_path: Option<String>,
 }
 
-/// used as field in [BuildOpts](crate::BuildOpts)
+/// used as field in [`BuildOpts`](crate::BuildOpts)
 #[derive(Debug, Clone)]
 pub struct CliDescription {
-    /// binary name for `builder` field in [near_abi::BuildInfo::builder]
+    /// binary name for `builder` field in [`near_abi::BuildInfo::builder`](https://docs.rs/near-abi/latest/near_abi/struct.BuildInfo.html#structfield.builder)
     pub cli_name_abi: String,
-    /// cli command prefix for export of [crate::env_keys::nep330::BUILD_COMMAND] variable
+    /// cli command prefix for export of [`crate::env_keys::nep330::BUILD_COMMAND`] variable
     /// when used as lib method
     pub cli_command_prefix: Vec<String>,
 }
 
-/// this is `"cargo-near"` for [CliDescription::cli_name_abi] and
+/// this is `"cargo-near"` for [`CliDescription::cli_name_abi`] and
 ///
-/// `vec!["cargo", "near", "build"]` for [CliDescription::cli_command_prefix]
+/// `vec!["cargo", "near", "build", "non-reproducible-wasm"]` for [`CliDescription::cli_command_prefix`]
 impl Default for CliDescription {
     fn default() -> Self {
         Self {
@@ -163,14 +163,14 @@ impl Opts {
     }
 }
 
-/// used as field in [BuildOpts](crate::BuildOpts)
+/// used as field in [`BuildOpts`](crate::BuildOpts)
 ///
 /// it determines if the print to stdout/stderr is colored or not
-/// # Behaviour of [ColorPreference::Auto]:
-/// if `NO_COLOR` environment variable is set and isnt't set to `"0"`, then the result is [ColorPreference::Never]
+/// # Behaviour of [`ColorPreference::Auto`]:
+/// if [`crate::env_keys::COLOR_PREFERENCE_NO_COLOR`] environment variable is set and isnt't set to `"0"`, then the result is [`ColorPreference::Never`]
 ///
-/// otherwise it's [ColorPreference::Always] if stderr is a terminal device,
-/// and [ColorPreference::Never] in the remaining cases
+/// otherwise it's [`ColorPreference::Always`] if stderr is a terminal device,
+/// and [`ColorPreference::Never`] in the remaining cases
 #[derive(Debug, Clone, Copy)]
 pub enum ColorPreference {
     Auto,
