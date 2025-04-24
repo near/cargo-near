@@ -85,7 +85,7 @@ pub use crate::near::build_external::run as build_with_cli;
 /// - [realizing logic of passed in environment parameters, not present in source code](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-passed-env/workspace_root_folder/factory/build.rs#L26-L37)
 #[cfg(feature = "build_external")]
 pub mod extended {
-    pub use crate::near::extended_build_with_cli::run as build_with_cli;
+    pub use crate::near::build_rs_build_external::run as build_with_cli;
     pub use crate::types::near::build_extended::input::*;
 }
 

@@ -7,7 +7,7 @@ pub mod build;
 pub mod build_external;
 
 #[cfg(feature = "build_external")]
-pub mod extended_build_with_cli;
+pub mod build_rs_build_external;
 
 #[cfg(feature = "docker")]
 pub mod docker_build;
