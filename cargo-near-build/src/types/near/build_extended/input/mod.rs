@@ -11,7 +11,6 @@ pub struct BuildOptsExtended {
     pub build_skipped_when_env_is: EnvPairs,
     pub rerun_if_changed_list: Vec<String>,
     pub result_file_path_env_key: String,
-    pub passed_env: Vec<String>,
 }
 
 #[bon]
@@ -57,6 +56,11 @@ impl BuildOptsExtended {
                 Some(override_nep330_output_wasm_path(&build_opts)?);
         }
 
+        let passed_env_entries = passed_env
+            .into_iter()
+            .filter_map(|key| std::env::var(&key).ok().map(|value| (key, value)));
+        build_opts.env.extend(passed_env_entries);
+
         if build_skipped_when_env_is.0.is_empty() {
             build_skipped_when_env_is = vec![
                 // shorter build for `cargo check`
@@ -75,7 +79,6 @@ impl BuildOptsExtended {
             build_skipped_when_env_is,
             rerun_if_changed_list,
             result_file_path_env_key,
-            passed_env,
         })
     }
 }
