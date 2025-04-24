@@ -11,6 +11,7 @@ pub struct BuildOptsExtended {
     pub build_skipped_when_env_is: EnvPairs,
     pub rerun_if_changed_list: Vec<String>,
     pub result_file_path_env_key: String,
+    pub passed_env: Vec<String>,
 }
 
 #[bon]
@@ -40,6 +41,7 @@ impl BuildOptsExtended {
         mut build_skipped_when_env_is: EnvPairs,
         #[builder(default)] mut rerun_if_changed_list: Vec<String>,
         #[builder(into)] result_file_path_env_key: String,
+        #[builder(default)] passed_env: Vec<String>,
     ) -> eyre::Result<Self> {
         if let None = build_opts.override_cargo_target_dir {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
@@ -73,6 +75,7 @@ impl BuildOptsExtended {
             build_skipped_when_env_is,
             rerun_if_changed_list,
             result_file_path_env_key,
+            passed_env,
         })
     }
 }
