@@ -1,7 +1,5 @@
 use crate::env_keys;
 
-// TODO #F: uncomment for `build_external_extended` method
-#[allow(unused)]
 pub enum CargoTargetDir {
     #[allow(unused)]
     Set(String),
@@ -11,8 +9,6 @@ pub enum CargoTargetDir {
     UnsetExternal,
 }
 
-// TODO #F: uncomment for `build_external_extended` method
-#[allow(unused)]
 impl CargoTargetDir {
     #[cfg(feature = "build_internal")]
     pub fn new(path: Option<String>) -> Self {
