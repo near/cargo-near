@@ -42,16 +42,16 @@ impl BuildOptsExtended {
         #[builder(into)] result_file_path_env_key: String,
         #[builder(default)] passed_env: Vec<String>,
     ) -> eyre::Result<Self> {
-        if let None = build_opts.override_cargo_target_dir {
+        if build_opts.override_cargo_target_dir.is_none() {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
         }
         let workdir = ManifestPath::get_manifest_workdir(build_opts.manifest_path.clone())?;
 
-        if let None = build_opts.override_nep330_contract_path {
+        if build_opts.override_nep330_contract_path.is_none() {
             build_opts.override_nep330_contract_path = override_nep330_contract_path(&workdir)?;
         }
 
-        if let None = build_opts.override_nep330_output_wasm_path {
+        if build_opts.override_nep330_output_wasm_path.is_none() {
             build_opts.override_nep330_output_wasm_path =
                 Some(override_nep330_output_wasm_path(&build_opts)?);
         }
@@ -94,7 +94,7 @@ fn override_nep330_contract_path(workdir: &Utf8PathBuf) -> eyre::Result<Option<S
     if let Ok(_contract_path) = std::env::var(crate::env_keys::nep330::CONTRACT_PATH) {
         if workdir.starts_with(crate::env_keys::nep330::NEP330_REPO_MOUNT) {
             let workdir_pathdiff = pathdiff::diff_utf8_paths(
-                &workdir,
+                workdir,
                 Utf8PathBuf::from(crate::env_keys::nep330::NEP330_REPO_MOUNT.to_string()),
             )
             .wrap_err(format!(
