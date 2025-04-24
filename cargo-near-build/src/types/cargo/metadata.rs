@@ -18,6 +18,8 @@ use super::manifest_path::ManifestPath;
 
 /// Relevant metadata obtained from Cargo.toml.
 #[derive(Debug)]
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 pub struct CrateMetadata {
     pub root_package: Package,
     pub target_directory: Utf8PathBuf,
@@ -40,6 +42,8 @@ impl CrateMetadata {
         )
     }
     /// Parses the contract manifest and returns relevant metadata.
+    // TODO #F: uncomment for `build_external_extended` method
+    #[allow(unused)]
     pub fn collect(
         manifest_path: ManifestPath,
         no_locked: bool,
@@ -107,6 +111,8 @@ impl CrateMetadata {
     /// according to https://github.com/near/near-verify-rs/blob/aba996522d99d26c7212961504ab40807a4d59fe/src/types/internal/legacy_rust/metadata.rs#L73-L79
     ///
     /// and implementation of initial docker build also assumes the same destination
+    // TODO #F: uncomment for `build_external_extended` method
+    #[allow(unused)]
     pub fn get_legacy_cargo_near_output_path(
         &self,
         cli_override: Option<Utf8PathBuf>,
@@ -190,6 +196,8 @@ pub fn exec_metadata_command(
 }
 
 /// Get the result of `cargo metadata`, together with the root package id.
+// TODO #F: uncomment for `build_external_extended` method
+#[allow(unused)]
 fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
