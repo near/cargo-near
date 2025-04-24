@@ -26,12 +26,12 @@ impl BuildOptsExtended {
         ///
         /// Default value:
         /// ```rust
-        /// # let value: EnvPairs =
+        /// # let value: cargo_near_build::extended::EnvPairs =
         /// vec![
         ///        // shorter build for `cargo check`
-        ///        (crate::env_keys::RUST_PROFILE, "debug"),
+        ///        (cargo_near_build::env_keys::RUST_PROFILE, "debug"),
         ///        // skip build of subcontract when ABI is being generated for current contract
-        ///        (crate::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
+        ///        (cargo_near_build::env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ///    ]
         ///    .into()
         /// # ;
