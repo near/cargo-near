@@ -6,6 +6,7 @@ use crate::types::cargo::metadata::CrateMetadata;
 pub mod abi;
 pub mod build;
 
+#[cfg(feature = "build_external")]
 pub mod build_extended;
 
 #[cfg(feature = "docker")]
