@@ -83,7 +83,7 @@ impl BuildOptsExtended {
     }
 }
 
-/// we don't have to honeslty compute a canonicalized relative path by appending
+/// we don't have to honestly compute a canonicalized relative path by appending
 /// relative `build_opts.manifest` path to relative [`crate::env_keys::nep330::CONTRACT_PATH`]
 /// and then bringing it to canonicalized form;
 ///
