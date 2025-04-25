@@ -17,6 +17,7 @@ pub struct BuildOptsExtended {
 impl BuildOptsExtended {
     #[builder(finish_fn = prepare)]
     pub fn new(
+        /// Base build options
         mut build_opts: crate::BuildOpts,
         /// vector of (`environment_variable_key`, `skip_value`),
         ///
@@ -24,7 +25,7 @@ impl BuildOptsExtended {
         /// skip the build of subcontract's wasm
         /// (when value of `environment_variable_key` is equal to `skip_value`)
         ///
-        /// Default value:
+        /// Default value ([`crate::env_keys::RUST_PROFILE`], [`crate::env_keys::BUILD_RS_ABI_STEP_HINT`]):
         /// ```rust
         /// # let value: cargo_near_build::extended::EnvPairs =
         /// vec![
@@ -38,9 +39,24 @@ impl BuildOptsExtended {
         /// ```
         #[builder(default, into)]
         mut build_skipped_when_env_is: EnvPairs,
-        #[builder(default)] mut rerun_if_changed_list: Vec<String>,
-        #[builder(into)] result_file_path_env_key: String,
-        #[builder(default)] passed_env: Vec<String>,
+        /// additional watched file/dir paths, change of which triggers `build.rs` rerun
+        ///
+        /// workdir of contract, identified by [`crate::BuildOpts::manifest_path`] of base [`Self::build_opts`] is always included into watched paths
+        #[builder(default)]
+        mut rerun_if_changed_list: Vec<String>,
+        /// Contract obtains the result of sub-contract build in its source code via the value of this environment variable,
+        /// which is equal to resulting wasm file path:
+        ///
+        /// ```rust,ignore
+        /// // `"VARIABLE_1".to_string()` is the value of `result_file_path_env_key` in `build.rs`
+        /// const SUB_CONTRACT_WASM_BYTES: &[u8] = include_bytes!(env!("VARIABLE_1"));
+        /// ```
+        #[builder(into)]
+        result_file_path_env_key: String,
+        /// vector of environment variables keys that will be passed through to sub-contract build,
+        /// and persisted into contract metadata (during reproducible build) via `--env` command flags
+        #[builder(default)]
+        passed_env: Vec<String>,
     ) -> eyre::Result<Self> {
         if build_opts.override_cargo_target_dir.is_none() {
             build_opts.override_cargo_target_dir = Some(override_cargo_target_dir()?.into_string());
