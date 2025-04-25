@@ -70,15 +70,15 @@ pub use crate::types::near::build::output::CompilationArtifact as BuildArtifact;
 
 #[cfg(feature = "build_external")]
 pub use crate::near::build_external::run as build_with_cli;
-/// `[cargo_near_build::extended::build]` functionality has been removed for the time being.
+/// Set of examples how to do a factory build script with [`crate::extended::build_with_cli`] api is presented.
 ///
-/// Instead a set of examples how to do a factory build script by running `cargo-near` binary
-/// with [`std::process::Command`] is presented. This approach saves on compilation time when compared
-/// to removed `[cargo_near_build::extended::build]`.
+/// Each example has an equivalent counterpart with no `cargo-near-build` build-dependency, which runs [`std::process::Command`] build with `cargo-near` CLI and has no automatic computation of some
+/// of needed build parameters.
 ///
 /// `cargo-near` became a required binary dependency, which needs to be [added](https://github.com/near/cargo-near?tab=readme-ov-file#installation) to build environment and be available in `PATH`.
 ///
-/// - [base example](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script/workspace_root_folder/factory/build.rs#L25-L64)
+/// - [base example](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-cargo-near-build-extended/workspace_root_folder/factory/build.rs)
+///   - [base example: no `cargo-near-build` build-dependency](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script/workspace_root_folder/factory/build.rs#L25-L64)
 /// - [adding command flags](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-build-cmd-flags/workspace_root_folder/factory/build.rs#L44-L46)
 /// - [realizing logic of passed in environment parameters, not present in source code](https://github.com/dj8yfo/verify_contracts_collection/blob/example-factory-build-script-with-passed-env/workspace_root_folder/factory/build.rs#L26-L37)
 #[cfg(feature = "build_external")]

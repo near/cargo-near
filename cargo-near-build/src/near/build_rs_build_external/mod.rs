@@ -12,6 +12,9 @@ fn is_wasm_build_skipped(build_skipped_when_env_is: &EnvPairs) -> bool {
     }
     false
 }
+/// This is intended for use in `build.rs` of factories to build sub-contracts,
+/// not for regular builds, where [`crate::build_with_cli`] is sufficient.
+///
 /// Return value: [`Result::Ok`] is path to the wasm artifact obtained.
 pub fn run(opts: BuildOptsExtended) -> eyre::Result<Utf8PathBuf> {
     let skip_build = is_wasm_build_skipped(&opts.build_skipped_when_env_is);
