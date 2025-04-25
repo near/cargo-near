@@ -68,7 +68,7 @@ mod output_wasm_path {
     use std::time::Duration;
 
     const CARGO_NEAR_BUILD_MIN: cargo_metadata::semver::Version =
-        cargo_metadata::semver::Version::new(0, 5, 0);
+        cargo_metadata::semver::Version::new(0, 6, 0);
     const CARGO_NEAR_MIN: cargo_metadata::semver::Version =
         cargo_metadata::semver::Version::new(0, 14, 0);
     const NEAR_SDK_MIN: cargo_metadata::semver::Version =
@@ -147,10 +147,10 @@ mod output_wasm_path {
             (false, false) => {}
             (true, false) => {
                 println!(
-                        "{}: {}",
-                        "WARNING".red(),
-                        "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected: ".yellow()
-                    );
+                    "{}: {}",
+                    "WARNING".red(),
+                    "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected: ".yellow()
+                );
                 println!(
                     "{}",
                     "addition of `output_wasm_path` field to BuildInfo (NEP330 1.3.0 extension)"
@@ -167,17 +167,54 @@ mod output_wasm_path {
                     format!("{}", build_script).yellow(),
                     format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
                 );
-                println!("{}", "It's recommended to update build script and remove `cargo_near_build` from `build-dependencies`.".yellow());
+                println!(
+                    "{} {}",
+                    "An upgrade of `cargo-near-build(build-dependencies)` is recommended up to"
+                        .yellow(),
+                    format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
+                );
                 println!(
                     "{} {}",
                     "See examples at: ".yellow(),
-                    "https://docs.rs/cargo-near-build/latest/cargo_near_build/extended/index.html"
-                        .cyan()
+                    format!(
+                        "https://docs.rs/cargo-near-build/{}/cargo_near_build/extended/index.html",
+                        CARGO_NEAR_BUILD_MIN
+                    )
+                    .cyan()
                 );
                 println!();
                 std::thread::sleep(Duration::new(5, 0));
             }
-            (false, true) => {}
+            (false, true) => {
+                println!(
+                    "{}: {}",
+                    "WARNING".red(),
+                    "incompatible versions of `cargo-near(docker image)` and `cargo-near-build(build-dependencies)` have been detected: ".yellow()
+                );
+                println!(
+                    "{}",
+                    "addition of `output_wasm_path` field to BuildInfo (NEP330 1.3.0 extension)"
+                        .yellow()
+                );
+                println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successful.".yellow());
+                println!(
+                    "cargo-near(docker image)            : {} < {}",
+                    format!("{}", cargo_near).yellow(),
+                    format!("{}", CARGO_NEAR_MIN).cyan()
+                );
+                println!(
+                    "cargo-near-build(build-dependencies): {} >= {}",
+                    format!("{}", build_script).yellow(),
+                    format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
+                );
+                println!(
+                    "{} {}",
+                    "An upgrade of `cargo-near(docker image)` is recommended up to".yellow(),
+                    format!("{}", CARGO_NEAR_MIN).cyan()
+                );
+                println!();
+                std::thread::sleep(Duration::new(5, 0));
+            }
         }
     }
 }
