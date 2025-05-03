@@ -13,33 +13,11 @@ use crate::{cargo_native, env_keys, ColorPreference};
 use crate::{
     cargo_native::target::COMPILATION_TARGET,
     pretty_print,
-    types::{
-        cargo::{
-            manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
-            metadata::CrateMetadata,
-        },
-        near::build::output::version_info::VersionInfo,
-    },
+    types::{cargo::metadata::CrateMetadata, near::build::output::version_info::VersionInfo},
 };
 
 use super::abi;
 
-pub fn get_crate_metadata(
-    args: &Opts,
-    override_cargo_target_path_env: &common_buildtime_env::CargoTargetDir,
-) -> eyre::Result<CrateMetadata> {
-    let manifest_path: Utf8PathBuf = if let Some(manifest_path) = args.manifest_path.clone() {
-        manifest_path
-    } else {
-        MANIFEST_FILE_NAME.into()
-    };
-    let manifest_path = ManifestPath::try_from(manifest_path)?;
-    CrateMetadata::collect(
-        manifest_path,
-        args.no_locked,
-        override_cargo_target_path_env,
-    )
-}
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
@@ -57,7 +35,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     })?;
 
     let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
-        get_crate_metadata(&args, &override_cargo_target_path_env)
+        CrateMetadata::get_with_build_opts(&args, &override_cargo_target_path_env)
     })?;
 
     // addition of this check wasn't a change in logic, as previously output path was

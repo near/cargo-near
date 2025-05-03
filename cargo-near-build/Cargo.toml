@@ -14,11 +14,13 @@ bs58 = "0.5"
 hex = "0.4.3"
 sha2 = "0.10"
 dunce = "1"
-bon = "2.3.0"
+bon = "3"
 cargo_metadata = "0.18.1"
 colored = "2.0"
 tracing = "0.1.40"
 indenter = "0.3"
+pathdiff = { version = "0.2.1", features = ["camino"] }
+rustc_version = { version = "0.4" }
 
 ## deps of non-default features
 # build_internal
@@ -30,7 +32,6 @@ near-abi = { version = "0.4.0", features = [
 ], optional = true }
 zstd = { version = "0.13", optional = true }
 schemars = { version = "0.8", optional = true }
-rustc_version = { version = "0.4", optional = true }
 near-verify-rs = { version = "0.3.0", optional = true }
 tempfile = { version = "3.10.1", optional = true }
 wasm-opt = { version = "=0.116.1", optional = true }
@@ -39,7 +40,6 @@ url = { version = "2.5.0", features = ["serde"], optional = true }
 serde = { version = "1.0.197", optional = true }
 git2 = { version = "0.19", optional = true }
 home = { version = "0.5.9", optional = true }
-pathdiff = { version = "0.2.1", features = ["camino"], optional = true }
 unix_path = { version = "1.0.1", optional = true }
 humantime = { version = "2.1.0", optional = true }
 regex = { version = "1.11.1", optional = true }
@@ -62,7 +62,6 @@ build_internal = [
   "dep:near-abi",
   "dep:zstd",
   "dep:schemars",
-  "dep:rustc_version",
   "dep:tempfile",
   "dep:wasm-opt",
   "dep:humantime",
@@ -74,7 +73,6 @@ docker = [
   "dep:serde",
   "dep:git2",
   "dep:home",
-  "dep:pathdiff",
   "dep:unix_path",
   "dep:tempfile",
   "dep:regex",

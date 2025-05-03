@@ -6,21 +6,21 @@ use crate::types::cargo::metadata::CrateMetadata;
 pub mod abi;
 pub mod build;
 
+#[cfg(feature = "build_external")]
+pub mod build_extended;
+
 #[cfg(feature = "docker")]
 pub mod docker_build;
 
 pub const EXPECTED_WASM_EXTENSION: &str = "wasm";
 
-// TODO #F: uncomment for `build_external_extended` method
-#[allow(unused)]
 pub struct OutputPaths {
+    #[allow(unused)]
     out_dir: Utf8PathBuf,
     wasm_file: Utf8PathBuf,
 }
 
 impl OutputPaths {
-    // TODO #F: uncomment for `build_external_extended` method
-    #[allow(unused)]
     pub fn new(
         crate_metadata: &CrateMetadata,
         cli_override: Option<Utf8PathBuf>,
@@ -41,8 +41,6 @@ impl OutputPaths {
 
         Ok(result)
     }
-    // TODO #F: uncomment for `build_external_extended` method
-    #[allow(unused)]
     pub fn get_wasm_file(&self) -> &Utf8PathBuf {
         &self.wasm_file
     }
