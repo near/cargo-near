@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2](https://github.com/near/cargo-near/compare/cargo-near-v0.14.1...cargo-near-v0.14.2) - 2025-05-03
+
+### Added
+
+- [cargo_near_build::build_with_cli] method in `build_external` default feature ([#333](https://github.com/near/cargo-near/pull/333))
+- [cargo_near_build::extended::build_with_cli] for build.rs of factories ([#334](https://github.com/near/cargo-near/pull/334))
+
+### Other
+
+- update `cargo near new` template `image` and `image_digest` ([#331](https://github.com/near/cargo-near/pull/331))
+
 ## [0.14.1](https://github.com/near/cargo-near/compare/cargo-near-v0.14.0...cargo-near-v0.14.1) - 2025-04-21
 
 ### Fixed
