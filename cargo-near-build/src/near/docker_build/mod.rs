@@ -39,7 +39,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
             "Parsing and validating `{}` section of contract's `Cargo.toml` ...",
             "[package.metadata.near.reproducible_build]".magenta()
         ),
-        || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
+        || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata(), &opts.variant),
     )?;
     let near_sdk_support =
         warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());

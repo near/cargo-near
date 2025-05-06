@@ -19,7 +19,30 @@ pub struct ReproducibleBuild {
     #[serde(skip)]
     pub repository: Option<url::Url>,
 
+    /// indicator for used variant
+    /// of reproducible build;
+    /// present if the variant of build was used
+    #[serde(skip)]
+    pub variant: Option<String>,
+
     #[serde(flatten)]
+    unknown_keys: Map<String, Value>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+// NOTE: Better wording needed
+//
+/// parsed from `[package.metadata.near.reproducible_build.variant.name]` in Cargo.toml
+/// (in short helping data strucutre for ReproducibleBuild variant matching)
+pub struct VariantReproducibleBuild {
+    pub image: Option<String>,
+    pub image_digest: Option<String>,
+    pub passed_env: Option<Vec<String>>,
+    pub container_build_command: Option<Vec<String>>,
+
+    // NOTE: Maybe better to use this somehow and not scilence?
+    #[serde(flatten)]
+    #[allow(unused)]
     unknown_keys: Map<String, Value>,
 }
 
@@ -68,6 +91,75 @@ impl std::fmt::Display for ReproducibleBuild {
 }
 
 impl ReproducibleBuild {
+    fn inject_variant_build(
+        &mut self,
+        variant_name: &str,
+        variant_build: &VariantReproducibleBuild,
+    ) {
+        println!(
+            "{}{}{}",
+            "Injecting variant build `.variant.".yellow(),
+            variant_name.yellow(),
+            "`:".yellow()
+        );
+        println!();
+
+        self.variant = Some(variant_name.to_string());
+
+        // NOTE: Maybe it's a good idea to check if fields are different and be like:
+        //          "Hey! It's redundant, no need to do that!"
+        if let Some(new_image) = &variant_build.image {
+            println!("    {}", "Changing image:".yellow());
+            println!("        {} `{}`", "old:".red(), self.image);
+            println!("        {} `{}`", "new:".green(), new_image);
+            println!();
+
+            self.image = new_image.clone();
+        }
+
+        if let Some(new_image_digest) = &variant_build.image_digest {
+            println!("    {}", "Changing image_digest:".yellow());
+            println!("        {} `{}`", "old:".red(), self.image_digest);
+            println!("        {} `{}`", "new:".green(), new_image_digest);
+            println!();
+
+            self.image_digest = new_image_digest.clone();
+        }
+
+        if let Some(new_passed_env) = &variant_build.passed_env {
+            println!("    {}", "Changing passed_env:".yellow());
+
+            if let Some(original_passed_env) = &self.passed_env {
+                println!("        {} `{:?}`", "old:".red(), original_passed_env);
+            } else {
+                println!("        {} `{:?}`", "old:".red(), "<ABSENT>".green());
+            }
+
+            println!("        {} `{:?}`", "new:".green(), new_passed_env);
+            println!();
+
+            self.passed_env = Some(new_passed_env.clone());
+        }
+
+        if let Some(new_container_command) = &variant_build.container_build_command {
+            println!("    {}", "Changing container_build_command:".yellow());
+
+            if let Some(original_build_command) = &self.container_build_command {
+                println!("        {} `{:?}`", "old:".red(), original_build_command);
+            } else {
+                println!("        {} `{}`", "old:".red(), "<ABSENT>".yellow());
+            }
+
+            println!("        {} `{:?}`", "new:".green(), new_container_command);
+            println!();
+
+            self.container_build_command = Some(new_container_command.clone());
+        }
+
+        // NOTE: Maybe better to remove it? But it's good to see that you changed something
+        thread::sleep(Duration::new(2, 0));
+    }
+
     fn validate_image(&self) -> eyre::Result<()> {
         if self
             .image
@@ -187,7 +279,11 @@ impl ReproducibleBuild {
 
         Ok(())
     }
-    pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
+
+    pub fn parse(
+        cargo_metadata: &CrateMetadata,
+        variant_name: &Option<String>,
+    ) -> eyre::Result<Self> {
         let build_meta_value = cargo_metadata
             .root_package
             .metadata
@@ -234,16 +330,61 @@ impl ReproducibleBuild {
                 })?
             }
         };
+
+        let variant_meta_value = build_meta.unknown_keys.remove("variant");
+
+        if let Some(target_variant_name) = variant_name {
+            let variants_map : Map<String, VariantReproducibleBuild> = match variant_meta_value {
+                None => {
+                    // TODO: rewrite this stuff and ask what is better name and styling for it
+                    println!("{}",
+                    "Metadata, that is required for the variant mapping was not found in the Cargo.toml...".yellow());
+                    thread::sleep(Duration::new(7, 0));
+                    println!();
+                    println!();
+
+                    println!(
+                        "{}{}{}{}{}",
+                        "You can add and commit ".cyan(),
+                        "`[package.metadata.near.reproducible_build.variant.".magenta(),
+                        target_variant_name.yellow(),
+                        "]` ".magenta(),
+                        "to your contract's Cargo.toml:".cyan()
+                    );
+
+                    return Err(eyre::eyre!(
+                            "Missing `[package.metadata.near.reproducible_build.variant]` in Cargo.toml"
+                        ));
+                }
+                Some(values) => serde_json::from_value(values).map_err(|err| {
+                    eyre::eyre!("Malformed `[package.metadata.near.reproducible_build.variant]` in Cargo.toml: {}", err)
+                })?,
+            };
+
+            match variants_map.get(target_variant_name) {
+                None => {
+                    // TODO: Better err message would be nice
+                    println!("Build variant {} was not found...", target_variant_name);
+                    thread::sleep(Duration::new(7, 0));
+
+                    return Err(eyre::eyre!("Missing `[package.metadata.near.reproducible_build.variant.{}]` in Cargo.toml", target_variant_name));
+                }
+                Some(variant) => build_meta.inject_variant_build(target_variant_name, variant),
+            }
+        };
+
         build_meta.repository = cargo_metadata
             .root_package
             .repository
             .clone()
             .map(|url| <url::Url as FromStr>::from_str(&url))
             .transpose()?;
+
         build_meta.validate()?;
         println!("{} {}", "reproducible build metadata:".green(), build_meta);
         Ok(build_meta)
     }
+
     pub fn concat_image(&self) -> String {
         let mut result = String::new();
         result.push_str(&self.image);

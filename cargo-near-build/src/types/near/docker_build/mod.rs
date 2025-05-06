@@ -22,6 +22,8 @@ pub struct Opts {
     /// Coloring: auto, always, never;
     /// assumed to be auto when `None`
     pub color: Option<ColorPreference>,
+    /// Variant of the reproducible-wasm build
+    pub variant: Option<String>,
     #[builder(default)]
     pub context: BuildContext,
 }
