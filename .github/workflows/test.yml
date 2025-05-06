@@ -75,6 +75,8 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
+      - name: Install latest (released) cargo-near CLI (dependency of `cargo-near-integration-tests::cargo_near_new::test_cargo_test_on_generated_project`)
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
       - name: Run tests
         run: |
           git config --global user.email "nearprotocol-ci@near.org"
