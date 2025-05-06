@@ -12,6 +12,8 @@
     <a href="https://github.com/near/cargo-near/actions/workflows/test.yml?query=branch%3Amain"><img src="https://github.com/near/cargo-near/actions/workflows/test.yml/badge.svg" alt="Github CI Build" /></a>
     <a href="https://crates.io/crates/cargo-near"><img src="https://img.shields.io/crates/v/cargo-near.svg?style=flat-square" alt="Crates.io version" /></a>
     <a href="https://crates.io/crates/cargo-near"><img src="https://img.shields.io/crates/d/cargo-near.svg?style=flat-square" alt="Download" /></a>
+    <a href="https://crates.io/crates/cargo-near-build"><img src="https://img.shields.io/crates/v/cargo-near-build.svg?style=flat-square" alt="Crates.io version" /></a>
+
   </p>
 
 </div>
