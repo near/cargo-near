@@ -253,8 +253,15 @@ fn maybe_wasm_opt_step(
                     format!("{}", input_path).cyan(),
                     format!("{}", opt_destination.path().to_string_lossy()).cyan()
                 );
-                wasm_opt::OptimizationOptions::new_optimize_for_size()
-                    .run(input_path, opt_destination.path())?;
+                let optimization_opts = {
+                    let mut opts = wasm_opt::OptimizationOptions::new_optimize_for_size();
+                    // TruncSat is nontrapping-float-to-int feature :shrug:
+                    opts.enable_feature(wasm_opt::Feature::TruncSat);
+                    opts.enable_feature(wasm_opt::Feature::BulkMemory);
+
+                    opts
+                };
+                optimization_opts.run(input_path, opt_destination.path())?;
                 pretty_print::duration_millis(start, "wasm-opt -O");
                 Ok(())
             },
