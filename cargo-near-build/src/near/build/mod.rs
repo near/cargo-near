@@ -234,6 +234,8 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
     prev_time > next_time
 }
 
+const MAX_VERSION_BEFORE_BULK_MEMORY: rustc_version::Version =
+    rustc_version::Version::new(1, 86, 0);
 fn maybe_wasm_opt_step(
     input_path: &Utf8PathBuf,
     no_wasmopt: bool,
@@ -244,8 +246,26 @@ fn maybe_wasm_opt_step(
             .suffix(".wasm")
             .tempfile()?;
         println!();
+        let additional_features = {
+            let mut features = vec![];
+            if rustc_version::version()? > MAX_VERSION_BEFORE_BULK_MEMORY {
+                features.push((
+                    wasm_opt::Feature::TruncSat,
+                    "--enable-nontrapping-float-to-int",
+                ));
+                features.push((wasm_opt::Feature::BulkMemory, "--enable-bulk-memory"));
+            }
+            features
+        };
+        let msgs = additional_features
+            .iter()
+            .map(|el| el.1)
+            .collect::<Vec<_>>();
         pretty_print::handle_step(
-            "Running an optimize for size post-step with wasm-opt...",
+            &format!(
+                "Running an optimize for size post-step with wasm-opt {}...",
+                msgs.join(" ")
+            ),
             || {
                 let start = std::time::Instant::now();
                 tracing::debug!(
@@ -255,9 +275,9 @@ fn maybe_wasm_opt_step(
                 );
                 let optimization_opts = {
                     let mut opts = wasm_opt::OptimizationOptions::new_optimize_for_size();
-                    // TruncSat is nontrapping-float-to-int feature :shrug:
-                    opts.enable_feature(wasm_opt::Feature::TruncSat);
-                    opts.enable_feature(wasm_opt::Feature::BulkMemory);
+                    for feature in additional_features {
+                        opts.enable_feature(feature.0);
+                    }
 
                     opts
                 };
