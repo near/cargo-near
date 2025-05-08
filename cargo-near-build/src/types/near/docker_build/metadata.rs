@@ -348,16 +348,15 @@ impl ReproducibleBuild {
 
         if let Some(target_variant_name) = variant_name {
             let variants_map: Map<String, VariantReproducibleBuild> =
-                variant_meta_value
-                    .map_or_else(
-                        Map::new,
-                        |v| serde_json::from_value(v)
-                                .map_err(|err| eyre::eyre!(
-                                    "Malformed `[package.metadata.near.reproducible_build.variant]` in Cargo.toml: {}",
-                                    err
-                                ))
-                                .unwrap(),
-                    );
+                match variant_meta_value {
+                    None => Map::new(),
+                    Some(v) => serde_json::from_value(v).map_err(|err| {
+                        eyre::eyre!(
+                            "Malformed [package.metadata.near.reproducible_build.variant] in Cargo.toml: {}",
+                            err
+                        )
+                    })?,
+                };
 
             match variants_map.get(target_variant_name) {
                 None => {
