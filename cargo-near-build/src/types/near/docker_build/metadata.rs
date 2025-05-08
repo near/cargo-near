@@ -19,8 +19,7 @@ pub struct ReproducibleBuild {
     #[serde(skip)]
     pub repository: Option<url::Url>,
 
-    /// indicator for used variant
-    /// of reproducible build;
+    /// indicator for used variant of reproducible build;
     /// present if the variant of build was used
     #[serde(skip)]
     pub variant: Option<String>,
