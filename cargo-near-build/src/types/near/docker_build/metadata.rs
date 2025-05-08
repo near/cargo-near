@@ -46,7 +46,7 @@ impl std::fmt::Display for ReproducibleBuild {
         writeln!(f)?;
 
         if let Some(ref variant_name) = self.variant {
-            writeln!(f, "    {}: {}", "build variant", variant_name)?;
+            writeln!(f, "    {}: {}", "build variant", variant_name.yellow())?;
         } else {
             writeln!(f, "    {}: {}", "build variant", "<DEFAULT>".green())?;
         }
@@ -165,9 +165,14 @@ impl ReproducibleBuild {
             .chars()
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
+            let variant_suffix = self
+                .variant
+                .as_ref()
+                .map(|name| format!(".variant.{}", name))
+                .unwrap_or_default();
             return Err(eyre::eyre!(
-                "{}: `{}`\n{}",
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml: `{}`\n{}",
+                variant_suffix,
                 self.image,
                 "`image`: string contains invalid characters",
             ));

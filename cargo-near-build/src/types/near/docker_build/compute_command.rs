@@ -12,10 +12,19 @@ impl super::Opts {
                 "`container_build_command` is expected to be non-empty (after validation)"
             ));
         };
+        let variant_suffix = self
+            .variant
+            .as_ref()
+            .map(|name| format!(".variant.{}", name))
+            .unwrap_or_default();
         println!(
             "{}`{}`{}",
             "using `container_build_command` from ".cyan(),
-            "[package.metadata.near.reproducible_build]".magenta(),
+            format!(
+                "[package.metadata.near.reproducible_build{}]",
+                variant_suffix
+            )
+            .magenta(),
             " in Cargo.toml".cyan()
         );
         self.append_env_suffix(
