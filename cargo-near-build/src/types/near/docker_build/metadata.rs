@@ -28,7 +28,7 @@ pub struct ReproducibleBuild {
     unknown_keys: Map<String, Value>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Debug)]
 /// parsed from `[package.metadata.near.reproducible_build.variant.name]` in Cargo.toml
 pub struct VariantReproducibleBuild {
     pub image: Option<String>,
