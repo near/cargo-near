@@ -49,7 +49,7 @@ impl std::fmt::Display for ReproducibleBuild {
             writeln!(f, "    {}: {}", "build variant", variant_name)?;
         } else {
             writeln!(f, "    {}: {}", "build variant", "<DEFAULT>".green())?;
-        };
+        }
 
         writeln!(f, "    {}: {}", "image", self.image)?;
         writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
@@ -112,7 +112,7 @@ impl ReproducibleBuild {
             println!("        {} `{}`", "new:".green(), new_image);
             println!();
 
-            self.image = new_image.clone();
+            self.image.clone_from(new_image);
         }
 
         if let Some(new_image_digest) = &variant_build.image_digest {
@@ -121,7 +121,7 @@ impl ReproducibleBuild {
             println!("        {} `{}`", "new:".green(), new_image_digest);
             println!();
 
-            self.image_digest = new_image_digest.clone();
+            self.image_digest.clone_from(new_image_digest);
         }
 
         if let Some(new_passed_env) = &variant_build.passed_env {
@@ -296,10 +296,7 @@ impl ReproducibleBuild {
         Ok(())
     }
 
-    pub fn parse(
-        cargo_metadata: &CrateMetadata,
-        variant_name: &Option<String>,
-    ) -> eyre::Result<Self> {
+    pub fn parse(cargo_metadata: &CrateMetadata, variant_name: Option<&str>) -> eyre::Result<Self> {
         let build_meta_value = cargo_metadata
             .root_package
             .metadata
@@ -390,7 +387,7 @@ impl ReproducibleBuild {
                 }
                 Some(variant) => build_meta.inject_variant_build(target_variant_name, variant),
             }
-        };
+        }
 
         build_meta.repository = cargo_metadata
             .root_package

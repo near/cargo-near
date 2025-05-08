@@ -49,7 +49,12 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
             )
             .magenta()
         ),
-        || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata(), &opts.variant),
+        || {
+            metadata::ReproducibleBuild::parse(
+                cloned_repo.crate_metadata(),
+                opts.variant.as_deref(),
+            )
+        },
     )?;
     let near_sdk_support =
         warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
