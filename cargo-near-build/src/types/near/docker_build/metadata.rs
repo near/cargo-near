@@ -30,19 +30,14 @@ pub struct ReproducibleBuild {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-// NOTE: Better wording needed
-//
 /// parsed from `[package.metadata.near.reproducible_build.variant.name]` in Cargo.toml
-/// (in short helping data strucutre for ReproducibleBuild variant matching)
 pub struct VariantReproducibleBuild {
     pub image: Option<String>,
     pub image_digest: Option<String>,
     pub passed_env: Option<Vec<String>>,
     pub container_build_command: Option<Vec<String>>,
 
-    // NOTE: Maybe better to use this somehow and not scilence?
     #[serde(flatten)]
-    #[allow(unused)]
     unknown_keys: Map<String, Value>,
 }
 
@@ -50,6 +45,12 @@ pub struct VariantReproducibleBuild {
 impl std::fmt::Display for ReproducibleBuild {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f)?;
+
+        if let Some(ref variant_name) = self.variant {
+            writeln!(f, "    {}: {}", "build variant", variant_name)?;
+        } else {
+            writeln!(f, "    {}: {}", "build variant", "<DEFAULT>".green())?;
+        };
 
         writeln!(f, "    {}: {}", "image", self.image)?;
         writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
@@ -106,8 +107,6 @@ impl ReproducibleBuild {
 
         self.variant = Some(variant_name.to_string());
 
-        // NOTE: Maybe it's a good idea to check if fields are different and be like:
-        //          "Hey! It's redundant, no need to do that!"
         if let Some(new_image) = &variant_build.image {
             println!("    {}", "Changing image:".yellow());
             println!("        {} `{}`", "old:".red(), self.image);
@@ -156,7 +155,8 @@ impl ReproducibleBuild {
             self.container_build_command = Some(new_container_command.clone());
         }
 
-        // NOTE: Maybe better to remove it? But it's good to see that you changed something
+        self.unknown_keys.extend(variant_build.unknown_keys.clone());
+
         thread::sleep(Duration::new(2, 0));
     }
 
@@ -181,9 +181,14 @@ impl ReproducibleBuild {
             .chars()
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
+            let variant_suffix = self
+                .variant
+                .as_ref()
+                .map(|name| format!(".variant.{}", name))
+                .unwrap_or_default();
             return Err(eyre::eyre!(
-                "{}: `{}`\n{}",
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml: `{}`\n{}",
+                variant_suffix,
                 self.image_digest,
                 "`image_digest`: string contains invalid characters",
             ));
@@ -198,14 +203,20 @@ impl ReproducibleBuild {
             Some("cargo") == build_command.first().map(AsRef::as_ref)
                 && Some("near") == build_command.get(1).map(AsRef::as_ref)
         };
+        let variant_suffix = self
+            .variant
+            .as_ref()
+            .map(|name| format!(".variant.{}", name))
+            .unwrap_or_default();
+
         for command_token in build_command {
             if command_token
                 .chars()
                 .any(|c| !c.is_ascii() || c.is_ascii_control())
             {
                 return Err(eyre::eyre!(
-                    "{}: `{}`\n{}",
-                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml: `{}`\n{}",
+                    variant_suffix,
                     command_token,
                     "`container_build_command`: string token contains invalid characters",
                 ));
@@ -214,15 +225,15 @@ impl ReproducibleBuild {
             // versions >=0.13 require `--locked` flag instead, but this isn't validated
             if is_cargo_near && command_token == "--no-locked" {
                 return Err(eyre::eyre!(
-                    "{}:\n{}",
-                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml:\n{}",
+                    variant_suffix,
                     "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
                 ));
             }
             if is_cargo_near && command_token == "--manifest-path" {
                 return Err(eyre::eyre!(
-                    "{}:\n{}\n{}",
-                    "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml",
+                    "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml:\n{}\n{}",
+                    variant_suffix,
                     "`container_build_command`: `--manifest-path` isn't allowed to be specified \
                     in manifest itself.",
                     "`--manifest-path ./Cargo.toml` is implied in all such cases",
@@ -239,8 +250,14 @@ impl ReproducibleBuild {
                 .keys()
                 .map(|element| element.as_str())
                 .collect::<Vec<_>>();
+            let variant_suffix = self
+                .variant
+                .as_ref()
+                .map(|name| format!(".variant.{}", name))
+                .unwrap_or_default();
             return Err(eyre::eyre!(
-                "Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml, contains unknown keys: `{}`",
+                "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml, contains unknown keys: `{}`",
+                variant_suffix,
                 keys.join(",")
             ));
         }
@@ -334,40 +351,43 @@ impl ReproducibleBuild {
         let variant_meta_value = build_meta.unknown_keys.remove("variant");
 
         if let Some(target_variant_name) = variant_name {
-            let variants_map : Map<String, VariantReproducibleBuild> = match variant_meta_value {
+            let variants_map: Map<String, VariantReproducibleBuild> =
+                variant_meta_value
+                    .map_or_else(
+                        Map::new,
+                        |v| serde_json::from_value(v)
+                                .map_err(|err| eyre::eyre!(
+                                    "Malformed `[package.metadata.near.reproducible_build.variant]` in Cargo.toml: {}",
+                                    err
+                                ))
+                                .unwrap(),
+                    );
+
+            match variants_map.get(target_variant_name) {
                 None => {
-                    // TODO: rewrite this stuff and ask what is better name and styling for it
-                    println!("{}",
-                    "Metadata, that is required for the variant mapping was not found in the Cargo.toml...".yellow());
+                    println!(
+                        "{}{}{}",
+                        "Build variant called `".yellow(),
+                        target_variant_name.yellow(),
+                        "` was not found in Cargo.toml...".yellow()
+                    );
                     thread::sleep(Duration::new(7, 0));
                     println!();
-                    println!();
-
                     println!(
                         "{}{}{}{}{}",
                         "You can add and commit ".cyan(),
                         "`[package.metadata.near.reproducible_build.variant.".magenta(),
-                        target_variant_name.yellow(),
+                        target_variant_name.magenta(),
                         "]` ".magenta(),
                         "to your contract's Cargo.toml:".cyan()
                     );
 
+                    thread::sleep(Duration::new(12, 0));
+
                     return Err(eyre::eyre!(
-                            "Missing `[package.metadata.near.reproducible_build.variant]` in Cargo.toml"
-                        ));
-                }
-                Some(values) => serde_json::from_value(values).map_err(|err| {
-                    eyre::eyre!("Malformed `[package.metadata.near.reproducible_build.variant]` in Cargo.toml: {}", err)
-                })?,
-            };
-
-            match variants_map.get(target_variant_name) {
-                None => {
-                    // TODO: Better err message would be nice
-                    println!("Build variant {} was not found...", target_variant_name);
-                    thread::sleep(Duration::new(7, 0));
-
-                    return Err(eyre::eyre!("Missing `[package.metadata.near.reproducible_build.variant.{}]` in Cargo.toml", target_variant_name));
+                        "Missing `[package.metadata.near.reproducible_build.variant.{}]` in Cargo.toml", 
+                        target_variant_name
+                    ));
                 }
                 Some(variant) => build_meta.inject_variant_build(target_variant_name, variant),
             }

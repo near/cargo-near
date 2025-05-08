@@ -51,14 +51,12 @@ pub struct BuildOpts {
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
-    // TODO: change wording
-    //
-    /// Specify which variant you want to use from Cargo.toml
+    /// Specify which variant of `reproducible_build` you want to use from Cargo.toml
     ///
-    /// aka
-    ///     [package.metadata.near.reproducible_build]
-    ///     vs
-    ///     [package.metadata.near.reproducible_build__.variant.custom-name-eg-testnet__]
+    /// Example:
+    /// `[package.metadata.near.reproducible_build]`
+    /// vs
+    /// `[package.metadata.near.reproducible_build.variant.custom-name-eg-testnet]`
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub variant: Option<String>,

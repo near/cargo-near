@@ -34,10 +34,20 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         },
     )?;
 
+    let variant_suffix = opts
+        .variant
+        .as_ref()
+        .map(|name| format!(".variant.{}", name))
+        .unwrap_or_default();
+
     let docker_build_meta = pretty_print::handle_step(
         &format!(
             "Parsing and validating `{}` section of contract's `Cargo.toml` ...",
-            "[package.metadata.near.reproducible_build]".magenta()
+            format!(
+                "[package.metadata.near.reproducible_build{}]",
+                variant_suffix
+            )
+            .magenta()
         ),
         || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata(), &opts.variant),
     )?;
