@@ -324,9 +324,9 @@ dependencies = [
 
 [[package]]
 name = "bon"
-version = "2.3.0"
+version = "3.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97493a391b4b18ee918675fb8663e53646fd09321c58b46afa04e8ce2499c869"
+checksum = "ced38439e7a86a4761f7f7d5ded5ff009135939ecb464a24452eaa4c1696af7d"
 dependencies = [
  "bon-macros",
  "rustversion",
@@ -334,14 +334,16 @@ dependencies = [
 
 [[package]]
 name = "bon-macros"
-version = "2.3.0"
+version = "3.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a2af3eac944c12cdf4423eab70d310da0a8e5851a18ffb192c0a5e3f7ae1663"
+checksum = "0ce61d2d3844c6b8d31b2353d9f66cf5e632b3e9549583fe3cac2f4f6136725e"
 dependencies = [
  "darling",
  "ident_case",
+ "prettyplease 0.2.31",
  "proc-macro2",
  "quote",
+ "rustversion",
  "syn 2.0.100",
 ]
 
@@ -482,7 +484,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.14.1"
+version = "0.14.2"
 dependencies = [
  "base64 0.22.1",
  "cargo-near-build",
@@ -514,7 +516,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near-build"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "bon",
  "bs58 0.5.1",

@@ -22,6 +22,9 @@ pub const RUSTFLAGS: &str = "RUSTFLAGS";
 /// is documented in CARGO_ENCODED_RUSTFLAGS section of README.md
 pub const CARGO_ENCODED_RUSTFLAGS: &str = "CARGO_ENCODED_RUSTFLAGS";
 
+/// see `PROFILE` in <https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-build-scripts>
+pub const RUST_PROFILE: &str = "PROFILE";
+
 #[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_ABI_PATH: &str = "CARGO_NEAR_ABI_PATH";
 
@@ -53,6 +56,9 @@ pub mod nep330 {
     pub const LINK: &str = "NEP330_LINK";
     /// NEP-330 1.1.0
     pub const VERSION: &str = "NEP330_VERSION";
+
+    /// NEP-330 1.2.0
+    pub const NEP330_REPO_MOUNT: &str = "/home/near/code";
 }
 
 pub fn is_inside_docker_context() -> bool {

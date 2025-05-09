@@ -1,25 +1,13 @@
 use eyre::{Context, ContextCompat};
 
-use crate::types::{
-    cargo::manifest_path::{ManifestPath, MANIFEST_FILE_NAME},
-    near::build::input::Opts,
-};
+use crate::types::{cargo::manifest_path::ManifestPath, near::build::input::Opts};
 
 /// Return value: [`Result::Ok`] is path to the wasm artifact obtained.
 pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
     let command = {
         let mut cmd = std::process::Command::new("cargo");
 
-        let workdir = {
-            let manifest_path: camino::Utf8PathBuf =
-                if let Some(manifest_path) = opts.manifest_path.clone() {
-                    manifest_path
-                } else {
-                    MANIFEST_FILE_NAME.into()
-                };
-            let manifest_path = ManifestPath::try_from(manifest_path)?;
-            manifest_path.directory()?.to_path_buf()
-        };
+        let workdir = ManifestPath::get_manifest_workdir(opts.manifest_path.clone())?;
 
         cmd.current_dir(workdir);
         cmd.args(opts.get_cli_command_for_lib_context().into_iter().skip(1));
