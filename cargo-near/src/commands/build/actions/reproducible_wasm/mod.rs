@@ -51,6 +51,10 @@ pub struct BuildOpts {
     #[interactive_clap(value_enum)]
     #[interactive_clap(skip_interactive_input)]
     pub color: Option<crate::types::color_preference_cli::ColorPreferenceCli>,
+    /// Specify which named variant of `reproducible_build` you want to use from Cargo.toml
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    pub variant: Option<String>,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -60,6 +64,7 @@ impl From<CliBuildOpts> for BuildOpts {
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
             color: value.color,
+            variant: value.variant,
         }
     }
 }
@@ -78,6 +83,7 @@ mod context {
                 out_dir: scope.out_dir.clone(),
                 manifest_path: scope.manifest_path.clone(),
                 color: scope.color.clone(),
+                variant: scope.variant.clone(),
             };
             super::run(opts, previous_context)?;
             Ok(Self)
@@ -94,6 +100,7 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
         out_dir: value.0.out_dir.map(Into::into),
         manifest_path: value.0.manifest_path.map(Into::into),
         color: value.0.color.map(Into::into),
+        variant: value.0.variant,
         context: value.1,
     }
 }
