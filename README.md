@@ -168,7 +168,7 @@ container_build_command = [
 in `Cargo.toml`, and then:
 
 ```bash
-cargo near build reproducible_build --variant custom-variant-name
+cargo near build reproducible-wasm --variant custom-variant-name
 ```
 
 will use `custom-variant-name` variant's `container_build_command`,
