@@ -5,9 +5,9 @@ use super::metadata;
 impl super::Opts {
     pub fn get_cli_build_command_in_docker(
         &self,
-        docker_build_meta: &metadata::ReproducibleBuild,
+        applied_build_meta: &metadata::AppliedReproducibleBuild,
     ) -> eyre::Result<Vec<String>> {
-        let Some(manifest_command) = docker_build_meta.container_build_command.as_ref() else {
+        let Some(manifest_command) = applied_build_meta.container_build_command.as_ref() else {
             return Err(eyre::eyre!(
                 "`container_build_command` is expected to be non-empty (after validation)"
             ));
@@ -29,7 +29,7 @@ impl super::Opts {
         );
         self.append_env_suffix(
             manifest_command.clone(),
-            docker_build_meta.passed_env.clone(),
+            applied_build_meta.passed_env.clone(),
         )
     }
 
@@ -56,11 +56,20 @@ impl super::Opts {
                 .collect::<Vec<_>>();
 
             if !suffix_env.is_empty() {
+                let variant_suffix = self
+                    .variant
+                    .as_ref()
+                    .map(|name| format!(".variant.{}", name))
+                    .unwrap_or_default();
                 println!(
                     "{}{}{}",
                     "(listed in `".cyan(),
                     "passed_env".yellow(),
-                    "` from `[package.metadata.near.reproducible_build]` in Cargo.toml)".cyan(),
+                    format!(
+                        "` from `[package.metadata.near.reproducible_build{}]` in Cargo.toml)",
+                        variant_suffix
+                    )
+                    .cyan(),
                 );
                 println!();
             }

@@ -34,37 +34,41 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         },
     )?;
 
+    let docker_build_meta_parsed = pretty_print::handle_step(
+        &format!(
+            "Parsing `{}` section of contract's `Cargo.toml` ...",
+            "[package.metadata.near.reproducible_build]".magenta()
+        ),
+        || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
+    )?;
+
     let variant_suffix = opts
         .variant
         .as_ref()
         .map(|name| format!(".variant.{}", name))
         .unwrap_or_default();
 
-    let docker_build_meta = pretty_print::handle_step(
+    let applied_build_meta = pretty_print::handle_step(
         &format!(
-            "Parsing and validating `{}` section of contract's `Cargo.toml` ...",
+            "Applying and testing `{}` section of contract's `Cargo.toml` ...",
             format!(
                 "[package.metadata.near.reproducible_build{}]",
                 variant_suffix
             )
             .magenta()
         ),
-        || {
-            metadata::ReproducibleBuild::parse(
-                cloned_repo.crate_metadata(),
-                opts.variant.as_deref(),
-            )
-        },
+        || docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref()),
     )?;
+
     let near_sdk_support =
         warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
     warn_versions_upgrades::suggest_cargo_near_build_checks(
         cloned_repo.crate_metadata(),
-        &docker_build_meta,
+        &applied_build_meta,
         near_sdk_support,
     );
     let contract_source_metadata = {
-        let local_crate_info = BuildInfoMixed::new(&opts, &docker_build_meta, &cloned_repo)?;
+        let local_crate_info = BuildInfoMixed::new(&opts, &applied_build_meta, &cloned_repo)?;
         near_verify_rs::types::contract_source_metadata::ContractSourceMetadata::from(
             local_crate_info,
         )
@@ -79,8 +83,8 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
                 "Performing check that current HEAD has been pushed to remote...",
                 || {
                     git_checks::pushed_to_remote::check(
-                        // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-                        &docker_build_meta.repository.clone().unwrap(),
+                        // this unwrap depends on `metadata::AppliedReproducibleBuild::validate` logic
+                        &applied_build_meta.repository.clone().unwrap(),
                         crate_in_repo.head,
                     )
                 },
@@ -100,7 +104,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         })?;
 
         pretty_print::handle_step("Checking that specified image is available...", || {
-            let docker_image = docker_build_meta.concat_image();
+            let docker_image = applied_build_meta.concat_image();
             docker_checks::pull_image::check(&docker_image, quiet)
         })?;
     }

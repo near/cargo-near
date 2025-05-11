@@ -2,7 +2,12 @@ use colored::Colorize;
 use serde::Deserialize;
 
 use serde_json::Value;
-use std::{collections::BTreeMap as Map, str::FromStr, thread, time::Duration};
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+    thread,
+    time::Duration,
+};
 
 use crate::types::cargo::metadata::CrateMetadata;
 
@@ -19,25 +24,41 @@ pub struct ReproducibleBuild {
     #[serde(skip)]
     pub repository: Option<url::Url>,
 
-    /// indicator for used variant of reproducible build;
-    /// present if the variant of build was used
-    #[serde(skip)]
-    pub variant: Option<String>,
+    #[serde(rename = "variant", default)]
+    variants_map: HashMap<String, VariantReproducibleBuild>,
 
     #[serde(flatten)]
-    unknown_keys: Map<String, Value>,
+    unknown_keys: BTreeMap<String, Value>,
 }
 
 #[derive(Deserialize, Debug)]
 /// parsed from `[package.metadata.near.reproducible_build.variant.name]` in Cargo.toml
-pub struct VariantReproducibleBuild {
+struct VariantReproducibleBuild {
     pub image: Option<String>,
     pub image_digest: Option<String>,
     pub passed_env: Option<Vec<String>>,
     pub container_build_command: Option<Vec<String>>,
 
     #[serde(flatten)]
-    unknown_keys: Map<String, Value>,
+    unknown_keys: BTreeMap<String, Value>,
+}
+
+pub struct AppliedReproducibleBuild {
+    pub image: String,
+    pub image_digest: String,
+    pub passed_env: Option<Vec<String>>,
+    pub container_build_command: Option<Vec<String>>,
+
+    /// a cloneable git remote url,
+    /// currently, only ones, starting with `https://`, are supported;
+    /// parsed from `package.repository`
+    pub repository: Option<url::Url>,
+
+    /// indicator for used variant of reproducible build;
+    /// present if the variant of build was used
+    pub selected_variant: Option<String>,
+
+    unknown_keys: BTreeMap<String, serde_json::Value>,
 }
 
 #[allow(clippy::write_literal)]
@@ -45,10 +66,54 @@ impl std::fmt::Display for ReproducibleBuild {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f)?;
 
-        if let Some(ref variant_name) = self.variant {
+        writeln!(f, "    {}: {}", "image", self.image)?;
+        writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
+        if let Some(ref passed_env) = self.passed_env {
+            writeln!(
+                f,
+                "    {}: {:?}",
+                "passed environment variables", passed_env
+            )?;
+        } else {
+            writeln!(
+                f,
+                "    {}: {}",
+                "passed environment variables",
+                "ABSENT".green()
+            )?;
+        }
+        if let Some(ref cmd) = self.container_build_command {
+            writeln!(f, "    {}: {:?}", "container build command", cmd)?;
+        } else {
+            writeln!(
+                f,
+                "    {}: {}",
+                "container build command",
+                "ABSENT".yellow()
+            )?;
+        }
+        writeln!(
+            f,
+            "    {}: {}",
+            "cloneable remote of git repository",
+            self.repository
+                .clone()
+                .map(|url| format!("{}", url))
+                .unwrap_or("<empty>".to_string())
+        )?;
+        Ok(())
+    }
+}
+
+#[allow(clippy::write_literal)]
+impl std::fmt::Display for AppliedReproducibleBuild {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f)?;
+
+        if let Some(ref variant_name) = self.selected_variant {
             writeln!(f, "    {}: {}", "build variant", variant_name.yellow())?;
         } else {
-            writeln!(f, "    {}: {}", "build variant", "<DEFAULT>".green())?;
+            writeln!(f, "    {}: {}", "build variant", "<DEFAULT>")?;
         }
 
         writeln!(f, "    {}: {}", "image", self.image)?;
@@ -90,7 +155,19 @@ impl std::fmt::Display for ReproducibleBuild {
     }
 }
 
-impl ReproducibleBuild {
+impl AppliedReproducibleBuild {
+    pub fn new(reproducible_build_parsed: &ReproducibleBuild) -> Self {
+        Self {
+            image: reproducible_build_parsed.image.clone(),
+            image_digest: reproducible_build_parsed.image_digest.clone(),
+            passed_env: reproducible_build_parsed.passed_env.clone(),
+            container_build_command: reproducible_build_parsed.container_build_command.clone(),
+            repository: reproducible_build_parsed.repository.clone(),
+            selected_variant: None,
+            unknown_keys: reproducible_build_parsed.unknown_keys.clone(),
+        }
+    }
+
     fn inject_variant_build(
         &mut self,
         variant_name: &str,
@@ -104,12 +181,12 @@ impl ReproducibleBuild {
         );
         println!();
 
-        self.variant = Some(variant_name.to_string());
+        self.selected_variant = Some(variant_name.to_string());
 
         if let Some(new_image) = &variant_build.image {
             println!("    {}", "Changing image:".yellow());
-            println!("        {} `{}`", "old:".red(), self.image);
-            println!("        {} `{}`", "new:".green(), new_image);
+            println!("        {} `{}`", "default:".red(), self.image);
+            println!("        {} `{}`", "override:".green(), new_image);
             println!();
 
             self.image.clone_from(new_image);
@@ -117,8 +194,8 @@ impl ReproducibleBuild {
 
         if let Some(new_image_digest) = &variant_build.image_digest {
             println!("    {}", "Changing image_digest:".yellow());
-            println!("        {} `{}`", "old:".red(), self.image_digest);
-            println!("        {} `{}`", "new:".green(), new_image_digest);
+            println!("        {} `{}`", "default:".red(), self.image_digest);
+            println!("        {} `{}`", "override:".green(), new_image_digest);
             println!();
 
             self.image_digest.clone_from(new_image_digest);
@@ -128,12 +205,12 @@ impl ReproducibleBuild {
             println!("    {}", "Changing passed_env:".yellow());
 
             if let Some(original_passed_env) = &self.passed_env {
-                println!("        {} `{:?}`", "old:".red(), original_passed_env);
+                println!("        {} `{:?}`", "default:".red(), original_passed_env);
             } else {
-                println!("        {} `{:?}`", "old:".red(), "<ABSENT>".green());
+                println!("        {} `{:?}`", "default:".red(), "<ABSENT>".green());
             }
 
-            println!("        {} `{:?}`", "new:".green(), new_passed_env);
+            println!("        {} `{:?}`", "override:".green(), new_passed_env);
             println!();
 
             self.passed_env = Some(new_passed_env.clone());
@@ -143,20 +220,26 @@ impl ReproducibleBuild {
             println!("    {}", "Changing container_build_command:".yellow());
 
             if let Some(original_build_command) = &self.container_build_command {
-                println!("        {} `{:?}`", "old:".red(), original_build_command);
+                println!(
+                    "        {} `{:?}`",
+                    "default:".red(),
+                    original_build_command
+                );
             } else {
-                println!("        {} `{}`", "old:".red(), "<ABSENT>".yellow());
+                println!("        {} `{}`", "default:".red(), "<ABSENT>".yellow());
             }
 
-            println!("        {} `{:?}`", "new:".green(), new_container_command);
+            println!(
+                "        {} `{:?}`",
+                "override:".green(),
+                new_container_command
+            );
             println!();
 
             self.container_build_command = Some(new_container_command.clone());
         }
 
         self.unknown_keys.extend(variant_build.unknown_keys.clone());
-
-        thread::sleep(Duration::new(2, 0));
     }
 
     fn validate_image(&self) -> eyre::Result<()> {
@@ -166,7 +249,7 @@ impl ReproducibleBuild {
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
             let variant_suffix = self
-                .variant
+                .selected_variant
                 .as_ref()
                 .map(|name| format!(".variant.{}", name))
                 .unwrap_or_default();
@@ -186,7 +269,7 @@ impl ReproducibleBuild {
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
             let variant_suffix = self
-                .variant
+                .selected_variant
                 .as_ref()
                 .map(|name| format!(".variant.{}", name))
                 .unwrap_or_default();
@@ -208,7 +291,7 @@ impl ReproducibleBuild {
                 && Some("near") == build_command.get(1).map(AsRef::as_ref)
         };
         let variant_suffix = self
-            .variant
+            .selected_variant
             .as_ref()
             .map(|name| format!(".variant.{}", name))
             .unwrap_or_default();
@@ -255,7 +338,7 @@ impl ReproducibleBuild {
                 .map(|element| element.as_str())
                 .collect::<Vec<_>>();
             let variant_suffix = self
-                .variant
+                .selected_variant
                 .as_ref()
                 .map(|name| format!(".variant.{}", name))
                 .unwrap_or_default();
@@ -291,7 +374,7 @@ impl ReproducibleBuild {
         Ok(())
     }
 
-    fn validate(&self) -> eyre::Result<()> {
+    pub fn validate(&self) -> eyre::Result<()> {
         self.validate_image()?;
         self.validate_image_digest()?;
         self.validate_container_build_command()?;
@@ -301,7 +384,17 @@ impl ReproducibleBuild {
         Ok(())
     }
 
-    pub fn parse(cargo_metadata: &CrateMetadata, variant_name: Option<&str>) -> eyre::Result<Self> {
+    pub fn concat_image(&self) -> String {
+        let mut result = String::new();
+        result.push_str(&self.image);
+        result.push('@');
+        result.push_str(&self.image_digest);
+        result
+    }
+}
+
+impl ReproducibleBuild {
+    pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
         let build_meta_value = cargo_metadata
             .root_package
             .metadata
@@ -349,26 +442,36 @@ impl ReproducibleBuild {
             }
         };
 
-        let variant_meta_value = build_meta.unknown_keys.remove("variant");
+        build_meta.repository = cargo_metadata
+            .root_package
+            .repository
+            .clone()
+            .map(|url| <url::Url as FromStr>::from_str(&url))
+            .transpose()?;
 
-        if let Some(target_variant_name) = variant_name {
-            let variants_map: Map<String, VariantReproducibleBuild> =
-                match variant_meta_value {
-                    None => Map::new(),
-                    Some(v) => serde_json::from_value(v).map_err(|err| {
-                        eyre::eyre!(
-                            "Malformed [package.metadata.near.reproducible_build.variant] in Cargo.toml: {}",
-                            err
-                        )
-                    })?,
-                };
+        println!(
+            "{} {}",
+            "parsed reproducible build metadata:".green(),
+            build_meta
+        );
+        Ok(build_meta)
+    }
 
-            match variants_map.get(target_variant_name) {
+    /// Apply the variant of `[package.metadata.near.reproducible_build]` using the `variant_name`;
+    /// if `variant_name` is empty - return default `[package.metadata.near.reproducible_build]`
+    pub fn apply_variant_or_default(
+        self,
+        variant_name: Option<&str>,
+    ) -> eyre::Result<AppliedReproducibleBuild> {
+        let mut applied_variant = AppliedReproducibleBuild::new(&self);
+        match variant_name {
+            None => {}
+            Some(name) => match self.variants_map.get(name) {
                 None => {
                     println!(
                         "{}{}{}",
                         "Build variant called `".yellow(),
-                        target_variant_name.yellow(),
+                        name.yellow(),
                         "` was not found in Cargo.toml...".yellow()
                     );
                     thread::sleep(Duration::new(7, 0));
@@ -377,7 +480,7 @@ impl ReproducibleBuild {
                         "{}{}{}{}{}",
                         "You can add and commit ".cyan(),
                         "`[package.metadata.near.reproducible_build.variant.".magenta(),
-                        target_variant_name.magenta(),
+                        name.magenta(),
                         "]` ".magenta(),
                         "to your contract's Cargo.toml:".cyan()
                     );
@@ -385,31 +488,20 @@ impl ReproducibleBuild {
                     thread::sleep(Duration::new(12, 0));
 
                     return Err(eyre::eyre!(
-                        "Missing `[package.metadata.near.reproducible_build.variant.{}]` in Cargo.toml", 
-                        target_variant_name
+                        "Missing `[package.metadata.near.reproducible_build.variant.{}]` in Cargo.toml",
+                        name
                     ));
                 }
-                Some(variant) => build_meta.inject_variant_build(target_variant_name, variant),
-            }
+                Some(variant) => applied_variant.inject_variant_build(name, variant),
+            },
         }
 
-        build_meta.repository = cargo_metadata
-            .root_package
-            .repository
-            .clone()
-            .map(|url| <url::Url as FromStr>::from_str(&url))
-            .transpose()?;
-
-        build_meta.validate()?;
-        println!("{} {}", "reproducible build metadata:".green(), build_meta);
-        Ok(build_meta)
-    }
-
-    pub fn concat_image(&self) -> String {
-        let mut result = String::new();
-        result.push_str(&self.image);
-        result.push('@');
-        result.push_str(&self.image_digest);
-        result
+        applied_variant.validate()?;
+        println!(
+            "{} {}",
+            "applied reproducible build metadata:".green(),
+            applied_variant
+        );
+        Ok(applied_variant)
     }
 }
