@@ -174,6 +174,7 @@ impl From<BuildOpts> for cargo_near_build::BuildOpts {
             override_nep330_contract_path: None,
             override_cargo_target_dir: None,
             override_nep330_output_wasm_path: None,
+            override_toolchain: None,
         }
     }
 }

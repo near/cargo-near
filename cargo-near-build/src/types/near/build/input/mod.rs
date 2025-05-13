@@ -74,6 +74,9 @@ pub struct Opts {
     /// override value of [`crate::env_keys::nep330::OUTPUT_WASM_PATH`] environment variable,
     #[builder(into)]
     pub override_nep330_output_wasm_path: Option<String>,
+    /// override value of [`crate::env_keys::RUSTUP_TOOLCHAIN`] environment variable,
+    #[builder(into)]
+    pub override_toolchain: Option<String>,
 }
 
 /// used as field in [`BuildOpts`](crate::BuildOpts)

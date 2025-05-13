@@ -28,7 +28,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     color.apply();
 
     pretty_print::handle_step("Checking the host environment...", || {
-        if !cargo_native::target::wasm32_exists() {
+        if !cargo_native::target::wasm32_exists(args.override_toolchain.clone()) {
             eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
@@ -90,6 +90,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .collect::<Vec<_>>();
             common_vars_env.append_borrowed_to(&mut abi_env);
 
+            args.override_toolchain.as_ref().inspect(|toolchain| {
+                abi_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));
+            });
+
             abi::generate::procedure(
                 &crate_metadata,
                 args.no_locked,
@@ -103,7 +107,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
         let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {
-            compiler: format!("rustc {}", rustc_version::version()?),
+            compiler: format!(
+                "rustc {}",
+                version_meta_with_override(args.override_toolchain.clone())?.semver
+            ),
             builder: format!(
                 "{} {}",
                 embedding_binary,
@@ -144,6 +151,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
         abi_path_env.append_borrowed_to(&mut build_env);
         common_vars_env.append_borrowed_to(&mut build_env);
+
+        args.override_toolchain.as_ref().inspect(|toolchain| {
+            build_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));
+        });
 
         build_env
     };
@@ -268,4 +279,41 @@ fn maybe_wasm_opt_step(
         (input_path.clone(), None)
     };
     Ok(result)
+}
+
+pub fn version_meta_with_override(
+    override_toolchain: Option<String>,
+) -> rustc_version::Result<rustc_version::VersionMeta> {
+    let rustc = std::env::var_os("RUSTC").unwrap_or_else(|| std::ffi::OsString::from("rustc"));
+    let mut cmd = if let Some(wrapper) = std::env::var_os("RUSTC_WRAPPER").filter(|w| !w.is_empty())
+    {
+        let mut cmd = std::process::Command::new(wrapper);
+        cmd.arg(rustc);
+        cmd
+    } else {
+        std::process::Command::new(rustc)
+    };
+    cmd.arg("-vV");
+    if let Some(toolchain) = override_toolchain {
+        cmd.env(env_keys::RUSTUP_TOOLCHAIN, toolchain);
+    }
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Command execution:\n{}",
+        pretty_print::indent_payload(&format!("{:#?}", cmd))
+    );
+
+    let out = cmd
+        .output()
+        .map_err(rustc_version::Error::CouldNotExecuteCommand)?;
+
+    if !out.status.success() {
+        return Err(rustc_version::Error::CommandError {
+            stdout: String::from_utf8_lossy(&out.stdout).into(),
+            stderr: String::from_utf8_lossy(&out.stderr).into(),
+        });
+    }
+
+    rustc_version::version_meta_for(str::from_utf8(&out.stdout)?)
 }

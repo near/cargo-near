@@ -10,9 +10,9 @@ use colored::Colorize;
 use eyre::OptionExt;
 use eyre::{ContextCompat, WrapErr};
 
-use crate::pretty_print;
 use crate::types::near::build::common_buildtime_env;
 use crate::types::near::OutputPaths;
+use crate::{env_keys, pretty_print};
 
 use super::manifest_path::ManifestPath;
 
@@ -37,6 +37,7 @@ impl CrateMetadata {
             manifest_path,
             args.no_locked,
             override_cargo_target_path_env,
+            args.override_toolchain.clone(),
         )
     }
     /// Parses the contract manifest and returns relevant metadata.
@@ -44,10 +45,15 @@ impl CrateMetadata {
         manifest_path: ManifestPath,
         no_locked: bool,
         cargo_target_dir: &common_buildtime_env::CargoTargetDir,
+        override_toolchain: Option<String>,
     ) -> eyre::Result<Self> {
         let (metadata, root_package) = {
-            let (mut metadata, root_package) =
-                get_cargo_metadata(&manifest_path, no_locked, cargo_target_dir)?;
+            let (mut metadata, root_package) = get_cargo_metadata(
+                &manifest_path,
+                no_locked,
+                cargo_target_dir,
+                override_toolchain,
+            )?;
             metadata.target_directory =
                 crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
             metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
@@ -194,6 +200,7 @@ fn get_cargo_metadata(
     manifest_path: &ManifestPath,
     no_locked: bool,
     cargo_target_dir: &common_buildtime_env::CargoTargetDir,
+    override_toolchain: Option<String>,
 ) -> eyre::Result<(cargo_metadata::Metadata, Package)> {
     tracing::info!(
         target: "near_teach_me",
@@ -206,15 +213,18 @@ fn get_cargo_metadata(
     }
 
     let cmd = cmd.manifest_path(&manifest_path.path);
+    let mut std_process_command = cmd.cargo_command();
+
+    if let Some(toolchain) = override_toolchain {
+        std_process_command.env(env_keys::RUSTUP_TOOLCHAIN, toolchain);
+    }
+    cargo_target_dir.into_std_command(&mut std_process_command);
     tracing::info!(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Command execution:\n{}",
-        pretty_print::indent_payload(&format!("{:#?}", cmd.cargo_command()))
+        pretty_print::indent_payload(&format!("{:#?}", std_process_command))
     );
-    let mut std_process_command = cmd.cargo_command();
-
-    cargo_target_dir.into_std_command(&mut std_process_command);
 
     let metadata = exec_metadata_command(std_process_command);
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
