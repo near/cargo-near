@@ -127,10 +127,7 @@ async fn test_regular_build() -> Result<(), Box<dyn std::error::Error>> {
 
     let opts = cargo_near_build::BuildOpts::builder()
         .manifest_path(generated_manifest.clone())
-        .env(vec![(
-            cargo_near_build::env_keys::RUSTUP_TOOLCHAIN.to_string(),
-            MAX_SUPPORTED_VERSION.to_string(),
-        )])
+        .override_toolchain(MAX_SUPPORTED_VERSION)
         .build();
 
     let artifact = cargo_near_build::build(opts)?;
