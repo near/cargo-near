@@ -102,7 +102,7 @@ fn test_cargo_test_on_generated_project() -> Result<(), Box<dyn std::error::Erro
 ///
 /// differs from [test_cargo_test_on_generated_project] in the aspect, that current test
 /// uses [cargo_near_build::build] from current *cargo-near* branch, whereas
-/// [test_cargo_test_on_generated_project] uses [cargo_near_build::build] logic from
+/// [test_cargo_test_on_generated_project] uses [cargo_near_build::build_with_cli] logic from
 /// [near_workspaces::compile_project] corresponding to the template's project manifest
 #[tokio::test]
 async fn test_regular_build() -> Result<(), Box<dyn std::error::Error>> {
