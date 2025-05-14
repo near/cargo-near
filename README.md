@@ -139,43 +139,6 @@ This variant runs a reproducible build in a [Docker](https://docs.docker.com/) c
 **What's a reproducible build in context of NEAR?**
 Why is it needed? Explanation of these points and a step-by-step tutorial is present at [SourceScan/verification-guide](https://github.com/SourceScan/verification-guide).
 
-**Custom build variant via `--variant <name>`**
-Beyond defaults in your `[package.metadata.near.reproducible_build]`, you can now
-define **named build variants** in your `Cargo.toml` under:
-
-```yaml
-[package.metadata.near.reproducible_build.variant.<name>]
-image                   = "<your-docker-image>"
-image_digest            = "<sha256:...>"
-passed_env              = ["RUSTFLAGS",...]
-container_build_command = ["cargo", "build", "--locked", ...]
-```
-
-At build time, simply add `--variant <name>` to overlay variant's settings over
-the `reproducible_build` options. For example, if you declare:
-
-```yaml
-[package.metadata.near.reproducible_build.variant.custom-variant-name]
-container_build_command = [
-    "cargo",
-    "near",
-    "build",
-    "non-reproducible-wasm",
-    "--locked",
-    "--features",
-    "my-custom-feature"
-]
-```
-
-in `Cargo.toml`, and then:
-
-```bash
-cargo near build reproducible-wasm --variant custom-variant-name
-```
-
-will use `custom-variant-name` variant's `container_build_command`,
-instead of one defined in `[package.metadata.near.reproducible_build]`.
-
 <details>
   <summary>Additional (optional) details on possible <code>[package.metadata.near.reproducible_build]</code> configuration</summary><p>
   
@@ -193,8 +156,7 @@ instead of one defined in `[package.metadata.near.reproducible_build]`.
    by specifying their names in [`passed_env`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L24) array
     - supported by **sourcescan/cargo-near:0.10.1-rust-1.82.0** image or later images
     - SourceScan/Nearblocks does not support verifying such contracts with additional parameters present in their metadata yet 
-4. `--variant` flag allows you to use named variants that are defined in `Cargo.toml` under `[package.metadata.near.reproducible_build.variant.<name>]` with different fields in it (`image`, `image_digest`, `container_build_command`, `passed_env`)
-    - all fields are optional, but ones that are defined will replace original fields and their values from `[package.metadata.reproducible_build]`
+
 </p></details>
 
 Additional flags for build configuration can be looked up if needed by:
@@ -202,6 +164,45 @@ Additional flags for build configuration can be looked up if needed by:
 ```bash
 cargo near build reproducible-wasm -h      # replace `-h` with `--help` for more details
 ```
+
+#### Custom `reproducible-wasm` build using `--variant <name>` flag
+
+Beyond your `[package.metadata.near.reproducible_build]` configuration, you can
+define **named variants of build** in your `Cargo.toml` under:
+
+```yaml
+[package.metadata.near.reproducible_build.variant.<name>]
+```
+
+It supports all the same fields as `[package.metadata.near.reproducible_build]`:
+`image`, `image_digest`, `passed_env`, and `container_build_command`.
+
+**Note that every field is optional for variant build and will override
+corresponding field in `reproducible_build`!**
+
+For example, if you declare:
+
+```yaml
+[package.metadata.near.reproducible_build.variant.testnet-features]
+container_build_command = [
+    "cargo",
+    "near",
+    "build",
+    "non-reproducible-wasm",
+    "--locked",
+    "--features",
+    "testnet"
+]
+```
+
+in `Cargo.toml`, and then:
+
+```bash
+cargo near build reproducible-wasm --variant testnet-features
+```
+
+will use `testnet-features` version of `container_build_command`,
+instead of one defined in `[package.metadata.near.reproducible_build]`.
 
 ---
 
