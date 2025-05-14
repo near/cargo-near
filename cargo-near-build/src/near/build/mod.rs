@@ -314,5 +314,5 @@ pub fn version_meta_with_override(
         });
     }
 
-    rustc_version::version_meta_for(str::from_utf8(&out.stdout)?)
+    rustc_version::version_meta_for(std::str::from_utf8(&out.stdout)?)
 }
