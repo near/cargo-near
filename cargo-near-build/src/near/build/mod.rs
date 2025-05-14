@@ -21,6 +21,8 @@ use super::abi;
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
+
+    let rustc_version = version_meta_with_override(args.override_toolchain.clone())?.semver;
     let override_cargo_target_path_env =
         common_buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
 
@@ -107,10 +109,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
         let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {
-            compiler: format!(
-                "rustc {}",
-                version_meta_with_override(args.override_toolchain.clone())?.semver
-            ),
+            compiler: format!("rustc {}", rustc_version),
             builder: format!(
                 "{} {}",
                 embedding_binary,
