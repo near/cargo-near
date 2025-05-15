@@ -9,6 +9,7 @@ fn get_locked_package_version(
         manifest_path.clone().try_into()?,
         false,
         &CargoTargetDir::NoOp,
+        None,
     )?;
 
     let packages = meta.find_direct_dependency(package_name)?;

@@ -61,21 +61,29 @@ jobs:
         with:
           submodules: recursive
 
-      - name: "Install stable Rust toolchain"
+      - name: "Install stable Rust toolchain for compiling the CLI and lib"
         uses: actions-rs/toolchain@v1
         with:
           # channel is really controlled by ./rust-toolchain.toml
           toolchain: stable
+          default: true
           profile: minimal
 
-      - name: Install `wasm32-unknown-unknown`
-        run: rustup target add wasm32-unknown-unknown
+      - name: "Install pinned 1.86.0 Rust toolchain for compiling contracts for tests with live node"
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.86.0
+          default: false
+          profile: minimal
+          target: wasm32-unknown-unknown
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
-      - name: Install latest (released) cargo-near CLI (dependency of `cargo-near-integration-tests::cargo_near_new::test_cargo_test_on_generated_project`)
+      - name: Install latest (released) cargo-near CLI 
+      # dependency of `cargo-near-integration-tests::cargo_near_new::test_cargo_test_on_generated_project`
+      # which uses `near_workspaces::compile_project`
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
       - name: Run tests
         run: |

@@ -49,8 +49,7 @@ include! {"../../cargo-near/src/commands/new/test_basics_on.rs.in"}
 fn test_cargo_test_on_generated_project() -> Result<(), Box<dyn std::error::Error>> {
     let generated_manifest = run_cargo_near_new()?;
 
-    toolchain_channels::assert_equal(
-        &tests_toolchain(),
+    let template_toolchain = toolchain_channels::get_channel(
         &generated_manifest
             .parent()
             .expect("has a parent")
@@ -63,6 +62,10 @@ fn test_cargo_test_on_generated_project() -> Result<(), Box<dyn std::error::Erro
     cmd.arg("test")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .env(
+            cargo_near_build::env_keys::RUSTUP_TOOLCHAIN,
+            template_toolchain,
+        )
         .current_dir(
             generated_manifest
                 .parent()
@@ -99,7 +102,7 @@ fn test_cargo_test_on_generated_project() -> Result<(), Box<dyn std::error::Erro
 ///
 /// differs from [test_cargo_test_on_generated_project] in the aspect, that current test
 /// uses [cargo_near_build::build] from current *cargo-near* branch, whereas
-/// [test_cargo_test_on_generated_project] uses [cargo_near_build::build] logic from
+/// [test_cargo_test_on_generated_project] uses [cargo_near_build::build_with_cli] logic from
 /// [near_workspaces::compile_project] corresponding to the template's project manifest
 #[tokio::test]
 async fn test_regular_build() -> Result<(), Box<dyn std::error::Error>> {
@@ -111,8 +114,7 @@ async fn test_regular_build() -> Result<(), Box<dyn std::error::Error>> {
         &generated_manifest,
         "near_workspaces",
     )?;
-    toolchain_channels::assert_equal(
-        &tests_toolchain(),
+    let template_toolchain = toolchain_channels::get_channel(
         &generated_manifest
             .parent()
             .expect("has a parent")
@@ -121,6 +123,7 @@ async fn test_regular_build() -> Result<(), Box<dyn std::error::Error>> {
 
     let opts = cargo_near_build::BuildOpts::builder()
         .manifest_path(generated_manifest.clone())
+        .override_toolchain(template_toolchain)
         .build();
 
     let artifact = cargo_near_build::build(opts)?;
@@ -165,9 +168,4 @@ fn run_cargo_near_new() -> color_eyre::Result<camino::Utf8PathBuf> {
 fn tests_manifest() -> camino::Utf8PathBuf {
     let cargo_near_integration_tests_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
     cargo_near_integration_tests_dir.join("Cargo.toml")
-}
-
-fn tests_toolchain() -> camino::Utf8PathBuf {
-    let cargo_near_integration_tests_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
-    cargo_near_integration_tests_dir.join("../rust-toolchain.toml")
 }
