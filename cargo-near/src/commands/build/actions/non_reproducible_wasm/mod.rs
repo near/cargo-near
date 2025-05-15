@@ -104,6 +104,10 @@ pub struct BuildOpts {
     #[interactive_clap(verbatim_doc_comment)]
     #[interactive_clap(long_vec_multiple_opt)]
     pub env: Vec<String>,
+    /// override value of `RUSTUP_TOOLCHAIN` environment variable, used for all invoked `rustc`, `cargo` and `rustup` commands
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    pub override_toolchain: Option<String>,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -121,6 +125,7 @@ impl From<CliBuildOpts> for BuildOpts {
             no_default_features: value.no_default_features,
             color: value.color,
             env: value.env,
+            override_toolchain: value.override_toolchain,
         }
     }
 }
@@ -148,6 +153,7 @@ pub mod context {
                 out_dir: scope.out_dir.clone(),
                 manifest_path: scope.manifest_path.clone(),
                 color: scope.color.clone(),
+                override_toolchain: scope.override_toolchain.clone(),
             };
             super::run(opts)?;
             Ok(Self)
@@ -174,6 +180,7 @@ impl From<BuildOpts> for cargo_near_build::BuildOpts {
             override_nep330_contract_path: None,
             override_cargo_target_dir: None,
             override_nep330_output_wasm_path: None,
+            override_toolchain: value.override_toolchain,
         }
     }
 }

@@ -2,12 +2,12 @@ use std::{ffi::OsStr, io::BufRead, path::PathBuf, process::Command};
 
 use eyre::WrapErr;
 
-use crate::pretty_print;
+use crate::{env_keys::RUSTUP_TOOLCHAIN, pretty_print};
 
 pub const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub fn wasm32_exists() -> bool {
-    let result = get_rustc_wasm32_unknown_unknown_target_libdir();
+pub fn wasm32_exists(override_toolchain: Option<String>) -> bool {
+    let result = get_rustc_wasm32_unknown_unknown_target_libdir(override_toolchain.clone());
 
     match result {
         Ok(wasm32_target_libdir_path) => {
@@ -32,7 +32,7 @@ pub fn wasm32_exists() -> bool {
         Err(_) => {
             tracing::error!("Some error in getting the target libdir, trying rustup..");
 
-            invoke_rustup(["target", "list", "--installed"])
+            invoke_rustup(["target", "list", "--installed"], override_toolchain)
                 .map(|stdout| {
                     stdout
                         .lines()
@@ -43,9 +43,15 @@ pub fn wasm32_exists() -> bool {
     }
 }
 
-fn get_rustc_wasm32_unknown_unknown_target_libdir() -> eyre::Result<PathBuf> {
+fn get_rustc_wasm32_unknown_unknown_target_libdir(
+    override_toolchain: Option<String>,
+) -> eyre::Result<PathBuf> {
     let mut command = Command::new("rustc");
+
     command.args(["--target", COMPILATION_TARGET, "--print", "target-libdir"]);
+    if let Some(toolchain) = override_toolchain {
+        command.env(RUSTUP_TOOLCHAIN, toolchain);
+    }
 
     tracing::info!(
         target: "near_teach_me",
@@ -66,7 +72,7 @@ fn get_rustc_wasm32_unknown_unknown_target_libdir() -> eyre::Result<PathBuf> {
     }
 }
 
-fn invoke_rustup<I, S>(args: I) -> eyre::Result<Vec<u8>>
+fn invoke_rustup<I, S>(args: I, override_toolchain: Option<String>) -> eyre::Result<Vec<u8>>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
@@ -75,6 +81,9 @@ where
 
     let mut cmd = Command::new(rustup);
     cmd.args(args);
+    if let Some(toolchain) = override_toolchain {
+        cmd.env(RUSTUP_TOOLCHAIN, toolchain);
+    }
 
     tracing::info!(
         target: "near_teach_me",

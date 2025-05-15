@@ -25,7 +25,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
             "Cargo.toml".into()
         };
         let manifest_path = ManifestPath::try_from(manifest_path)?;
-        CrateMetadata::collect(manifest_path, args.no_locked, &CargoTargetDir::NoOp)
+        CrateMetadata::collect(manifest_path, args.no_locked, &CargoTargetDir::NoOp, None)
     })?;
 
     let out_dir = crate_metadata

@@ -43,6 +43,8 @@ pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
     workspace_dir
 }
 
+const MAX_RUST_VERSION: &str = "1.86.0";
+
 pub fn invoke_cargo_near(
     function_name: &str,
     cargo_path: Option<&str>,
@@ -128,6 +130,7 @@ pub fn invoke_cargo_near(
                         cli_build_otps,
                     );
                 build_opts.manifest_path = Some(cargo_path.into());
+                build_opts.override_toolchain = Some(MAX_RUST_VERSION.to_string());
                 build_opts
             };
             tracing::debug!("non_reproducible_wasm::BuildOpts: {:#?}", build_opts);
