@@ -61,7 +61,7 @@ pub fn random_account_id(
         let random_name = generator.next().wrap_err("Random name generator error")?;
         let account_id =
             near_cli_rs::types::account_id::AccountId::from_str(&format!("{random_name}.testnet"))?;
-        if !near_cli_rs::common::is_account_exist(networks, account_id.clone().into()) {
+        if !near_cli_rs::common::is_account_exist(networks, account_id.clone().into())? {
             return Ok(account_id);
         }
     }

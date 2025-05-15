@@ -6,7 +6,7 @@ use cargo_near_build::camino;
 pub mod from_crates_io {
     use const_format::formatcp;
 
-    pub const SDK_VERSION: &str = "5.13.0";
+    pub const SDK_VERSION: &str = "5.14.0";
     pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
 }
 
@@ -18,8 +18,8 @@ pub fn setup_tracing() {
 pub mod from_git {
     use const_format::formatcp;
 
-    pub const SDK_VERSION: &str = "5.13.0";
-    pub const SDK_REVISION: &str = "4e453178d1c640137665147ed82b5c400393d120";
+    pub const SDK_VERSION: &str = "5.14.0";
+    pub const SDK_REVISION: &str = "4a1dc8ed5725af6d29e9091a5a26c4a766a22434";
     pub const SDK_SHORT_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
     pub const SDK_REPO: &str = "https://github.com/near/near-sdk-rs.git";
     pub const SDK_VERSION_TOML: &str =
