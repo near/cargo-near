@@ -27,6 +27,9 @@ pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
                 nep330_output_wasm_path,
             );
         }
+        if let Some(toolchain) = opts.override_toolchain {
+            cmd.env(crate::env_keys::RUSTUP_TOOLCHAIN, toolchain);
+        }
         cmd.env(crate::env_keys::COLOR_PREFERENCE_NO_COLOR, "true");
         cmd.stdout(std::process::Stdio::piped());
         cmd.stderr(std::process::Stdio::piped());

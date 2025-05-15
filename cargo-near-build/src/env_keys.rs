@@ -14,6 +14,9 @@ pub const BUILD_RS_ABI_STEP_HINT: &str = "CARGO_NEAR_ABI_GENERATION";
 /// is documented in RUSTFLAGS section of README.md
 pub const RUSTFLAGS: &str = "RUSTFLAGS";
 
+/// <https://rust-lang.github.io/rustup/environment-variables.html>
+pub const RUSTUP_TOOLCHAIN: &str = "RUSTUP_TOOLCHAIN";
+
 /// <https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags>
 ///
 /// this behaviour that

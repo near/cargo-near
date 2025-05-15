@@ -20,7 +20,8 @@ colored = "2.0"
 tracing = "0.1.40"
 indenter = "0.3"
 pathdiff = { version = "0.2.1", features = ["camino"] }
-rustc_version = { version = "0.4" }
+# pinned this as `version_meta_with_override` relies on pretty specific api from `rustc_version`
+rustc_version = { version = "=0.4.1" }
 
 ## deps of non-default features
 # build_internal
