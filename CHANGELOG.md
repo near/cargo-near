@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0](https://github.com/near/cargo-near/compare/cargo-near-v0.14.2...cargo-near-v0.15.0) - 2025-05-16
+
+### Other
+
+- updates near-* dependencies to 0.30 release ([#341](https://github.com/near/cargo-near/pull/341))
+- use 1.86.0 toolchain for contracts tests with live node ([#340](https://github.com/near/cargo-near/pull/340))
+- `cargo-near-build` crate badge + install cli in integration tests (for `test_cargo_test_on_generated_project`) ([#337](https://github.com/near/cargo-near/pull/337))
+- update `cargo near new` template `image` and `image_digest` ([#335](https://github.com/near/cargo-near/pull/335))
+
 ## [0.14.2](https://github.com/near/cargo-near/compare/cargo-near-v0.14.1...cargo-near-v0.14.2) - 2025-05-03
 
 ### Added
