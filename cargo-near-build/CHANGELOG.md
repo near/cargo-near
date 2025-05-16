@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.6.0...cargo-near-build-v0.7.0) - 2025-05-16
+
+### Other
+
+- use 1.86.0 toolchain for contracts tests with live node ([#340](https://github.com/near/cargo-near/pull/340))
+
 ## [0.6.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.5.1...cargo-near-build-v0.6.0) - 2025-05-03
 
 ### Added

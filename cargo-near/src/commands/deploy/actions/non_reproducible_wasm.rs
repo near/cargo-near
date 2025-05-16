@@ -18,12 +18,14 @@ pub struct DeployOpts {
 }
 
 mod context {
+    use near_primitives::action::DeployContractAction;
+
     use crate::commands::build as build_command;
 
     #[derive(Debug, Clone)]
-    pub struct Context(near_cli_rs::commands::contract::deploy::ContractFileContext);
+    pub struct Context(near_cli_rs::commands::contract::deploy::GenericDeployContext);
 
-    impl From<Context> for near_cli_rs::commands::contract::deploy::ContractFileContext {
+    impl From<Context> for near_cli_rs::commands::contract::deploy::GenericDeployContext {
         fn from(item: Context) -> Self {
             item.0
         }
@@ -46,18 +48,20 @@ mod context {
                 )
             })?;
             Ok(Self(
-                near_cli_rs::commands::contract::deploy::ContractFileContext {
+                near_cli_rs::commands::contract::deploy::GenericDeployContext {
                     global_context: previous_context,
                     receiver_account_id: scope.contract_account_id.clone().into(),
                     signer_account_id: scope.contract_account_id.clone().into(),
-                    code,
+                    deploy_action: near_primitives::action::Action::DeployContract(
+                        DeployContractAction { code },
+                    ),
                 },
             ))
         }
     }
 }
 
-/// this module is needed because of `#[interactive_clap(skip_default_input_arg)]`  
+/// this module is needed because of `#[interactive_clap(skip_default_input_arg)]`
 /// on `contract_account_id`
 mod manual_input {
     impl super::DeployOpts {

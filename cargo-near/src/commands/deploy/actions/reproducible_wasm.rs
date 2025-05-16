@@ -13,7 +13,7 @@ pub struct DeployOpts {
     /// Whether to check that code has been pushed to repository during docker build
     ///
     /// When flag is not specified, a sanity check that code being built has been pushed to remote repo
-    /// is done before building+deploying a reproducible build.   
+    /// is done before building+deploying a reproducible build.
     /// This flag is used to skip this sanity check,
     ///
     /// Need for this was flag was discovered when deploying on Github into temporary accounts,
@@ -35,9 +35,9 @@ mod context {
     use crate::commands::build as build_command;
 
     #[derive(Debug, Clone)]
-    pub struct Context(near_cli_rs::commands::contract::deploy::ContractFileContext);
+    pub struct Context(near_cli_rs::commands::contract::deploy::GenericDeployContext);
 
-    impl From<Context> for near_cli_rs::commands::contract::deploy::ContractFileContext {
+    impl From<Context> for near_cli_rs::commands::contract::deploy::GenericDeployContext {
         fn from(item: Context) -> Self {
             item.0
         }
@@ -63,18 +63,20 @@ mod context {
             })?;
 
             Ok(Self(
-                near_cli_rs::commands::contract::deploy::ContractFileContext {
+                near_cli_rs::commands::contract::deploy::GenericDeployContext {
                     global_context: previous_context,
                     receiver_account_id: scope.contract_account_id.clone().into(),
                     signer_account_id: scope.contract_account_id.clone().into(),
-                    code,
+                    deploy_action: near_primitives::transaction::Action::DeployContract(
+                        near_primitives::action::DeployContractAction { code },
+                    ),
                 },
             ))
         }
     }
 }
 
-/// this module is needed because of `#[interactive_clap(skip_default_input_arg)]`  
+/// this module is needed because of `#[interactive_clap(skip_default_input_arg)]`
 /// on `contract_account_id`
 mod manual_input {
     impl super::DeployOpts {
