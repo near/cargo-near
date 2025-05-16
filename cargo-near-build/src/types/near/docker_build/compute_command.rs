@@ -12,19 +12,12 @@ impl super::Opts {
                 "`container_build_command` is expected to be non-empty (after validation)"
             ));
         };
-        let variant_suffix = self
-            .variant
-            .as_ref()
-            .map(|name| format!(".variant.{}", name))
-            .unwrap_or_default();
+
+        let section_name = metadata::section_name(self.variant.as_ref());
         println!(
             "{}`{}`{}",
             "using `container_build_command` from ".cyan(),
-            format!(
-                "[package.metadata.near.reproducible_build{}]",
-                variant_suffix
-            )
-            .magenta(),
+            section_name.magenta(),
             " in Cargo.toml".cyan()
         );
         self.append_env_suffix(
@@ -56,20 +49,12 @@ impl super::Opts {
                 .collect::<Vec<_>>();
 
             if !suffix_env.is_empty() {
-                let variant_suffix = self
-                    .variant
-                    .as_ref()
-                    .map(|name| format!(".variant.{}", name))
-                    .unwrap_or_default();
+                let section_name = metadata::section_name(self.variant.as_ref());
                 println!(
                     "{}{}{}",
                     "(listed in `".cyan(),
                     "passed_env".yellow(),
-                    format!(
-                        "` from `[package.metadata.near.reproducible_build{}]` in Cargo.toml)",
-                        variant_suffix
-                    )
-                    .cyan(),
+                    format!("` from `{}` in Cargo.toml)", section_name).cyan(),
                 );
                 println!();
             }

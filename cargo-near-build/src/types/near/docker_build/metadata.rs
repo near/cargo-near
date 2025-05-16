@@ -62,6 +62,17 @@ pub struct AppliedReproducibleBuild {
     unknown_keys: BTreeMap<String, serde_json::Value>,
 }
 
+pub(crate) fn section_name(variant: Option<&String>) -> String {
+    let variant_suffix = variant
+        .map(|name| format!(".variant.{}", name))
+        .unwrap_or_default();
+
+    format!(
+        "[package.metadata.near.reproducible_build{}]",
+        variant_suffix
+    )
+}
+
 #[allow(clippy::write_literal)]
 impl std::fmt::Display for ReproducibleBuild {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -249,14 +260,10 @@ impl AppliedReproducibleBuild {
             .chars()
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
-            let variant_suffix = self
-                .selected_variant
-                .as_ref()
-                .map(|name| format!(".variant.{}", name))
-                .unwrap_or_default();
+            let section_name = section_name(self.selected_variant.as_ref());
             return Err(eyre::eyre!(
-                "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml: `{}`\n{}",
-                variant_suffix,
+                "Malformed `{}` in Cargo.toml: `{}`\n{}",
+                section_name,
                 self.image,
                 "`image`: string contains invalid characters",
             ));
@@ -269,14 +276,10 @@ impl AppliedReproducibleBuild {
             .chars()
             .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
         {
-            let variant_suffix = self
-                .selected_variant
-                .as_ref()
-                .map(|name| format!(".variant.{}", name))
-                .unwrap_or_default();
+            let section_name = section_name(self.selected_variant.as_ref());
             return Err(eyre::eyre!(
-                "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml: `{}`\n{}",
-                variant_suffix,
+                "Malformed `{}` in Cargo.toml: `{}`\n{}",
+                section_name,
                 self.image_digest,
                 "`image_digest`: string contains invalid characters",
             ));
@@ -291,11 +294,8 @@ impl AppliedReproducibleBuild {
             Some("cargo") == build_command.first().map(AsRef::as_ref)
                 && Some("near") == build_command.get(1).map(AsRef::as_ref)
         };
-        let variant_suffix = self
-            .selected_variant
-            .as_ref()
-            .map(|name| format!(".variant.{}", name))
-            .unwrap_or_default();
+
+        let section_name = section_name(self.selected_variant.as_ref());
 
         for command_token in build_command {
             if command_token
@@ -303,8 +303,8 @@ impl AppliedReproducibleBuild {
                 .any(|c| !c.is_ascii() || c.is_ascii_control())
             {
                 return Err(eyre::eyre!(
-                    "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml: `{}`\n{}",
-                    variant_suffix,
+                    "Malformed `{}` in Cargo.toml: `{}`\n{}",
+                    section_name,
                     command_token,
                     "`container_build_command`: string token contains invalid characters",
                 ));
@@ -313,15 +313,15 @@ impl AppliedReproducibleBuild {
             // versions >=0.13 require `--locked` flag instead, but this isn't validated
             if is_cargo_near && command_token == "--no-locked" {
                 return Err(eyre::eyre!(
-                    "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml:\n{}",
-                    variant_suffix,
+                    "Malformed `{}` in Cargo.toml:\n{}",
+                    section_name,
                     "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
                 ));
             }
             if is_cargo_near && command_token == "--manifest-path" {
                 return Err(eyre::eyre!(
-                    "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml:\n{}\n{}",
-                    variant_suffix,
+                    "Malformed `{}` in Cargo.toml:\n{}\n{}",
+                    section_name,
                     "`container_build_command`: `--manifest-path` isn't allowed to be specified \
                     in manifest itself.",
                     "`--manifest-path ./Cargo.toml` is implied in all such cases",
@@ -338,14 +338,11 @@ impl AppliedReproducibleBuild {
                 .keys()
                 .map(String::as_str)
                 .collect::<Vec<_>>();
-            let variant_suffix = self
-                .selected_variant
-                .as_ref()
-                .map(|name| format!(".variant.{}", name))
-                .unwrap_or_default();
+
+            let section_name = section_name(self.selected_variant.as_ref());
             return Err(eyre::eyre!(
-                "Malformed `[package.metadata.near.reproducible_build{}]` in Cargo.toml, contains unknown keys: `{}`",
-                variant_suffix,
+                "Malformed `{}` in Cargo.toml, contains unknown keys: `{}`",
+                section_name,
                 keys.join(",")
             ));
         }

@@ -42,20 +42,12 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
     )?;
 
-    let variant_suffix = opts
-        .variant
-        .as_ref()
-        .map(|name| format!(".variant.{}", name))
-        .unwrap_or_default();
+    let section_name = metadata::section_name(opts.variant.as_ref());
 
     let applied_build_meta = pretty_print::handle_step(
         &format!(
             "Applying and validating `{}` section of contract's `Cargo.toml` ...",
-            format!(
-                "[package.metadata.near.reproducible_build{}]",
-                variant_suffix
-            )
-            .magenta()
+            section_name.magenta()
         ),
         || docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref()),
     )?;
