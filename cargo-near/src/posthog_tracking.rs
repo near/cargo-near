@@ -50,7 +50,7 @@ pub(crate) fn track_usage() {
         )
         .is_err()
     {
-        debug!(SEND_TRACKING_REQUEST_ERROR)
+        debug!(SEND_TRACKING_REQUEST_ERROR);
     }
 }
 
