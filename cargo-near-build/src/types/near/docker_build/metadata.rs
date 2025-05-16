@@ -1,48 +1,9 @@
 use colored::Colorize;
-use eyre::Context;
-use serde::Deserialize;
 
 use serde_json::Value;
-use std::{
-    collections::{BTreeMap, HashMap},
-    str::FromStr,
-    thread,
-    time::Duration,
-};
+use std::{collections::BTreeMap, thread, time::Duration};
 
-use crate::types::cargo::metadata::CrateMetadata;
-
-#[derive(Deserialize, Debug)]
-/// parsed from `[package.metadata.near.reproducible_build]` in Cargo.toml
-pub struct ReproducibleBuild {
-    pub image: String,
-    pub image_digest: String,
-    pub passed_env: Option<Vec<String>>,
-    pub container_build_command: Option<Vec<String>>,
-    /// a cloneable git remote url,
-    /// currently, only ones, starting with `https://`, are supported;
-    /// parsed from `package.repository`
-    #[serde(skip)]
-    pub repository: Option<url::Url>,
-
-    #[serde(rename = "variant", default)]
-    variants_map: HashMap<String, VariantReproducibleBuild>,
-
-    #[serde(flatten)]
-    unknown_keys: BTreeMap<String, Value>,
-}
-
-#[derive(Deserialize, Debug)]
-/// parsed from `[package.metadata.near.reproducible_build.variant.name]` in Cargo.toml
-struct VariantReproducibleBuild {
-    pub image: Option<String>,
-    pub image_digest: Option<String>,
-    pub passed_env: Option<Vec<String>>,
-    pub container_build_command: Option<Vec<String>>,
-
-    #[serde(flatten)]
-    unknown_keys: BTreeMap<String, Value>,
-}
+pub(crate) mod parsing;
 
 pub struct AppliedReproducibleBuild {
     pub image: String,
@@ -59,7 +20,7 @@ pub struct AppliedReproducibleBuild {
     /// present if the variant of build was used
     pub selected_variant: Option<String>,
 
-    unknown_keys: BTreeMap<String, serde_json::Value>,
+    unknown_keys: BTreeMap<String, Value>,
 }
 
 pub(crate) fn section_name(variant: Option<&String>) -> String {
@@ -71,50 +32,6 @@ pub(crate) fn section_name(variant: Option<&String>) -> String {
         "[package.metadata.near.reproducible_build{}]",
         variant_suffix
     )
-}
-
-#[allow(clippy::write_literal)]
-impl std::fmt::Display for ReproducibleBuild {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f)?;
-
-        writeln!(f, "    {}: {}", "image", self.image)?;
-        writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
-        if let Some(ref passed_env) = self.passed_env {
-            writeln!(
-                f,
-                "    {}: {:?}",
-                "passed environment variables", passed_env
-            )?;
-        } else {
-            writeln!(
-                f,
-                "    {}: {}",
-                "passed environment variables",
-                "ABSENT".green()
-            )?;
-        }
-        if let Some(ref cmd) = self.container_build_command {
-            writeln!(f, "    {}: {:?}", "container build command", cmd)?;
-        } else {
-            writeln!(
-                f,
-                "    {}: {}",
-                "container build command",
-                "ABSENT".yellow()
-            )?;
-        }
-        writeln!(
-            f,
-            "    {}: {}",
-            "cloneable remote of git repository",
-            self.repository
-                .clone()
-                .map(|url| format!("{}", url))
-                .unwrap_or("<empty>".to_string())
-        )?;
-        Ok(())
-    }
 }
 
 #[allow(clippy::write_literal)]
@@ -168,7 +85,7 @@ impl std::fmt::Display for AppliedReproducibleBuild {
 }
 
 impl AppliedReproducibleBuild {
-    pub fn new(reproducible_build_parsed: &ReproducibleBuild) -> Self {
+    pub fn new(reproducible_build_parsed: &parsing::ReproducibleBuild) -> Self {
         Self {
             image: reproducible_build_parsed.image.clone(),
             image_digest: reproducible_build_parsed.image_digest.clone(),
@@ -183,7 +100,7 @@ impl AppliedReproducibleBuild {
     fn inject_variant_build(
         &mut self,
         variant_name: &str,
-        variant_build: &VariantReproducibleBuild,
+        variant_build: &parsing::VariantReproducibleBuild,
     ) {
         println!(
             "{}{}{}",
@@ -389,61 +306,7 @@ impl AppliedReproducibleBuild {
     }
 }
 
-impl ReproducibleBuild {
-    pub fn parse(cargo_metadata: &CrateMetadata) -> eyre::Result<Self> {
-        let Some(build_meta_value) = cargo_metadata
-            .root_package
-            .metadata
-            .get("near")
-            .and_then(|value| value.get("reproducible_build"))
-        else {
-            println!(
-                "{}",
-                "Metadata section in contract's Cargo.toml, \
-                    that is prerequisite for reproducible builds, has not been found..."
-                    .yellow()
-            );
-            thread::sleep(Duration::new(7, 0));
-            println!();
-            println!(
-                "{}{}{}",
-                "You can add and commit ".cyan(),
-                "`[package.metadata.near.reproducible_build]` ".magenta(),
-                "to your contract's Cargo.toml:".cyan()
-            );
-            println!("{}{}", "- default values for the section can be found at ".cyan(),
-                    "https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L14-L29".magenta());
-            println!(
-                "{}{}",
-                "- the same can also be found in Cargo.toml of template project, generated by "
-                    .cyan(),
-                "`cargo near new`".magenta()
-            );
-
-            thread::sleep(Duration::new(12, 0));
-
-            return Err(eyre::eyre!(
-                "Missing `[package.metadata.near.reproducible_build]` in Cargo.toml"
-            ));
-        };
-        let mut build_meta: Self = serde_json::from_value(build_meta_value.clone())
-            .wrap_err("Malformed `[package.metadata.near.reproducible_build]` in Cargo.toml")?;
-
-        build_meta.repository = cargo_metadata
-            .root_package
-            .repository
-            .as_deref()
-            .map(<url::Url as FromStr>::from_str)
-            .transpose()?;
-
-        println!(
-            "{} {}",
-            "parsed reproducible build metadata:".green(),
-            build_meta
-        );
-        Ok(build_meta)
-    }
-
+impl parsing::ReproducibleBuild {
     /// Apply the variant of `[package.metadata.near.reproducible_build]` using the `variant_name`;
     /// if `variant_name` is empty - return default `[package.metadata.near.reproducible_build]`
     pub fn apply_variant_or_default(
