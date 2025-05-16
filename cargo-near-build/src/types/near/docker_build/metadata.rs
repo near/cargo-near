@@ -103,13 +103,13 @@ impl AppliedReproducibleBuild {
         variant_name: &str,
         variant_build: &parse::VariantReproducibleBuild,
     ) {
+        println!();
         println!(
             "{}{}{}",
             "Injecting variant build `.variant.".yellow(),
             variant_name.yellow(),
             "`:".yellow()
         );
-        println!();
 
         self.selected_variant = Some(variant_name.to_string());
 
