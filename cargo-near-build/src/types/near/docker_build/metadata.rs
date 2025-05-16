@@ -137,7 +137,7 @@ impl AppliedReproducibleBuild {
             if let Some(original_passed_env) = &self.passed_env {
                 println!("        {} `{:?}`", "default:".red(), original_passed_env);
             } else {
-                println!("        {} `{:?}`", "default:".red(), "<ABSENT>".green());
+                println!("        {} `{}`", "default:".red(), "<ABSENT>".green());
             }
 
             println!("        {} `{:?}`", "override:".green(), new_passed_env);
