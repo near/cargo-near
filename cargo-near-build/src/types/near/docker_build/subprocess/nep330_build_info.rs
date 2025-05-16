@@ -17,10 +17,10 @@ pub struct BuildInfoMixed {
     pub build_command: Vec<String>,
 }
 fn compute_repo_link_hint(
-    docker_build_meta: &metadata::ReproducibleBuild,
+    applied_build_meta: &metadata::AppliedReproducibleBuild,
     cloned_repo: &cloned_repo::ClonedRepo,
 ) -> Option<String> {
-    let repo_link_url = docker_build_meta.repository.clone().expect(
+    let repo_link_url = applied_build_meta.repository.clone().expect(
         "expected to be [Option::Some] due to [metadata::ReproducibleBuild::validate_repository] rule"
     );
     let revision = cloned_repo.initial_crate_in_repo.head.to_string();
@@ -47,10 +47,10 @@ fn compute_repo_link_hint(
 impl BuildInfoMixed {
     pub fn new(
         opts: &DockerBuildOpts,
-        docker_build_meta: &metadata::ReproducibleBuild,
+        applied_build_meta: &metadata::AppliedReproducibleBuild,
         cloned_repo: &cloned_repo::ClonedRepo,
     ) -> eyre::Result<Self> {
-        let build_environment = docker_build_meta.concat_image();
+        let build_environment = applied_build_meta.concat_image();
         let contract_path = cloned_repo
             .initial_crate_in_repo
             .unix_relative_path()?
@@ -60,13 +60,13 @@ impl BuildInfoMixed {
 
         let source_code_snapshot = source_id::SourceId::for_git(
             // this unwrap depends on `metadata::ReproducibleBuild::validate` logic
-            docker_build_meta.repository.as_ref().unwrap(),
+            applied_build_meta.repository.as_ref().unwrap(),
             source_id::GitReference::Rev(cloned_repo.initial_crate_in_repo.head.to_string()),
         )
         .map_err(|err| eyre::eyre!("compute SourceId {}", err))?;
 
-        let link = compute_repo_link_hint(docker_build_meta, cloned_repo);
-        let build_command = opts.get_cli_build_command_in_docker(docker_build_meta)?;
+        let link = compute_repo_link_hint(applied_build_meta, cloned_repo);
+        let build_command = opts.get_cli_build_command_in_docker(applied_build_meta)?;
 
         Ok(Self {
             build_environment,

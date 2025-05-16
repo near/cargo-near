@@ -165,6 +165,45 @@ Additional flags for build configuration can be looked up if needed by:
 cargo near build reproducible-wasm -h      # replace `-h` with `--help` for more details
 ```
 
+#### Custom `reproducible-wasm` build using `--variant <name>` flag
+
+Beyond your `[package.metadata.near.reproducible_build]` configuration, you can
+define **named variants of build** in your `Cargo.toml` under:
+
+```yaml
+[package.metadata.near.reproducible_build.variant.<name>]
+```
+
+It supports all the same fields as `[package.metadata.near.reproducible_build]`:
+`image`, `image_digest`, `passed_env`, and `container_build_command`.
+
+**Note that every field is optional for variant build and will override
+corresponding field in `reproducible_build`!**
+
+For example, if you declare:
+
+```yaml
+[package.metadata.near.reproducible_build.variant.testnet-features]
+container_build_command = [
+    "cargo",
+    "near",
+    "build",
+    "non-reproducible-wasm",
+    "--locked",
+    "--features",
+    "testnet"
+]
+```
+
+in `Cargo.toml`, and then:
+
+```bash
+cargo near build reproducible-wasm --variant testnet-features
+```
+
+will use `testnet-features` version of `container_build_command`,
+instead of one defined in `[package.metadata.near.reproducible_build]`.
+
 ---
 
 ```console

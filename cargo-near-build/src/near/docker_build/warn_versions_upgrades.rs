@@ -2,7 +2,7 @@ use cargo_metadata::DependencyKind;
 use colored::Colorize;
 
 use crate::types::{
-    cargo::metadata::CrateMetadata, near::docker_build::metadata::ReproducibleBuild,
+    cargo::metadata::CrateMetadata, near::docker_build::metadata::AppliedReproducibleBuild,
 };
 use std::{str::FromStr, time::Duration};
 
@@ -221,7 +221,7 @@ mod output_wasm_path {
 
 pub fn suggest_cargo_near_build_checks(
     crate_metadata: &CrateMetadata,
-    reproducible_build: &ReproducibleBuild,
+    reproducible_build: &AppliedReproducibleBuild,
     near_sdk_support: NearSdkFeatureSupport,
 ) {
     let cargo_near = find_cargo_near_in_docker_img_tag(reproducible_build);
@@ -242,7 +242,7 @@ const PROD_IMAGE: &str = "sourcescan/cargo-near";
 const DEV_IMAGE: &str = "dj8yfo/sourcescan";
 
 fn find_cargo_near_in_docker_img_tag(
-    reproducible_build: &ReproducibleBuild,
+    reproducible_build: &AppliedReproducibleBuild,
 ) -> Option<cargo_metadata::semver::Version> {
     let regex = regex::Regex::new(DOCKER_IMAGE_REGEX_PATTERN).expect("no error");
     let image_match = regex
