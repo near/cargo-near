@@ -53,6 +53,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
                 let applied_variant =
                     docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref())?;
                 applied_variant.validate()?;
+                println!();
                 println!(
                     "{} {}",
                     "applied reproducible build metadata:".green(),
