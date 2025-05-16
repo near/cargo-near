@@ -82,8 +82,7 @@ pub struct BuildOpts {
     ///
     /// See also [variant flag explanation](variant-feature-explanation).
     ///
-    /// [variant-feature-explanation]: https://github.com/near/cargo-near/blob/main/README.md#custom-build-variant-via-variant-name-flag
-    #[interactive_clap(long)]
+    /// [variant-feature-explanation]: https://github.com/near/cargo-near/tree/main?tab=readme-ov-file#custom-reproducible-wasm-build-using---variant-name-flag
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub variant: Option<String>,
