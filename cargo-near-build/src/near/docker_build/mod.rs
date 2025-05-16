@@ -50,7 +50,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
 
     let applied_build_meta = pretty_print::handle_step(
         &format!(
-            "Applying and testing `{}` section of contract's `Cargo.toml` ...",
+            "Applying and validating `{}` section of contract's `Cargo.toml` ...",
             format!(
                 "[package.metadata.near.reproducible_build{}]",
                 variant_suffix
