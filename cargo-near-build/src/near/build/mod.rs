@@ -18,11 +18,37 @@ use crate::{
 
 use super::abi;
 
+fn warning_unsupported_toolchain(rustc_version: &rustc_version::Version) {
+    if *rustc_version >= MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT {
+        println!(
+            "{}: {} {} {}",
+            "WARNING".red(),
+            "wasm, compiled with".yellow(),
+            MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT
+                .to_string()
+                .cyan(),
+            "or newer rust toolchain is currently not compatible with nearcore VM".yellow()
+        );
+        println!(
+            "{}: {} {} {}",
+            "WARNING".red(),
+            "please downgrade to".yellow(),
+            MAX_VERSION_NO_BULK_MEMORY.to_string().cyan(),
+            "toolchain for compiling contracts".yellow()
+        );
+
+        std::thread::sleep(std::time::Duration::new(15, 0));
+    }
+}
+
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
 
     let rustc_version = version_meta_with_override(args.override_toolchain.clone())?.semver;
+
+    warning_unsupported_toolchain(&rustc_version);
+
     let override_cargo_target_path_env =
         common_buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
 
@@ -174,7 +200,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
         if !target_path.is_file() || is_newer_than(&prev_artifact_path, &target_path) {
             let (from_path, _maybe_tmpfile) =
-                maybe_wasm_opt_step(&prev_artifact_path, args.no_wasmopt)?;
+                maybe_wasm_opt_step(&prev_artifact_path, args.no_wasmopt, &rustc_version)?;
             crate::fs::copy_to_file(&from_path, &target_path)?;
         } else {
             println!();
@@ -244,11 +270,13 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
     prev_time > next_time
 }
 
-const MAX_VERSION_BEFORE_BULK_MEMORY: rustc_version::Version =
-    rustc_version::Version::new(1, 86, 0);
+const MAX_VERSION_NO_BULK_MEMORY: rustc_version::Version = rustc_version::Version::new(1, 86, 0);
+const MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT: rustc_version::Version =
+    rustc_version::Version::new(1, 87, 0);
 fn maybe_wasm_opt_step(
     input_path: &Utf8PathBuf,
     no_wasmopt: bool,
+    rustc_version: &rustc_version::Version,
 ) -> eyre::Result<(Utf8PathBuf, Option<NamedTempFile>)> {
     let result = if !no_wasmopt {
         let opt_destination = tempfile::Builder::new()
@@ -258,7 +286,7 @@ fn maybe_wasm_opt_step(
         println!();
         let additional_features = {
             let mut features = vec![];
-            if rustc_version::version()? > MAX_VERSION_BEFORE_BULK_MEMORY {
+            if *rustc_version >= MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT {
                 features.push((
                     wasm_opt::Feature::TruncSat,
                     "--enable-nontrapping-float-to-int",
