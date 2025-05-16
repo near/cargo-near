@@ -87,55 +87,6 @@ impl ReproducibleBuild {
             .map(<url::Url as FromStr>::from_str)
             .transpose()?;
 
-        println!(
-            "{} {}",
-            "parsed reproducible build metadata:".green(),
-            build_meta
-        );
         Ok(build_meta)
-    }
-}
-
-#[allow(clippy::write_literal)]
-impl std::fmt::Display for ReproducibleBuild {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f)?;
-
-        writeln!(f, "    {}: {}", "image", self.image)?;
-        writeln!(f, "    {}: {}", "image digest", self.image_digest)?;
-        if let Some(ref passed_env) = self.passed_env {
-            writeln!(
-                f,
-                "    {}: {:?}",
-                "passed environment variables", passed_env
-            )?;
-        } else {
-            writeln!(
-                f,
-                "    {}: {}",
-                "passed environment variables",
-                "ABSENT".green()
-            )?;
-        }
-        if let Some(ref cmd) = self.container_build_command {
-            writeln!(f, "    {}: {:?}", "container build command", cmd)?;
-        } else {
-            writeln!(
-                f,
-                "    {}: {}",
-                "container build command",
-                "ABSENT".yellow()
-            )?;
-        }
-        writeln!(
-            f,
-            "    {}: {}",
-            "cloneable remote of git repository",
-            self.repository
-                .clone()
-                .map(|url| format!("{}", url))
-                .unwrap_or("<empty>".to_string())
-        )?;
-        Ok(())
     }
 }

@@ -40,7 +40,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
                 "Parsing `{}` section of contract's `Cargo.toml` ...",
                 "[package.metadata.near.reproducible_build]".magenta()
             ),
-            || metadata::parsing::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
+            || metadata::parse::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
         )?;
 
         let section_name = metadata::section_name(opts.variant.as_ref());
@@ -49,7 +49,17 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
                 "Applying and validating `{}` section of contract's `Cargo.toml` ...",
                 section_name.magenta()
             ),
-            || docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref()),
+            || {
+                let applied_variant =
+                    docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref())?;
+                applied_variant.validate()?;
+                println!(
+                    "{} {}",
+                    "applied reproducible build metadata:".green(),
+                    applied_variant
+                );
+                Ok(applied_variant)
+            },
         )?
     };
 

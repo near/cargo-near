@@ -3,7 +3,8 @@ use colored::Colorize;
 use serde_json::Value;
 use std::{collections::BTreeMap, thread, time::Duration};
 
-pub(crate) mod parsing;
+pub(crate) mod parse;
+mod validate;
 
 pub struct AppliedReproducibleBuild {
     pub image: String,
@@ -85,7 +86,7 @@ impl std::fmt::Display for AppliedReproducibleBuild {
 }
 
 impl AppliedReproducibleBuild {
-    pub fn new(reproducible_build_parsed: &parsing::ReproducibleBuild) -> Self {
+    pub fn new(reproducible_build_parsed: &parse::ReproducibleBuild) -> Self {
         Self {
             image: reproducible_build_parsed.image.clone(),
             image_digest: reproducible_build_parsed.image_digest.clone(),
@@ -100,7 +101,7 @@ impl AppliedReproducibleBuild {
     fn inject_variant_build(
         &mut self,
         variant_name: &str,
-        variant_build: &parsing::VariantReproducibleBuild,
+        variant_build: &parse::VariantReproducibleBuild,
     ) {
         println!(
             "{}{}{}",
@@ -171,132 +172,6 @@ impl AppliedReproducibleBuild {
         self.unknown_keys.extend(variant_build.unknown_keys.clone());
     }
 
-    fn validate_image(&self) -> eyre::Result<()> {
-        if self
-            .image
-            .chars()
-            .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
-        {
-            let section_name = section_name(self.selected_variant.as_ref());
-            return Err(eyre::eyre!(
-                "Malformed `{}` in Cargo.toml: `{}`\n{}",
-                section_name,
-                self.image,
-                "`image`: string contains invalid characters",
-            ));
-        }
-        Ok(())
-    }
-    fn validate_image_digest(&self) -> eyre::Result<()> {
-        if self
-            .image_digest
-            .chars()
-            .any(|c| !c.is_ascii() || c.is_ascii_control() || c.is_ascii_whitespace())
-        {
-            let section_name = section_name(self.selected_variant.as_ref());
-            return Err(eyre::eyre!(
-                "Malformed `{}` in Cargo.toml: `{}`\n{}",
-                section_name,
-                self.image_digest,
-                "`image_digest`: string contains invalid characters",
-            ));
-        }
-        Ok(())
-    }
-    fn validate_container_build_command(&self) -> eyre::Result<()> {
-        let build_command = self.container_build_command.clone().ok_or(eyre::eyre!(
-            "`container_build_command` field not found! It is required since 0.13.0 version of `cargo-near`"
-        ))?;
-        let is_cargo_near = {
-            Some("cargo") == build_command.first().map(AsRef::as_ref)
-                && Some("near") == build_command.get(1).map(AsRef::as_ref)
-        };
-
-        let section_name = section_name(self.selected_variant.as_ref());
-
-        for command_token in build_command {
-            if command_token
-                .chars()
-                .any(|c| !c.is_ascii() || c.is_ascii_control())
-            {
-                return Err(eyre::eyre!(
-                    "Malformed `{}` in Cargo.toml: `{}`\n{}",
-                    section_name,
-                    command_token,
-                    "`container_build_command`: string token contains invalid characters",
-                ));
-            }
-            // for versions of cargo-near inside of container <0.13
-            // versions >=0.13 require `--locked` flag instead, but this isn't validated
-            if is_cargo_near && command_token == "--no-locked" {
-                return Err(eyre::eyre!(
-                    "Malformed `{}` in Cargo.toml:\n{}",
-                    section_name,
-                    "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
-                ));
-            }
-            if is_cargo_near && command_token == "--manifest-path" {
-                return Err(eyre::eyre!(
-                    "Malformed `{}` in Cargo.toml:\n{}\n{}",
-                    section_name,
-                    "`container_build_command`: `--manifest-path` isn't allowed to be specified \
-                    in manifest itself.",
-                    "`--manifest-path ./Cargo.toml` is implied in all such cases",
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_if_unknown_keys_present(&self) -> eyre::Result<()> {
-        if !self.unknown_keys.is_empty() {
-            let keys = self
-                .unknown_keys
-                .keys()
-                .map(String::as_str)
-                .collect::<Vec<_>>();
-
-            let section_name = section_name(self.selected_variant.as_ref());
-            return Err(eyre::eyre!(
-                "Malformed `{}` in Cargo.toml, contains unknown keys: `{}`",
-                section_name,
-                keys.join(",")
-            ));
-        }
-        Ok(())
-    }
-
-    fn validate_repository(&self) -> eyre::Result<()> {
-        if let Some(ref repository) = self.repository {
-            if repository.scheme() != "https" {
-                Err(eyre::eyre!(
-                    "{}: {}\n{}",
-                    "Malformed NEP330 metadata in Cargo.toml:",
-                    repository,
-                    "`[package.repository]`: only `https` scheme is supported at the moment",
-                ))
-            } else {
-                Ok(())
-            }
-        } else {
-            Err(eyre::eyre!(
-                "{}: \n{}",
-                "Malformed NEP330 metadata in Cargo.toml",
-                "`[package.repository]`: should not be empty",
-            ))
-        }
-    }
-
-    pub fn validate(&self) -> eyre::Result<()> {
-        self.validate_image()?;
-        self.validate_image_digest()?;
-        self.validate_container_build_command()?;
-        self.validate_if_unknown_keys_present()?;
-        self.validate_repository()?;
-
-        Ok(())
-    }
-
     pub fn concat_image(&self) -> String {
         let mut result = String::new();
         result.push_str(&self.image);
@@ -306,7 +181,7 @@ impl AppliedReproducibleBuild {
     }
 }
 
-impl parsing::ReproducibleBuild {
+impl parse::ReproducibleBuild {
     /// Apply the variant of `[package.metadata.near.reproducible_build]` using the `variant_name`;
     /// if `variant_name` is empty - return default `[package.metadata.near.reproducible_build]`
     pub fn apply_variant_or_default(
@@ -343,13 +218,6 @@ impl parsing::ReproducibleBuild {
                 ));
             }
         }
-
-        applied_variant.validate()?;
-        println!(
-            "{} {}",
-            "applied reproducible build metadata:".green(),
-            applied_variant
-        );
         Ok(applied_variant)
     }
 }
