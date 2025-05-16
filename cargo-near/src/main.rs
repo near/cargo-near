@@ -44,7 +44,7 @@ fn main() -> CliResult {
         offline: false,
     };
 
-    let cli_opts = match cli_cmd.clone().opts {
+    let cli_opts = match cli_cmd.opts {
         Some(cli_opts) => cli_opts,
         None => match Opts::choose_variant(global_context.clone()) {
             interactive_clap::ResultFromCli::Ok(cli_opts) => cli_opts,
@@ -59,9 +59,9 @@ fn main() -> CliResult {
     let console_command_path = if env::var("CARGO_HOME").is_ok() {
         "cargo".to_string()
     } else if let Ok(value) = env::var("CARGO") {
-        value.clone()
+        value
     } else {
-        env::args().next().unwrap_or("./cargo".to_string())
+        env::args().next().unwrap_or_else(|| "./cargo".to_string())
     };
 
     let console_command_path = console_command_path.yellow();
