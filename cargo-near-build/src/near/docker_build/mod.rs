@@ -34,23 +34,24 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         },
     )?;
 
-    let docker_build_meta_parsed = pretty_print::handle_step(
-        &format!(
-            "Parsing `{}` section of contract's `Cargo.toml` ...",
-            "[package.metadata.near.reproducible_build]".magenta()
-        ),
-        || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
-    )?;
+    let applied_build_meta = {
+        let docker_build_meta_parsed = pretty_print::handle_step(
+            &format!(
+                "Parsing `{}` section of contract's `Cargo.toml` ...",
+                "[package.metadata.near.reproducible_build]".magenta()
+            ),
+            || metadata::ReproducibleBuild::parse(cloned_repo.crate_metadata()),
+        )?;
 
-    let section_name = metadata::section_name(opts.variant.as_ref());
-
-    let applied_build_meta = pretty_print::handle_step(
-        &format!(
-            "Applying and validating `{}` section of contract's `Cargo.toml` ...",
-            section_name.magenta()
-        ),
-        || docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref()),
-    )?;
+        let section_name = metadata::section_name(opts.variant.as_ref());
+        pretty_print::handle_step(
+            &format!(
+                "Applying and validating `{}` section of contract's `Cargo.toml` ...",
+                section_name.magenta()
+            ),
+            || docker_build_meta_parsed.apply_variant_or_default(opts.variant.as_deref()),
+        )?
+    };
 
     let near_sdk_support =
         warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
