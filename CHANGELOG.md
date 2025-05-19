@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0](https://github.com/near/cargo-near/compare/cargo-near-v0.15.0...cargo-near-v0.16.0) - 2025-05-19
+
+### Added
+
+- `--variant <name>` flag ([#339](https://github.com/near/cargo-near/pull/339))
+- add `Feature::TruncSat` and `Feature::BulkMemory` to `wasm_opt::OptimizationOptions` ([#338](https://github.com/near/cargo-near/pull/338))
+
+### Other
+
+- Updated `near-cli` install in template workflows to 0.20.0; updated `sign-with-plaintext-private-key` cli flag -> argument usage ([#346](https://github.com/near/cargo-near/pull/346))
+- update `cargo near new` template `image` and `image_digest` ([#345](https://github.com/near/cargo-near/pull/345))
+
 ## [0.15.0](https://github.com/near/cargo-near/compare/cargo-near-v0.14.2...cargo-near-v0.15.0) - 2025-05-16
 
 ### Other
