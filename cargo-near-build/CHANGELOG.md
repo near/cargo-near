@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.7.0...cargo-near-build-v0.7.1) - 2025-05-19
+
+### Added
+
+- add `Feature::TruncSat` and `Feature::BulkMemory` to `wasm_opt::OptimizationOptions` ([#338](https://github.com/near/cargo-near/pull/338))
+- `--variant <name>` flag ([#339](https://github.com/near/cargo-near/pull/339))
+
 ## [0.7.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.6.0...cargo-near-build-v0.7.0) - 2025-05-16
 
 ### Other
