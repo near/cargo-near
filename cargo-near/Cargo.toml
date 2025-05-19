@@ -23,7 +23,7 @@ license = false
 eula = false
 
 [dependencies]
-cargo-near-build = { version = "0.8.0", path = "../cargo-near-build", features = [
+cargo-near-build = { version = "0.7.1", path = "../cargo-near-build", features = [
     "build_internal",
     "docker",
 ] }
