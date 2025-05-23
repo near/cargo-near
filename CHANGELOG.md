@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.1](https://github.com/near/cargo-near/compare/cargo-near-v0.16.0...cargo-near-v0.16.1) - 2025-05-23
+
+### Other
+
+- command to deploy non-reproducible in template README file ([#349](https://github.com/near/cargo-near/pull/349))
+- update `cargo near new` template `image` and `image_digest` ([#347](https://github.com/near/cargo-near/pull/347))
+
 ## [0.16.0](https://github.com/near/cargo-near/compare/cargo-near-v0.15.0...cargo-near-v0.16.0) - 2025-05-19
 
 ### Added
