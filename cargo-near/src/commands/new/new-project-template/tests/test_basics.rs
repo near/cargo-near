@@ -9,3 +9,4 @@ async fn test_contract_is_operational() -> Result<(), Box<dyn std::error::Error>
 }
 
 TEST_BASICS_ON_INCLUDE
+
