@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.7.1...cargo-near-build-v0.7.2) - 2025-07-08
+
+### Other
+
+- Fixed linting errors - non-inlined formatting syntax ([#354](https://github.com/near/cargo-near/pull/354))
+
 ## [0.7.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.7.0...cargo-near-build-v0.7.1) - 2025-05-19
 
 ### Added
