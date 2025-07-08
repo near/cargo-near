@@ -127,7 +127,7 @@ where
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Invoking cargo:\n{}",
-        pretty_print::indent_payload(&format!("{:#?}", cmd))
+        pretty_print::indent_payload(&format!("{cmd:#?}"))
     );
 
     let mut child = cmd
@@ -135,7 +135,7 @@ where
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .wrap_err_with(|| format!("Error executing `{:?}`", cmd))?;
+        .wrap_err_with(|| format!("Error executing `{cmd:?}`"))?;
     let child_stdout = child
         .stdout
         .take()
@@ -157,7 +157,7 @@ where
                 Message::CompilerMessage(message) => {
                     if let Some(msg) = message.message.rendered {
                         for line in msg.lines() {
-                            eprintln!(" │ {}", line);
+                            eprintln!(" │ {line}");
                         }
                     }
                 }

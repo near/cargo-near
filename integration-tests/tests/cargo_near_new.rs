@@ -84,8 +84,7 @@ fn test_cargo_test_on_generated_project() -> Result<(), Box<dyn std::error::Erro
 
     assert!(
         output.status.success(),
-        "running `cargo test` errored with msg: {}",
-        output_string
+        "running `cargo test` errored with msg: {output_string}"
     );
 
     std::fs::remove_dir_all(

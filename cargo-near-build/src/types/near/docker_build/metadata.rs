@@ -26,13 +26,10 @@ pub struct AppliedReproducibleBuild {
 
 pub(crate) fn section_name(variant: Option<&String>) -> String {
     let variant_suffix = variant
-        .map(|name| format!(".variant.{}", name))
+        .map(|name| format!(".variant.{name}"))
         .unwrap_or_default();
 
-    format!(
-        "[package.metadata.near.reproducible_build{}]",
-        variant_suffix
-    )
+    format!("[package.metadata.near.reproducible_build{variant_suffix}]")
 }
 
 #[allow(clippy::write_literal)]

@@ -24,7 +24,7 @@ pub fn check_then_handle(
         }
         (Err(err), BuildContext::Build) => {
             println!();
-            println!("{}: {}", "WARNING".red(), format!("{}", err).yellow());
+            println!("{}: {}", "WARNING".red(), format!("{err}").yellow());
             std::thread::sleep(Duration::new(3, 0));
             println!();
             println!("{}", WARN_BECOMES_ERR.red(),);

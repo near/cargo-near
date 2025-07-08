@@ -109,7 +109,7 @@ mod post_build {
         let colon_separator = colon_separator(&rust_version);
 
         for path in rerun_if_changed_list.iter() {
-            println!("cargo{}rerun-if-changed={}", colon_separator, path);
+            println!("cargo{colon_separator}rerun-if-changed={path}");
         }
 
         if skip_build {

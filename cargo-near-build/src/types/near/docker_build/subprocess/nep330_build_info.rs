@@ -35,7 +35,7 @@ fn compute_repo_link_hint(
 
         Some(
             repo_link_url
-                .join(&format!("{}/tree/{}", existing_path, revision))
+                .join(&format!("{existing_path}/tree/{revision}"))
                 .ok()?
                 .to_string(),
         )

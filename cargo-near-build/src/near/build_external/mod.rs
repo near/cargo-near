@@ -75,10 +75,7 @@ fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8P
         .next_back();
 
     let out_path = result_line
-        .wrap_err(format!(
-            "a line starting with `{}` not found!",
-            RESULT_PREFIX
-        ))?
+        .wrap_err(format!("a line starting with `{RESULT_PREFIX}` not found!"))?
         .strip_prefix(RESULT_PREFIX)
         .expect("always starts with expected prefix");
 

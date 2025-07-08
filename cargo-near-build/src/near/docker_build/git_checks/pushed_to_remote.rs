@@ -8,7 +8,7 @@ pub fn check(git_url: &url::Url, commit_id: git2::Oid) -> eyre::Result<()> {
         let tmp_clone_destination = tempfile::tempdir()?;
         println!(
             " {} `{}` -> `{:?}`",
-            format!("Clone attempt {}:", attempt).green(),
+            format!("Clone attempt {attempt}:").green(),
             git_url,
             tmp_clone_destination
         );
