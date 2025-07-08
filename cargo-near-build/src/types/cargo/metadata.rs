@@ -223,7 +223,7 @@ fn get_cargo_metadata(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Command execution:\n{}",
-        pretty_print::indent_payload(&format!("{:#?}", std_process_command))
+        pretty_print::indent_payload(&format!("{std_process_command:#?}"))
     );
 
     let metadata = exec_metadata_command(std_process_command);

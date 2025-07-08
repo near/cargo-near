@@ -83,6 +83,6 @@ pub fn print_nep330_env() {
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Variables, relevant for reproducible builds:\n{}",
-        crate::pretty_print::indent_payload(&format!("{:#?}", env_map))
+        crate::pretty_print::indent_payload(&format!("{env_map:#?}"))
     );
 }
