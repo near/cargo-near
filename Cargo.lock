@@ -2736,8 +2736,9 @@ dependencies = [
 
 [[package]]
 name = "near-cli-rs"
-version = "0.20.0"
-source = "git+https://github.com/dj8yfo/near-cli-rs.git?branch=compile%2Fverify_contract_feature_gates#3cf1a3e6e55b608f62675645162738f7d714bdb7"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e00cec72ee294e8115553e329c6eb192cf4a9a3ce590db84e1c43b5ba4ab40ed"
 dependencies = [
  "bip39",
  "bs58 0.5.1",
