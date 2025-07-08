@@ -29,13 +29,13 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) -> NearSdkFeature
                     );
                     println!(
                         "{} < {}",
-                        format!("{}", near_sdk_version).red(),
-                        format!("{}", MIN_SDK_REPRODUCIBLE).cyan()
+                        format!("{near_sdk_version}").red(),
+                        format!("{MIN_SDK_REPRODUCIBLE}").cyan()
                     );
                     println!(
                         "{} {}",
                         "An upgrade recommended up to".red(),
-                        format!("{}", MIN_SDK_REPRODUCIBLE).cyan()
+                        format!("{MIN_SDK_REPRODUCIBLE}").cyan()
                     );
                     std::thread::sleep(Duration::new(10, 0));
                     println!();
@@ -54,7 +54,7 @@ pub fn suggest_near_sdk_checks(crate_metadata: &CrateMetadata) -> NearSdkFeature
                 "{}",
                 "Encountered error when querying `near-sdk` dependency version".red()
             );
-            println!("{}", err);
+            println!("{err}");
         }
     }
     result
@@ -90,13 +90,13 @@ mod output_wasm_path {
 
             println!(
                 "{} < {}",
-                format!("{}", near_sdk).yellow(),
-                format!("{}", NEAR_SDK_MIN).cyan()
+                format!("{near_sdk}").yellow(),
+                format!("{NEAR_SDK_MIN}").cyan()
             );
             println!(
                 "{} {}",
                 "An upgrade recommended up to".yellow(),
-                format!("{}", NEAR_SDK_MIN).cyan()
+                format!("{NEAR_SDK_MIN}").cyan()
             );
             println!(
                         "{}",
@@ -119,13 +119,13 @@ mod output_wasm_path {
                     );
             println!(
                 "{} < {}",
-                format!("{}", cargo_near).yellow(),
-                format!("{}", CARGO_NEAR_MIN).cyan()
+                format!("{cargo_near}").yellow(),
+                format!("{CARGO_NEAR_MIN}").cyan()
             );
             println!(
                 "{} {}",
                 "An upgrade of docker image is recommended up to".yellow(),
-                format!("{}", CARGO_NEAR_MIN).cyan()
+                format!("{CARGO_NEAR_MIN}").cyan()
             );
             println!(
                     "{}",
@@ -159,26 +159,25 @@ mod output_wasm_path {
                 println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successful.".yellow());
                 println!(
                     "cargo-near(docker image)            : {} >= {}",
-                    format!("{}", cargo_near).yellow(),
-                    format!("{}", CARGO_NEAR_MIN).cyan()
+                    format!("{cargo_near}").yellow(),
+                    format!("{CARGO_NEAR_MIN}").cyan()
                 );
                 println!(
                     "cargo-near-build(build-dependencies): {} < {}",
-                    format!("{}", build_script).yellow(),
-                    format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
+                    format!("{build_script}").yellow(),
+                    format!("{CARGO_NEAR_BUILD_MIN}").cyan()
                 );
                 println!(
                     "{} {}",
                     "An upgrade of `cargo-near-build(build-dependencies)` is recommended up to"
                         .yellow(),
-                    format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
+                    format!("{CARGO_NEAR_BUILD_MIN}").cyan()
                 );
                 println!(
                     "{} {}",
                     "See examples at: ".yellow(),
                     format!(
-                        "https://docs.rs/cargo-near-build/{}/cargo_near_build/extended/index.html",
-                        CARGO_NEAR_BUILD_MIN
+                        "https://docs.rs/cargo-near-build/{CARGO_NEAR_BUILD_MIN}/cargo_near_build/extended/index.html"
                     )
                     .cyan()
                 );
@@ -199,18 +198,18 @@ mod output_wasm_path {
                 println!("{}", "Reproducible build verification of product contracts, deployed from such factories, won't be successful.".yellow());
                 println!(
                     "cargo-near(docker image)            : {} < {}",
-                    format!("{}", cargo_near).yellow(),
-                    format!("{}", CARGO_NEAR_MIN).cyan()
+                    format!("{cargo_near}").yellow(),
+                    format!("{CARGO_NEAR_MIN}").cyan()
                 );
                 println!(
                     "cargo-near-build(build-dependencies): {} >= {}",
-                    format!("{}", build_script).yellow(),
-                    format!("{}", CARGO_NEAR_BUILD_MIN).cyan()
+                    format!("{build_script}").yellow(),
+                    format!("{CARGO_NEAR_BUILD_MIN}").cyan()
                 );
                 println!(
                     "{} {}",
                     "An upgrade of `cargo-near(docker image)` is recommended up to".yellow(),
-                    format!("{}", CARGO_NEAR_MIN).cyan()
+                    format!("{CARGO_NEAR_MIN}").cyan()
                 );
                 println!();
                 std::thread::sleep(Duration::new(5, 0));
@@ -288,7 +287,7 @@ fn find_cargo_near_build_build_dep(
                 "{}",
                 "Encountered error when querying `cargo_near_build` dependency version".red()
             );
-            println!("{}", err);
+            println!("{err}");
             None
         }
     }

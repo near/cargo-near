@@ -28,7 +28,7 @@ impl<'a> ArtifactMessages<'a> {
     pub fn pretty_print(self) {
         let max_width = self.messages.iter().map(|(h, _)| h.len()).max().unwrap();
         for (header, message) in self.messages {
-            eprintln!("     - {:>width$}: {}", header, message, width = max_width);
+            eprintln!("     - {header:>max_width$}: {message}");
         }
     }
 }

@@ -214,7 +214,7 @@ mod env_pairs {
             target: "near_teach_me",
             parent: &tracing::Span::none(),
             "Passed additional environment pairs:\n{}",
-            near_cli_rs::common::indent_payload(&format!("{:#?}", result))
+            near_cli_rs::common::indent_payload(&format!("{result:#?}"))
         );
         result
     }

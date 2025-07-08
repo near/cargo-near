@@ -56,7 +56,7 @@ pub fn setup_tracing(rust_log_env_is_set: bool, teach_me_flag_is_set: bool) -> C
         };
         let my_formatter = types::my_formatter::MyFormatter::from_environment(environment);
 
-        let format = format::debug_fn(move |writer, _field, value| write!(writer, "{:?}", value));
+        let format = format::debug_fn(move |writer, _field, value| write!(writer, "{value:?}"));
 
         let _e = tracing_subscriber::registry()
             .with(

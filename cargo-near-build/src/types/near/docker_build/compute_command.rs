@@ -54,7 +54,7 @@ impl super::Opts {
                     "{}{}{}",
                     "(listed in `".cyan(),
                     "passed_env".yellow(),
-                    format!("` from `{}` in Cargo.toml)", section_name).cyan(),
+                    format!("` from `{section_name}` in Cargo.toml)").cyan(),
                 );
                 println!();
             }

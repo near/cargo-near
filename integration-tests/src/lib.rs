@@ -91,7 +91,7 @@ pub fn invoke_cargo_near(
     );
     cargo_vars.insert("name", function_name.into());
     for (k, v) in cargo_vars {
-        cargo_toml = cargo_toml.replace(&format!("::{}::", k), &v);
+        cargo_toml = cargo_toml.replace(&format!("::{k}::"), &v);
     }
     let cargo_path = crate_dir.join("Cargo.toml");
     std::fs::write(&cargo_path, cargo_toml)?;

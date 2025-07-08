@@ -135,7 +135,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
         let embedding_binary = args.cli_description.cli_name_abi;
         contract_abi.metadata.build = Some(BuildInfo {
-            compiler: format!("rustc {}", rustc_version),
+            compiler: format!("rustc {rustc_version}"),
             builder: format!(
                 "{} {}",
                 embedding_binary,
@@ -308,7 +308,7 @@ fn maybe_wasm_opt_step(
                 let start = std::time::Instant::now();
                 tracing::debug!(
                     "{} -> {}",
-                    format!("{}", input_path).cyan(),
+                    format!("{input_path}").cyan(),
                     format!("{}", opt_destination.path().to_string_lossy()).cyan()
                 );
                 let optimization_opts = {
@@ -355,7 +355,7 @@ pub fn version_meta_with_override(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Command execution:\n{}",
-        pretty_print::indent_payload(&format!("{:#?}", cmd))
+        pretty_print::indent_payload(&format!("{cmd:#?}"))
     );
 
     let out = cmd

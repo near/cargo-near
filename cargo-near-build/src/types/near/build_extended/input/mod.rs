@@ -156,7 +156,7 @@ fn override_cargo_target_dir() -> eyre::Result<Utf8PathBuf> {
 
     let dir = out_dir.join(format!("target-{}-for-{}", "product", "factory"));
 
-    std::fs::create_dir_all(&dir).wrap_err(format!("couldn't create dir `{}`", dir))?;
+    std::fs::create_dir_all(&dir).wrap_err(format!("couldn't create dir `{dir}`"))?;
     Ok(dir)
 }
 

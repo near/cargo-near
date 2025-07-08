@@ -57,7 +57,7 @@ fn get_rustc_wasm32_unknown_unknown_target_libdir(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Command execution:\n{}",
-        pretty_print::indent_payload(&format!("`{:?}`", command).replace("\"", ""))
+        pretty_print::indent_payload(&format!("`{command:?}`").replace("\"", ""))
     );
 
     let output = command.output()?;
@@ -89,13 +89,13 @@ where
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Invoking rustup:\n{}",
-        pretty_print::indent_payload(&format!("`{}`", format!("{:?}", cmd).replace("\"", "")))
+        pretty_print::indent_payload(&format!("`{}`", format!("{cmd:?}").replace("\"", "")))
     );
 
     let child = cmd
         .stdout(std::process::Stdio::piped())
         .spawn()
-        .wrap_err_with(|| format!("Error executing `{:?}`", cmd))?;
+        .wrap_err_with(|| format!("Error executing `{cmd:?}`"))?;
 
     let output = child.wait_with_output()?;
     if output.status.success() {

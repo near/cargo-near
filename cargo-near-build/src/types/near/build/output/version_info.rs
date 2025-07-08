@@ -23,8 +23,7 @@ impl std::fmt::Display for VersionInfo {
             } => {
                 write!(
                     f,
-                    "builder version `{}` -> builder environment version `{}`",
-                    current_process, environment
+                    "builder version `{current_process}` -> builder environment version `{environment}`"
                 )
             }
             Self::CurrentProcess { .. } => write!(f, "no `cargo-near` version mismatch in nested builds detected",),
