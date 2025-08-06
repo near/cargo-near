@@ -108,6 +108,9 @@ pub struct BuildOpts {
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     pub override_toolchain: Option<String>,
+    /// Skip Rust version check
+    #[interactive_clap(long)]
+    pub skip_rust_version_check: bool,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -126,6 +129,7 @@ impl From<CliBuildOpts> for BuildOpts {
             color: value.color,
             env: value.env,
             override_toolchain: value.override_toolchain,
+            skip_rust_version_check: value.skip_rust_version_check,
         }
     }
 }
@@ -154,6 +158,7 @@ pub mod context {
                 manifest_path: scope.manifest_path.clone(),
                 color: scope.color.clone(),
                 override_toolchain: scope.override_toolchain.clone(),
+                skip_rust_version_check: scope.skip_rust_version_check,
             };
             super::run(opts)?;
             Ok(Self)
@@ -181,6 +186,7 @@ impl From<BuildOpts> for cargo_near_build::BuildOpts {
             override_cargo_target_dir: None,
             override_nep330_output_wasm_path: None,
             override_toolchain: value.override_toolchain,
+            skip_rust_version_check: value.skip_rust_version_check,
         }
     }
 }

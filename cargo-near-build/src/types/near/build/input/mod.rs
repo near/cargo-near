@@ -77,6 +77,9 @@ pub struct Opts {
     /// override value of [`crate::env_keys::RUSTUP_TOOLCHAIN`] environment variable, used for all invoked `rustc`, `cargo` and `rustup` commands
     #[builder(into)]
     pub override_toolchain: Option<String>,
+    /// Disable Rust version checking
+    #[builder(default)]
+    pub skip_rust_version_check: bool,
 }
 
 /// used as field in [`BuildOpts`](crate::BuildOpts)
