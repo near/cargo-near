@@ -30,7 +30,7 @@ fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyr
             "or newer rust toolchain is currently not compatible with nearcore VM".yellow()
         );
         let info_str = format!(
-            "Step 1 - Set the Specific Rust Version for Your Project:\n{}Step 2 - Install the wasm32-unknown-unknown Target:\n{}",
+            "Step 1 - Set the Specific Rust Version for Your Project:\n{}\nStep 2 - Install the wasm32-unknown-unknown Target:\n{}",
             pretty_print::indent_payload(
                 "cd /path/to/your/contract/project\nrustup override set 1.86"
             ),
