@@ -39,8 +39,8 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "0.99.9"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-near-cli-rs = { version = "0.21.0", default-features = false }
-near-primitives = { version = "0.30.0", default-features = false }
+near-cli-rs = { version = "0.22.1", default-features = false }
+near-primitives = { version = "0.31.0", default-features = false }
 reqwest = "0.12.5"
 indenter = "0.3"
 tracing-core = "0.1.32"
