@@ -18,7 +18,7 @@ use crate::{
 
 use super::abi;
 
-fn warning_unsupported_toolchain(rustc_version: &rustc_version::Version) {
+fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyre::Result<()> {
     if *rustc_version >= MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT {
         println!(
             "{}: {} {} {}",
@@ -29,16 +29,25 @@ fn warning_unsupported_toolchain(rustc_version: &rustc_version::Version) {
                 .cyan(),
             "or newer rust toolchain is currently not compatible with nearcore VM".yellow()
         );
+        let info_str = format!(
+            "Step 1 - Set the Specific Rust Version for Your Project:\n{}\nStep 2 - Install the wasm32-unknown-unknown Target:\n{}",
+            pretty_print::indent_payload(
+                "cd /path/to/your/contract/project\nrustup override set 1.86"
+            ),
+            pretty_print::indent_payload("rustup target add wasm32-unknown-unknown")
+        );
         println!(
-            "{}: {} {} {}",
+            "{}: {} {} {}\n{}",
             "WARNING".red(),
             "please downgrade to".yellow(),
             MAX_VERSION_NO_BULK_MEMORY.to_string().cyan(),
-            "toolchain for compiling contracts".yellow()
+            "toolchain for compiling contracts:".yellow(),
+            pretty_print::indent_payload(&info_str)
         );
 
-        std::thread::sleep(std::time::Duration::new(15, 0));
+        eyre::bail!("wasm, compiled with {MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT} or newer rust toolchain is currently not compatible with nearcore VM");
     }
+    Ok(())
 }
 
 /// builds a contract whose crate root is current workdir, or identified by [`Cargo.toml`/BuildOpts::manifest_path](crate::BuildOpts::manifest_path) location
@@ -47,7 +56,9 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let rustc_version = version_meta_with_override(args.override_toolchain.clone())?.semver;
 
-    warning_unsupported_toolchain(&rustc_version);
+    if !args.skip_rust_version_check {
+        checking_unsupported_toolchain(&rustc_version)?;
+    }
 
     let override_cargo_target_path_env =
         common_buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
