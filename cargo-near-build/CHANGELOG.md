@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.7.2...cargo-near-build-v0.8.0) - 2025-08-31
+
+### Added
+
+- Added instructions for users on compiling the project on unsupported versions of Rust. ([#357](https://github.com/near/cargo-near/pull/357))
+
 ## [0.7.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.7.1...cargo-near-build-v0.7.2) - 2025-07-08
 
 ### Other
