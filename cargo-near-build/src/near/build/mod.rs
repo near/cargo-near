@@ -100,6 +100,19 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         feat_args
     };
 
+    let custom_profile_arg = args
+        .profile
+        .clone()
+        .map(|profile| format!("--profile={profile}"));
+
+    match (args.no_release, custom_profile_arg.as_ref()) {
+        (_, Some(custom_profile_arg)) => {
+            cargo_args.push(custom_profile_arg);
+        }
+        (false, None) => cargo_args.push("--release"),
+        (true, None) => {}
+    }
+
     if !args.no_release {
         cargo_args.push("--release");
     }
