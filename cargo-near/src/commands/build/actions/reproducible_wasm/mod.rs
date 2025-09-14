@@ -21,6 +21,10 @@ pub struct BuildOpts {
     #[interactive_clap(long)]
     #[interactive_clap(verbatim_doc_comment)]
     pub no_locked: bool,
+    /// Set build profile
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    pub profile: Option<String>,
     /// Copy final artifacts (`contract.wasm`) to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
@@ -97,6 +101,7 @@ impl From<CliBuildOpts> for BuildOpts {
             manifest_path: value.manifest_path,
             color: value.color,
             variant: value.variant,
+            profile: value.profile,
         }
     }
 }
@@ -116,6 +121,7 @@ mod context {
                 manifest_path: scope.manifest_path.clone(),
                 color: scope.color.clone(),
                 variant: scope.variant.clone(),
+                profile: scope.profile.clone(),
             };
             super::run(opts, previous_context)?;
             Ok(Self)

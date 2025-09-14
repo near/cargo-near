@@ -113,9 +113,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         (true, None) => {}
     }
 
-    if !args.no_release {
-        cargo_args.push("--release");
-    }
     if !args.no_locked {
         cargo_args.push("--locked");
     }
