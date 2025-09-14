@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.8.0...cargo-near-build-v0.9.0) - 2025-09-14
+
+### Added
+
+- support `--profile` flag ([#362](https://github.com/near/cargo-near/pull/362))
+
 ## [0.8.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.7.2...cargo-near-build-v0.8.0) - 2025-08-31
 
 ### Added
