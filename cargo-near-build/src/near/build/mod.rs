@@ -100,13 +100,12 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         feat_args
     };
 
-    let cargo_profile_arg = match (args.no_release, args.profile.clone()) {
-        (_, Some(custom_profile_arg)) => Some(custom_profile_arg),
-        (false, None) => Some("release".to_string()),
-        (true, None) => None,
-    };
-    if let Some(profile) = cargo_profile_arg.as_ref() {
-        cargo_args.extend(["--profile", profile]);
+    match (args.no_release, args.profile.as_ref()) {
+        (_, Some(custom_profile_arg)) => {
+            cargo_args.extend(["--profile", &custom_profile_arg]);
+        }
+        (false, None) => cargo_args.extend(["--profile release"]),
+        (true, None) => {}
     }
 
     if !args.no_locked {
