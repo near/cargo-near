@@ -24,6 +24,7 @@ impl CargoTargetDir {
         }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn into_std_command(&self, cmd: &mut std::process::Command) {
         match self {
             Self::NoOp => {}
