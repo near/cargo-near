@@ -218,7 +218,7 @@ fn get_cargo_metadata(
     if let Some(toolchain) = override_toolchain {
         std_process_command.env(env_keys::RUSTUP_TOOLCHAIN, toolchain);
     }
-    cargo_target_dir.into_std_command(&mut std_process_command);
+    cargo_target_dir.as_std_command(&mut std_process_command);
     tracing::info!(
         target: "near_teach_me",
         parent: &tracing::Span::none(),

@@ -24,7 +24,7 @@ impl CargoTargetDir {
         }
     }
 
-    pub fn into_std_command(&self, cmd: &mut std::process::Command) {
+    pub fn as_std_command(&self, cmd: &mut std::process::Command) {
         match self {
             Self::NoOp => {}
             Self::Set(path) => {
