@@ -23,6 +23,8 @@ pub struct Opts {
     /// Build contract in debug mode, without optimizations and bigger in size
     #[builder(default)]
     pub no_release: bool,
+    /// Set build profile
+    pub profile: Option<String>,
     /// Do not generate ABI for the contract
     #[builder(default)]
     pub no_abi: bool,
