@@ -104,7 +104,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         (_, Some(custom_profile_arg)) => {
             cargo_args.extend(["--profile", &custom_profile_arg]);
         }
-        (false, None) => cargo_args.extend(["--profile release"]),
+        (false, None) => cargo_args.extend(["--profile", "release"]),
         (true, None) => {}
     }
 
