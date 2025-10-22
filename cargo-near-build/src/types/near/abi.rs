@@ -12,6 +12,8 @@ pub struct Opts {
     pub out_dir: Option<camino::Utf8PathBuf>,
     /// Path to the `Cargo.toml` of the contract to build
     pub manifest_path: Option<camino::Utf8PathBuf>,
+    /// Activate additional cargo features during ABI generation
+    pub features: Option<String>,
     /// Coloring: auto, always, never
     pub color: Option<ColorPreference>,
 }

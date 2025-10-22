@@ -38,6 +38,15 @@ pub struct Command {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
+    /// Space or comma separated list of features to activate
+    ///
+    /// e.g. --features 'feature0 crate3/feature1 feature3'
+    /// This just passes the argument as `--features` argument to downstream `cargo` command.
+    /// Unlike `cargo` argument, this argument doesn't support repetition, at most 1 argument can be specified.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub features: Option<String>,
     /// Whether to color output to stdout and stderr by printing ANSI escape sequences: auto, always, never
     #[interactive_clap(long)]
     #[interactive_clap(value_enum)]
@@ -53,6 +62,7 @@ impl From<Command> for AbiOpts {
             compact_abi: value.compact_abi,
             out_dir: value.out_dir.map(Into::into),
             manifest_path: value.manifest_path.map(Into::into),
+            features: value.features,
             color: value.color.map(Into::into),
         }
     }
@@ -72,6 +82,7 @@ impl AbiCommandlContext {
             compact_abi: scope.compact_abi,
             out_dir: scope.out_dir.clone(),
             manifest_path: scope.manifest_path.clone(),
+            features: scope.features.clone(),
             color: scope.color.clone(),
         };
         cargo_near_build::abi::build(args.into())?;
