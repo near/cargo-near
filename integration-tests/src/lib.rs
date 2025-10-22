@@ -111,6 +111,7 @@ pub fn invoke_cargo_near(
                 compact_abi: cmd.compact_abi,
                 out_dir: cmd.out_dir.map(Into::into),
                 manifest_path: Some(cargo_path),
+                features: cmd.features,
                 color: cmd.color.map(Into::into),
             };
             tracing::debug!("AbiOpts: {:#?}", args);
