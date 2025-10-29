@@ -1,0 +1,25 @@
+[package]
+name = "::name::"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = []
+gated = []
+
+[dependencies]
+near-sdk = { features = ["unstable"], ::sdk-git-version-toml:: }
+serde = { version = "1", features = ["derive"] }
+
+[workspace]
+members = []
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"

@@ -74,3 +74,32 @@ fn test_abi_opt_out_dir() -> cargo_near::CliResult {
 
     Ok(())
 }
+
+#[test]
+#[named]
+fn test_abi_opt_features() -> cargo_near::CliResult {
+    setup_tracing();
+    let abi_root = generate_abi_fn_with! {
+        Cargo: "/templates/abi/_Cargo_features.toml";
+        Opts: "--features gated";
+        Code:
+        #[cfg(feature = "gated")]
+        pub fn gated_only(&self) -> bool {
+            true
+        }
+    };
+
+    let function_names: Vec<&str> = abi_root
+        .body
+        .functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+
+    assert!(
+        function_names.contains(&"gated_only"),
+        "expected the ABI to include `gated_only` when the feature is enabled"
+    );
+
+    Ok(())
+}
