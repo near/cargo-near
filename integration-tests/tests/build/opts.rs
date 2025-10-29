@@ -102,3 +102,23 @@ async fn test_build_no_release() -> cargo_near::CliResult {
 
     Ok(())
 }
+
+#[tokio::test]
+#[named]
+async fn test_build_custom_profile() -> cargo_near::CliResult {
+    setup_tracing();
+    let build_result = build_fn_with! {
+        Opts: "--profile=release";
+        Code:
+        pub fn add(&self, a: u32, b: u32) -> u32 {
+            a + b
+        }
+    };
+
+    let abi_root = build_result.abi_root.unwrap();
+    assert_eq!(abi_root.body.functions.len(), 2);
+    assert!(build_result.abi_compressed.is_some());
+    util::test_add(&build_result.wasm).await?;
+
+    Ok(())
+}
