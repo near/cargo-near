@@ -33,6 +33,14 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
         .get_out_dir()
         .clone();
 
+    let cargo_feature_args = {
+        let mut feat_args = vec![];
+        if let Some(features) = args.features.as_deref() {
+            feat_args.extend_from_slice(&["--features", features]);
+        }
+        feat_args
+    };
+
     let format = if args.compact_abi {
         abi_types::Format::JsonMin
     } else {
@@ -43,7 +51,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
         args.no_locked,
         !args.no_doc,
         false,
-        &[],
+        &cargo_feature_args,
         &[],
         color,
     )?;
