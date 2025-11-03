@@ -6,7 +6,9 @@ use std::io::IsTerminal;
 pub enum BuildContext {
     #[default]
     Build,
-    Deploy { skip_git_remote_check: bool },
+    Deploy {
+        skip_git_remote_check: bool,
+    },
 }
 
 /// argument of [`build_with_cli`](crate::build_with_cli) function
