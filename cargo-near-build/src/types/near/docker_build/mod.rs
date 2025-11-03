@@ -28,12 +28,6 @@ pub struct Opts {
     pub context: BuildContext,
 }
 
-impl Default for BuildContext {
-    fn default() -> Self {
-        Self::Build
-    }
-}
-
 pub const WARN_BECOMES_ERR: &str =
     "This WARNING becomes a hard ERROR when deploying contract with docker.";
 
