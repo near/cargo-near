@@ -2,10 +2,13 @@
 use std::io::IsTerminal;
 
 #[cfg(feature = "docker")]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum BuildContext {
+    #[default]
     Build,
-    Deploy { skip_git_remote_check: bool },
+    Deploy {
+        skip_git_remote_check: bool,
+    },
 }
 
 /// argument of [`build_with_cli`](crate::build_with_cli) function
