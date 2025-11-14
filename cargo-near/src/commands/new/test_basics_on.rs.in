@@ -22,7 +22,7 @@ async fn test_basics_on(contract_wasm: &[u8]) -> Result<(), Box<dyn std::error::
     let contract_account = create_subaccount(&root, "contract").await?;
 
     // Deploy and initialize contract
-    let contract = contract_account.deploy(&contract_wasm).await?.unwrap();
+    let contract = contract_account.deploy(contract_wasm).await?.unwrap();
 
     let now = Utc::now().timestamp();
     let a_minute_from_now = (now + 60) * 1000000000;
