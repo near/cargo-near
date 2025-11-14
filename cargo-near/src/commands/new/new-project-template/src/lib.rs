@@ -1,33 +1,55 @@
 // Find all our documentation at https://docs.near.org
-use near_sdk::{log, near};
+use bid::Bid;
+use near_sdk::json_types::U64;
+use near_sdk::{env, near, AccountId, NearToken, PanicOnDefault};
+
+mod bid;
+mod claim;
 
 // Define the contract structure
 #[near(contract_state)]
+#[derive(PanicOnDefault)] // The contract is required to be initialized with either init or init(ignore_state) methods
 pub struct Contract {
-    greeting: String,
-}
-
-// Define the default, which automatically initializes the contract
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            greeting: "Hello".to_string(),
-        }
-    }
+    highest_bid: Bid,
+    auction_end_time: U64,
+    auctioneer: AccountId,
+    claimed: bool,
 }
 
 // Implement the contract structure
 #[near]
 impl Contract {
-    // Public method - returns the greeting saved, defaulting to DEFAULT_GREETING
-    pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
+    #[init]
+    #[private] // Private method - only callable by the contract's account
+    pub fn init(end_time: U64, auctioneer: AccountId) -> Self {
+        Self {
+            highest_bid: Bid {
+                bidder: env::current_account_id(),
+                bid: NearToken::from_yoctonear(1),
+            },
+            auction_end_time: end_time,
+            claimed: false,
+            auctioneer,
+        }
     }
 
-    // Public method - accepts a greeting, such as "howdy", and records it
-    pub fn set_greeting(&mut self, greeting: String) {
-        log!("Saving greeting: {greeting}");
-        self.greeting = greeting;
+    /*
+     Public methods - returns the highest bid, auction end time, auctioneer, and claimed status
+    */
+    pub fn get_highest_bid(&self) -> Bid {
+        self.highest_bid.clone()
+    }
+
+    pub fn get_auction_end_time(&self) -> U64 {
+        self.auction_end_time
+    }
+
+    pub fn get_auctioneer(&self) -> AccountId {
+        self.auctioneer.clone()
+    }
+
+    pub fn get_claimed(&self) -> bool {
+        self.claimed
     }
 }
 
@@ -40,16 +62,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_default_greeting() {
-        let contract = Contract::default();
-        // this test did not call set_greeting so should return the default "Hello" greeting
-        assert_eq!(contract.get_greeting(), "Hello");
-    }
+    fn init_contract() {
+        let end_time: U64 = U64::from(1000);
+        let alice: AccountId = "alice.near".parse().unwrap();
+        let contract = Contract::init(end_time.clone(), alice.clone());
 
-    #[test]
-    fn set_then_get_greeting() {
-        let mut contract = Contract::default();
-        contract.set_greeting("howdy".to_string());
-        assert_eq!(contract.get_greeting(), "howdy");
+        let default_bid = contract.get_highest_bid();
+        assert_eq!(default_bid.bidder, env::current_account_id());
+        assert_eq!(default_bid.bid, NearToken::from_yoctonear(1));
+
+        let auction_end_time = contract.get_auction_end_time();
+        assert_eq!(auction_end_time, end_time);
+
+        let auctioneer = contract.get_auctioneer();
+        assert_eq!(auctioneer, alice);
+
+        let claimed = contract.get_claimed();
+        assert_eq!(claimed, false);
     }
 }

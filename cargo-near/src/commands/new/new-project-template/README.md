@@ -1,6 +1,12 @@
-# cargo-near-new-project-name
+# Basic Auction Contract 
 
-cargo-near-new-project-description
+This directory contains a Rust contract that is used as part of the [Basic Auction Tutorial](https://docs.near.org/tutorials/auction/basic-auction).
+
+The contract is a simple auction where you can place bids, view the highest bid, and claim the tokens at the end of the auction.
+
+This repo showcases the basic anatomy of a contract including how to store data in a contract, how to update the state, and then how to view it. It also looks at how to use environment variables and macros. We have also written sandbox test the contract locally.
+
+---
 
 ## How to Build Locally?
 
@@ -29,6 +35,11 @@ cargo near deploy build-non-reproducible-wasm <account-id>
 If you deploy production ready smart contract:
 ```bash
 cargo near deploy build-reproducible-wasm <account-id>
+```
+
+## Initialize the contract
+TWO_MINUTES_FROM_NOW=$(date -v+2M +%s000000000)
+near call <contractId> init '{"end_time": "'$TWO_MINUTES_FROM_NOW'", "auctioneer": "<auctioneerAccountId>"}' --accountId <contractId>
 ```
 
 ## Useful Links
