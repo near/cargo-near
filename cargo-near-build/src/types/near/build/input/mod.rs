@@ -49,6 +49,10 @@ pub struct Opts {
     /// Set compile-time feature flags.
     #[builder(into)]
     pub features: Option<String>,
+    /// Set compile-time feature flags for ABI generation step only.
+    /// If not specified, `features` will be used for ABI generation.
+    #[builder(into)]
+    pub abi_features: Option<String>,
     /// Disables default feature flags.
     #[builder(default)]
     pub no_default_features: bool,
@@ -148,6 +152,9 @@ impl Opts {
         }
         if let Some(ref features) = self.features {
             cargo_args.extend(&["--features", features]);
+        }
+        if let Some(ref abi_features) = self.abi_features {
+            cargo_args.extend(&["--abi-features", abi_features]);
         }
         if self.no_default_features {
             cargo_args.push("--no-default-features");

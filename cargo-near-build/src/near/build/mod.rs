@@ -88,12 +88,26 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let output_paths = crate_metadata.get_legacy_cargo_near_output_path(args.out_dir.clone())?;
 
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
-    let cargo_feature_args = {
+
+    // Features for ABI generation - use abi_features if set, otherwise fall back to features
+    let abi_feature_args = {
+        let mut feat_args = vec![];
+        let features_for_abi = args.abi_features.as_ref().or(args.features.as_ref());
+        if let Some(features) = features_for_abi {
+            feat_args.extend(&["--features", features.as_str()]);
+        }
+        if args.no_default_features {
+            feat_args.push("--no-default-features");
+        }
+        feat_args
+    };
+
+    // Features for WASM build - always use regular features
+    let wasm_feature_args = {
         let mut feat_args = vec![];
         if let Some(features) = args.features.as_ref() {
-            feat_args.extend(&["--features", features]);
+            feat_args.extend(&["--features", features.as_str()]);
         }
-
         if args.no_default_features {
             feat_args.push("--no-default-features");
         }
@@ -143,7 +157,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 args.no_locked,
                 !args.no_doc,
                 true,
-                &cargo_feature_args,
+                &abi_feature_args,
                 &abi_env,
                 color,
             )?
@@ -174,7 +188,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         abi = Some(contract_abi);
     }
 
-    cargo_args.extend(cargo_feature_args);
+    cargo_args.extend(wasm_feature_args);
 
     if let (false, Some(..)) = (args.no_embed_abi, &min_abi_path) {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
