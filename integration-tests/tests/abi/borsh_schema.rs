@@ -431,19 +431,19 @@ fn test_borsh_schema_enum() -> cargo_near::CliResult {
                 Definition::Enum {
                     tag_width: 1,
                     variants: vec![
-                        (0, "V4".to_string(), "IpAddrKindV4".to_string()),
-                        (1, "V6".to_string(), "IpAddrKindV6".to_string()),
+                        (0, "V4".to_string(), "IpAddrKind__V4".to_string()),
+                        (1, "V6".to_string(), "IpAddrKind__V6".to_string()),
                     ],
                 },
             ),
             (
-                "IpAddrKindV4".to_string(),
+                "IpAddrKind__V4".to_string(),
                 Definition::Struct {
                     fields: Fields::Empty,
                 },
             ),
             (
-                "IpAddrKindV6".to_string(),
+                "IpAddrKind__V6".to_string(),
                 Definition::Struct {
                     fields: Fields::Empty,
                 },
@@ -458,13 +458,13 @@ fn test_borsh_schema_enum() -> cargo_near::CliResult {
                 Definition::Enum {
                     tag_width: 1,
                     variants: vec![
-                        (0, "V4".to_string(), "IpAddrV4".to_string()),
-                        (1, "V6".to_string(), "IpAddrV6".to_string()),
+                        (0, "V4".to_string(), "IpAddr__V4".to_string()),
+                        (1, "V6".to_string(), "IpAddr__V6".to_string()),
                     ],
                 },
             ),
             (
-                "IpAddrV4".to_string(),
+                "IpAddr__V4".to_string(),
                 Definition::Struct {
                     fields: Fields::UnnamedFields(vec![
                         "u8".to_string(),
@@ -475,7 +475,7 @@ fn test_borsh_schema_enum() -> cargo_near::CliResult {
                 },
             ),
             (
-                "IpAddrV6".to_string(),
+                "IpAddr__V6".to_string(),
                 Definition::Struct {
                     fields: Fields::UnnamedFields(vec!["String".to_string()]),
                 },
@@ -552,19 +552,19 @@ fn test_borsh_schema_complex() -> cargo_near::CliResult {
                 Definition::Enum {
                     tag_width: 1,
                     variants: vec![
-                        (0, "V4".to_string(), "IpAddrKindV4".to_string()),
-                        (1, "V6".to_string(), "IpAddrKindV6".to_string()),
+                        (0, "V4".to_string(), "IpAddrKind__V4".to_string()),
+                        (1, "V6".to_string(), "IpAddrKind__V6".to_string()),
                     ],
                 },
             ),
             (
-                "IpAddrKindV4".to_string(),
+                "IpAddrKind__V4".to_string(),
                 Definition::Struct {
                     fields: Fields::Empty,
                 },
             ),
             (
-                "IpAddrKindV6".to_string(),
+                "IpAddrKind__V6".to_string(),
                 Definition::Struct {
                     fields: Fields::Empty,
                 },
