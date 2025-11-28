@@ -239,7 +239,7 @@ async fn test_build_both_features_and_abi_features_for_different_targets() -> ca
     let worker = near_workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("gated_only").view().await?;
-    assert_eq!(outcome.json::<bool>()?, true);
+    assert!(outcome.json::<bool>()?);
 
     Ok(())
 }

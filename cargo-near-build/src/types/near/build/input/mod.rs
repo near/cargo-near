@@ -271,7 +271,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opts_defaults_abi_features_to_featues_when_abi_featues_are_not_set() {
+    fn test_opts_defaults_abi_features_to_features_when_abi_features_are_not_set() {
         let opts = super::Opts {
             features: Some("feature1".into()),
             ..Default::default()
