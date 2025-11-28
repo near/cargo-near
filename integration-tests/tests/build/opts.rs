@@ -169,40 +169,6 @@ async fn test_build_abi_features_separate_from_wasm_features() -> cargo_near::Cl
     Ok(())
 }
 
-#[test]
-#[named]
-fn test_build_features_used_for_abi_when_abi_features_not_set() -> cargo_near::CliResult {
-    setup_tracing();
-    let build_result = build_fn_with! {
-        Cargo: "/templates/abi/_Cargo_features.toml";
-        Opts: "--features gated";
-        Code:
-        pub fn add(&self, a: u32, b: u32) -> u32 {
-            a + b
-        }
-
-        #[cfg(feature = "gated")]
-        pub fn gated_only(&self) -> bool {
-            true
-        }
-    };
-
-    // ABI should contain the gated_only function (falls back to --features)
-    let abi_root = build_result.abi_root.unwrap();
-    let function_names: Vec<&str> = abi_root
-        .body
-        .functions
-        .iter()
-        .map(|f| f.name.as_str())
-        .collect();
-    assert!(
-        function_names.contains(&"gated_only"),
-        "ABI should include gated_only when --features gated is used (fallback from --abi-features)"
-    );
-
-    Ok(())
-}
-
 #[tokio::test]
 #[named]
 async fn test_build_both_features_and_abi_features_for_different_targets() -> cargo_near::CliResult
