@@ -201,14 +201,6 @@ const NEW_PROJECT_FILES: &[NewProjectFile] = &[
         content: include_str!("new-project-template/src/lib.rs"),
     },
     NewProjectFile {
-        file_path: "src/claim.rs",
-        content: include_str!("new-project-template/src/claim.rs"),
-    },
-    NewProjectFile {
-        file_path: "src/bid.rs",
-        content: include_str!("new-project-template/src/bid.rs"),
-    },
-    NewProjectFile {
         file_path: "tests/test_basics.rs",
         content: include_str!("new-project-template/tests/test_basics.rs"),
     },
