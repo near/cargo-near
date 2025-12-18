@@ -69,10 +69,7 @@ fn run_command(mut command: std::process::Command) -> eyre::Result<camino::Utf8P
     }
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    let result_line = stderr
-        .lines()
-        .filter(|x| x.starts_with(RESULT_PREFIX))
-        .next_back();
+    let result_line = stderr.lines().rfind(|x| x.starts_with(RESULT_PREFIX));
 
     let out_path = result_line
         .wrap_err(format!("a line starting with `{RESULT_PREFIX}` not found!"))?
