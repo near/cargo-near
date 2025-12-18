@@ -85,6 +85,17 @@ pub struct BuildOpts {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub features: Option<String>,
+    /// Space or comma separated list of features to activate for ABI generation only
+    ///
+    /// e.g. --abi-features 'feature0 crate3/feature1 feature3'
+    /// This controls which features are used when generating the ABI (.zst file) that is embedded in the WASM.
+    /// If not specified, falls back to the value of `--features`.
+    /// This just passes the argument as `--features` argument to downstream `cargo` command during ABI generation.
+    /// Unlike `cargo` argument, this argument doesn't support repetition, at most 1 argument can be specified.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub abi_features: Option<String>,
     /// Do not activate the `default` feature of contract's crate
     ///
     /// This just passes `--no-default-features` argument to downstream `cargo` command.
@@ -132,6 +143,7 @@ impl From<CliBuildOpts> for BuildOpts {
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
             features: value.features,
+            abi_features: value.abi_features,
             no_default_features: value.no_default_features,
             color: value.color,
             env: value.env,
@@ -160,6 +172,7 @@ pub mod context {
                 no_doc: scope.no_doc,
                 no_wasmopt: scope.no_wasmopt,
                 features: scope.features.clone(),
+                abi_features: scope.abi_features.clone(),
                 no_default_features: scope.no_default_features,
                 env: scope.env.clone(),
                 out_dir: scope.out_dir.clone(),
@@ -185,6 +198,7 @@ impl From<BuildOpts> for cargo_near_build::BuildOpts {
             no_doc: value.no_doc,
             no_wasmopt: value.no_wasmopt,
             features: value.features,
+            abi_features: value.abi_features,
             no_default_features: value.no_default_features,
             out_dir: value.out_dir.map(Into::into),
             manifest_path: value.manifest_path.map(Into::into),

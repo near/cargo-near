@@ -49,6 +49,10 @@ pub struct Opts {
     /// Set compile-time feature flags.
     #[builder(into)]
     pub features: Option<String>,
+    /// Set compile-time feature flags for ABI generation step only.
+    /// If not specified, `features` will be used for ABI generation.
+    #[builder(into)]
+    pub abi_features: Option<String>,
     /// Disables default feature flags.
     #[builder(default)]
     pub no_default_features: bool,
@@ -148,6 +152,10 @@ impl Opts {
         }
         if let Some(ref features) = self.features {
             cargo_args.extend(&["--features", features]);
+        }
+        let effective_abi_features = self.abi_features.as_ref().or(self.features.as_ref());
+        if let Some(abi_features) = effective_abi_features {
+            cargo_args.extend(&["--abi-features", abi_features]);
         }
         if self.no_default_features {
             cargo_args.push("--no-default-features");
@@ -255,5 +263,48 @@ mod tests {
              "KEY=VALUE".to_string(),
              "--env".to_string(),
              "GOOGLE_QUERY=https://www.google.com/search?q=google+translate&sca_esv=3c150c50f502bc5d".to_string()]);
+    }
+
+    fn has_flag_with_value(cmd: &[String], flag: &str, value: &str) -> bool {
+        cmd.windows(2)
+            .any(|pair| pair[0] == flag && pair[1] == value)
+    }
+
+    #[test]
+    fn test_opts_defaults_abi_features_to_features_when_abi_features_are_not_set() {
+        let opts = super::Opts {
+            features: Some("feature1".into()),
+            ..Default::default()
+        };
+
+        let cmd = opts.get_cli_command_for_lib_context();
+        assert!(has_flag_with_value(&cmd, "--features", "feature1"));
+        assert!(has_flag_with_value(&cmd, "--abi-features", "feature1"));
+    }
+
+    #[test]
+    fn test_opts_get_cli_build_command_for_abi_features() {
+        let opts = super::Opts {
+            features: Some("feature1".into()),
+            abi_features: Some("abi_feature1".into()),
+            ..Default::default()
+        };
+
+        let cmd = opts.get_cli_command_for_lib_context();
+        assert!(has_flag_with_value(&cmd, "--features", "feature1"));
+        assert!(has_flag_with_value(&cmd, "--abi-features", "abi_feature1"));
+    }
+
+    #[test]
+    fn test_opts_get_cli_build_command_for_abi_features_only() {
+        let opts = super::Opts {
+            abi_features: Some("abi_only_feature".into()),
+            ..Default::default()
+        };
+
+        let cmd = opts.get_cli_command_for_lib_context();
+        assert!(!cmd.contains(&"--features".to_string()));
+        assert!(cmd.contains(&"--abi-features".to_string()));
+        assert!(cmd.contains(&"abi_only_feature".to_string()));
     }
 }
