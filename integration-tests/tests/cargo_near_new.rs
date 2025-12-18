@@ -29,7 +29,7 @@ async fn test_docker_build() -> Result<(), Box<dyn std::error::Error>> {
 
     let contract_wasm = std::fs::read(artifact.path)?;
 
-    test_basics_on(&contract_wasm).await?;
+    test_basics_on(contract_wasm).await?;
 
     std::fs::remove_dir_all(
         generated_manifest
@@ -129,7 +129,7 @@ async fn test_regular_build() -> Result<(), Box<dyn std::error::Error>> {
 
     let contract_wasm = std::fs::read(artifact.path)?;
 
-    test_basics_on(&contract_wasm).await?;
+    test_basics_on(contract_wasm).await?;
 
     std::fs::remove_dir_all(
         generated_manifest

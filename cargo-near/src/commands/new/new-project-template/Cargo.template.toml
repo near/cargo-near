@@ -36,16 +36,18 @@ container_build_command = [
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-near-sdk = "5.17"
+near-sdk = "5.23"
 
 [dev-dependencies]
-near-sdk = { version = "5.17", features = ["unit-testing"] }
-near-workspaces = { version = "0.21", features = ["unstable"] }
+near-sdk = { version = "5.23", features = ["unit-testing"] }
+near-sandbox = "0.3"
+near-api = "0.8"
+cargo-near-build = "0.9.0"
 tokio = { version = "1.12.0", features = ["full"] }
 serde_json = "1"
 chrono = "0.4.38"
 serde = { version = "1.0", features = ["derive"] }
-
+testresult = "0.4.1"
 
 [profile.release]
 codegen-units = 1
