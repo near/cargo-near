@@ -85,7 +85,6 @@ pub fn setup_tracing(rust_log_env_is_set: bool, teach_me_flag_is_set: bool) -> C
         }
     }
 
-
     if rust_log_env_is_set {
         let environment = if std::env::var(env_keys::nep330::BUILD_ENVIRONMENT).is_ok() {
             "container".cyan()

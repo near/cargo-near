@@ -29,8 +29,8 @@ pub enum NearCommand {
     /// Generates ABI for the contract
     Abi(self::abi::Command),
     #[strum_discriminants(strum(
-        message = "create-dev-account  -  Create a development account using a faucet service sponsor to receive some NEAR tokens (testnet only).
-                         To create an account on a different network, use NEAR CLI [https://near.cli.rs]"
+        message = "create-dev-account  -  Create a development account using a faucet service sponsor and receive some NEAR tokens (testnet only).
+│                            To create an account on mainnet, use NEAR CLI [https://near.cli.rs]"
     ))]
     /// Create a development account using the faucet service sponsor to receive some NEAR tokens (testnet only)
     /// To create an account on a different network, use NEAR CLI <https://near.cli.rs>
