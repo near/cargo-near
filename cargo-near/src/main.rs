@@ -31,6 +31,8 @@ fn pre_setup() -> CliResult {
 fn main() -> CliResult {
     pre_setup()?;
 
+    inquire::set_global_render_config(near_cli_rs::get_global_render_config());
+
     build_non_reproducible_wasm::rule::enforce_this_program_args()?;
 
     let cli_cmd = match Cmd::try_parse() {
