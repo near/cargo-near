@@ -7,14 +7,14 @@ use crate::util::AsJsonSchema;
 
 #[test]
 #[named]
-fn test_callbacks_unwrapped() -> testresult::TestResult {
+fn test_callbacks_unwrapped() {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[callback_unwrap] a: bool, #[callback_unwrap] b: u32) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
@@ -31,13 +31,11 @@ fn test_callbacks_unwrapped() -> testresult::TestResult {
             type_schema: u32_schema,
         }
     );
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_callbacks_result() -> testresult::TestResult {
+fn test_callbacks_result() {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -48,7 +46,7 @@ fn test_callbacks_result() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 2);
     let string_schema = SchemaGenerator::default().subschema_for::<String>();
@@ -65,13 +63,11 @@ fn test_callbacks_result() -> testresult::TestResult {
             type_schema: u32_schema,
         }
     );
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_callbacks_vec() -> testresult::TestResult {
+fn test_callbacks_vec() {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -82,7 +78,7 @@ fn test_callbacks_vec() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 0);
     assert_eq!(function.callbacks.len(), 1);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();
@@ -105,7 +101,7 @@ fn test_callbacks_vec() -> testresult::TestResult {
 
 #[test]
 #[named]
-fn test_callbacks_mixed_with_params() -> testresult::TestResult {
+fn test_callbacks_mixed_with_params() {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -119,7 +115,7 @@ fn test_callbacks_mixed_with_params() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     assert_eq!(function.callbacks.len(), 2);
     let bool_schema = SchemaGenerator::default().subschema_for::<bool>();

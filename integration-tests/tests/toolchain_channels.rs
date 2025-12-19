@@ -10,6 +10,6 @@ pub fn get_channel(toolchain_file: &camino::Utf8PathBuf) -> String {
     if let toml::Value::String(channel_string) = entry {
         channel_string
     } else {
-        panic("unexpected variant of toml.toolchain.channel");
+        panic!("unexpected variant of toml.toolchain.channel");
     }
 }

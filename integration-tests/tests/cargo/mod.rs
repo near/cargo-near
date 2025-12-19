@@ -33,7 +33,7 @@ fn test_dependency_local_path() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -54,7 +54,7 @@ fn test_dependency_local_path_with_version() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -62,7 +62,7 @@ fn test_dependency_local_path_with_version() -> testresult::TestResult {
 
 #[test]
 #[named]
-fn test_dependency_default_features() -> testresult::TestResult {
+fn test_dependency_default_features() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/_Cargo.toml";
         Code:
@@ -71,15 +71,13 @@ fn test_dependency_default_features() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_explicit() -> testresult::TestResult {
+fn test_dependency_explicit() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_explicit.toml";
         Code:
@@ -88,15 +86,13 @@ fn test_dependency_explicit() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_no_default_features() -> testresult::TestResult {
+fn test_dependency_no_default_features() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_no_default_features.toml";
         Code:
@@ -105,15 +101,13 @@ fn test_dependency_no_default_features() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_multiple_features() -> testresult::TestResult {
+fn test_dependency_multiple_features() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_multiple_features.toml";
         Code:
@@ -122,15 +116,13 @@ fn test_dependency_multiple_features() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_platform_specific() -> testresult::TestResult {
+fn test_dependency_platform_specific() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_platform_specific.toml";
         Code:
@@ -139,15 +131,13 @@ fn test_dependency_platform_specific() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_renamed() -> testresult::TestResult {
+fn test_dependency_renamed() {
     let abi_root = generate_abi_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_renamed.toml";
         Code:
@@ -167,15 +157,13 @@ fn test_dependency_renamed() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_patch() -> testresult::TestResult {
+fn test_dependency_patch() {
     // [dependencies]
     // near-sdk = "4.0.0"
     //
@@ -189,16 +177,14 @@ fn test_dependency_patch() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 /// this is a test of Cargo.toml format
 #[test]
 #[named]
-fn test_abi_not_a_table() -> testresult::TestResult {
+fn test_abi_not_a_table() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_not_a_table.toml";
         Code:
@@ -207,8 +193,6 @@ fn test_abi_not_a_table() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 1);
     let function = &abi_root.body.functions[0];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }

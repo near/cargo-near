@@ -1,7 +1,6 @@
 use std::process::{Command, Stdio};
 
 use camino::Utf8PathBuf;
-use serde_json::json;
 mod crate_metadata;
 mod toolchain_channels;
 use cargo_near_integration_tests::setup_tracing;
