@@ -492,7 +492,6 @@ dependencies = [
  "shell-words",
  "strum",
  "strum_macros 0.24.3",
- "testresult",
  "tokio",
  "tracing",
  "tracing-core",
