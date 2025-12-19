@@ -95,8 +95,6 @@ fn test_callbacks_vec() {
             type_schema: u32_schema,
         })
     );
-
-    Ok(())
 }
 
 #[test]
@@ -155,6 +153,4 @@ fn test_callbacks_mixed_with_params() {
             type_schema: u8_schema,
         })
     );
-
-    Ok(())
 }

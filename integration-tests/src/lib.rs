@@ -166,11 +166,11 @@ macro_rules! generate_abi_with {
             cargo_vars,
             lib_rs_file,
             opts,
-        )?;
+        ).unwrap();
         let result_dir = result_file.as_std_path().parent().expect("has parent");
 
         let abi_root: cargo_near_build::near_abi::AbiRoot =
-            serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
+            serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!()))).unwrap()).unwrap();
         abi_root
     }};
 }
