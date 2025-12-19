@@ -1,4 +1,3 @@
-use near_sdk::serde_json::json;
 TEST_BASICS_ON_INCLUDE
 
 #[tokio::test]

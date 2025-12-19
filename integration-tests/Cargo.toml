@@ -6,7 +6,6 @@ publish = false
 
 [dependencies]
 const_format = "0.2"
-color-eyre = "0.6"
 cargo-near-build = { version = "0.9.0", path = "../cargo-near-build" }
 cargo-near = { path = "../cargo-near" }
 tracing = "0.1.40"
@@ -22,8 +21,6 @@ cargo-near-build = { version = "0.9.0", path = "../cargo-near-build", features =
 near-api = "0.8"
 near-sandbox = "0.3"
 near-workspaces = "0.22"
-near-sdk = { version = "5.23", features = ["unit-testing"] }
-chrono = "0.4"
 function_name = "0.3"
 git2 = "0.19"
 minifier = "0.3"

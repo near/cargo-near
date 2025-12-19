@@ -2,7 +2,8 @@
 pub fn get_channel(toolchain_file: &camino::Utf8PathBuf) -> String {
     let toml_table_str = {
         let bytes = std::fs::read(toolchain_file)
-            .map_err(|err| format!("read file, {:?}, err {}", toolchain_file, err)).unwrap();
+            .map_err(|err| format!("read file, {:?}, err {}", toolchain_file, err))
+            .unwrap();
         core::str::from_utf8(&bytes).unwrap().to_owned()
     };
     let toml_table = toml_table_str.parse::<toml::Table>().unwrap();

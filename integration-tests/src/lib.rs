@@ -51,7 +51,7 @@ pub fn invoke_cargo_near(
     mut cargo_vars: HashMap<&str, String>,
     lib_rs_file: syn::File,
     cli_opts: String,
-) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+) -> Result<camino::Utf8PathBuf, Box<dyn std::error::Error>> {
     let workspace_dir = crate::common_root_for_test_projects_build();
     let crate_dir = workspace_dir.join(function_name);
     let src_dir = crate_dir.join("src");
