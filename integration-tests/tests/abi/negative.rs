@@ -3,7 +3,7 @@ use function_name::named;
 
 #[test]
 #[named]
-fn test_abi_old_sdk() -> cargo_near::CliResult {
+fn test_abi_old_sdk() {
     fn run_test() -> cargo_near::CliResult {
         generate_abi_fn_with! {
             Cargo: "/templates/negative/_Cargo_old_sdk.toml";
@@ -17,13 +17,11 @@ fn test_abi_old_sdk() -> cargo_near::CliResult {
         run_test().map_err(|e| e.to_string()),
         Err("missing `__abi-generate` required feature for `near-sdk` dependency: probably unsupported `near-sdk` version. expected 4.1.* or higher".to_string())
     );
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_abi_weird_version() -> cargo_near::CliResult {
+fn test_abi_weird_version() {
     fn run_test() -> cargo_near::CliResult {
         generate_abi_fn_with! {
             Cargo: "/templates/negative/_Cargo_malformed.toml";
@@ -40,8 +38,6 @@ fn test_abi_weird_version() -> cargo_near::CliResult {
                 .to_string()
         )
     );
-
-    Ok(())
 }
 
 // TODO: Arguably this should not be an error. Feels like generating ABI for a contract
@@ -57,7 +53,7 @@ fn test_abi_weird_version() -> cargo_near::CliResult {
 #[ignore]
 #[test]
 #[named]
-fn test_abi_no_code() -> cargo_near::CliResult {
+fn test_abi_no_code() {
     fn run_test() -> cargo_near::CliResult {
         generate_abi_fn! {};
         Ok(())
@@ -67,6 +63,4 @@ fn test_abi_no_code() -> cargo_near::CliResult {
         run_test().map_err(|e| e.to_string()),
         Err("No NEAR ABI symbols found in the dylib".to_string())
     );
-
-    Ok(())
 }

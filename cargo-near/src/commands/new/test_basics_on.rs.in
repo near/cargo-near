@@ -1,5 +1,5 @@
 use chrono::Utc;
-use near_workspaces::types::{AccountId, Gas, NearToken};
+use near_api::{AccountId, NearGas, NearToken};
 use serde::Deserialize;
 
 #[derive(Deserialize)]

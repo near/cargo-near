@@ -7,7 +7,7 @@ use crate::util::AsJsonSchema;
 
 #[test]
 #[named]
-fn test_callbacks_unwrapped() -> cargo_near::CliResult {
+fn test_callbacks_unwrapped() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[callback_unwrap] a: bool, #[callback_unwrap] b: u32) {}
     };
@@ -37,7 +37,7 @@ fn test_callbacks_unwrapped() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_callbacks_result() -> cargo_near::CliResult {
+fn test_callbacks_result() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -71,7 +71,7 @@ fn test_callbacks_result() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_callbacks_vec() -> cargo_near::CliResult {
+fn test_callbacks_vec() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -105,7 +105,7 @@ fn test_callbacks_vec() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_callbacks_mixed_with_params() -> cargo_near::CliResult {
+fn test_callbacks_mixed_with_params() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,

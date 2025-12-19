@@ -4,7 +4,7 @@ use cargo_near_build::CargoTargetDir;
 fn get_locked_package_version(
     manifest_path: &camino::Utf8PathBuf,
     package_name: &str,
-) -> color_eyre::Result<Vec<semver::Version>> {
+) -> testresult::TestResult<Vec<semver::Version>> {
     let meta = cargo_near_build::CrateMetadata::collect(
         manifest_path.clone().try_into()?,
         false,
@@ -26,11 +26,11 @@ pub fn assert_versions_equal(
     manifest_one: &camino::Utf8PathBuf,
     manifest_two: &camino::Utf8PathBuf,
     package_name: &str,
-) -> cargo_near::CliResult {
+) -> testresult::TestResult {
     let versions = [manifest_one, manifest_two]
         .iter()
         .map(|manifest| get_locked_package_version(manifest, package_name))
-        .collect::<Result<Vec<_>, color_eyre::Report>>()?;
+        .collect::<testresult::TestResult<Vec<_>>>()?;
 
     assert_eq!(
         versions[0].len(),
