@@ -155,7 +155,7 @@ fn test_dependency_renamed() {
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
@@ -191,7 +191,7 @@ fn test_abi_not_a_table() {
         pub fn foo(&self, a: u32, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
+    assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
