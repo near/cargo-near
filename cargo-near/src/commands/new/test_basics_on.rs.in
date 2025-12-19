@@ -1,8 +1,9 @@
 use chrono::Utc;
 use near_api::{AccountId, NearGas, NearToken};
-use serde::Deserialize;
+use near_sdk::serde_json::json;
 
-#[derive(Deserialize)]
+#[derive(near_sdk::serde::Deserialize)]
+#[serde(crate = "near_sdk::serde")]
 pub struct Bid {
     pub bidder: AccountId,
     pub bid: NearToken,
@@ -27,7 +28,9 @@ async fn test_basics_on(contract_wasm: Vec<u8>) -> testresult::TestResult<()> {
             .parse()
             .unwrap(),
     )?;
-    let now = Utc::now().timestamp();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::SystemTime::UNIX_EPOCH)?
+        .as_secs();
     let a_minute_from_now = (now + 60) * 1000000000;
     near_api::Contract::deploy(contract.account_id().clone())
         .use_code(contract_wasm)
