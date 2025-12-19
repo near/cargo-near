@@ -23,7 +23,7 @@ fn test_borsh_schema_numeric_primitives_signed() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 6);
     let i8_schema = BorshSchemaContainer::new(
         "i8".to_string(),
@@ -73,7 +73,7 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 6);
     let u8_schema = BorshSchemaContainer::new(
         "u8".to_string(),
@@ -115,7 +115,7 @@ fn test_borsh_schema_numeric_primitives_float() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     let f32_schema = BorshSchemaContainer::new(
         "f32".to_string(),
@@ -140,7 +140,7 @@ fn test_borsh_schema_string() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 3);
     let string_schema = BorshSchemaContainer::new(
         "String".to_string(),
@@ -172,7 +172,7 @@ fn test_borsh_schema_other_primitives() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     // char is unsupported by borsh spec
     // let char_schema = BorshSchemaContainer {
@@ -207,7 +207,7 @@ fn test_borsh_schema_tuples() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 3);
     let tuple1_schema = BorshSchemaContainer::new(
         "(bool,)".to_string(),
@@ -266,7 +266,7 @@ fn test_borsh_schema_arrays() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 3);
     let array8_schema = BorshSchemaContainer::new(
         "[bool; 8]".to_string(),
@@ -350,7 +350,7 @@ fn test_borsh_schema_struct() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     let pair_def_schema = BorshSchemaContainer::new(
         "Pair".to_string(),
@@ -421,7 +421,7 @@ fn test_borsh_schema_enum() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema = BorshSchemaContainer::new(
         "IpAddrKind".to_string(),
@@ -533,7 +533,7 @@ fn test_borsh_schema_complex() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 1);
     let ip_addr_def_schema = BorshSchemaContainer::new(
         "IpAddr".to_string(),

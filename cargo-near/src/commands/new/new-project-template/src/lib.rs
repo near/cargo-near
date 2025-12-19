@@ -68,7 +68,12 @@ impl Contract {
         // Update the highest bid
         self.highest_bid = Bid { bidder, bid };
 
-        // Transfer tokens back to the last bidder
+        // Transfer tokens back to the last bidder.
+        //
+        // NOTE: The result of this Promise is not handled. If this transfer fails (for example,
+        // because `last_bidder` account was removed), the previous bidder may not be refunded even
+        // though `self.highest_bid` has already been updated. For production use, consider
+        // implementing a withdrawal pattern or adding a callback to handle transfer failures.
         Promise::new(last_bidder).transfer(last_bid)
     }
 
@@ -85,14 +90,21 @@ impl Contract {
         require!(!self.is_claimed, "Auction has already been claimed");
         self.is_claimed = true;
 
-        // Transfer tokens to the auctioneer
+        // Transfer tokens to the auctioneer.
+        //
+        // NOTE: The result of this Promise is not handled. If this transfer fails (for example,
+        // because `last_bidder` account was removed), the previous bidder may not be refunded even
+        // though `self.highest_bid` has already been updated. For production use, consider
+        // implementing a withdrawal pattern or adding a callback to handle transfer failures.
         Promise::new(self.auctioneer.clone()).transfer(self.highest_bid.bid)
     }
 
-    /**
-     These are read-only functions that can be called without a transaction and return the highest
-     bid, auction end time, auctioneer, and claimed status
-    **/
+    /*
+     * The functions below are read-only functions that can be called without a transaction (through
+     * JSON RPC query call). They read the data from the contract local storage and return the
+     * highest bid, auction end time, auctioneer, and claimed status
+     */
+
     pub fn get_highest_bid(&self) -> Bid {
         self.highest_bid.clone()
     }
@@ -262,4 +274,3 @@ mod tests {
         let _ = contract.claim();
     }
 }
-

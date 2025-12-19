@@ -12,7 +12,7 @@ fn test_schema_numeric_primitives_signed() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 6);
     // `format` is an open-ended keyword so one can define their own custom formats.
     // See https://json-schema.org/draft/2020-12/json-schema-validation.html#name-custom-format-attributes.
@@ -86,7 +86,7 @@ fn test_schema_numeric_primitives_unsigned() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 6);
     // `format` is an open-ended keyword so one can define their own custom formats.
     // See https://json-schema.org/draft/2020-12/json-schema-validation.html#name-custom-format-attributes.
@@ -166,7 +166,7 @@ fn test_schema_numeric_primitives_float() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     // `format` is an open-ended keyword so one can define their own custom formats.
     // See https://json-schema.org/draft/2020-12/json-schema-validation.html#name-custom-format-attributes.
@@ -204,7 +204,7 @@ fn test_schema_string() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let string_schema: Schema = serde_json::from_str(
         r#"
@@ -229,7 +229,7 @@ fn test_schema_other_primitives() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let char_schema: Schema = serde_json::from_str(
         r#"
@@ -270,7 +270,7 @@ fn test_schema_tuples() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let tuple1_schema: Schema = serde_json::from_str(
         r#"
@@ -339,7 +339,7 @@ fn test_schema_arrays() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let array8_schema: Schema = serde_json::from_str(
         r#"
@@ -414,7 +414,7 @@ fn test_schema_struct() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     let pair_def_schema: Schema = serde_json::from_str(
         r##"
@@ -523,7 +523,7 @@ fn test_schema_enum() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema: Schema = serde_json::from_str(
         r##"
@@ -656,7 +656,7 @@ fn test_schema_complex() -> testresult::TestResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema: Schema = serde_json::from_str(
         r##"

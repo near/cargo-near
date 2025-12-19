@@ -50,7 +50,7 @@ fn test_cargo_test_on_generated_project() -> testresult::TestResult<()> {
             .parent()
             .expect("has a parent")
             .join("rust-toolchain.toml"),
-    )?;
+    );
 
     // somehow `rustup` doesn't respect `rust-toolchain.toml` in
     // the target generated dir
@@ -110,7 +110,7 @@ async fn test_regular_build() -> testresult::TestResult<()> {
             .parent()
             .expect("has a parent")
             .join("rust-toolchain.toml"),
-    )?;
+    );
 
     let opts = cargo_near_build::BuildOpts::builder()
         .manifest_path(generated_manifest.clone())

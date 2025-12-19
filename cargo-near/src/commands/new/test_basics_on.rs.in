@@ -1,4 +1,3 @@
-use chrono::Utc;
 use near_api::{AccountId, NearGas, NearToken};
 use near_sdk::serde_json::json;
 

@@ -1,5 +1,5 @@
 /// parses `rust-toolchain.toml` and returns `channel`
-pub fn get_channel(toolchain_file: &camino::Utf8PathBuf) -> testresult::TestResult<String> {
+pub fn get_channel(toolchain_file: &camino::Utf8PathBuf) -> String {
     let toml_table_str = {
         let bytes = std::fs::read(toolchain_file)
             .map_err(|err| format!("read file, {:?}, err {}", toolchain_file, err))?;
@@ -7,9 +7,9 @@ pub fn get_channel(toolchain_file: &camino::Utf8PathBuf) -> testresult::TestResu
     };
     let toml_table = toml_table_str.parse::<toml::Table>()?;
     let entry = toml_table["toolchain"]["channel"].clone();
-    let result = match entry {
-        toml::Value::String(channel_string) => channel_string,
-        _ => return Err("unexpected variant of toml.toolchain.channel".into()),
-    };
-    Ok(result)
+    if let toml::Value::String(channel_string) = entry {
+        channel_string
+    } else {
+        panic("unexpected variant of toml.toolchain.channel");
+    }
 }

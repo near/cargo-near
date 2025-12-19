@@ -22,6 +22,7 @@ cargo-near-build = { version = "0.9.0", path = "../cargo-near-build", features =
 near-api = "0.8"
 near-sandbox = "0.3"
 near-workspaces = "0.22"
+near-sdk = { version = "5.23", features = ["unit-testing"] }
 chrono = "0.4"
 function_name = "0.3"
 git2 = "0.19"
@@ -35,4 +36,4 @@ tokio = { version = "1.12.0", features = ["full"] }
 quote = "1.0"
 zstd = "0.13"
 toml = "0.8.19"
-testresult = "0.4"
+testresult = "0.4.1"

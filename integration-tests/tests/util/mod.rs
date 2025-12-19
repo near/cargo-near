@@ -27,29 +27,29 @@ pub async fn fetch_contract_abi(wasm: &[u8]) -> testresult::TestResult<AbiRoot> 
 }
 
 pub trait AsBorshSchema {
-    fn borsh_schemas(&self) -> testresult::TestResult<&Vec<AbiBorshParameter>>;
+    fn borsh_schemas(&self) -> &[AbiBorshParameter];
 }
 
 impl AsBorshSchema for AbiParameters {
-    fn borsh_schemas(&self) -> testresult::TestResult<&Vec<AbiBorshParameter>> {
+    fn borsh_schemas(&self) -> &[AbiBorshParameter] {
         if let AbiParameters::Borsh { args } = &self {
-            Ok(args)
+            args
         } else {
-            Err(format!("Expected Borsh serialization type, but got {:?}", self).into())
+            panic!("Expected Borsh serialization type, but got {:?}", self);
         }
     }
 }
 
 pub trait AsJsonSchema {
-    fn json_schemas(&self) -> testresult::TestResult<&Vec<AbiJsonParameter>>;
+    fn json_schemas(&self) -> &[AbiJsonParameter];
 }
 
 impl AsJsonSchema for AbiParameters {
-    fn json_schemas(&self) -> testresult::TestResult<&Vec<AbiJsonParameter>> {
+    fn json_schemas(&self) -> &[AbiJsonParameter] {
         if let AbiParameters::Json { args } = &self {
-            Ok(args)
+            args
         } else {
-            Err(format!("Expected JSON serialization type, but got {:?}", self).into())
+            panic!("Expected JSON serialization type, but got {:?}", self);
         }
     }
 }
