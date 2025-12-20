@@ -89,7 +89,7 @@ jobs:
         run: |
           git config --global user.email "nearprotocol-ci@near.org"
           git config --global user.name "nearprotocol-ci"
-          cargo test --workspace
+          RUST_TEST_THREADS=2 cargo test --workspace
 
   lint:
     runs-on: ubuntu-latest
