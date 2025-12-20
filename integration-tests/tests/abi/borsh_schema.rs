@@ -321,28 +321,22 @@ fn test_borsh_schema_arrays() -> testresult::TestResult {
 #[named]
 fn test_borsh_schema_struct() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
+        use near_sdk::near;
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub struct Pair(u32, u32);
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub struct PairNamed {
             first: u32,
             second: u32
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, #[serializer(borsh)] a: Pair, #[serializer(borsh)] b: PairNamed) {}
         }
@@ -389,31 +383,25 @@ fn test_borsh_schema_struct() -> testresult::TestResult {
 #[named]
 fn test_borsh_schema_enum() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
+        use near_sdk::near;
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub enum IpAddr {
             V4(u8, u8, u8, u8),
             V6(String),
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, #[serializer(borsh)] a: IpAddrKind, #[serializer(borsh)] b: IpAddr) {}
         }
@@ -501,31 +489,25 @@ fn test_borsh_schema_enum() -> testresult::TestResult {
 #[named]
 fn test_borsh_schema_complex() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
+        use near_sdk::near;
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub struct IpAddr {
             kind: IpAddrKind,
             address: String,
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, #[serializer(borsh)] b: IpAddr) {}
         }

@@ -192,15 +192,13 @@ macro_rules! generate_abi_fn_with {
         $crate::generate_abi_with! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
-            use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-            use near_sdk::near_bindgen;
+            use near_sdk::near;
 
-            #[near_bindgen]
-            #[derive(Default, BorshDeserialize, BorshSerialize)]
-            #[borsh(crate = "near_sdk::borsh")]
+            #[near(contract_state)]
+            #[derive(Default)]
             pub struct Contract {}
 
-            #[near_bindgen]
+            #[near]
             impl Contract {
                 $($code)*
             }
@@ -287,15 +285,13 @@ macro_rules! build_fn_with {
         $crate::build_with! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
-            use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-            use near_sdk::{near_bindgen, NearSchema};
+            use near_sdk::near;
 
-            #[near_bindgen]
-            #[derive(Default, BorshDeserialize, BorshSerialize)]
-            #[borsh(crate = "near_sdk::borsh")]
+            #[near(contract_state)]
+            #[derive(Default)]
             pub struct Contract {}
 
-            #[near_bindgen]
+            #[near]
             impl Contract {
                 $($code)*
             }

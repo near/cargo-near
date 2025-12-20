@@ -141,15 +141,13 @@ fn test_dependency_renamed() {
     let abi_root = generate_abi_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_renamed.toml";
         Code:
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near::near_bindgen;
+        use near::near;
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, a: bool, b: u32) {}
         }
