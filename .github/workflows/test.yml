@@ -87,6 +87,13 @@ jobs:
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
       - name: Run tests
         run: |
+          # Clean up unused pre-installed things: https://carlosbecker.com/posts/github-actions-disk-space/
+          df -h
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          sudo docker builder prune -a
+          df -h
+          
           git config --global user.email "nearprotocol-ci@near.org"
           git config --global user.name "nearprotocol-ci"
           RUST_TEST_THREADS=2 cargo test --workspace
