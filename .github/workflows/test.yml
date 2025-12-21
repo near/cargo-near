@@ -90,13 +90,12 @@ jobs:
           # Clean up unused pre-installed things: https://carlosbecker.com/posts/github-actions-disk-space/
           df -h
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-          sudo docker builder prune -a
           df -h
           
           git config --global user.email "nearprotocol-ci@near.org"
           git config --global user.name "nearprotocol-ci"
-          RUST_TEST_THREADS=2 cargo test --workspace
+          cargo test --workspace
+          df -h
 
   lint:
     runs-on: ubuntu-latest
