@@ -136,6 +136,8 @@ fn test_dependency_platform_specific() {
 }
 
 #[test]
+// Crate renaming is not supported by near-sdk-rs: https://github.com/near/near-sdk-rs/blob/bf76f199d2be08c265198e7ea37bd76ee0824caf/near-sdk-macros/src/lib.rs#L88-L92
+#[ignore]
 #[named]
 fn test_dependency_renamed() {
     let abi_root = generate_abi_with! {
@@ -143,11 +145,11 @@ fn test_dependency_renamed() {
         Code:
         use near::near;
 
-        #[near(contract_state)]
+        #[near(contract_state, crate = "near")]
         #[derive(Default)]
         pub struct Contract {}
 
-        #[near]
+        #[near(crate = "near")]
         impl Contract {
             pub fn foo(&self, a: bool, b: u32) {}
         }
