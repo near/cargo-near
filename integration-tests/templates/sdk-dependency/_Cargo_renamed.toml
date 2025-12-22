@@ -10,7 +10,8 @@ crate-type = ["cdylib"]
 serde = { version = "1", features = ["derive"] }
 
 [dependencies.near]
-near = { package = "near-sdk", ::sdk-git-version-toml:: }
+package = "near-sdk"
+::sdk-git-version-toml-table::
 
 [workspace]
 members = []

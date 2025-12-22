@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 #[test]
 #[named]
-fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
+fn test_borsh_schema_numeric_primitives_signed() -> testresult::TestResult {
     setup_tracing();
 
     let abi_root = generate_abi_fn! {
@@ -23,7 +23,7 @@ fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 6);
     let i8_schema = BorshSchemaContainer::new(
         "i8".to_string(),
@@ -58,7 +58,7 @@ fn test_borsh_schema_numeric_primitives_signed() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
+fn test_borsh_schema_numeric_primitives_unsigned() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -73,7 +73,7 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 6);
     let u8_schema = BorshSchemaContainer::new(
         "u8".to_string(),
@@ -108,14 +108,14 @@ fn test_borsh_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_numeric_primitives_float() -> cargo_near::CliResult {
+fn test_borsh_schema_numeric_primitives_float() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[serializer(borsh)] a: f32, #[serializer(borsh)] b: f64) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     let f32_schema = BorshSchemaContainer::new(
         "f32".to_string(),
@@ -133,14 +133,14 @@ fn test_borsh_schema_numeric_primitives_float() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_string() -> cargo_near::CliResult {
+fn test_borsh_schema_string() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[serializer(borsh)] a: String, #[serializer(borsh)] b: &str, #[serializer(borsh)] c: &'static str) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 3);
     let string_schema = BorshSchemaContainer::new(
         "String".to_string(),
@@ -165,14 +165,14 @@ fn test_borsh_schema_string() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_other_primitives() -> cargo_near::CliResult {
+fn test_borsh_schema_other_primitives() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, #[serializer(borsh)] b: bool, #[serializer(borsh)] c: ()) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     // char is unsupported by borsh spec
     // let char_schema = BorshSchemaContainer {
@@ -195,7 +195,7 @@ fn test_borsh_schema_other_primitives() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_tuples() -> cargo_near::CliResult {
+fn test_borsh_schema_tuples() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -207,7 +207,7 @@ fn test_borsh_schema_tuples() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 3);
     let tuple1_schema = BorshSchemaContainer::new(
         "(bool,)".to_string(),
@@ -254,7 +254,7 @@ fn test_borsh_schema_tuples() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_arrays() -> cargo_near::CliResult {
+fn test_borsh_schema_arrays() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(
             &self,
@@ -266,7 +266,7 @@ fn test_borsh_schema_arrays() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 3);
     let array8_schema = BorshSchemaContainer::new(
         "[bool; 8]".to_string(),
@@ -319,30 +319,24 @@ fn test_borsh_schema_arrays() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_struct() -> cargo_near::CliResult {
+fn test_borsh_schema_struct() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
+        use near_sdk::near;
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub struct Pair(u32, u32);
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub struct PairNamed {
             first: u32,
             second: u32
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, #[serializer(borsh)] a: Pair, #[serializer(borsh)] b: PairNamed) {}
         }
@@ -350,7 +344,7 @@ fn test_borsh_schema_struct() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     let pair_def_schema = BorshSchemaContainer::new(
         "Pair".to_string(),
@@ -387,33 +381,27 @@ fn test_borsh_schema_struct() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_enum() -> cargo_near::CliResult {
+fn test_borsh_schema_enum() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
+        use near_sdk::near;
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub enum IpAddr {
             V4(u8, u8, u8, u8),
             V6(String),
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, #[serializer(borsh)] a: IpAddrKind, #[serializer(borsh)] b: IpAddr) {}
         }
@@ -421,7 +409,7 @@ fn test_borsh_schema_enum() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema = BorshSchemaContainer::new(
         "IpAddrKind".to_string(),
@@ -499,33 +487,27 @@ fn test_borsh_schema_enum() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_borsh_schema_complex() -> cargo_near::CliResult {
+fn test_borsh_schema_complex() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
+        use near_sdk::near;
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(NearSchema, BorshSerialize, BorshDeserialize)]
-        #[abi(borsh)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near]
         pub struct IpAddr {
             kind: IpAddrKind,
             address: String,
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, #[serializer(borsh)] b: IpAddr) {}
         }
@@ -533,7 +515,7 @@ fn test_borsh_schema_complex() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.borsh_schemas()?;
+    let params = function.params.borsh_schemas();
     assert_eq!(params.len(), 1);
     let ip_addr_def_schema = BorshSchemaContainer::new(
         "IpAddr".to_string(),

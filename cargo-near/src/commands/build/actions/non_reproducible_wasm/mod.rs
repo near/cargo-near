@@ -50,7 +50,7 @@ pub struct BuildOpts {
     /// Do not include rustdocs in the embedded ABI
     ///
     /// Specifying this flag results in not including human-readable documentation strings
-    /// over contract's methods parsed from source code into ABI.
+    /// over contract's functions parsed from source code into ABI.
     /// More info about near ABI can be found here: [near/ABI](https://github.com/near/abi).
     #[interactive_clap(verbatim_doc_comment)]
     #[interactive_clap(long)]

@@ -7,7 +7,7 @@ use tempfile::TempDir;
 
 use crate::util::AsJsonSchema;
 
-fn clone_git_repo() -> color_eyre::eyre::Result<TempDir> {
+fn clone_git_repo() -> testresult::TestResult<TempDir> {
     let temp_dir = tempfile::tempdir()?;
     let repo_dir = temp_dir.path();
     let repo = Repository::clone(from_git::SDK_REPO, repo_dir)?;
@@ -19,7 +19,7 @@ fn clone_git_repo() -> color_eyre::eyre::Result<TempDir> {
 
 #[test]
 #[named]
-fn test_dependency_local_path() -> cargo_near::CliResult {
+fn test_dependency_local_path() -> testresult::TestResult {
     let near_sdk_dir = clone_git_repo()?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
@@ -33,7 +33,7 @@ fn test_dependency_local_path() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -41,7 +41,7 @@ fn test_dependency_local_path() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_dependency_local_path_with_version() -> cargo_near::CliResult {
+fn test_dependency_local_path_with_version() -> testresult::TestResult {
     let near_sdk_dir = clone_git_repo()?;
     let near_sdk_dep_path = near_sdk_dir.path().join("near-sdk");
 
@@ -54,7 +54,7 @@ fn test_dependency_local_path_with_version() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
 
     Ok(())
@@ -62,7 +62,7 @@ fn test_dependency_local_path_with_version() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_dependency_default_features() -> cargo_near::CliResult {
+fn test_dependency_default_features() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/_Cargo.toml";
         Code:
@@ -71,15 +71,13 @@ fn test_dependency_default_features() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_explicit() -> cargo_near::CliResult {
+fn test_dependency_explicit() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_explicit.toml";
         Code:
@@ -88,15 +86,13 @@ fn test_dependency_explicit() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_no_default_features() -> cargo_near::CliResult {
+fn test_dependency_no_default_features() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_no_default_features.toml";
         Code:
@@ -105,15 +101,13 @@ fn test_dependency_no_default_features() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_multiple_features() -> cargo_near::CliResult {
+fn test_dependency_multiple_features() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_multiple_features.toml";
         Code:
@@ -122,15 +116,13 @@ fn test_dependency_multiple_features() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_platform_specific() -> cargo_near::CliResult {
+fn test_dependency_platform_specific() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_platform_specific.toml";
         Code:
@@ -139,45 +131,39 @@ fn test_dependency_platform_specific() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
-// Does not work because of NEAR SDK (generates code that depends on `near-sdk` being the package name).
-#[ignore]
 #[test]
+// Crate renaming is not supported by near-sdk-rs and cargo-near-build: https://github.com/near/near-sdk-rs/blob/bf76f199d2be08c265198e7ea37bd76ee0824caf/near-sdk-macros/src/lib.rs#L88-L92
+#[ignore]
 #[named]
-fn test_dependency_renamed() -> cargo_near::CliResult {
+fn test_dependency_renamed() {
     let abi_root = generate_abi_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_renamed.toml";
         Code:
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near::near_bindgen;
+        use near::near;
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state, crate = "near")]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near(crate = "near")]
         impl Contract {
             pub fn foo(&self, a: bool, b: u32) {}
         }
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
-    let params = function.params.json_schemas()?;
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 #[test]
 #[named]
-fn test_dependency_patch() -> cargo_near::CliResult {
+fn test_dependency_patch() {
     // [dependencies]
     // near-sdk = "4.0.0"
     //
@@ -191,29 +177,22 @@ fn test_dependency_patch() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
 
 /// this is a test of Cargo.toml format
-/// TODO: un-ignore when `5.x.x` near-sdk is published
-/// and `cargo_near_integration_tests::SDK_VERSION` is changed 4.x.x -> 5.x.x
 #[test]
-#[ignore]
 #[named]
-fn test_abi_not_a_table() -> cargo_near::CliResult {
+fn test_abi_not_a_table() {
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/sdk-dependency/_Cargo_not_a_table.toml";
         Code:
         pub fn foo(&self, a: u32, b: u32) {}
     };
 
-    assert_eq!(abi_root.body.functions.len(), 1);
-    let function = &abi_root.body.functions[0];
-    let params = function.params.json_schemas()?;
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
-
-    Ok(())
 }
