@@ -136,7 +136,7 @@ fn test_dependency_platform_specific() {
 }
 
 #[test]
-// Crate renaming is not supported by near-sdk-rs: https://github.com/near/near-sdk-rs/blob/bf76f199d2be08c265198e7ea37bd76ee0824caf/near-sdk-macros/src/lib.rs#L88-L92
+// Crate renaming is not supported by near-sdk-rs and cargo-near-build: https://github.com/near/near-sdk-rs/blob/bf76f199d2be08c265198e7ea37bd76ee0824caf/near-sdk-macros/src/lib.rs#L88-L92
 #[ignore]
 #[named]
 fn test_dependency_renamed() {

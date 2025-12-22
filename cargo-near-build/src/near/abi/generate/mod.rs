@@ -31,23 +31,16 @@ pub fn procedure(
         })
         .wrap_err("unable to appropriately resolve the dependency graph, perhaps your `Cargo.toml` file is malformed")?;
 
-    let (near_sdk_dep_name, near_sdk_dep) = root_node
+    let near_sdk_dep = root_node
         .deps
         .iter()
-        .find(|dep| {
-            dep.name == "near_sdk" ||
-                // Support the case when near-sdk crate is renamed in Cargo.toml, e.g.
-                // [dependencies]
-                // near = { package = "near-sdk", version "5" }
-                dep.pkg.repr.contains("#near-sdk@")
-        })
+        .find(|dep| dep.name == "near_sdk")
         .and_then(|near_sdk| {
             crate_metadata
                 .raw_metadata
                 .packages
                 .iter()
                 .find(|pkg| pkg.id == near_sdk.pkg)
-                .map(|pkg| (&near_sdk.name, pkg))
         })
         .wrap_err("`near-sdk` dependency not found")?;
 
@@ -64,9 +57,8 @@ pub fn procedure(
         }
     }
 
-    let abi_generate_feature_flag = format!("{near_sdk_dep_name}/__abi-generate");
     let cargo_args = {
-        let mut args = vec!["--features", &abi_generate_feature_flag];
+        let mut args = vec!["--features", "near-sdk/__abi-generate"];
         args.extend_from_slice(cargo_feature_args);
         if !no_locked {
             args.push("--locked");
