@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 const_format = "0.2"
-cargo-near-build = { version = "0.9.0", path = "../cargo-near-build" }
+cargo-near-build = { version = "0.10.0", path = "../cargo-near-build" }
 cargo-near = { path = "../cargo-near" }
 tracing = "0.1.40"
 prettyplease = "0.2"
@@ -15,7 +15,7 @@ syn = "2"
 [dev-dependencies]
 borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
 camino = "1.1.1"
-cargo-near-build = { version = "0.9.0", path = "../cargo-near-build", features = [
+cargo-near-build = { version = "0.10.0", path = "../cargo-near-build", features = [
     "test_code",
 ] }
 near-api = "0.8"
