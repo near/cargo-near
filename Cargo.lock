@@ -497,7 +497,6 @@ dependencies = [
  "camino",
  "cargo_metadata",
  "colored",
- "dirs-next",
  "dunce",
  "eyre",
  "git2",
