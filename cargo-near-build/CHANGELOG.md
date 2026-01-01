@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.9.0...cargo-near-build-v0.10.0) - 2025-12-22
+
+### Added
+
+- New style of interactive CLI prompts! (upgrade near-cli-rs to 0.23) ([#374](https://github.com/near/cargo-near/pull/374))
+- allow specifying features for cargo near abi ([#366](https://github.com/near/cargo-near/pull/366))
+
+### Fixed
+
+- use #[derive(Default)] for BuildContext ([#368](https://github.com/near/cargo-near/pull/368))
+
 ## [0.9.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.8.0...cargo-near-build-v0.9.0) - 2025-09-14
 
 ### Added

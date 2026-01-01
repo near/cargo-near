@@ -38,7 +38,7 @@ pub fn extract_abi_entries(
 
     let mut entries = vec![];
     unsafe {
-        let lib = libloading::Library::new(dylib_path)?;
+        let lib = libloading::Library::new(dylib_path.as_str())?;
         for symbol in near_abi_symbols {
             let entry: libloading::Symbol<extern "C" fn() -> (*const u8, usize)> =
                 lib.get(symbol.as_bytes())?;
