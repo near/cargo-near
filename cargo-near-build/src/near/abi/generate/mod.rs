@@ -102,7 +102,7 @@ pub fn procedure(
 fn extract_metadata(crate_metadata: &CrateMetadata) -> near_abi::AbiMetadata {
     let package = &crate_metadata.root_package;
     near_abi::AbiMetadata {
-        name: Some(package.name.clone()),
+        name: Some(package.name.to_string()),
         version: Some(package.version.to_string()),
         authors: package.authors.clone(),
         build: None,
