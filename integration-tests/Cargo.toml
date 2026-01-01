@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 const_format = "0.2"
 cargo-near-build = { version = "0.10.0", path = "../cargo-near-build" }
-cargo-near = { path = "../cargo-near" }
+cargo-near = { path = "../cargo-near", default-features = false }
 tracing = "0.1.40"
 prettyplease = "0.2"
 syn = "2"

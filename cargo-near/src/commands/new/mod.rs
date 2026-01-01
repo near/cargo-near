@@ -47,6 +47,12 @@ impl NewContext {
             .to_str()
             .wrap_err("Project name has to be a valid UTF-8 string")?;
 
+        if project_name == "test" {
+            return Err(color_eyre::eyre::eyre!(
+                "the name `test` cannot be used as a package name, it conflicts with Rust's built-in test library"
+            ));
+        }
+
         for new_project_file in NEW_PROJECT_FILES {
             let new_file_path = project_dir.join(new_project_file.file_path);
             std::fs::create_dir_all(new_file_path.parent().wrap_err_with(|| {
