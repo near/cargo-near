@@ -18,7 +18,9 @@ impl Crate {
 
         // NOTE: this cycle logic is needed to detect top level repo, when called from a
         // current dir within a submodule
-        while let Ok(repo_root) = git2::Repository::discover_path(&search_from, home::home_dir()) {
+        while let Ok(repo_root) =
+            git2::Repository::discover_path(&search_from, dirs_next::home_dir())
+        {
             repo = Some(git2::Repository::open(&repo_root)?);
             let workdir = repo
                 .as_ref()
