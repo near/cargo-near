@@ -47,9 +47,13 @@ impl NewContext {
             .to_str()
             .wrap_err("Project name has to be a valid UTF-8 string")?;
 
-        if project_name == "test" {
+        const RESERVED_PACKAGE_NAMES: [&str; 5] =
+            ["test", "core", "std", "alloc", "proc_macro"];
+
+        if RESERVED_PACKAGE_NAMES.contains(&project_name) {
             return Err(color_eyre::eyre::eyre!(
-                "the name `test` cannot be used as a package name, it conflicts with Rust's built-in test library"
+                "the name `{}` cannot be used as a package name, it conflicts with Rust's standard library",
+                project_name
             ));
         }
 

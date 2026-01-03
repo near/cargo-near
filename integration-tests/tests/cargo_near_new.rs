@@ -164,38 +164,45 @@ fn tests_manifest() -> camino::Utf8PathBuf {
     cargo_near_integration_tests_dir.join("Cargo.toml")
 }
 
-/// Test that creating a project with the name "test" is rejected
+/// Test that creating a project with reserved package names is rejected
 #[test]
-fn test_reject_test_project_name() -> testresult::TestResult<()> {
-    let out_path = {
-        let tmp_dir = tempfile::Builder::new()
-            .prefix("cargo_near_new_")
-            .tempdir()?;
-        tmp_dir.path().join("test")
-    };
+fn test_reject_reserved_package_names() -> testresult::TestResult<()> {
+    let reserved_names = ["test", "core", "std", "alloc", "proc_macro"];
 
-    let scope = cargo_near::commands::new::InteractiveClapContextScopeForNew {
-        project_dir: out_path.clone().into(),
-    };
-    let result = cargo_near::commands::new::NewContext::from_previous_context(
-        cargo_near::GlobalContext {
-            config: Default::default(),
-            offline: false,
-            verbosity: cargo_near::Verbosity::Interactive,
-        },
-        &scope,
-    );
+    for reserved_name in reserved_names {
+        let out_path = {
+            let tmp_dir = tempfile::Builder::new()
+                .prefix("cargo_near_new_")
+                .tempdir()?;
+            tmp_dir.path().join(reserved_name)
+        };
 
-    assert!(
-        result.is_err(),
-        "Expected error when creating project with name 'test'"
-    );
+        let scope = cargo_near::commands::new::InteractiveClapContextScopeForNew {
+            project_dir: out_path.clone().into(),
+        };
+        let result = cargo_near::commands::new::NewContext::from_previous_context(
+            cargo_near::GlobalContext {
+                config: Default::default(),
+                offline: false,
+                verbosity: cargo_near::Verbosity::Interactive,
+            },
+            &scope,
+        );
 
-    let error_message = format!("{}", result.unwrap_err());
-    assert!(
-        error_message.contains("test") && error_message.contains("conflicts with Rust's built-in test library"),
-        "Error message should mention 'test' and conflict with Rust's built-in test library, got: {error_message}"
-    );
+        assert!(
+            result.is_err(),
+            "Expected error when creating project with reserved name '{}'",
+            reserved_name
+        );
+
+        let error_message = format!("{}", result.unwrap_err());
+        assert!(
+            error_message.contains("conflicts with Rust's standard library"),
+            "Error message should mention conflict with Rust's standard library for '{}', got: {}",
+            reserved_name,
+            error_message
+        );
+    }
 
     Ok(())
 }
