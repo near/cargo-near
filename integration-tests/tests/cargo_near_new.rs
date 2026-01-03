@@ -163,3 +163,46 @@ fn tests_manifest() -> camino::Utf8PathBuf {
     let cargo_near_integration_tests_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
     cargo_near_integration_tests_dir.join("Cargo.toml")
 }
+
+/// Test that creating a project with reserved package names is rejected
+#[test]
+fn test_reject_reserved_package_names() -> testresult::TestResult<()> {
+    let reserved_names = ["test", "core", "std", "alloc", "proc_macro"];
+
+    for reserved_name in reserved_names {
+        let out_path = {
+            let tmp_dir = tempfile::Builder::new()
+                .prefix("cargo_near_new_")
+                .tempdir()?;
+            tmp_dir.path().join(reserved_name)
+        };
+
+        let scope = cargo_near::commands::new::InteractiveClapContextScopeForNew {
+            project_dir: out_path.clone().into(),
+        };
+        let result = cargo_near::commands::new::NewContext::from_previous_context(
+            cargo_near::GlobalContext {
+                config: Default::default(),
+                offline: false,
+                verbosity: cargo_near::Verbosity::Interactive,
+            },
+            &scope,
+        );
+
+        assert!(
+            result.is_err(),
+            "Expected error when creating project with reserved name '{}'",
+            reserved_name
+        );
+
+        let error_message = format!("{}", result.unwrap_err());
+        assert!(
+            error_message.contains("conflicts with Rust's standard library"),
+            "Error message should mention conflict with Rust's standard library for '{}', got: {}",
+            reserved_name,
+            error_message
+        );
+    }
+
+    Ok(())
+}
