@@ -47,8 +47,7 @@ impl NewContext {
             .to_str()
             .wrap_err("Project name has to be a valid UTF-8 string")?;
 
-        const RESERVED_PACKAGE_NAMES: [&str; 5] =
-            ["test", "core", "std", "alloc", "proc_macro"];
+        const RESERVED_PACKAGE_NAMES: [&str; 5] = ["test", "core", "std", "alloc", "proc_macro"];
 
         if RESERVED_PACKAGE_NAMES.contains(&project_name) {
             return Err(color_eyre::eyre::eyre!(
