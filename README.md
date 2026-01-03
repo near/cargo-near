@@ -13,6 +13,8 @@
     <a href="https://crates.io/crates/cargo-near"><img src="https://img.shields.io/crates/v/cargo-near.svg?style=flat-square" alt="Crates.io version" /></a>
     <a href="https://crates.io/crates/cargo-near"><img src="https://img.shields.io/crates/d/cargo-near.svg?style=flat-square" alt="Download" /></a>
     <a href="https://crates.io/crates/cargo-near-build"><img src="https://img.shields.io/crates/v/cargo-near-build.svg?style=flat-square" alt="Crates.io version" /></a>
+    <a href="https://near.chat"><img src="https://img.shields.io/discord/490367152054992913?style=flat-square&label=discord&color=lightgreen" alt="Join the community on Discord" /></a>
+    <a href="https://t.me/NEAR_Tools_Community_Group"><img src="https://img.shields.io/badge/telegram-online-lightgreen?style=flat-square" alt="Join the community on Telegram" /></a>
 
   </p>
 
@@ -20,7 +22,7 @@
 
 ## Release notes
 
-**Release notes and unreleased changes can be found in the [CHANGELOG](CHANGELOG.md)**
+**Release notes and unreleased changes can be found in the [CHANGELOG](https://github.com/near/cargo-near/blob/main/CHANGELOG.md)**
 
 ## Github Codespaces template + [an online ide](https://docs.github.com/en/codespaces/reference/using-the-vs-code-command-palette-in-codespaces)
 
@@ -97,7 +99,7 @@ cargo near new
 
 Initializes a new project skeleton to create a contract from a template.
 
-[Example](./docs/workflows.md) of github [workflows](./cargo-near/src/commands/new/new-project-template/.github/workflows) configuration, created by `cargo near new`.
+[Example](https://github.com/near/cargo-near/blob/main/docs/workflows.md) of github [workflows](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/.github/workflows) configuration, created by `cargo near new`.
 
 ---
 
@@ -144,7 +146,7 @@ Why is it needed? Explanation of these points and a step-by-step tutorial is pre
   
 1. available images can be found by this link https://hub.docker.com/r/sourcescan/cargo-near/tags 
     - [`image`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L18) and [`image_digest`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L20) are straightforward to configure:
-  ![image_and_digest_pinpoint](./docs/image_and_digest_pinpoint.png)
+  ![image_and_digest_pinpoint](https://github.com/near/cargo-near/blob/main/docs/image_and_digest_pinpoint.png)
 2. flags of build command, run inside of docker container, can be configured, if needed, by changing [`container_build_command`](https://github.com/near/cargo-near/blob/main/cargo-near/src/commands/new/new-project-template/Cargo.template.toml#L29) field
       - base `container_build_command` for images starting with **sourcescan/cargo-near:0.13.0-rust-1.83.0** and after it  is `["cargo", "near", "build", "non-reproducible-wasm", "--locked"]`, where the `--locked` flag is required
       - base `container_build_command` for images prior to **sourcescan/cargo-near:0.13.0-rust-1.83.0** is `["cargo", "near", "build"]` 
@@ -301,8 +303,8 @@ dual licensed as below, without any additional terms or conditions.
 Licensed under either of
 
 * Apache License, Version 2.0
-   ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+   ([LICENSE-APACHE](https://github.com/near/cargo-near/blob/main/LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
 * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+   ([LICENSE-MIT](https://github.com/near/cargo-near/blob/main/LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
