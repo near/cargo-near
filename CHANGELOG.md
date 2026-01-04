@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1](https://github.com/near/cargo-near/compare/cargo-near-v0.18.0...cargo-near-v0.18.1) - 2026-01-04
+
+### Other
+
+- Convert relative links to absolute GitHub URLs and add community badges to README ([#379](https://github.com/near/cargo-near/pull/379))
+- Update `cargo near new` template `image` and `image_digest` ([#377](https://github.com/near/cargo-near/pull/377))
+- Prevent users from creating new projects with reserved Rust standard library names ([#376](https://github.com/near/cargo-near/pull/376))
+
 ## [0.18.0](https://github.com/near/cargo-near/compare/cargo-near-v0.17.0...cargo-near-v0.18.0) - 2025-12-22
 
 ### Added
