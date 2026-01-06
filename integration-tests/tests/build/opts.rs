@@ -5,7 +5,7 @@ use std::fs;
 
 #[test]
 #[named]
-fn test_build_no_abi() -> cargo_near::CliResult {
+fn test_build_no_abi() -> testresult::TestResult {
     let build_result = build_fn_with! {
         Opts: "--no-abi";
         Code:
@@ -21,7 +21,7 @@ fn test_build_no_abi() -> cargo_near::CliResult {
 
 #[tokio::test]
 #[named]
-async fn test_build_no_embed_abi() -> cargo_near::CliResult {
+async fn test_build_no_embed_abi() -> testresult::TestResult {
     let build_result = build_fn_with! {
         Opts: "--no-embed-abi";
         Code:
@@ -40,7 +40,7 @@ async fn test_build_no_embed_abi() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_build_no_doc() -> cargo_near::CliResult {
+fn test_build_no_doc() -> testresult::TestResult {
     let build_result = build_fn_with! {
         Opts: "--no-doc";
         Code:
@@ -60,7 +60,7 @@ fn test_build_no_doc() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_build_opt_out_dir() -> cargo_near::CliResult {
+fn test_build_opt_out_dir() -> testresult::TestResult {
     let out_dir = tempfile::tempdir()?;
     let build_result = build_fn_with! {
         Opts: format!("--out-dir {}", out_dir.path().display());
@@ -85,7 +85,7 @@ fn test_build_opt_out_dir() -> cargo_near::CliResult {
 
 #[tokio::test]
 #[named]
-async fn test_build_no_release() -> cargo_near::CliResult {
+async fn test_build_no_release() -> testresult::TestResult {
     setup_tracing();
     let build_result = build_fn_with! {
         Opts: "--no-release";
@@ -105,7 +105,7 @@ async fn test_build_no_release() -> cargo_near::CliResult {
 
 #[tokio::test]
 #[named]
-async fn test_build_custom_profile() -> cargo_near::CliResult {
+async fn test_build_custom_profile() -> testresult::TestResult {
     setup_tracing();
     let build_result = build_fn_with! {
         Opts: "--profile=release";

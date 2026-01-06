@@ -35,6 +35,7 @@ impl RandomAccountContext {
                         public_key,
                         &credentials_home_dir,
                         storage_message,
+                        previous_context.verbosity,
                     )
                 }
             });

@@ -5,14 +5,14 @@ use schemars::schema::Schema;
 
 #[test]
 #[named]
-fn test_schema_numeric_primitives_signed() -> cargo_near::CliResult {
+fn test_schema_numeric_primitives_signed() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: i8, b: i16, c: i32, d: i64, e: i128, f: isize) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 6);
     // `format` is an open-ended keyword so one can define their own custom formats.
     // See https://json-schema.org/draft/2020-12/json-schema-validation.html#name-custom-format-attributes.
@@ -79,14 +79,14 @@ fn test_schema_numeric_primitives_signed() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
+fn test_schema_numeric_primitives_unsigned() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: u8, b: u16, c: u32, d: u64, e: u128, f: usize) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 6);
     // `format` is an open-ended keyword so one can define their own custom formats.
     // See https://json-schema.org/draft/2020-12/json-schema-validation.html#name-custom-format-attributes.
@@ -159,14 +159,14 @@ fn test_schema_numeric_primitives_unsigned() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_numeric_primitives_float() -> cargo_near::CliResult {
+fn test_schema_numeric_primitives_float() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: f32, b: f64) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     // `format` is an open-ended keyword so one can define their own custom formats.
     // See https://json-schema.org/draft/2020-12/json-schema-validation.html#name-custom-format-attributes.
@@ -197,14 +197,14 @@ fn test_schema_numeric_primitives_float() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_string() -> cargo_near::CliResult {
+fn test_schema_string() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: String, b: &str, c: &'static str) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let string_schema: Schema = serde_json::from_str(
         r#"
@@ -222,14 +222,14 @@ fn test_schema_string() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_other_primitives() -> cargo_near::CliResult {
+fn test_schema_other_primitives() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: char, b: bool, c: ()) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let char_schema: Schema = serde_json::from_str(
         r#"
@@ -263,14 +263,14 @@ fn test_schema_other_primitives() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_tuples() -> cargo_near::CliResult {
+fn test_schema_tuples() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: (bool,), b: (bool, bool), c: (bool, bool, bool)) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let tuple1_schema: Schema = serde_json::from_str(
         r#"
@@ -332,14 +332,14 @@ fn test_schema_tuples() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_arrays() -> cargo_near::CliResult {
+fn test_schema_arrays() -> testresult::TestResult {
     let abi_root = generate_abi_fn! {
         pub fn foo(&self, a: [bool; 8], b: [bool; 16], c: &[bool]) {}
     };
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 3);
     let array8_schema: Schema = serde_json::from_str(
         r#"
@@ -384,29 +384,24 @@ fn test_schema_arrays() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_struct() -> cargo_near::CliResult {
+fn test_schema_struct() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
-        use near_sdk::serde::{Deserialize, Serialize};
+        use near_sdk::near;
 
-        #[derive(NearSchema, Serialize, Deserialize)]
-        #[abi(json)]
+        #[near(serializers = [json])]
         pub struct Pair(u32, u32);
 
-        #[derive(NearSchema, Serialize, Deserialize)]
-        #[abi(json)]
+        #[near(serializers = [json])]
         pub struct PairNamed {
             first: u32,
             second: u32
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, a: Pair, b: PairNamed) {}
         }
@@ -414,7 +409,7 @@ fn test_schema_struct() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     let pair_def_schema: Schema = serde_json::from_str(
         r##"
@@ -490,32 +485,27 @@ fn test_schema_struct() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_enum() -> cargo_near::CliResult {
+fn test_schema_enum() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
-        use near_sdk::serde::{Deserialize, Serialize};
+        use near_sdk::near;
 
-        #[derive(NearSchema, Serialize, Deserialize)]
-        #[abi(json)]
+        #[near(serializers = [json])]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(NearSchema, Serialize, Deserialize)]
-        #[abi(json)]
+        #[near(serializers = [json])]
         pub enum IpAddr {
             V4(u8, u8, u8, u8),
             V6(String),
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, a: IpAddrKind, b: IpAddr) {}
         }
@@ -523,7 +513,7 @@ fn test_schema_enum() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema: Schema = serde_json::from_str(
         r##"
@@ -623,32 +613,27 @@ fn test_schema_enum() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_schema_complex() -> cargo_near::CliResult {
+fn test_schema_complex() -> testresult::TestResult {
     let abi_root = generate_abi! {
-        use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-        use near_sdk::{near_bindgen, NearSchema};
-        use near_sdk::serde::{Deserialize, Serialize};
+        use near_sdk::near;
 
-        #[derive(NearSchema, Serialize, Deserialize)]
-        #[abi(json)]
+        #[near(serializers = [json])]
         pub enum IpAddrKind {
             V4,
             V6,
         }
 
-        #[derive(NearSchema, Serialize, Deserialize)]
-        #[abi(json)]
+        #[near(serializers = [json])]
         pub struct IpAddr {
             kind: IpAddrKind,
             address: String,
         }
 
-        #[near_bindgen]
-        #[derive(Default, BorshDeserialize, BorshSerialize)]
-        #[borsh(crate = "near_sdk::borsh")]
+        #[near(contract_state)]
+        #[derive(Default)]
         pub struct Contract {}
 
-        #[near_bindgen]
+        #[near]
         impl Contract {
             pub fn foo(&self, a: IpAddrKind, b: IpAddr) {}
         }
@@ -656,7 +641,7 @@ fn test_schema_complex() -> cargo_near::CliResult {
 
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[1];
-    let params = function.params.json_schemas()?;
+    let params = function.params.json_schemas();
     assert_eq!(params.len(), 2);
     let ip_addr_kind_def_schema: Schema = serde_json::from_str(
         r##"

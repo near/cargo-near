@@ -18,7 +18,7 @@ pub async fn test_add(wasm: &[u8]) -> cargo_near::CliResult {
     Ok(())
 }
 
-pub async fn fetch_contract_abi(wasm: &[u8]) -> color_eyre::eyre::Result<AbiRoot> {
+pub async fn fetch_contract_abi(wasm: &[u8]) -> testresult::TestResult<AbiRoot> {
     let worker = near_workspaces::sandbox().await?;
     let contract = worker.dev_deploy(wasm).await?;
     let outcome = contract.call("__contract_abi").view().await?;
@@ -27,29 +27,29 @@ pub async fn fetch_contract_abi(wasm: &[u8]) -> color_eyre::eyre::Result<AbiRoot
 }
 
 pub trait AsBorshSchema {
-    fn borsh_schemas(&self) -> color_eyre::eyre::Result<&Vec<AbiBorshParameter>>;
+    fn borsh_schemas(&self) -> &[AbiBorshParameter];
 }
 
 impl AsBorshSchema for AbiParameters {
-    fn borsh_schemas(&self) -> color_eyre::eyre::Result<&Vec<AbiBorshParameter>> {
+    fn borsh_schemas(&self) -> &[AbiBorshParameter] {
         if let AbiParameters::Borsh { args } = &self {
-            Ok(args)
+            args
         } else {
-            color_eyre::eyre::bail!("Expected Borsh serialization type, but got {:?}", self)
+            panic!("Expected Borsh serialization type, but got {:?}", self);
         }
     }
 }
 
 pub trait AsJsonSchema {
-    fn json_schemas(&self) -> color_eyre::eyre::Result<&Vec<AbiJsonParameter>>;
+    fn json_schemas(&self) -> &[AbiJsonParameter];
 }
 
 impl AsJsonSchema for AbiParameters {
-    fn json_schemas(&self) -> color_eyre::eyre::Result<&Vec<AbiJsonParameter>> {
+    fn json_schemas(&self) -> &[AbiJsonParameter] {
         if let AbiParameters::Json { args } = &self {
-            Ok(args)
+            args
         } else {
-            color_eyre::eyre::bail!("Expected JSON serialization type, but got {:?}", self)
+            panic!("Expected JSON serialization type, but got {:?}", self);
         }
     }
 }

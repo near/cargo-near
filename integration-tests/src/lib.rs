@@ -6,7 +6,7 @@ use cargo_near_build::camino;
 pub mod from_crates_io {
     use const_format::formatcp;
 
-    pub const SDK_VERSION: &str = "5.16.0";
+    pub const SDK_VERSION: &str = "5.23.0";
     pub const SDK_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
 }
 
@@ -18,8 +18,8 @@ pub fn setup_tracing() {
 pub mod from_git {
     use const_format::formatcp;
 
-    pub const SDK_VERSION: &str = "5.16.0";
-    pub const SDK_REVISION: &str = "93ebb5f0c4d35bdb44774828cefe18385cf3a9a8";
+    pub const SDK_VERSION: &str = "5.23.0";
+    pub const SDK_REVISION: &str = "4d115e10d824e799256a4a66526bb2a272f02736";
     pub const SDK_SHORT_VERSION_TOML: &str = formatcp!(r#"version = "{SDK_VERSION}""#);
     pub const SDK_REPO: &str = "https://github.com/near/near-sdk-rs.git";
     pub const SDK_VERSION_TOML: &str =
@@ -51,7 +51,7 @@ pub fn invoke_cargo_near(
     mut cargo_vars: HashMap<&str, String>,
     lib_rs_file: syn::File,
     cli_opts: String,
-) -> color_eyre::eyre::Result<camino::Utf8PathBuf> {
+) -> Result<camino::Utf8PathBuf, Box<dyn std::error::Error>> {
     let workspace_dir = crate::common_root_for_test_projects_build();
     let crate_dir = workspace_dir.join(function_name);
     let src_dir = crate_dir.join("src");
@@ -166,11 +166,11 @@ macro_rules! generate_abi_with {
             cargo_vars,
             lib_rs_file,
             opts,
-        )?;
+        ).unwrap();
         let result_dir = result_file.as_std_path().parent().expect("has parent");
 
         let abi_root: cargo_near_build::near_abi::AbiRoot =
-            serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!())))?)?;
+            serde_json::from_slice(&std::fs::read(result_dir.join(format!("{}_abi.json", function_name!()))).unwrap()).unwrap();
         abi_root
     }};
 }
@@ -192,15 +192,13 @@ macro_rules! generate_abi_fn_with {
         $crate::generate_abi_with! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
-            use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-            use near_sdk::near_bindgen;
+            use near_sdk::near;
 
-            #[near_bindgen]
-            #[derive(Default, BorshDeserialize, BorshSerialize)]
-            #[borsh(crate = "near_sdk::borsh")]
+            #[near(contract_state)]
+            #[derive(Default)]
             pub struct Contract {}
 
-            #[near_bindgen]
+            #[near]
             impl Contract {
                 $($code)*
             }
@@ -287,15 +285,13 @@ macro_rules! build_fn_with {
         $crate::build_with! {
             $(Cargo: $cargo_path;)? $(Vars: $cargo_vars;)? $(Opts: $cli_opts;)?
             Code:
-            use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-            use near_sdk::{near_bindgen, NearSchema};
+            use near_sdk::near;
 
-            #[near_bindgen]
-            #[derive(Default, BorshDeserialize, BorshSerialize)]
-            #[borsh(crate = "near_sdk::borsh")]
+            #[near(contract_state)]
+            #[derive(Default)]
             pub struct Contract {}
 
-            #[near_bindgen]
+            #[near]
             impl Contract {
                 $($code)*
             }

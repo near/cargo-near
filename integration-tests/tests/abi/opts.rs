@@ -6,7 +6,7 @@ use std::fs;
 
 #[test]
 #[named]
-fn test_abi_no_doc() -> cargo_near::CliResult {
+fn test_abi_no_doc() -> testresult::TestResult {
     setup_tracing();
     let abi_root = generate_abi_fn_with! {
         Opts: "--no-doc";
@@ -26,7 +26,7 @@ fn test_abi_no_doc() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_abi_opt_compact_abi() -> cargo_near::CliResult {
+fn test_abi_opt_compact_abi() -> testresult::TestResult {
     setup_tracing();
     generate_abi_fn_with! {
         Opts: "--compact-abi";
@@ -54,7 +54,7 @@ fn test_abi_opt_compact_abi() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_abi_opt_out_dir() -> cargo_near::CliResult {
+fn test_abi_opt_out_dir() -> testresult::TestResult {
     setup_tracing();
     let out_dir = tempfile::tempdir()?;
     let abi_root = generate_abi_fn_with! {
@@ -77,7 +77,7 @@ fn test_abi_opt_out_dir() -> cargo_near::CliResult {
 
 #[test]
 #[named]
-fn test_abi_opt_features() -> cargo_near::CliResult {
+fn test_abi_opt_features() -> testresult::TestResult {
     setup_tracing();
     let abi_root = generate_abi_fn_with! {
         Cargo: "/templates/abi/_Cargo_features.toml";
