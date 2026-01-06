@@ -125,7 +125,7 @@ async fn test_build_custom_profile() -> testresult::TestResult {
 
 #[tokio::test]
 #[named]
-async fn test_build_abi_features_separate_from_wasm_features() -> cargo_near::CliResult {
+async fn test_build_abi_features_separate_from_wasm_features() -> testresult::TestResult {
     setup_tracing();
     let build_result = build_fn_with! {
         Cargo: "/templates/abi/_Cargo_features.toml";
@@ -171,7 +171,7 @@ async fn test_build_abi_features_separate_from_wasm_features() -> cargo_near::Cl
 
 #[tokio::test]
 #[named]
-async fn test_build_both_features_and_abi_features_for_different_targets() -> cargo_near::CliResult
+async fn test_build_both_features_and_abi_features_for_different_targets() -> testresult::TestResult
 {
     setup_tracing();
     let build_result = build_fn_with! {
