@@ -14,11 +14,11 @@ bs58 = "0.5"
 hex = "0.4.3"
 sha2 = "0.10"
 dunce = "1"
-# (vsavchyn-dev) FORCE PIN: `darling` 0.23.0 (via bon) and `cargo-platform` 0.3.2
+# (vsavchyn-dev) PIN: `darling` 0.23.0 (via bon) and `cargo-platform` 0.3.2
 # require rustc 1.88.0, which breaks MSRV for building contracts (1.86.0).
 # We pin to the last compatible versions.
-bon = "=3.8.1"
-cargo-platform = "=0.3.1"
+bon = ">2, <=3.8.1"
+cargo-platform = "<=0.3.1"
 cargo_metadata = "0.23"
 colored = "3"
 tracing = "0.1.40"
