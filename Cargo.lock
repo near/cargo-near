@@ -501,6 +501,7 @@ dependencies = [
  "bon",
  "bs58 0.5.1",
  "camino",
+ "cargo-platform",
  "cargo_metadata",
  "colored",
  "dunce",
