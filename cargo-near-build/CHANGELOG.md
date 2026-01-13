@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.10.0...cargo-near-build-v0.11.0) - 2026-01-12
+
+### Added
+
+- Added a dedicated `--abi-features` build flag to control which features to enable during the ABI build step ([#373](https://github.com/near/cargo-near/pull/373))
+
+### Fixed
+
+- *(cargo-near-build)* pin `bon` and `cargo-platform` ([#381](https://github.com/near/cargo-near/pull/381))
+
 ## [0.10.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.9.0...cargo-near-build-v0.10.0) - 2025-12-22
 
 ### Added
