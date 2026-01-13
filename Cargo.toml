@@ -49,9 +49,9 @@ install-updater = false
 # Linux builds on WarpBuild runners
 aarch64-unknown-linux-gnu = "warp-ubuntu-2404-arm64-4x"
 x86_64-unknown-linux-gnu = "warp-ubuntu-2204-x64-4x"
-# Cross-compile x64 Windows from Linux (much faster than native Windows builds)
-x86_64-pc-windows-msvc = { runner = "warp-ubuntu-2404-x64-4x", container = "messense/cargo-xwin" }
-# ARM64 Windows needs native runner due to OpenSSL cross-compilation issues
+# Windows builds need native runners due to OpenSSL cross-compilation issues
+x86_64-pc-windows-msvc = "warp-windows-2022-x64-4x"
+# No ARM64 WarpBuild Windows runners available
 aarch64-pc-windows-msvc = "windows-2025"
 
 [workspace.metadata.dist.dependencies.apt]
