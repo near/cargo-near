@@ -143,8 +143,11 @@ fn additional_docker_args(opts: &DockerBuildOpts, repo_root: &camino::Utf8Path) 
             .to_string_lossy()
             .to_string();
         
+        // Mount to a fixed location and set CARGO_TARGET_DIR to use it
         args.push("--volume".to_string());
-        args.push(format!("{}:/near/target", target_dir_str));
+        args.push(format!("{}:/target_cache", target_dir_str));
+        args.push("--env".to_string());
+        args.push("CARGO_TARGET_DIR=/target_cache".to_string());
         
         println!(
             "{}{}",
@@ -168,8 +171,9 @@ fn additional_docker_args(opts: &DockerBuildOpts, repo_root: &camino::Utf8Path) 
             .to_string_lossy()
             .to_string();
         
+        // Mount to /usr/local/cargo which is the standard CARGO_HOME in Rust Docker images
         args.push("--volume".to_string());
-        args.push(format!("{}:/cargo_cache", cargo_home_str));
+        args.push(format!("{}:/usr/local/cargo", cargo_home_str));
         
         println!(
             "{}{}",
