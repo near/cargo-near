@@ -707,7 +707,7 @@ fn test_schema_complex() -> testresult::TestResult {
 fn test_schema_vec_of_custom_types() -> testresult::TestResult {
     // This test demonstrates the proper way to define custom types that can be used
     // in Vec return types. Without #[near(serializers = [json])], the ABI generation
-    // would fail with "the trait bound `CustomType: JsonSchema` is not satisfied"
+    // would fail with "the trait bound `Item: JsonSchema` is not satisfied"
     let abi_root = generate_abi! {
         use near_sdk::near;
 

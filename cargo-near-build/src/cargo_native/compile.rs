@@ -157,7 +157,10 @@ where
                 }
                 Message::CompilerMessage(message) => {
                     if let Some(msg) = message.message.rendered {
-                        // Check if this is a JsonSchema-related error
+                        // Check if this is a JsonSchema-related error.
+                        // We use simple string matching as the error format is stable across rustc versions
+                        // and this provides a good user experience without complex parsing.
+                        // Example error: "the trait bound `Attestation: JsonSchema` is not satisfied"
                         if msg.contains("the trait bound") && msg.contains("JsonSchema") && msg.contains("is not satisfied") {
                             has_json_schema_error = true;
                         }
