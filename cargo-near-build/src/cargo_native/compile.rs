@@ -25,7 +25,14 @@ where
     let final_env = {
         let mut env: BTreeMap<_, _> = env.into_iter().collect();
         if hide_warnings {
-            env.insert(crate::env_keys::RUSTFLAGS, "-Awarnings");
+            // Append -Awarnings to existing RUSTFLAGS if present
+            let existing_rustflags = env.get(&crate::env_keys::RUSTFLAGS).copied();
+            let new_rustflags = match existing_rustflags {
+                Some(existing) => format!("{} -Awarnings", existing),
+                None => "-Awarnings".to_string(),
+            };
+            // We need to leak the string to get a 'static str for the BTreeMap
+            env.insert(crate::env_keys::RUSTFLAGS, Box::leak(new_rustflags.into_boxed_str()));
         }
         env
     };
