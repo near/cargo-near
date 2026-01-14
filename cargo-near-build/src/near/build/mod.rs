@@ -365,6 +365,25 @@ fn maybe_wasm_opt_step(
     Ok(result)
 }
 
+/// Detects the active toolchain that rustup would use, respecting directory overrides.
+/// Returns None if rustup is not available or fails to detect the toolchain.
+fn detect_active_toolchain() -> Option<String> {
+    let output = std::process::Command::new("rustup")
+        .args(["show", "active-toolchain"])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8(output.stdout).ok()?;
+    // The output format is: "toolchain-name (reason)"
+    // e.g., "1.86.0-aarch64-apple-darwin (directory override for '/path/to/project')"
+    // We extract just the toolchain name before the first space
+    stdout.split_whitespace().next().map(String::from)
+}
+
 pub fn version_meta_with_override(
     override_toolchain: Option<String>,
 ) -> rustc_version::Result<rustc_version::VersionMeta> {
@@ -378,7 +397,11 @@ pub fn version_meta_with_override(
         std::process::Command::new(rustc)
     };
     cmd.arg("-vV");
-    if let Some(toolchain) = override_toolchain {
+    
+    // Use the provided override, or detect the active toolchain from rustup
+    let toolchain_to_use = override_toolchain.or_else(detect_active_toolchain);
+    
+    if let Some(toolchain) = toolchain_to_use {
         cmd.env(env_keys::RUSTUP_TOOLCHAIN, toolchain);
     }
     tracing::info!(
