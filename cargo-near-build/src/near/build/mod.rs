@@ -374,14 +374,15 @@ fn detect_active_toolchain() -> Option<String> {
         .ok()?;
 
     if !output.status.success() {
+        tracing::debug!("Failed to detect active toolchain: rustup command failed");
         return None;
     }
 
     let stdout = String::from_utf8(output.stdout).ok()?;
     // The output format is: "toolchain-name (reason)"
     // e.g., "1.86.0-aarch64-apple-darwin (directory override for '/path/to/project')"
-    // We extract just the toolchain name before the first space
-    stdout.split_whitespace().next().map(String::from)
+    // We extract just the toolchain name before the first space or opening parenthesis
+    stdout.trim().split_whitespace().next().map(String::from)
 }
 
 pub fn version_meta_with_override(
