@@ -367,6 +367,10 @@ fn maybe_wasm_opt_step(
 
 /// Detects the active toolchain that rustup would use, respecting directory overrides.
 /// Returns None if rustup is not available or fails to detect the toolchain.
+/// 
+/// This function intentionally returns None rather than an error when rustup is unavailable,
+/// allowing cargo-near to work in environments without rustup by falling back to the default
+/// rustc behavior.
 fn detect_active_toolchain() -> Option<String> {
     let output = std::process::Command::new("rustup")
         .args(["show", "active-toolchain"])
@@ -381,7 +385,8 @@ fn detect_active_toolchain() -> Option<String> {
     let stdout = String::from_utf8(output.stdout).ok()?;
     // The output format is: "toolchain-name (reason)"
     // e.g., "1.86.0-aarch64-apple-darwin (directory override for '/path/to/project')"
-    // We extract just the toolchain name before the first space or opening parenthesis
+    // We extract just the toolchain name before the first space.
+    // This parsing relies on rustup's stable output format for `show active-toolchain`.
     stdout.trim().split_whitespace().next().map(String::from)
 }
 
