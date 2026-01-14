@@ -17,6 +17,7 @@ borsh = { version = "1.0.0", features = ["derive", "unstable__schema"] }
 camino = "1.1.1"
 cargo-near-build = { version = "0.11.0", path = "../cargo-near-build", features = [
     "test_code",
+    "tracing_debug",
 ] }
 near-api = "0.8"
 near-sandbox = "0.3"
