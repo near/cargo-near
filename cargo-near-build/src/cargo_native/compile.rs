@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, ffi::OsStr, marker::PhantomData, process::Command, thread};
+use std::{ffi::OsStr, marker::PhantomData, process::Command, thread};
 
 use camino::Utf8Path;
 use cargo_metadata::{Artifact, Message};
@@ -23,19 +23,24 @@ where
     T: ArtifactType,
 {
     let final_env = {
-        let mut env: BTreeMap<_, _> = env.into_iter().collect();
+        // Convert to owned strings to allow modification
+        let mut env: Vec<(String, String)> = env
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
         if hide_warnings {
-            // Append -Awarnings to existing RUSTFLAGS if present
-            let existing_rustflags = env.get(&crate::env_keys::RUSTFLAGS).copied();
-            let new_rustflags = match existing_rustflags {
-                Some(existing) => format!("{} -Awarnings", existing),
-                None => "-Awarnings".to_string(),
-            };
-            // We need to leak the string to get a 'static str for the BTreeMap
-            env.insert(
-                crate::env_keys::RUSTFLAGS,
-                Box::leak(new_rustflags.into_boxed_str()),
-            );
+            // Check if RUSTFLAGS already exists and append -Awarnings
+            if let Some(pos) = env
+                .iter()
+                .position(|(k, _)| k == crate::env_keys::RUSTFLAGS)
+            {
+                env[pos].1.push_str(" -Awarnings");
+            } else {
+                env.push((
+                    crate::env_keys::RUSTFLAGS.to_string(),
+                    "-Awarnings".to_string(),
+                ));
+            }
         }
         env
     };
@@ -46,7 +51,7 @@ where
         "build",
         [&["--message-format=json-render-diagnostics"], args].concat(),
         manifest_path.directory().ok(),
-        final_env.iter(),
+        final_env.iter().map(|(k, v)| (k.as_str(), v.as_str())),
         &removed_env,
         color,
     )?;
