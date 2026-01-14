@@ -120,13 +120,63 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
     let docker_build_out_wasm = near_verify_rs::logic::nep330_build::run(
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
-        additional_docker_args(),
+        additional_docker_args(&opts, &crate_in_repo.repo_root)?,
         quiet,
     )?;
 
     cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)
 }
 
-fn additional_docker_args() -> Vec<String> {
-    vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()]
+fn additional_docker_args(opts: &DockerBuildOpts, repo_root: &camino::Utf8Path) -> eyre::Result<Vec<String>> {
+    let mut args = vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()];
+    
+    // Mount ./target directory if requested
+    if opts.mount_target_cache {
+        let target_dir = repo_root.join("target");
+        
+        // Create target directory if it doesn't exist
+        std::fs::create_dir_all(&target_dir)
+            .map_err(|e| eyre::eyre!("Failed to create target directory {:?}: {}", target_dir, e))?;
+        
+        let target_dir_str = dunce::canonicalize(&target_dir)
+            .map_err(|e| eyre::eyre!("Failed to canonicalize target directory {:?}: {}", target_dir, e))?
+            .to_string_lossy()
+            .to_string();
+        
+        args.push("--volume".to_string());
+        args.push(format!("{}:/near/target", target_dir_str));
+        
+        println!(
+            "{}{}",
+            "Mounting local target cache: ".cyan(),
+            target_dir.as_str().yellow()
+        );
+    }
+    
+    // Mount ~/.cargo directory if requested
+    if opts.mount_cargo_cache {
+        let cargo_home = std::env::var("CARGO_HOME")
+            .or_else(|_| {
+                std::env::var("HOME")
+                    .or_else(|_| std::env::var("USERPROFILE"))
+                    .map(|home| format!("{}/.cargo", home))
+            })
+            .map_err(|_| eyre::eyre!("Failed to determine CARGO_HOME or ~/.cargo directory"))?;
+        
+        let cargo_home_str = dunce::canonicalize(&cargo_home)
+            .map_err(|e| eyre::eyre!("Failed to canonicalize cargo home {:?}: {}", cargo_home, e))?
+            .to_string_lossy()
+            .to_string();
+        
+        args.push("--volume".to_string());
+        args.push(format!("{}:/cargo_cache", cargo_home_str));
+        
+        println!(
+            "{}{}",
+            "Mounting local cargo cache: ".cyan(),
+            cargo_home.yellow()
+        );
+    }
+    
+    Ok(args)
 }
