@@ -458,10 +458,14 @@ mod tests {
         // If rustup is available and working, we should get a non-empty toolchain name
         if let Some(toolchain) = result {
             assert!(!toolchain.is_empty(), "Detected toolchain should not be empty");
-            assert!(!toolchain.contains(char::is_whitespace), "Toolchain should not contain whitespace");
-            // Toolchain names typically contain version numbers and target triple
-            assert!(toolchain.contains('-') || toolchain.chars().any(|c| c.is_numeric()), 
-                    "Toolchain should contain version info or target triple");
+            assert!(!toolchain.chars().any(char::is_whitespace), "Toolchain should not contain whitespace");
+            // Toolchain names typically follow patterns like:
+            // - "1.86.0-x86_64-unknown-linux-gnu" (release version with target)
+            // - "stable-x86_64-unknown-linux-gnu" (channel with target)
+            // - "nightly-2024-01-01-x86_64-unknown-linux-gnu" (dated nightly)
+            // They should contain either a dash (separating parts) or be a simple name like "stable"
+            assert!(toolchain.contains('-') || toolchain.chars().any(|c| c.is_alphabetic()), 
+                    "Toolchain should be a valid rustup toolchain identifier");
         }
     }
 }
