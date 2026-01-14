@@ -70,12 +70,23 @@ pub fn procedure(
     pretty_print::step("Generating ABI");
 
     let compile_env = {
-        let compile_env = vec![
+        #[allow(unused_mut)]
+        let mut compile_env = vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ];
+        
+        // On Windows MSVC, the linker doesn't allow unresolved symbols by default.
+        // When building a dylib for ABI generation, near-sdk's runtime functions
+        // (from near-sys) won't be available since they're provided by the NEAR VM
+        // in wasm builds. We use /FORCE:UNRESOLVED to allow the build to succeed.
+        #[cfg(windows)]
+        {
+            compile_env.push((env_keys::RUSTFLAGS, "-C link-arg=/FORCE:UNRESOLVED"));
+        }
+        
         [&compile_env, env].concat()
     };
     let dylib_artifact = cargo_native::compile::run::<Dylib>(
