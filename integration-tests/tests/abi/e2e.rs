@@ -77,6 +77,7 @@ fn test_no_mangle_with_cfg() -> cargo_near::CliResult {
     };
 
     // Verify ABI was generated successfully
+    // Expected: 2 functions (get_value + __contract_abi metadata function)
     assert_eq!(abi_root.body.functions.len(), 2);
     let function = &abi_root.body.functions[0];
     assert_eq!(function.name, "get_value");
