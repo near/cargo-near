@@ -40,6 +40,9 @@ pub fn init_tracing_debug() -> Result<(), Box<dyn std::error::Error>> {
         registry::LookupSpan,
     };
 
+    // Note: This SimpleFormatter is duplicated from cargo-near/src/lib.rs to avoid
+    // introducing additional dependencies or making internal modules public.
+    // Future: Consider extracting to a shared module if this needs to be reused elsewhere.
     struct SimpleFormatter;
 
     impl<S, N> FormatEvent<S, N> for SimpleFormatter
@@ -80,7 +83,6 @@ pub fn init_tracing_debug() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer().event_format(SimpleFormatter))
         .with(env_filter)
-        .init();
-
-    Ok(())
+        .try_init()
+        .map_err(|e| format!("Failed to initialize tracing subscriber: {}", e).into())
 }

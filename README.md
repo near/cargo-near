@@ -253,6 +253,30 @@ This forwards to [reproducible-wasm](#reproducible-wasm) variant of `build` comm
 See [`cargo_near_build::extended`](https://docs.rs/cargo-near-build/latest/cargo_near_build/extended/index.html) module documentation on 
 how to write `build.rs` for subcontracts. 
 
+## Debugging with tracing
+
+The `cargo-near-build` library exports a `tracing_debug` feature that provides a default tracing subscriber configuration. This enables all `--teach-me` messages and detailed logging output, useful for debugging build scripts.
+
+To use it, add the feature to your `Cargo.toml`:
+
+```toml
+[dependencies]
+cargo-near-build = { version = "0.11", features = ["tracing_debug"] }
+```
+
+Then initialize tracing in your code:
+
+```rust
+#[cfg(feature = "tracing_debug")]
+cargo_near_build::init_tracing_debug().expect("Failed to initialize tracing");
+```
+
+This will enable the same verbose logging that `cargo near --teach-me` provides, including:
+- Command execution details
+- Environment variable configurations
+- File system operations
+- Build process steps
+
 ## Special `cargo` environment variables
 
 Both of the following are mentioned on https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags
