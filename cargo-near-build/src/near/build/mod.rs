@@ -54,7 +54,11 @@ fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyr
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
 
-    let rustc_version = version_meta_with_override(args.override_toolchain.clone())?.semver;
+    // Detect the effective toolchain to use: explicit override or active toolchain from rustup
+    // This ensures consistent toolchain usage across version checking and actual build
+    let effective_toolchain = args.override_toolchain.clone().or_else(detect_active_toolchain);
+
+    let rustc_version = version_meta_with_override(effective_toolchain.clone())?.semver;
 
     if !args.skip_rust_version_check {
         checking_unsupported_toolchain(&rustc_version)?;
@@ -67,7 +71,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     color.apply();
 
     pretty_print::handle_step("Checking the host environment...", || {
-        if !cargo_native::target::wasm32_exists(args.override_toolchain.clone()) {
+        if !cargo_native::target::wasm32_exists(effective_toolchain.clone()) {
             eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
@@ -148,7 +152,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .collect::<Vec<_>>();
             common_vars_env.append_borrowed_to(&mut abi_env);
 
-            args.override_toolchain.as_ref().inspect(|toolchain| {
+            effective_toolchain.as_ref().inspect(|toolchain| {
                 abi_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));
             });
 
@@ -207,7 +211,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         abi_path_env.append_borrowed_to(&mut build_env);
         common_vars_env.append_borrowed_to(&mut build_env);
 
-        args.override_toolchain.as_ref().inspect(|toolchain| {
+        effective_toolchain.as_ref().inspect(|toolchain| {
             build_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));
         });
 
@@ -404,10 +408,7 @@ pub fn version_meta_with_override(
     };
     cmd.arg("-vV");
     
-    // Use the provided override, or detect the active toolchain from rustup
-    let toolchain_to_use = override_toolchain.or_else(detect_active_toolchain);
-    
-    if let Some(toolchain) = toolchain_to_use {
+    if let Some(toolchain) = override_toolchain {
         cmd.env(env_keys::RUSTUP_TOOLCHAIN, toolchain);
     }
     tracing::info!(
@@ -429,4 +430,38 @@ pub fn version_meta_with_override(
     }
 
     rustc_version::version_meta_for(std::str::from_utf8(&out.stdout)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_detect_active_toolchain_format() {
+        // Test the parsing logic with sample rustup output
+        let sample_output = "1.86.0-x86_64-unknown-linux-gnu (directory override for '/path/to/project')\n";
+        let toolchain = sample_output.trim().split_whitespace().next();
+        assert_eq!(toolchain, Some("1.86.0-x86_64-unknown-linux-gnu"));
+        
+        // Test with leading/trailing whitespace
+        let sample_with_whitespace = "  1.86.0-aarch64-apple-darwin (default)  \n";
+        let toolchain = sample_with_whitespace.trim().split_whitespace().next();
+        assert_eq!(toolchain, Some("1.86.0-aarch64-apple-darwin"));
+    }
+
+    #[test]
+    fn test_detect_active_toolchain() {
+        // This test verifies that detect_active_toolchain works when rustup is available
+        // It will return None if rustup is not available, which is acceptable
+        let result = detect_active_toolchain();
+        
+        // If rustup is available and working, we should get a non-empty toolchain name
+        if let Some(toolchain) = result {
+            assert!(!toolchain.is_empty(), "Detected toolchain should not be empty");
+            assert!(!toolchain.contains(char::is_whitespace), "Toolchain should not contain whitespace");
+            // Toolchain names typically contain version numbers and target triple
+            assert!(toolchain.contains('-') || toolchain.chars().any(|c| c.is_numeric()), 
+                    "Toolchain should contain version info or target triple");
+        }
+    }
 }
