@@ -77,7 +77,7 @@ pub fn procedure(
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ];
-        
+
         // On Windows MSVC, the linker doesn't allow unresolved symbols by default.
         // When building a dylib for ABI generation, near-sdk's runtime functions
         // (from near-sys) won't be available since they're provided by the NEAR VM
@@ -86,7 +86,7 @@ pub fn procedure(
         {
             compile_env.push((env_keys::RUSTFLAGS, "-C link-arg=/FORCE:UNRESOLVED"));
         }
-        
+
         [&compile_env, env].concat()
     };
     let dylib_artifact = cargo_native::compile::run::<Dylib>(

@@ -32,7 +32,10 @@ where
                 None => "-Awarnings".to_string(),
             };
             // We need to leak the string to get a 'static str for the BTreeMap
-            env.insert(crate::env_keys::RUSTFLAGS, Box::leak(new_rustflags.into_boxed_str()));
+            env.insert(
+                crate::env_keys::RUSTFLAGS,
+                Box::leak(new_rustflags.into_boxed_str()),
+            );
         }
         env
     };
