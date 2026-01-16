@@ -127,35 +127,45 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
     cloned_repo.copy_artifact(docker_build_out_wasm, out_dir_arg)
 }
 
-fn additional_docker_args(opts: &DockerBuildOpts, repo_root: &camino::Utf8Path) -> eyre::Result<Vec<String>> {
+fn additional_docker_args(
+    opts: &DockerBuildOpts,
+    repo_root: &camino::Utf8Path,
+) -> eyre::Result<Vec<String>> {
     let mut args = vec!["--env".to_string(), RUST_LOG_EXPORT.to_string()];
-    
+
     // Mount ./target directory if requested
     if opts.mount_target_cache {
         let target_dir = repo_root.join("target");
-        
+
         // Create target directory if it doesn't exist
-        std::fs::create_dir_all(&target_dir)
-            .map_err(|e| eyre::eyre!("Failed to create target directory {:?}: {}", target_dir, e))?;
-        
+        std::fs::create_dir_all(&target_dir).map_err(|e| {
+            eyre::eyre!("Failed to create target directory {:?}: {}", target_dir, e)
+        })?;
+
         let target_dir_str = dunce::canonicalize(&target_dir)
-            .map_err(|e| eyre::eyre!("Failed to canonicalize target directory {:?}: {}", target_dir, e))?
+            .map_err(|e| {
+                eyre::eyre!(
+                    "Failed to canonicalize target directory {:?}: {}",
+                    target_dir,
+                    e
+                )
+            })?
             .to_string_lossy()
             .to_string();
-        
+
         // Mount to a fixed location and set CARGO_TARGET_DIR to use it
         args.push("--volume".to_string());
         args.push(format!("{}:/target_cache", target_dir_str));
         args.push("--env".to_string());
         args.push("CARGO_TARGET_DIR=/target_cache".to_string());
-        
+
         println!(
             "{}{}",
             "Mounting local target cache: ".cyan(),
             target_dir.as_str().yellow()
         );
     }
-    
+
     // Mount ~/.cargo directory if requested
     if opts.mount_cargo_cache {
         let cargo_home = std::env::var("CARGO_HOME")
@@ -165,22 +175,22 @@ fn additional_docker_args(opts: &DockerBuildOpts, repo_root: &camino::Utf8Path) 
                     .map(|home| format!("{}/.cargo", home))
             })
             .map_err(|_| eyre::eyre!("Failed to determine CARGO_HOME or ~/.cargo directory"))?;
-        
+
         let cargo_home_str = dunce::canonicalize(&cargo_home)
             .map_err(|e| eyre::eyre!("Failed to canonicalize cargo home {:?}: {}", cargo_home, e))?
             .to_string_lossy()
             .to_string();
-        
+
         // Mount to /usr/local/cargo which is the standard CARGO_HOME in Rust Docker images
         args.push("--volume".to_string());
         args.push(format!("{}:/usr/local/cargo", cargo_home_str));
-        
+
         println!(
             "{}{}",
             "Mounting local cargo cache: ".cyan(),
             cargo_home.yellow()
         );
     }
-    
+
     Ok(args)
 }
