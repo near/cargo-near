@@ -96,14 +96,37 @@ targets = ["wasm32-unknown-unknown"]
         toolchain_in_project
     );
 
-    // Get cargo-near binary path - we'll use the cargo-near from the workspace
+    // Get cargo-near binary path by checking both debug and release directories
+    // CI may build in release mode, local dev typically uses debug
     let workspace_dir: Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
-    let cargo_near_binary = workspace_dir
+    let workspace_root = workspace_dir
         .parent()
-        .expect("integration-tests should have parent")
-        .join("target")
-        .join("debug")
-        .join("cargo-near");
+        .expect("integration-tests should have parent");
+
+    let cargo_near_binary = {
+        let debug_path = workspace_root
+            .join("target")
+            .join("debug")
+            .join("cargo-near");
+        let release_path = workspace_root
+            .join("target")
+            .join("release")
+            .join("cargo-near");
+
+        if release_path.exists() {
+            release_path
+        } else if debug_path.exists() {
+            debug_path
+        } else {
+            // Fall back to using `cargo run` via cargo
+            // This ensures the binary is built if needed
+            panic!(
+                "cargo-near binary not found at {:?} or {:?}. \
+                 Please build cargo-near first with `cargo build -p cargo-near`",
+                debug_path, release_path
+            );
+        }
+    };
 
     // Run cargo-near from a different directory (/tmp) with --manifest-path
     // pointing to our test project. This simulates the scenario from issue #361.
