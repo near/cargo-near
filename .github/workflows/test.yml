@@ -5,41 +5,57 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: '-D warnings'
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+
 jobs:
+  # Extract MSRV once and share across jobs
+  get_msrv:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.rust_msrv.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Get MSRV
+      id: rust_msrv
+      run: |
+        RUST_MSRV="$(grep '^rust-version' cargo-near/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')"
+        echo "Found MSRV: $RUST_MSRV"
+        echo "version=$RUST_MSRV" >> "$GITHUB_OUTPUT"
+
   msrv-check:
+    needs: [get_msrv]
     runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest, macos-latest]
-
+        platform: [warp-ubuntu-latest-x64-4x, macos-latest]
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Get MSRV
+      - name: Install ${{ needs.get_msrv.outputs.version }} toolchain (MSRV)
         run: |
-          RUST_MSRV="$(cat cargo-near/Cargo.toml | sed -n 's/rust-version *= *"\(.*\)"/\1/p')"
-          echo "RUST_MSRV=$RUST_MSRV" >> $GITHUB_ENV
+          rustup toolchain install ${{ needs.get_msrv.outputs.version }} --profile minimal
+          rustup override set ${{ needs.get_msrv.outputs.version }}
 
-      - name: "Install ${{ env.RUST_MSRV }} toolchain (MSRV)"
-        uses: actions-rs/toolchain@v1
+      - uses: Swatinem/rust-cache@v2
         with:
-          profile: minimal
-          toolchain: ${{ env.RUST_MSRV }}
-          default: true
+          cache-provider: ${{ runner.os == 'Linux' && 'warpbuild' || 'github' }}
+          shared-key: "${{ runner.os }}-msrv"
+          cache-all-crates: true
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
       - name: Cargo check
-        env:
-          # info: (overridden by '/home/runner/work/cargo-near/cargo-near/rust-toolchain.toml')
-          RUSTUP_TOOLCHAIN: ${{ env.RUST_MSRV }}
-        run: | 
+        run: |
           rustc -vV
           cargo check -p cargo-near
           # default features
@@ -49,91 +65,104 @@ jobs:
           cargo check -p cargo-near-build --all-features
 
   tests:
+    needs: [get_msrv]
     runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest, macos-latest]
-
+        platform: [warp-ubuntu-latest-x64-4x, macos-latest]
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: "Install stable Rust toolchain for compiling the CLI and lib"
-        uses: actions-rs/toolchain@v1
-        with:
-          # channel is really controlled by ./rust-toolchain.toml
-          toolchain: stable
-          default: true
-          profile: minimal
+      - name: Install stable Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup override set stable
 
-      - name: "Install pinned 1.86.0 Rust toolchain for compiling contracts for tests with live node"
-        uses: actions-rs/toolchain@v1
+      - name: Install pinned 1.86.0 Rust toolchain for compiling contracts
+        run: |
+          rustup toolchain install 1.86.0 --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain 1.86.0
+
+      - uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.86.0
-          default: false
-          profile: minimal
-          target: wasm32-unknown-unknown
+          cache-provider: ${{ runner.os == 'Linux' && 'warpbuild' || 'github' }}
+          shared-key: "${{ runner.os }}-stable-tests"
+          cache-all-crates: true
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
-      - name: Install latest (released) cargo-near CLI 
-      # dependency of `cargo-near-integration-tests::cargo_near_new::test_cargo_test_on_generated_project`
-      # which uses `near_workspaces::compile_project`
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+
+      - name: Install latest cargo-near CLI
+        # dependency of `cargo-near-integration-tests::cargo_near_new::test_cargo_test_on_generated_project`
+        # which uses `near_workspaces::compile_project`
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
+
       - name: Run tests
         run: |
           # Clean up unused pre-installed things: https://carlosbecker.com/posts/github-actions-disk-space/
           df -h
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
           df -h
-          
+
           git config --global user.email "nearprotocol-ci@near.org"
           git config --global user.name "nearprotocol-ci"
-          cargo test --workspace
+          cargo nextest run --workspace --profile ci
           df -h
 
   lint:
-    runs-on: ubuntu-latest
-
+    runs-on: warp-ubuntu-latest-x64-4x
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-provider: warpbuild
+          shared-key: "linux-stable-lint"
+          cache-all-crates: true
 
       - name: Check Formatting
         run: cargo fmt -- --check
 
       - name: Install packages (Linux)
-        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
 
       - name: Check Clippy
         run: cargo clippy --tests -- -Dclippy::all
 
-  # there're sometimes warnings, which signal, that the generated doc
-  # won't look as expected, when rendered, and sometimes errors, which will prevent doc from being
-  # generated at release time altogether.
   cargo-doc:
-    runs-on: ubuntu-latest
-
+    runs-on: warp-ubuntu-latest-x64-4x
     steps:
     - uses: actions/checkout@v4
+
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-provider: warpbuild
+        shared-key: "linux-stable-doc"
+        cache-all-crates: true
+
     - name: Install packages (Linux)
-      if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
-    - name: run cargo doc
+
+    - name: Run cargo doc
       run: |
         RUSTDOCFLAGS="-D warnings" cargo doc -p cargo-near-build
         cargo test -p cargo-near-build --doc
 
   typos_check:
-    name: Spell Check with typos-cli (rs crate)
+    name: Spell Check with typos-cli
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -143,7 +172,6 @@ jobs:
 
   audit:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -151,7 +179,9 @@ jobs:
           submodules: recursive
 
       - name: Install Audit Tool
-        run: cargo install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
 
       - name: Run Audit Tool
         run: cargo audit
