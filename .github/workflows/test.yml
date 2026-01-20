@@ -91,6 +91,7 @@ jobs:
           cache-provider: ${{ runner.os == 'Linux' && 'warpbuild' || 'github' }}
           shared-key: "${{ runner.os }}-stable-tests"
           cache-all-crates: true
+          cache-on-failure: true
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
