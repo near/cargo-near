@@ -8,10 +8,8 @@ fail-fast = true
 
 [profile.ci]
 # CI-specific settings
-# Don't stop on first failure - run all tests to see full picture
-fail-fast = false
-# Retry flaky tests up to 2 times
-retries = 2
+fail-fast = true
+retries = 0
 # Show slow tests warning, but don't terminate (integration tests can take 5+ minutes)
 slow-timeout = { period = "120s" }
 # Status output level
