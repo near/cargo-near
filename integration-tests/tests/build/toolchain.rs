@@ -118,13 +118,20 @@ targets = ["wasm32-unknown-unknown"]
         } else if debug_path.exists() {
             debug_path
         } else {
-            // Fall back to using `cargo run` via cargo
-            // This ensures the binary is built if needed
-            panic!(
-                "cargo-near binary not found at {:?} or {:?}. \
-                 Please build cargo-near first with `cargo build -p cargo-near`",
-                debug_path, release_path
+            // Binary not found - build it first
+            // This can happen when running `cargo test --workspace` which compiles
+            // tests but doesn't necessarily place the binary in target/debug/
+            let status = Command::new("cargo")
+                .args(["build", "-p", "cargo-near", "--quiet"])
+                .current_dir(workspace_root)
+                .status()?;
+            assert!(status.success(), "Failed to build cargo-near binary");
+            assert!(
+                debug_path.exists(),
+                "cargo-near binary still not found at {:?} after building",
+                debug_path
             );
+            debug_path
         }
     };
 
