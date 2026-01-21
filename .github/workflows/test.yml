@@ -108,6 +108,9 @@ jobs:
         run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/near/cargo-near/releases/latest/download/cargo-near-installer.sh | sh
 
       - name: Run tests
+        env:
+          # Share target dir across all test subprocess builds to reuse compiled dependencies
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target
         run: |
           # Clean up unused pre-installed things: https://carlosbecker.com/posts/github-actions-disk-space/
           df -h
