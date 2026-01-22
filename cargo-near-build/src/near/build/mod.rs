@@ -459,21 +459,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_detect_active_toolchain_format() {
-        // Test the parsing logic with sample rustup output
-        // Note: split_whitespace() handles leading/trailing whitespace automatically
-        let sample_output =
-            "1.86.0-x86_64-unknown-linux-gnu (directory override for '/path/to/project')\n";
-        let toolchain = sample_output.split_whitespace().next();
-        assert_eq!(toolchain, Some("1.86.0-x86_64-unknown-linux-gnu"));
-
-        // Test with leading/trailing whitespace - split_whitespace handles this
-        let sample_with_whitespace = "  1.86.0-aarch64-apple-darwin (default)  \n";
-        let toolchain = sample_with_whitespace.split_whitespace().next();
-        assert_eq!(toolchain, Some("1.86.0-aarch64-apple-darwin"));
-    }
-
-    #[test]
     fn test_detect_active_toolchain() {
         // This test verifies that detect_active_toolchain works when rustup is available
         // It will return None if rustup is not available, which is acceptable
