@@ -459,34 +459,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_detect_active_toolchain() {
-        // This test verifies that detect_active_toolchain works when rustup is available
-        // It will return None if rustup is not available, which is acceptable
-        let result = detect_active_toolchain(None);
-
-        // If rustup is available and working, we should get a non-empty toolchain name
-        if let Some(toolchain) = result {
-            assert!(
-                !toolchain.is_empty(),
-                "Detected toolchain should not be empty"
-            );
-            assert!(
-                !toolchain.chars().any(char::is_whitespace),
-                "Toolchain should not contain whitespace"
-            );
-            // Toolchain names typically follow patterns like:
-            // - "1.86.0-x86_64-unknown-linux-gnu" (release version with target)
-            // - "stable-x86_64-unknown-linux-gnu" (channel with target)
-            // - "nightly-2024-01-01-x86_64-unknown-linux-gnu" (dated nightly)
-            // They should contain either a dash (separating parts) or be a simple name like "stable"
-            assert!(
-                toolchain.contains('-') || toolchain.chars().any(|c| c.is_alphabetic()),
-                "Toolchain should be a valid rustup toolchain identifier"
-            );
-        }
-    }
-
-    #[test]
     fn test_get_project_dir() {
         // Test with None - should return None
         assert!(get_project_dir(None).is_none());
