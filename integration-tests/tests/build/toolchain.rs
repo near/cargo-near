@@ -75,13 +75,6 @@ targets = ["wasm32-unknown-unknown"]
     fs::write(src_dir.join("lib.rs"), lib_rs)?;
     fs::write(project_dir.join("rust-toolchain.toml"), rust_toolchain_toml)?;
 
-    // Generate Cargo.lock
-    let status = Command::new("cargo")
-        .args(["generate-lockfile"])
-        .current_dir(project_dir)
-        .status()?;
-    assert!(status.success(), "Failed to generate lockfile");
-
     // Verify the toolchain is correctly detected from project directory
     // Note: We need to clear RUSTUP_TOOLCHAIN env var which cargo sets during tests
     let output = Command::new("rustup")
