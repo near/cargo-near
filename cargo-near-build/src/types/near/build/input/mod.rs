@@ -132,8 +132,12 @@ impl Opts {
             cargo_args.push("--locked");
         }
 
-        if self.no_release {
-            cargo_args.push("--no-release");
+        match (self.no_release, self.profile.as_ref()) {
+            (_, Some(custom_profile_arg)) => {
+                cargo_args.extend(["--profile", custom_profile_arg]);
+            }
+            (true, None) => cargo_args.push("--no-release"),
+            (false, None) => {}
         }
         if self.no_abi {
             cargo_args.push("--no-abi");
@@ -306,5 +310,19 @@ mod tests {
         assert!(!cmd.contains(&"--features".to_string()));
         assert!(cmd.contains(&"--abi-features".to_string()));
         assert!(cmd.contains(&"abi_only_feature".to_string()));
+    }
+
+    #[test]
+    fn test_opts_get_cli_build_command_for_custom_profile() {
+        let opts = super::Opts {
+            profile: Some("test-release".into()),
+            ..Default::default()
+        };
+
+        let cmd = opts.get_cli_command_for_lib_context();
+        eprintln!("{:?}", cmd);
+        assert!(cmd.contains(&"--profile".to_string()));
+        assert!(cmd.contains(&"test-release".to_string()));
+        assert!(!cmd.contains(&"--no-release".to_string()));
     }
 }
