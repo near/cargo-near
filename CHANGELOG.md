@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Improved error messages when ABI generation fails due to missing `JsonSchema` trait implementation on custom types used in contract functions
+
 ## [0.19.0](https://github.com/near/cargo-near/compare/cargo-near-v0.18.0...cargo-near-v0.19.0) - 2026-01-12
 
 ### Added
