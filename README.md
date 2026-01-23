@@ -268,6 +268,16 @@ won't result in `"your_custom_value"` affecting the build.
 
 `RUSTFLAGS="-Awarnings"` is always used for abi build stage, and `RUSTFLAGS="-C link-arg=-s"` for wasm build stage.
 
+Additionally, `RUSTFLAGS="--cfg near_abi"` is set during ABI generation to allow conditional compilation of code that should only be included in wasm32 builds. This is useful for `#[no_mangle]` functions that call NEAR host functions, which are only available in the wasm32 target. Use `#[cfg(not(near_abi))]` to exclude such functions during ABI generation:
+
+```rust
+#[cfg(not(near_abi))]
+#[no_mangle]
+pub extern "C" fn my_function() {
+    // This function calls NEAR host functions and won't be included during ABI generation
+}
+```
+
 Logic for concatenating default values of this variable with values from env was removed in `cargo-near-0.13.3`/`cargo-near-build-0.4.3`, as it was seen as
 an unnecessary complication.
 
