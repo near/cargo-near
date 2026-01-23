@@ -91,6 +91,22 @@ pub struct BuildOpts {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub variant: Option<String>,
+    /// Mount local `./target` directory as a Docker volume to cache build artifacts across builds
+    ///
+    /// This can significantly speed up subsequent builds by reusing previously compiled dependencies.
+    /// Note: Using cache may affect reproducibility guarantees in some edge cases.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub mount_target_cache: bool,
+    /// Mount local `~/.cargo` directory as a Docker volume to cache Cargo registry and git dependencies
+    ///
+    /// This can significantly speed up subsequent builds by reusing previously downloaded dependencies.
+    /// Note: Using cache may affect reproducibility guarantees in some edge cases.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub mount_cargo_cache: bool,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -102,6 +118,8 @@ impl From<CliBuildOpts> for BuildOpts {
             color: value.color,
             variant: value.variant,
             profile: value.profile,
+            mount_target_cache: value.mount_target_cache,
+            mount_cargo_cache: value.mount_cargo_cache,
         }
     }
 }
@@ -122,6 +140,8 @@ mod context {
                 color: scope.color.clone(),
                 variant: scope.variant.clone(),
                 profile: scope.profile.clone(),
+                mount_target_cache: scope.mount_target_cache,
+                mount_cargo_cache: scope.mount_cargo_cache,
             };
             super::run(opts, previous_context)?;
             Ok(Self)
@@ -140,6 +160,8 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
         color: value.0.color.map(Into::into),
         variant: value.0.variant,
         context: value.1,
+        mount_target_cache: value.0.mount_target_cache,
+        mount_cargo_cache: value.0.mount_cargo_cache,
     }
 }
 
