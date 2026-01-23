@@ -320,7 +320,20 @@ mod tests {
         };
 
         let cmd = opts.get_cli_command_for_lib_context();
-        eprintln!("{:?}", cmd);
+        assert!(cmd.contains(&"--profile".to_string()));
+        assert!(cmd.contains(&"test-release".to_string()));
+        assert!(!cmd.contains(&"--no-release".to_string()));
+    }
+
+    #[test]
+    fn test_opts_get_cli_build_command_for_custom_profile_with_norelease() {
+        let opts = super::Opts {
+            profile: Some("test-release".into()),
+            no_release: true,
+            ..Default::default()
+        };
+
+        let cmd = opts.get_cli_command_for_lib_context();
         assert!(cmd.contains(&"--profile".to_string()));
         assert!(cmd.contains(&"test-release".to_string()));
         assert!(!cmd.contains(&"--no-release".to_string()));
