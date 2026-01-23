@@ -54,7 +54,17 @@ fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyr
 pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let start = std::time::Instant::now();
 
-    let rustc_version = version_meta_with_override(args.override_toolchain.clone())?.semver;
+    // Detect the effective toolchain to use: explicit override or active toolchain from rustup
+    // This ensures consistent toolchain usage across version checking and actual build.
+    // We detect the toolchain from the project directory (if manifest_path is provided)
+    // to properly respect rust-toolchain.toml files in the target project.
+    let project_dir = get_project_dir(args.manifest_path.as_ref());
+    let effective_toolchain = args
+        .override_toolchain
+        .clone()
+        .or_else(|| detect_active_toolchain(project_dir));
+
+    let rustc_version = version_meta_with_override(effective_toolchain.clone())?.semver;
 
     if !args.skip_rust_version_check {
         checking_unsupported_toolchain(&rustc_version)?;
@@ -67,7 +77,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     color.apply();
 
     pretty_print::handle_step("Checking the host environment...", || {
-        if !cargo_native::target::wasm32_exists(args.override_toolchain.clone()) {
+        if !cargo_native::target::wasm32_exists(effective_toolchain.clone()) {
             eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
@@ -148,7 +158,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 .collect::<Vec<_>>();
             common_vars_env.append_borrowed_to(&mut abi_env);
 
-            args.override_toolchain.as_ref().inspect(|toolchain| {
+            effective_toolchain.as_ref().inspect(|toolchain| {
                 abi_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));
             });
 
@@ -207,7 +217,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         abi_path_env.append_borrowed_to(&mut build_env);
         common_vars_env.append_borrowed_to(&mut build_env);
 
-        args.override_toolchain.as_ref().inspect(|toolchain| {
+        effective_toolchain.as_ref().inspect(|toolchain| {
             build_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));
         });
 
@@ -365,6 +375,47 @@ fn maybe_wasm_opt_step(
     Ok(result)
 }
 
+/// Detects the active toolchain that rustup would use for a given directory,
+/// respecting directory overrides (rust-toolchain.toml, rustup override set).
+/// Returns None if rustup is not available or fails to detect the toolchain.
+///
+/// # Arguments
+/// * `project_dir` - Optional path to run rustup from. If None, uses current directory.
+///
+/// This function intentionally returns None rather than an error when rustup is unavailable,
+/// allowing cargo-near to work in environments without rustup by falling back to the default
+/// rustc behavior.
+fn detect_active_toolchain(project_dir: Option<&camino::Utf8Path>) -> Option<String> {
+    let mut cmd = std::process::Command::new("rustup");
+    cmd.args(["show", "active-toolchain"]);
+
+    if let Some(dir) = project_dir {
+        cmd.current_dir(dir);
+    }
+
+    let output = cmd.output().ok()?;
+
+    if !output.status.success() {
+        tracing::debug!("Failed to detect active toolchain: rustup command failed");
+        return None;
+    }
+
+    let stdout = String::from_utf8(output.stdout).ok()?;
+    // The output format is: "toolchain-name (reason)"
+    // e.g., "1.86.0-aarch64-apple-darwin (directory override for '/path/to/project')"
+    // We extract just the toolchain name before the first space.
+    // This parsing relies on rustup's stable output format for `show active-toolchain`.
+    // Note: split_whitespace() already handles leading/trailing whitespace.
+    stdout.split_whitespace().next().map(String::from)
+}
+
+/// Gets the project directory from the manifest path option.
+/// If manifest_path is provided, returns its parent directory.
+/// Otherwise returns None (will use current directory).
+fn get_project_dir(manifest_path: Option<&camino::Utf8PathBuf>) -> Option<&camino::Utf8Path> {
+    manifest_path.and_then(|p| p.parent())
+}
+
 pub fn version_meta_with_override(
     override_toolchain: Option<String>,
 ) -> rustc_version::Result<rustc_version::VersionMeta> {
@@ -378,6 +429,7 @@ pub fn version_meta_with_override(
         std::process::Command::new(rustc)
     };
     cmd.arg("-vV");
+
     if let Some(toolchain) = override_toolchain {
         cmd.env(env_keys::RUSTUP_TOOLCHAIN, toolchain);
     }
@@ -400,4 +452,56 @@ pub fn version_meta_with_override(
     }
 
     rustc_version::version_meta_for(std::str::from_utf8(&out.stdout)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_project_dir() {
+        // Test with None - should return None
+        assert!(get_project_dir(None).is_none());
+
+        // Test with a valid path - should return parent
+        let path = camino::Utf8PathBuf::from("/some/path/to/Cargo.toml");
+        let result = get_project_dir(Some(&path));
+        assert_eq!(result, Some(camino::Utf8Path::new("/some/path/to")));
+
+        // Test with root path
+        let root_path = camino::Utf8PathBuf::from("/Cargo.toml");
+        let result = get_project_dir(Some(&root_path));
+        assert_eq!(result, Some(camino::Utf8Path::new("/")));
+    }
+
+    #[test]
+    fn test_detect_active_toolchain_respects_directory() {
+        // This test verifies that detect_active_toolchain can detect toolchain
+        // from a specific directory. We use the cargo-near workspace root which
+        // has a rust-toolchain.toml.
+
+        // Get the cargo-near workspace root (parent of cargo-near-build)
+        let manifest_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
+        let workspace_root = manifest_dir
+            .parent()
+            .expect("cargo-near-build should have parent");
+
+        // Detect toolchain from workspace root
+        let result = detect_active_toolchain(Some(workspace_root));
+
+        // If rustup is available, we should detect a toolchain
+        if let Some(toolchain) = result {
+            assert!(
+                !toolchain.is_empty(),
+                "Detected toolchain should not be empty"
+            );
+            // The workspace uses "stable" channel per rust-toolchain.toml
+            // The detected toolchain should contain "stable" or be a specific version
+            assert!(
+                toolchain.contains("stable") || toolchain.chars().next().unwrap().is_ascii_digit(),
+                "Toolchain should be 'stable' or a version number, got: {}",
+                toolchain
+            );
+        }
+    }
 }
