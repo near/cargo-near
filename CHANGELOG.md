@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Windows (without WSL) build failure on ABI generation step by adding `/FORCE:UNRESOLVED` linker flag for MSVC
+- Fixed RUSTFLAGS handling in cargo_native::compile to append flags instead of replacing them
+
 ## [0.19.0](https://github.com/near/cargo-near/compare/cargo-near-v0.18.0...cargo-near-v0.19.0) - 2026-01-12
 
 ### Added
