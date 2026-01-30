@@ -1,6 +1,7 @@
 [package]
 name = "cargo-near-build"
 edition = "2024"
+rust-version = "1.86"
 version = "0.11.0"
 description = "Library for building Rust smart contracts on NEAR, basis of `cargo-near` crate/CLI"
 repository = "https://github.com/near/cargo-near"
@@ -14,11 +15,8 @@ bs58 = "0.5"
 hex = "0.4.3"
 sha2 = "0.10"
 dunce = "1"
-# (vsavchyn-dev) PIN: `darling` 0.23.0 (via bon) and `cargo-platform` 0.3.2 (via cargo_metadata)
-# require rustc 1.88.0, which breaks MSRV for building contracts (1.86.0).
-# We pin to the last compatible versions.
-bon = ">2, <=3.8.1"
-cargo_metadata = ">=0.21, <0.22"
+bon = "3"
+cargo_metadata = "0.21"
 colored = "3"
 tracing = "0.1.40"
 indenter = "0.3"
