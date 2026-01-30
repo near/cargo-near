@@ -4,10 +4,10 @@ use crate::extended::{BuildOptsExtended, EnvPairs};
 
 fn is_wasm_build_skipped(build_skipped_when_env_is: &EnvPairs) -> bool {
     for (key, skip_value) in build_skipped_when_env_is.0.iter() {
-        if let Ok(actual_value) = std::env::var(key) {
-            if actual_value == *skip_value {
-                return true;
-            }
+        if let Ok(actual_value) = std::env::var(key)
+            && actual_value == *skip_value
+        {
+            return true;
         }
     }
     false

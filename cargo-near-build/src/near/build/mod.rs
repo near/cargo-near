@@ -9,7 +9,7 @@ use tempfile::NamedTempFile;
 use crate::types::near::build::input::Opts;
 use crate::types::near::build::output::CompilationArtifact;
 use crate::types::near::build::side_effects::ArtifactMessages;
-use crate::{cargo_native, env_keys, ColorPreference};
+use crate::{ColorPreference, cargo_native, env_keys};
 use crate::{
     cargo_native::target::COMPILATION_TARGET,
     pretty_print,
@@ -45,7 +45,9 @@ fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyr
             pretty_print::indent_payload(&info_str)
         );
 
-        eyre::bail!("wasm, compiled with {MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT} or newer rust toolchain is currently not compatible with nearcore VM");
+        eyre::bail!(
+            "wasm, compiled with {MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT} or newer rust toolchain is currently not compatible with nearcore VM"
+        );
     }
     Ok(())
 }
@@ -91,7 +93,9 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     // assumed without `--out-dir` too, so docker-build was just failing if the arg was supplied:
     // https://github.com/near/cargo-near/blob/075d7b6dc9ab1f5c199edb6931512ccaf5af848e/cargo-near-build/src/types/near/docker_build/cloned_repo.rs#L100
     if env_keys::is_inside_docker_context() && args.out_dir.is_some() {
-        return Err(eyre::eyre!("inside docker build `--out-dir` is forbidden to be used in order to predict build output path in a straightforward way"));
+        return Err(eyre::eyre!(
+            "inside docker build `--out-dir` is forbidden to be used in order to predict build output path in a straightforward way"
+        ));
     }
     // NOTE important!: the way the output path for wasm is resolved now cannot change,
     // see more detail on [CrateMetadata::get_legacy_cargo_near_output_path]

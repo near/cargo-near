@@ -107,32 +107,32 @@ impl BuildOptsExtended {
 /// expected to be relevant in nep330 conformant build environments, and all of those have
 /// repository roots mounted to [`crate::env_keys::nep330::NEP330_REPO_MOUNT`]
 fn override_nep330_contract_path(workdir: &Utf8PathBuf) -> eyre::Result<Option<String>> {
-    if let Ok(_contract_path) = std::env::var(crate::env_keys::nep330::CONTRACT_PATH) {
-        if workdir.starts_with(crate::env_keys::nep330::NEP330_REPO_MOUNT) {
-            let workdir_pathdiff = pathdiff::diff_utf8_paths(
-                workdir,
-                Utf8PathBuf::from(crate::env_keys::nep330::NEP330_REPO_MOUNT.to_string()),
-            )
-            .wrap_err(format!(
-                "cannot compute workdir `{}` relative path to base `{}`",
+    if let Ok(_contract_path) = std::env::var(crate::env_keys::nep330::CONTRACT_PATH)
+        && workdir.starts_with(crate::env_keys::nep330::NEP330_REPO_MOUNT)
+    {
+        let workdir_pathdiff = pathdiff::diff_utf8_paths(
+            workdir,
+            Utf8PathBuf::from(crate::env_keys::nep330::NEP330_REPO_MOUNT.to_string()),
+        )
+        .wrap_err(format!(
+            "cannot compute workdir `{}` relative path to base `{}`",
+            workdir,
+            crate::env_keys::nep330::NEP330_REPO_MOUNT,
+        ))?;
+
+        if !workdir_pathdiff.is_relative() {
+            return Err(eyre::eyre!(
+                "workdir `{}` in `{}` isn't relative : {:?}",
                 workdir,
                 crate::env_keys::nep330::NEP330_REPO_MOUNT,
-            ))?;
-
-            if !workdir_pathdiff.is_relative() {
-                return Err(eyre::eyre!(
-                    "workdir `{}` in `{}` isn't relative : {:?}",
-                    workdir,
-                    crate::env_keys::nep330::NEP330_REPO_MOUNT,
-                    workdir_pathdiff.as_str()
-                ));
-            }
-
-            // there's no need to additionally transform `workdir_pathdiff` into a valid
-            // [unix_path::PathBuf], as the [`crate::env_keys::nep330::CONTRACT_PATH`] override
-            // is only relevant inside of docker linux containers
-            return Ok(Some(workdir_pathdiff.to_string()));
+                workdir_pathdiff.as_str()
+            ));
         }
+
+        // there's no need to additionally transform `workdir_pathdiff` into a valid
+        // [unix_path::PathBuf], as the [`crate::env_keys::nep330::CONTRACT_PATH`] override
+        // is only relevant inside of docker linux containers
+        return Ok(Some(workdir_pathdiff.to_string()));
     }
     Ok(None)
 }

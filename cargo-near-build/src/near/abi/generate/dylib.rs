@@ -49,16 +49,14 @@ pub fn extract_abi_entries(
                 Err(err) => {
                     // unfortunately, we're unable to extract the raw error without Display-ing it first
                     let mut err_str = err.to_string();
-                    if let Some((msg, rest)) = err_str.rsplit_once(" at line ") {
-                        if let Some((line, col)) = rest.rsplit_once(" column ") {
-                            if line.chars().all(|c| c.is_numeric())
-                                && col.chars().all(|c| c.is_numeric())
-                            {
-                                err_str.truncate(msg.len());
-                                err_str.shrink_to_fit();
-                                eyre::bail!(err_str);
-                            }
-                        }
+                    if let Some((msg, rest)) = err_str.rsplit_once(" at line ")
+                        && let Some((line, col)) = rest.rsplit_once(" column ")
+                        && line.chars().all(|c| c.is_numeric())
+                        && col.chars().all(|c| c.is_numeric())
+                    {
+                        err_str.truncate(msg.len());
+                        err_str.shrink_to_fit();
+                        eyre::bail!(err_str);
                     }
                     eyre::bail!(err);
                 }

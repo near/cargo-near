@@ -1,8 +1,8 @@
 use std::process::Stdio;
 
 use color_eyre::{
-    eyre::{ContextCompat, WrapErr},
     Section,
+    eyre::{ContextCompat, WrapErr},
 };
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
@@ -176,8 +176,8 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
     if !output.status.success() {
         println!("{}", String::from_utf8_lossy(&output.stderr));
         return Err(color_eyre::eyre::eyre!(
-                "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
-            ));
+            "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
+        ));
     }
 
     Ok(())
