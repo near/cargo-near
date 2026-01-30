@@ -1,4 +1,4 @@
-use reqwest::{header::HeaderMap, Client};
+use reqwest::{Client, header::HeaderMap};
 use serde::Serialize;
 use std::{env, str};
 use tracing::debug;

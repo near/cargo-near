@@ -26,8 +26,14 @@ impl std::fmt::Display for VersionInfo {
                     "builder version `{current_process}` -> builder environment version `{environment}`"
                 )
             }
-            Self::CurrentProcess { .. } => write!(f, "no `cargo-near` version mismatch in nested builds detected",),
-            Self::UnknownFromDocker => write!(f, "it's unknown if `cargo-near` version mismatch has occurred in docker build environment",),
+            Self::CurrentProcess { .. } => write!(
+                f,
+                "no `cargo-near` version mismatch in nested builds detected",
+            ),
+            Self::UnknownFromDocker => write!(
+                f,
+                "it's unknown if `cargo-near` version mismatch has occurred in docker build environment",
+            ),
         }
     }
 }

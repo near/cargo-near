@@ -7,8 +7,8 @@ use interactive_clap::ToCliArgs;
 pub use near_cli_rs::CliResult;
 
 use cargo_near::{
-    commands::build::actions::non_reproducible_wasm as build_non_reproducible_wasm, setup_tracing,
     CliOpts, Cmd, Opts,
+    commands::build::actions::non_reproducible_wasm as build_non_reproducible_wasm, setup_tracing,
 };
 
 /// this part of cli setup doesn't depend on command arguments in any way

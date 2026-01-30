@@ -111,7 +111,7 @@ mod manual_from_cli {
                     Ok(Some(contract_account_id)) => Some(contract_account_id),
                     Ok(None) => return interactive_clap::ResultFromCli::Cancel(Some(clap_variant)),
                     Err(err) => {
-                        return interactive_clap::ResultFromCli::Err(Some(clap_variant), err)
+                        return interactive_clap::ResultFromCli::Err(Some(clap_variant), err);
                     }
                 };
             }
@@ -129,7 +129,7 @@ mod manual_from_cli {
                 match super::context::Context::from_previous_context(context, &new_context_scope) {
                     Ok(new_context) => new_context,
                     Err(err) => {
-                        return interactive_clap::ResultFromCli::Err(Some(clap_variant), err)
+                        return interactive_clap::ResultFromCli::Err(Some(clap_variant), err);
                     }
                 };
 

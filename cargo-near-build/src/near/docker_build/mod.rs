@@ -96,9 +96,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         } else {
             pretty_print::handle_step(
                 "Check that current HEAD has been pushed to remote was configured out by `--skip-git-remote-check` flag",
-                || {
-                    Ok(())
-                },
+                || Ok(()),
             )?;
         }
     }

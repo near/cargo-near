@@ -1,7 +1,7 @@
 use cargo_near_integration_tests::{from_git, generate_abi_fn_with, generate_abi_with};
 use function_name::named;
-use git2::build::CheckoutBuilder;
 use git2::Repository;
+use git2::build::CheckoutBuilder;
 use std::collections::HashMap;
 use tempfile::TempDir;
 

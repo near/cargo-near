@@ -40,14 +40,14 @@ pub struct NearArgs {
 pub fn setup_tracing(rust_log_env_is_set: bool, teach_me_flag_is_set: bool) -> CliResult {
     use colored::Colorize;
     use tracing::{Event, Level, Subscriber};
-    use tracing_indicatif::style::ProgressStyle;
     use tracing_indicatif::IndicatifLayer;
+    use tracing_indicatif::style::ProgressStyle;
+    use tracing_subscriber::EnvFilter;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
-    use tracing_subscriber::EnvFilter;
     use tracing_subscriber::{fmt::format, prelude::*};
     use tracing_subscriber::{
-        fmt::{format::Writer, FmtContext, FormatEvent, FormatFields},
+        fmt::{FmtContext, FormatEvent, FormatFields, format::Writer},
         registry::LookupSpan,
     };
 

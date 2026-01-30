@@ -71,10 +71,10 @@ impl super::AppliedReproducibleBuild {
             // versions >=0.13 require `--locked` flag instead, but this isn't validated
             if is_cargo_near && command_token == "--no-locked" {
                 return Err(eyre::eyre!(
-                "Malformed `{}` in Cargo.toml:\n{}",
-                section_name,
-                "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
-            ));
+                    "Malformed `{}` in Cargo.toml:\n{}",
+                    section_name,
+                    "`container_build_command`: `--no-locked` forbidden for `cargo near` build command",
+                ));
             }
             if is_cargo_near && command_token == "--manifest-path" {
                 return Err(eyre::eyre!(
