@@ -13,7 +13,6 @@ impl Nep330Link {
 
     pub fn append_borrowed_to<'a>(&'a self, env: &mut Vec<(&str, &'a str)>) {
         // this will be set in docker builds (externally to current process), having more info about git commit
-        #[allow(clippy::collapsible_if)]
         if std::env::var(env_keys::nep330::LINK).is_err() {
             if let Some(ref link) = self.link {
                 env.push((env_keys::nep330::LINK, link.as_str()));

@@ -230,7 +230,6 @@ pub fn suggest_cargo_near_build_checks(
         output_wasm_path::cargo_near_version_check(cargo_near);
     }
 
-    #[allow(clippy::collapsible_if)]
     if near_sdk_support.output_wasm_path {
         if let (Some(cargo_near), Some(build_script)) = (cargo_near, build_script) {
             output_wasm_path::with_buildscript_versions_check(cargo_near, build_script);

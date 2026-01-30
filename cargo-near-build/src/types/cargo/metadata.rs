@@ -10,8 +10,8 @@ use colored::Colorize;
 use eyre::OptionExt;
 use eyre::{ContextCompat, WrapErr};
 
-use crate::types::near::OutputPaths;
 use crate::types::near::build::common_buildtime_env;
+use crate::types::near::OutputPaths;
 use crate::{env_keys, pretty_print};
 
 use super::manifest_path::ManifestPath;
@@ -227,7 +227,6 @@ fn get_cargo_metadata(
     );
 
     let metadata = exec_metadata_command(std_process_command);
-    #[allow(clippy::collapsible_if)]
     if let Err(cargo_metadata::Error::CargoMetadata { stderr }) = metadata.as_ref() {
         if stderr.contains("remove the --locked flag") {
             println!(

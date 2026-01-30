@@ -107,7 +107,6 @@ impl BuildOptsExtended {
 /// expected to be relevant in nep330 conformant build environments, and all of those have
 /// repository roots mounted to [`crate::env_keys::nep330::NEP330_REPO_MOUNT`]
 fn override_nep330_contract_path(workdir: &Utf8PathBuf) -> eyre::Result<Option<String>> {
-    #[allow(clippy::collapsible_if)]
     if let Ok(_contract_path) = std::env::var(crate::env_keys::nep330::CONTRACT_PATH) {
         if workdir.starts_with(crate::env_keys::nep330::NEP330_REPO_MOUNT) {
             let workdir_pathdiff = pathdiff::diff_utf8_paths(
