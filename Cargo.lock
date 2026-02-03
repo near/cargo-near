@@ -305,9 +305,9 @@ dependencies = [
 
 [[package]]
 name = "bon"
-version = "3.8.1"
+version = "3.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebeb9aaf9329dff6ceb65c689ca3db33dbf15f324909c60e4e5eef5701ce31b1"
+checksum = "234655ec178edd82b891e262ea7cf71f6584bcd09eff94db786be23f1821825c"
 dependencies = [
  "bon-macros",
  "rustversion",
@@ -315,9 +315,9 @@ dependencies = [
 
 [[package]]
 name = "bon-macros"
-version = "3.8.1"
+version = "3.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77e9d642a7e3a318e37c2c9427b5a6a48aa1ad55dcd986f3034ab2239045a645"
+checksum = "89ec27229c38ed0eb3c0feee3d2c1d6a4379ae44f418a29a658890e062d8f365"
 dependencies = [
  "darling",
  "ident_case",
@@ -421,9 +421,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.11.0"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b35204fbdc0b3f4446b89fc1ac2cf84a8a68971995d0bf2e925ec7cd960f9cb3"
+checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "bytesize"
@@ -1392,7 +1392,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2272,7 +2272,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2794,9 +2794,9 @@ dependencies = [
 
 [[package]]
 name = "near-api"
-version = "0.8.2"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17a87920038b8a0eb5b4c91691651ce235810beb1f3a8626596b303b82750b75"
+checksum = "321d2778c3cfb314cf6410376788a17b5c34f6154ee61bcd1579748edda454bb"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -2820,9 +2820,9 @@ dependencies = [
 
 [[package]]
 name = "near-api-types"
-version = "0.8.2"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42a5ca7d481bf75b61afb8552c8504df5d76f0a6c3e47482f498f2d65c349f8b"
+checksum = "b4740cd9996fda91dd1cc9034528f0e987ac2c2266f15c6459df7a595e11eb71"
 dependencies = [
  "base64 0.22.1",
  "borsh",
@@ -3042,9 +3042,9 @@ dependencies = [
 
 [[package]]
 name = "near-openapi-client"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8b0e00ba3bdba682deb964ac5db504558aea3c9434b521ad0b803b7f3c06dcf"
+checksum = "c6d2a3dd4e669e14cdd0748b449d7539d0b0fefba17ed8e2d1404a0826908630"
 dependencies = [
  "bytes",
  "chrono",
@@ -3059,10 +3059,11 @@ dependencies = [
 
 [[package]]
 name = "near-openapi-types"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a8d5398e4fa9931e9d1639e36f80b3f0a365a93773d5e92b6094c6d6198d24b"
+checksum = "7e0c9eaf432ddedd9409d6b1477b49e94679c077adbadce173292f759454afc7"
 dependencies = [
+ "bs58 0.5.1",
  "chrono",
  "near-account-id",
  "near-gas",
@@ -4148,7 +4149,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.11.0",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4989,7 +4990,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.3",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

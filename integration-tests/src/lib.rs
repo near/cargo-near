@@ -35,12 +35,11 @@ pub mod from_git {
 
 pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
     let manifest_dir: camino::Utf8PathBuf = env!("CARGO_MANIFEST_DIR").into();
-    let workspace_dir = manifest_dir
+    manifest_dir
         .parent()
         .unwrap()
         .join("target")
-        .join("_abi-integration-tests");
-    workspace_dir
+        .join("_abi-integration-tests")
 }
 
 const MAX_RUST_VERSION: &str = "1.86.0";

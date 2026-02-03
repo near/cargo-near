@@ -1,0 +1,18 @@
+# Configuration for cargo-nextest
+# https://nexte.st/docs/configuration
+
+[profile.default]
+# Default profile settings
+retries = 0
+fail-fast = true
+
+[profile.ci]
+# CI-specific settings
+fail-fast = true
+retries = 0
+# Show slow tests warning, but don't terminate (integration tests can take 5+ minutes)
+slow-timeout = { period = "120s" }
+# Status output level
+status-level = "pass"
+# Final status output
+final-status-level = "flaky"

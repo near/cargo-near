@@ -3,7 +3,7 @@ use cargo_near_build::near_abi::{
 };
 use cargo_near_integration_tests::generate_abi_fn;
 use function_name::named;
-use schemars::gen::SchemaGenerator;
+use schemars::r#gen::SchemaGenerator;
 
 #[test]
 #[named]

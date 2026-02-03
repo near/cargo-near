@@ -1,5 +1,5 @@
 use crate::types::cargo::metadata::CrateMetadata;
-use crate::types::near::{abi as abi_types, OutputPaths};
+use crate::types::near::{OutputPaths, abi as abi_types};
 
 pub mod generate;
 

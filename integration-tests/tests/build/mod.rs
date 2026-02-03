@@ -3,6 +3,7 @@ use cargo_near_integration_tests::build_fn;
 use function_name::named;
 
 mod opts;
+mod toolchain;
 
 #[tokio::test]
 #[named]
