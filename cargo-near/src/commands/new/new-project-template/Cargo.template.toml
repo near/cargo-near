@@ -39,7 +39,7 @@ container_build_command = [
 near-sdk = "5.23"
 # Pin: time 0.3.46+ requires rustc 1.88.0, but wasm built with rustc 1.87.0+
 # is incompatible with nearcore VM. Pin to last 1.86.0-compatible version.
-time = "<=0.3.45"
+time = ">=0.3.37, <=0.3.45"
 
 [dev-dependencies]
 near-sdk = { version = "5.23", features = ["unit-testing"] }
