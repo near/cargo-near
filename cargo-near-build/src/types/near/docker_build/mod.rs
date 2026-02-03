@@ -1,5 +1,5 @@
-use crate::types::cargo::manifest_path::ManifestPath;
 use crate::ColorPreference;
+use crate::types::cargo::manifest_path::ManifestPath;
 
 use super::build::input::BuildContext;
 

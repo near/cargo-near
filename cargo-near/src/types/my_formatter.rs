@@ -3,8 +3,8 @@ use tracing::Level;
 use tracing_core::{Event, Subscriber};
 use tracing_log::NormalizeEvent;
 use tracing_subscriber::fmt::{
-    format::{self, FormatEvent, FormatFields},
     FmtContext,
+    format::{self, FormatEvent, FormatFields},
 };
 use tracing_subscriber::registry::LookupSpan;
 

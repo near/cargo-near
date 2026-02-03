@@ -22,9 +22,9 @@ pub use abi_builder_version::BuilderAbiVersions;
 
 pub use overrides::nep330_path::Nep330ContractPath;
 
+use crate::BuildOpts;
 use crate::types::cargo::metadata::CrateMetadata;
 use crate::types::near::OutputPaths;
-use crate::BuildOpts;
 
 use super::common_buildtime_env::overrides::cargo_target_dir::CargoTargetDir;
 use super::output::version_info::VersionInfo;
