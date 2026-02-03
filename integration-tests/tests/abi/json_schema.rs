@@ -701,3 +701,78 @@ fn test_schema_complex() -> testresult::TestResult {
 
     Ok(())
 }
+
+#[test]
+#[named]
+fn test_schema_vec_of_custom_types() -> testresult::TestResult {
+    // This test demonstrates the proper way to define custom types that can be used
+    // in Vec return types. Without #[near(serializers = [json])], the ABI generation
+    // would fail with "the trait bound `Item: JsonSchema` is not satisfied"
+    let abi_root = generate_abi! {
+        use near_sdk::near;
+
+        #[near(serializers = [json])]
+        pub struct Item {
+            pub id: u32,
+            pub name: String,
+        }
+
+        #[near(contract_state)]
+        #[derive(Default)]
+        pub struct Contract {}
+
+        #[near]
+        impl Contract {
+            pub fn get_items(&self) -> Vec<Item> {
+                vec![]
+            }
+        }
+    };
+
+    assert_eq!(abi_root.body.functions.len(), 2);
+    let function = &abi_root.body.functions[1];
+    assert_eq!(function.name, "get_items");
+    
+    // Verify the return type is an array of Item references
+    let return_schema = function.result.as_ref().unwrap().json_schema();
+    let expected_schema: Schema = serde_json::from_str(
+        r#"
+        {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Item"
+            }
+        }
+        "#,
+    )?;
+    assert_eq!(return_schema.type_schema, expected_schema);
+
+    // Verify the Item definition is in the schema definitions
+    let item_schema: Schema = serde_json::from_str(
+        r#"
+        {
+            "type": "object",
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "uint32",
+                    "minimum": 0.0
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        }
+        "#,
+    )?;
+    assert_eq!(
+        abi_root.body.root_schema.definitions["Item"],
+        item_schema
+    );
+
+    Ok(())
+}

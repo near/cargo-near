@@ -148,6 +148,7 @@ where
     // stdout and stderr have to be processed concurrently to not block the process from progressing
     let thread_stdout = thread::spawn(move || -> eyre::Result<_, std::io::Error> {
         let mut artifacts = vec![];
+        let mut has_json_schema_error = false;
         let stdout_reader = std::io::BufReader::new(child_stdout);
         for message in Message::parse_stream(stdout_reader) {
             match message? {
@@ -156,6 +157,13 @@ where
                 }
                 Message::CompilerMessage(message) => {
                     if let Some(msg) = message.message.rendered {
+                        // Check if this is a JsonSchema-related error.
+                        // We use simple string matching as the error format is stable across rustc versions
+                        // and this provides a good user experience without complex parsing.
+                        // Example error: "the trait bound `Attestation: JsonSchema` is not satisfied"
+                        if msg.contains("the trait bound") && msg.contains("JsonSchema") && msg.contains("is not satisfied") {
+                            has_json_schema_error = true;
+                        }
                         for line in msg.lines() {
                             eprintln!(" │ {line}");
                         }
@@ -163,6 +171,29 @@ where
                 }
                 _ => {}
             };
+        }
+
+        if has_json_schema_error {
+            eprintln!(" │");
+            eprintln!(" │ ╭─────────────────────────────────────────────────────────────────╮");
+            eprintln!(" │ │ HINT: The error above indicates that a type used in your       │");
+            eprintln!(" │ │ contract's public interface does not implement the JsonSchema  │");
+            eprintln!(" │ │ trait, which is required for ABI generation.                   │");
+            eprintln!(" │ │                                                                 │");
+            eprintln!(" │ │ To fix this, add the JsonSchema derive to your struct/enum:    │");
+            eprintln!(" │ │                                                                 │");
+            eprintln!(" │ │ Option 1 (Recommended - works with near-sdk 5.0+):             │");
+            eprintln!(" │ │   #[near(serializers = [json])]                                │");
+            eprintln!(" │ │   pub struct YourType {{ ... }}                                │");
+            eprintln!(" │ │                                                                 │");
+            eprintln!(" │ │ Option 2 (Manual - for more control):                          │");
+            eprintln!(" │ │   use schemars::JsonSchema;                                    │");
+            eprintln!(" │ │   #[derive(Serialize, Deserialize, JsonSchema)]                │");
+            eprintln!(" │ │   pub struct YourType {{ ... }}                                │");
+            eprintln!(" │ │                                                                 │");
+            eprintln!(" │ │ For more information, see:                                      │");
+            eprintln!(" │ │ https://github.com/near/near-sdk-rs                            │");
+            eprintln!(" │ ╰─────────────────────────────────────────────────────────────────╯");
         }
 
         Ok(artifacts)
