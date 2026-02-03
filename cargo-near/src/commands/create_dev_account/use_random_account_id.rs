@@ -4,7 +4,7 @@ use color_eyre::eyre::ContextCompat;
 use names::Generator;
 
 use near_cli_rs::commands::account::create_account::sponsor_by_faucet_service::{
-    add_key, before_creating_account, network, NewAccountContext,
+    NewAccountContext, add_key, before_creating_account, network,
 };
 
 #[derive(Debug, Clone, interactive_clap::InteractiveClap)]

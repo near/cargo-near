@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use crate::{
-    cargo_native::{ArtifactType, Wasm},
     SHA256Checksum,
+    cargo_native::{ArtifactType, Wasm},
 };
 use camino::Utf8PathBuf;
 pub mod version_info;

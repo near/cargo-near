@@ -2,7 +2,7 @@
 name = "cargo-near"
 version = "0.19.0"
 authors = ["Near Inc <hello@nearprotocol.com>"]
-edition = "2021"
+edition.workspace = true
 rust-version = "1.87.0"
 description = "Cargo extension for building Rust smart contracts on NEAR"
 readme = "README.md"
