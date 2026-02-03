@@ -1,6 +1,6 @@
 [package]
 name = "cargo-near-build"
-edition = "2024"
+edition.workspace = true
 rust-version = "1.86"
 version = "0.11.0"
 description = "Library for building Rust smart contracts on NEAR, basis of `cargo-near` crate/CLI"
@@ -30,7 +30,7 @@ symbolic-debuginfo = { version = "12", optional = true }
 libloading = { version = "0.8", optional = true }
 serde_json = { version = "1.0", optional = true }
 near-abi = { version = "0.4.0", features = [
-  "__chunked-entries",
+    "__chunked-entries",
 ], optional = true }
 zstd = { version = "0.13", optional = true }
 schemars = { version = "0.8", optional = true }
@@ -57,24 +57,24 @@ dist = false
 default = ["build_external"]
 build_external = []
 build_internal = [
-  "dep:symbolic-debuginfo",
-  "dep:libloading",
-  "dep:serde_json",
-  "dep:near-abi",
-  "dep:zstd",
-  "dep:schemars",
-  "dep:tempfile",
-  "dep:wasm-opt",
-  "dep:humantime",
+    "dep:symbolic-debuginfo",
+    "dep:libloading",
+    "dep:serde_json",
+    "dep:near-abi",
+    "dep:zstd",
+    "dep:schemars",
+    "dep:tempfile",
+    "dep:wasm-opt",
+    "dep:humantime",
 ]
 docker = [
-  "dep:near-verify-rs",
-  "dep:serde_json",
-  "dep:url",
-  "dep:serde",
-  "dep:git2",
-  "dep:unix_path",
-  "dep:tempfile",
-  "dep:regex",
+    "dep:near-verify-rs",
+    "dep:serde_json",
+    "dep:url",
+    "dep:serde",
+    "dep:git2",
+    "dep:unix_path",
+    "dep:tempfile",
+    "dep:regex",
 ]
 test_code = []
