@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.0...cargo-near-build-v0.11.1) - 2026-02-03
+
+### Fixed
+
+- use profile flag for get_cli_command_for_lib_context ([#393](https://github.com/near/cargo-near/pull/393))
+- toolchain version detection and ensure consistent toolchain usage across build operations ([#383](https://github.com/near/cargo-near/pull/383))
+
+### Other
+
+- update workspace and project template to Rust edition 2024 ([#394](https://github.com/near/cargo-near/pull/394))
+
 ## [0.11.0](https://github.com/near/cargo-near/compare/cargo-near-build-v0.10.0...cargo-near-build-v0.11.0) - 2026-01-12
 
 ### Added
