@@ -1,7 +1,7 @@
 use cargo_near_build::docker::BuildContext;
 
-use cargo_near_build::docker;
 use cargo_near_build::BuildArtifact;
+use cargo_near_build::docker;
 
 #[derive(Debug, Default, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(input_context = cargo_near_build::docker::BuildContext)]

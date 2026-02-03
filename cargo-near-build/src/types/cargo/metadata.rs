@@ -10,8 +10,8 @@ use colored::Colorize;
 use eyre::OptionExt;
 use eyre::{ContextCompat, WrapErr};
 
-use crate::types::near::build::common_buildtime_env;
 use crate::types::near::OutputPaths;
+use crate::types::near::build::common_buildtime_env;
 use crate::{env_keys, pretty_print};
 
 use super::manifest_path::ManifestPath;

@@ -1,6 +1,6 @@
 // Find NEAR documentation at https://docs.near.org
 use near_sdk::json_types::U64;
-use near_sdk::{env, near, require, AccountId, NearToken, PanicOnDefault, Promise, Timestamp};
+use near_sdk::{AccountId, NearToken, PanicOnDefault, Promise, Timestamp, env, near, require};
 
 // Define the contract structure
 #[near(contract_state)]
@@ -130,8 +130,8 @@ impl Contract {
 mod tests {
     use super::*;
     use near_sdk::json_types::U64;
-    use near_sdk::test_utils::{accounts, VMContextBuilder};
-    use near_sdk::{testing_env, AccountId};
+    use near_sdk::test_utils::{VMContextBuilder, accounts};
+    use near_sdk::{AccountId, testing_env};
 
     fn get_context(predecessor_account_id: AccountId) -> VMContextBuilder {
         let mut builder = VMContextBuilder::new();
