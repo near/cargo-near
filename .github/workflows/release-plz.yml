@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.RELEASE_PLZ_GITHUB_TOKEN }}
+          token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --assume-yes libudev-dev
@@ -27,5 +27,5 @@ jobs:
         uses: MarcoIeni/release-plz-action@v0.5
         env:
           # https://release-plz.ieni.dev/docs/github/trigger
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
