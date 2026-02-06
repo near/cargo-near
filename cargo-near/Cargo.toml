@@ -31,7 +31,7 @@ clap = { version = "4.0.18", features = ["derive", "env"] }
 colored = "3"
 serde = "1.0.197"
 color-eyre = "0.6"
-inquire-clack = "0.1.0"
+inquire = "0.9.3"
 strum = { version = "0.24", features = ["derive"] }
 strum_macros = "0.24"
 linked-hash-map = { version = "0.5", features = ["serde_impl"] }
@@ -39,7 +39,7 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "2"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-near-cli-rs = { version = "0.23", default-features = false }
+near-cli-rs = { version = "0.23.6", default-features = false }
 near-primitives = { version = "0.34", default-features = false }
 reqwest = "0.12.5"
 indenter = "0.3"
