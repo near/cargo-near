@@ -1,2 +1,6 @@
 [advisories]
-ignore = ["RUSTSEC-2021-0145"]
+ignore = [
+    "RUSTSEC-2021-0145",
+    # used in near-primitives. prase is not used for user input for now
+    "RUSTSEC-2026-0009",
+]
