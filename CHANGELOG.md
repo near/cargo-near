@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.2](https://github.com/near/cargo-near/compare/cargo-near-v0.19.1...cargo-near-v0.19.2) - 2026-02-07
+
+### Other
+
+- *(cargo-near)* bump MSRV to 1.88 ([#399](https://github.com/near/cargo-near/pull/399))
+
 ## [0.19.1](https://github.com/near/cargo-near/compare/cargo-near-v0.19.0...cargo-near-v0.19.1) - 2026-02-03
 
 ### Fixed
