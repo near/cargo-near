@@ -1,6 +1,6 @@
 [package]
 name = "cargo-near"
-version = "0.19.1"
+version = "0.19.2"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition.workspace = true
 rust-version = "1.88"
