@@ -473,7 +473,7 @@ dependencies = [
  "colored",
  "derive_more",
  "indenter",
- "inquire-clack",
+ "inquire",
  "interactive-clap",
  "linked-hash-map",
  "names",
@@ -1228,7 +1228,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users 0.5.2",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1391,7 +1391,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2202,10 +2202,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "inquire-clack"
-version = "0.1.0"
+name = "inquire"
+version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a10cedfa14f14aaae2a68f33285baafb1b47a133abcc9ebe8471479e64b6f73"
+checksum = "979f5ab9760427ada4fa5762b2d905e5b12704fb1fada07b6bfa66aeaa586f87"
 dependencies = [
  "bitflags 2.10.0",
  "crossterm",
@@ -2271,7 +2271,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2868,9 +2868,9 @@ dependencies = [
 
 [[package]]
 name = "near-cli-rs"
-version = "0.23.5"
+version = "0.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "269bf8a708553b29e5592ba9eb3a4c1afcbff39c4db9a59ff5ba6d384380f01f"
+checksum = "9b0dd7194a93b96f1def65d8048b7c4adf8036cffed8d2ecdd863032645f8b8f"
 dependencies = [
  "bip39",
  "borsh",
@@ -2886,7 +2886,7 @@ dependencies = [
  "futures",
  "hex",
  "indenter",
- "inquire-clack",
+ "inquire",
  "interactive-clap",
  "interactive-clap-derive",
  "keyring",
@@ -3386,7 +3386,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4148,7 +4148,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.11.0",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4989,7 +4989,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.3",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5899,7 +5899,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
