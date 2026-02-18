@@ -1,7 +1,7 @@
 use cargo_near_build::near_abi::{
     AbiFunction, AbiFunctionKind, AbiJsonParameter, AbiParameters, AbiType,
 };
-use cargo_near_integration_tests::{generate_abi_fn, generate_abi};
+use cargo_near_integration_tests::{generate_abi, generate_abi_fn};
 use function_name::named;
 use schemars::r#gen::SchemaGenerator;
 
@@ -79,8 +79,16 @@ fn test_no_mangle_with_cfg() -> cargo_near::CliResult {
     // Verify ABI was generated successfully
     // Expected: 2 functions (get_value + __contract_abi metadata function)
     assert_eq!(abi_root.body.functions.len(), 2);
-    let function = &abi_root.body.functions[0];
-    assert_eq!(function.name, "get_value");
+
+    let function_names = abi_root
+        .body
+        .functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect::<Vec<_>>();
+
+    assert!(function_names.contains(&"get_value"));
+    assert!(!function_names.contains(&"custom_function"));
 
     Ok(())
 }

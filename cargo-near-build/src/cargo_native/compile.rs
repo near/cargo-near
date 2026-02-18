@@ -34,7 +34,10 @@ where
             // Use Box::leak to convert String to &'static str since env expects &str.
             // This is intentional: the leaked memory is minimal (one string per compilation),
             // and the process exits after compilation completes.
-            env.insert(crate::env_keys::RUSTFLAGS, Box::leak(combined_rustflags.into_boxed_str()));
+            env.insert(
+                crate::env_keys::RUSTFLAGS,
+                Box::leak(combined_rustflags.into_boxed_str()),
+            );
         }
         env
     };
