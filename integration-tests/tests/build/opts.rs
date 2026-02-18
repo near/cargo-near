@@ -1,5 +1,5 @@
 use crate::util;
-use cargo_near_integration_tests::{build_fn_with, setup_tracing};
+use cargo_near_integration_tests::{build_fn_with, build_with, setup_tracing};
 use function_name::named;
 use std::fs;
 
@@ -119,6 +119,53 @@ async fn test_build_custom_profile() -> testresult::TestResult {
     assert_eq!(abi_root.body.functions.len(), 2);
     assert!(build_result.abi_compressed.is_some());
     util::test_add(&build_result.wasm).await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+#[named]
+async fn test_build_with_unguarded_no_mangle_function() -> testresult::TestResult {
+    setup_tracing();
+    let build_result = build_with! {
+        Code:
+        use near_sdk::near;
+
+        #[near(contract_state)]
+        #[derive(Default)]
+        pub struct Contract {}
+
+        #[near]
+        impl Contract {
+            pub fn get_value(&self) -> u32 {
+                42
+            }
+        }
+
+        #[unsafe(no_mangle)]
+        pub extern "C" fn custom_function() {
+            unsafe {
+                near_sdk::sys::input(0);
+            }
+        }
+    };
+
+    let abi_root = build_result
+        .abi_root
+        .expect("ABI should be generated for the contract");
+    let function_names = abi_root
+        .body
+        .functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect::<Vec<_>>();
+    assert!(function_names.contains(&"get_value"));
+    assert!(!function_names.contains(&"custom_function"));
+
+    let worker = near_workspaces::sandbox().await?;
+    let contract = worker.dev_deploy(&build_result.wasm).await?;
+    let outcome = contract.call("get_value").view().await?;
+    assert_eq!(outcome.json::<u32>()?, 42);
 
     Ok(())
 }
