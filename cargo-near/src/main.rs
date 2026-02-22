@@ -31,6 +31,31 @@ fn pre_setup() -> CliResult {
 fn main() -> CliResult {
     pre_setup()?;
 
+    let handle = std::thread::spawn(cargo_near::commands::self_update::get_latest_version);
+
+    let result = run();
+
+    if !env::args().any(|arg| arg == "self-update")
+        && let Ok(Ok(latest)) = handle.join()
+        && let (Ok(current), Ok(latest)) = (
+            semver::Version::parse(self_update::cargo_crate_version!()),
+            semver::Version::parse(&latest),
+        )
+        && current < latest
+    {
+        eprintln!(
+            "\ncargo-near has a new update available \x1b[2m{current}\x1b[0m → \x1b[32m{latest}\x1b[0m"
+        );
+        eprintln!(
+            "To update run: {} near self-update",
+            env::args().next().as_deref().unwrap_or("cargo")
+        );
+    }
+
+    result
+}
+
+fn run() -> CliResult {
     inquire::set_global_render_config(near_cli_rs::get_global_render_config());
 
     build_non_reproducible_wasm::rule::enforce_this_program_args()?;

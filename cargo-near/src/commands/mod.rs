@@ -5,6 +5,7 @@ pub mod build;
 pub mod create_dev_account;
 pub mod deploy;
 pub mod new;
+pub mod self_update;
 
 #[derive(Debug, EnumDiscriminants, Clone, interactive_clap::InteractiveClap)]
 #[interactive_clap(context = near_cli_rs::GlobalContext)]
@@ -38,4 +39,9 @@ pub enum NearCommand {
     #[strum_discriminants(strum(message = "deploy              -  Add a new contract code"))]
     /// Add a new contract code
     Deploy(self::deploy::Command),
+    #[strum_discriminants(strum(
+        message = "self-update         -  Update cargo-near to the latest version"
+    ))]
+    /// Update cargo-near to the latest version
+    SelfUpdate(self::self_update::SelfUpdateCommand),
 }
