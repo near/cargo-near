@@ -57,7 +57,7 @@ pub fn get_latest_version() -> color_eyre::eyre::Result<String> {
     let release = self_update::backends::github::Update::configure()
         .repo_owner("near")
         .repo_name("cargo-near")
-        .bin_name("cargo-near")
+        .bin_name(BIN_NAME)
         .current_version(self_update::cargo_crate_version!())
         .build()
         .map_err(|err| color_eyre::eyre::eyre!("Failed to build self_update: {err}"))?
