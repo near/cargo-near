@@ -44,7 +44,9 @@ fn main() -> CliResult {
         && current < latest
     {
         eprintln!(
-            "\ncargo-near has a new update available \x1b[2m{current}\x1b[0m → \x1b[32m{latest}\x1b[0m"
+            "\ncargo-near has a new update available {} → {}",
+            current.to_string().dimmed(),
+            latest.to_string().green()
         );
         eprintln!(
             "To update run: {} near self-update",

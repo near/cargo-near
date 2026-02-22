@@ -1,3 +1,5 @@
+use colored::Colorize;
+
 #[cfg(windows)]
 const BIN_NAME: &str = "cargo-near.exe";
 #[cfg(not(windows))]
@@ -26,8 +28,8 @@ impl SelfUpdateCommandContext {
             && current_version >= latest_version
         {
             println!(
-                "cargo-near is up to date (\x1b[32mv{}\x1b[0m)\n",
-                self_update::cargo_crate_version!()
+                "cargo-near is up to date ({})\n",
+                format!("v{}", self_update::cargo_crate_version!()).green()
             );
             return Ok(Self);
         }
