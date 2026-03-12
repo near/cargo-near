@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Add resolver field to Cargo.template.toml so MSRV is respected ([#405](https://github.com/near/cargo-near/pull/405))
+- Add resolver field to Cargo.template.toml so MSRV is respected and update dependencies to make `cargo-near` faster ([#405](https://github.com/near/cargo-near/pull/405))
 
 ## [0.19.2](https://github.com/near/cargo-near/compare/cargo-near-v0.19.1...cargo-near-v0.19.2) - 2026-02-08
 
