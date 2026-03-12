@@ -767,7 +767,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2856,9 +2856,9 @@ dependencies = [
 
 [[package]]
 name = "near-api"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "321d2778c3cfb314cf6410376788a17b5c34f6154ee61bcd1579748edda454bb"
+checksum = "42e581e637caa8ca9f3dc86936606f3a87ab55211fbf76dcf98725c4f4854211"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -2882,9 +2882,9 @@ dependencies = [
 
 [[package]]
 name = "near-api-types"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4740cd9996fda91dd1cc9034528f0e987ac2c2266f15c6459df7a595e11eb71"
+checksum = "676c29c763f46fa05bdbc113e1f83ed22f328038f74a5730989aa163de6fb83c"
 dependencies = [
  "base64 0.22.1",
  "borsh",
@@ -3104,9 +3104,9 @@ dependencies = [
 
 [[package]]
 name = "near-openapi-client"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6d2a3dd4e669e14cdd0748b449d7539d0b0fefba17ed8e2d1404a0826908630"
+checksum = "8e8fe91841f4461a91be35e4faa72dafb51aeef098307566a90bf9018e5b880d"
 dependencies = [
  "bytes",
  "chrono",
@@ -3121,9 +3121,9 @@ dependencies = [
 
 [[package]]
 name = "near-openapi-types"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e0c9eaf432ddedd9409d6b1477b49e94679c077adbadce173292f759454afc7"
+checksum = "33e29423e4795f7733d7c431ec7c4edcd6e199cc8a5ea4843834660f13bbfa8a"
 dependencies = [
  "bs58 0.5.1",
  "chrono",
@@ -3955,9 +3955,9 @@ dependencies = [
 
 [[package]]
 name = "quinn-proto"
-version = "0.11.13"
+version = "0.11.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1906b49b0c3bc04b5fe5d86a77925ae6524a19b816ae38ce1e426255f1d8a31"
+checksum = "434b42fec591c96ef50e21e886936e66d3cc3f737104fdb9b737c40ffb94c098"
 dependencies = [
  "bytes",
  "getrandom 0.3.4",
@@ -6136,7 +6136,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
