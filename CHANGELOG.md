@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0](https://github.com/near/cargo-near/compare/cargo-near-v0.19.2...cargo-near-v0.20.0) - 2026-03-12
+
+### Added
+
+- added self update ([#402](https://github.com/near/cargo-near/pull/402))
+
+### Fixed
+
+- Add resolver field to Cargo.template.toml so MSRV is respected ([#405](https://github.com/near/cargo-near/pull/405))
+
 ## [0.19.2](https://github.com/near/cargo-near/compare/cargo-near-v0.19.1...cargo-near-v0.19.2) - 2026-02-08
 
 ### Added
