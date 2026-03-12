@@ -679,9 +679,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.54"
+version = "4.5.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6e6ff9dcd79cff5cd969a17a545d79e84ab086e444102a591e288a8aa3ce394"
+checksum = "6899ea499e3fb9305a65d5ebf6e3d2248c5fab291f300ad0a704fbe142eae31a"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -689,9 +689,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.54"
+version = "4.5.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa42cf4d2b7a41bc8f663a7cab4031ebafa1bf3875705bfaf8466dc60ab52c00"
+checksum = "7b12c8b680195a62a8364d16b8447b01b6c2c8f9aaf68bee653be34d4245e238"
 dependencies = [
  "anstream",
  "anstyle",
@@ -701,9 +701,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.49"
+version = "4.5.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a0b5487afeab2deb2ff4e03a807ad1a03ac532ff5a2cee5d86884440c7f7671"
+checksum = "a92793da1a46a5f2a02a6f4c46c6496b28c43638adea8306fcb0caa1634f24e5"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -1456,6 +1456,28 @@ name = "fallible-iterator"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2acce4a10f12dc2fb14a218589d4f1f62ef011b2d0cc4b3cb1bba8e94da14649"
+
+[[package]]
+name = "fast_clap"
+version = "4.5.57"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bda8fd22146f1b4a401b785628998703be73e09eadc1afab0969fe163d2ff63e"
+dependencies = [
+ "clap_builder",
+ "fast_clap_derive",
+]
+
+[[package]]
+name = "fast_clap_derive"
+version = "4.5.55"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04bfa9fed95d90dcfdb6970d40f131e52b0d980910af127a21e871f49d20b69b"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
+]
 
 [[package]]
 name = "fastrand"
@@ -2856,9 +2878,9 @@ dependencies = [
 
 [[package]]
 name = "near-api"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "321d2778c3cfb314cf6410376788a17b5c34f6154ee61bcd1579748edda454bb"
+checksum = "42e581e637caa8ca9f3dc86936606f3a87ab55211fbf76dcf98725c4f4854211"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -2882,9 +2904,9 @@ dependencies = [
 
 [[package]]
 name = "near-api-types"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4740cd9996fda91dd1cc9034528f0e987ac2c2266f15c6459df7a595e11eb71"
+checksum = "676c29c763f46fa05bdbc113e1f83ed22f328038f74a5730989aa163de6fb83c"
 dependencies = [
  "base64 0.22.1",
  "borsh",
@@ -2931,21 +2953,21 @@ dependencies = [
 
 [[package]]
 name = "near-cli-rs"
-version = "0.23.6"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b0dd7194a93b96f1def65d8048b7c4adf8036cffed8d2ecdd863032645f8b8f"
+checksum = "bdc28b0dff50891c77958b33bb7365b8ea55d2a17a40d6c0cebf812e8a433349"
 dependencies = [
  "bip39",
  "borsh",
  "bs58 0.5.1",
  "bytesize",
  "cargo-util",
- "clap",
  "color-eyre",
  "derive_more",
  "dirs",
  "easy-ext 1.0.2",
  "ed25519-dalek",
+ "fast_clap",
  "futures",
  "hex",
  "indenter",
@@ -3104,9 +3126,9 @@ dependencies = [
 
 [[package]]
 name = "near-openapi-client"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6d2a3dd4e669e14cdd0748b449d7539d0b0fefba17ed8e2d1404a0826908630"
+checksum = "8e8fe91841f4461a91be35e4faa72dafb51aeef098307566a90bf9018e5b880d"
 dependencies = [
  "bytes",
  "chrono",
@@ -3121,9 +3143,9 @@ dependencies = [
 
 [[package]]
 name = "near-openapi-types"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e0c9eaf432ddedd9409d6b1477b49e94679c077adbadce173292f759454afc7"
+checksum = "33e29423e4795f7733d7c431ec7c4edcd6e199cc8a5ea4843834660f13bbfa8a"
 dependencies = [
  "bs58 0.5.1",
  "chrono",
@@ -3955,9 +3977,9 @@ dependencies = [
 
 [[package]]
 name = "quinn-proto"
-version = "0.11.13"
+version = "0.11.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1906b49b0c3bc04b5fe5d86a77925ae6524a19b816ae38ce1e426255f1d8a31"
+checksum = "434b42fec591c96ef50e21e886936e66d3cc3f737104fdb9b737c40ffb94c098"
 dependencies = [
  "bytes",
  "getrandom 0.3.4",
