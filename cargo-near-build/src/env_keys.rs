@@ -36,10 +36,12 @@ pub(crate) const CARGO_NEAR_VERSION: &str = "CARGO_NEAR_VERSION";
 #[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
 
-/// C compiler flags, respected by the `cc` crate when compiling C dependencies
-pub const CFLAGS_ENV: &str = "CFLAGS";
-/// C++ compiler flags, respected by the `cc` crate when compiling C++ dependencies
-pub const CXXFLAGS_ENV: &str = "CXXFLAGS";
+/// Target-scoped C compiler flags for wasm32, respected by the `cc` crate.
+/// The `cc` crate checks `CFLAGS_<target>` before `CFLAGS`, allowing
+/// target-specific flags without affecting host-side C compilation.
+pub const CFLAGS_WASM32_ENV: &str = "CFLAGS_wasm32_unknown_unknown";
+/// Target-scoped C++ compiler flags for wasm32, respected by the `cc` crate.
+pub const CXXFLAGS_WASM32_ENV: &str = "CXXFLAGS_wasm32_unknown_unknown";
 
 pub const COLOR_PREFERENCE_NO_COLOR: &str = "NO_COLOR";
 

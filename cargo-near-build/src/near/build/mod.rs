@@ -220,8 +220,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             // `-mcpu=mvp` restricts the C compiler to the MVP instruction set.
             // Note: `-mno-bulk-memory` is insufficient as LLVM 21 ignores it for the
             // separate `bulk-memory-opt` feature.
-            (env_keys::CFLAGS_ENV, "-mcpu=mvp"),
-            (env_keys::CXXFLAGS_ENV, "-mcpu=mvp"),
+            // Target-scoped env vars ensure only wasm32 C compilation is affected,
+            // not any host-side C code compiled during the build.
+            (env_keys::CFLAGS_WASM32_ENV, "-mcpu=mvp"),
+            (env_keys::CXXFLAGS_WASM32_ENV, "-mcpu=mvp"),
         ];
         build_env.extend(
             args.env
