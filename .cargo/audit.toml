@@ -3,8 +3,7 @@ ignore = [
     "RUSTSEC-2021-0145",
     # used in near-primitives. prase is not used for user input for now
     "RUSTSEC-2026-0009",
-    # keccak 0.1.5 yanked due to unsound ARMv8 assembly (opt-in backend).
-    # Transitive dep via near-primitives -> sha3 0.10.8 -> keccak 0.1.5.
-    # Waiting on near-primitives to upgrade sha3 to 0.11+.
-    "RUSTSEC-2026-0012",
+    # git2: potential undefined behavior when dereferencing Buf struct.
+    # Transitive dep, waiting on upstream fix.
+    "RUSTSEC-2026-0008",
 ]
