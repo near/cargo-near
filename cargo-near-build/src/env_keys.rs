@@ -36,6 +36,11 @@ pub(crate) const CARGO_NEAR_VERSION: &str = "CARGO_NEAR_VERSION";
 #[cfg(feature = "build_internal")]
 pub(crate) const CARGO_NEAR_ABI_SCHEMA_VERSION: &str = "CARGO_NEAR_ABI_SCHEMA_VERSION";
 
+/// C compiler flags, respected by the `cc` crate when compiling C dependencies
+pub const CFLAGS_ENV: &str = "CFLAGS";
+/// C++ compiler flags, respected by the `cc` crate when compiling C++ dependencies
+pub const CXXFLAGS_ENV: &str = "CXXFLAGS";
+
 pub const COLOR_PREFERENCE_NO_COLOR: &str = "NO_COLOR";
 
 use std::collections::HashMap;
