@@ -223,8 +223,14 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
             // enabled as NearVM supports them since protocol 62.
             // Target-scoped env vars ensure only wasm32 C compilation is affected,
             // not any host-side C code compiled during the build.
-            (env_keys::CFLAGS_WASM32_ENV, "-mno-bulk-memory -mno-bulk-memory-opt"),
-            (env_keys::CXXFLAGS_WASM32_ENV, "-mno-bulk-memory -mno-bulk-memory-opt"),
+            (
+                env_keys::CFLAGS_WASM32_ENV,
+                "-mno-bulk-memory -mno-bulk-memory-opt",
+            ),
+            (
+                env_keys::CXXFLAGS_WASM32_ENV,
+                "-mno-bulk-memory -mno-bulk-memory-opt",
+            ),
         ];
         build_env.extend(
             args.env
