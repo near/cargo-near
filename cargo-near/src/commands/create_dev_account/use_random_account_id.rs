@@ -24,7 +24,7 @@ impl RandomAccountContext {
         _scope: &<RandomAccount as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
     ) -> color_eyre::eyre::Result<Self> {
         let credentials_home_dir = previous_context.config.credentials_home_dir.clone();
-        let random_account_id = random_account_id(&previous_context.config.network_connection)?;
+        let random_account_id = random_account_id(&previous_context)?;
 
         let on_before_creating_account_callback: network::OnBeforeCreatingAccountCallback =
             std::sync::Arc::new({
@@ -55,14 +55,14 @@ impl From<RandomAccountContext> for NewAccountContext {
 }
 
 pub fn random_account_id(
-    networks: &linked_hash_map::LinkedHashMap<String, near_cli_rs::config::NetworkConfig>,
+    context: &near_cli_rs::GlobalContext,
 ) -> color_eyre::eyre::Result<near_cli_rs::types::account_id::AccountId> {
     loop {
         let mut generator = Generator::default();
         let random_name = generator.next().wrap_err("Random name generator error")?;
         let account_id =
             near_cli_rs::types::account_id::AccountId::from_str(&format!("{random_name}.testnet"))?;
-        if !near_cli_rs::common::is_account_exist(networks, account_id.clone().into())? {
+        if !near_cli_rs::common::is_account_exist(context, account_id.clone().into())? {
             return Ok(account_id);
         }
     }
