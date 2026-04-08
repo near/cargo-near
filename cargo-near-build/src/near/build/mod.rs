@@ -211,7 +211,27 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
 
     let build_env = {
-        let mut build_env = vec![(env_keys::RUSTFLAGS, "-C link-arg=-s")];
+        let mut build_env = vec![
+            (env_keys::RUSTFLAGS, "-C link-arg=-s"),
+            // Prevent C/C++ dependencies (compiled via the `cc` crate) from emitting
+            // bulk-memory wasm instructions (`memory.fill`/`memory.copy`).
+            // LLVM 21+ enables `bulk-memory` and `bulk-memory-opt` by default for
+            // wasm32, but NEAR's VM rejects these instructions.
+            // Both flags are needed: `-mno-bulk-memory` alone is insufficient because
+            // LLVM 21 introduced a separate `bulk-memory-opt` feature that it doesn't
+            // cover. Other post-MVP features (sign-ext, mutable-globals) are left
+            // enabled as NearVM supports them since protocol 62.
+            // Target-scoped env vars ensure only wasm32 C compilation is affected,
+            // not any host-side C code compiled during the build.
+            (
+                env_keys::CFLAGS_WASM32_ENV,
+                "-mno-bulk-memory -mno-bulk-memory-opt",
+            ),
+            (
+                env_keys::CXXFLAGS_WASM32_ENV,
+                "-mno-bulk-memory -mno-bulk-memory-opt",
+            ),
+        ];
         build_env.extend(
             args.env
                 .iter()
