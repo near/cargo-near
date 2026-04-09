@@ -1,7 +1,7 @@
 use cargo_near_build::near_abi::{
     AbiFunction, AbiFunctionKind, AbiJsonParameter, AbiParameters, AbiType,
 };
-use cargo_near_integration_tests::generate_abi_fn;
+use cargo_near_integration_tests::{generate_abi_fn, generate_abi_with};
 use function_name::named;
 use schemars::r#gen::SchemaGenerator;
 
@@ -43,6 +43,45 @@ fn test_simple_function() -> cargo_near::CliResult {
             })
         }
     );
+
+    Ok(())
+}
+
+#[test]
+#[named]
+fn test_abi_with_unguarded_no_mangle_function() -> cargo_near::CliResult {
+    let abi_root = generate_abi_with! {
+        Code:
+        use near_sdk::near;
+
+        #[near(contract_state)]
+        #[derive(Default)]
+        pub struct Contract {}
+
+        #[near]
+        impl Contract {
+            pub fn get_value(&self) -> u32 {
+                42
+            }
+        }
+
+        #[unsafe(no_mangle)]
+        pub extern "C" fn custom_function() {
+            unsafe {
+                near_sdk::sys::input(0);
+            }
+        }
+    };
+
+    let function_names = abi_root
+        .body
+        .functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect::<Vec<_>>();
+
+    assert!(function_names.contains(&"get_value"));
+    assert!(!function_names.contains(&"custom_function"));
 
     Ok(())
 }
