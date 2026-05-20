@@ -62,7 +62,12 @@ jobs:
         with:
           command: release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Uses a PAT so that tags pushed by release-plz trigger the
+          # cargo-near-v-release.yml binary release workflow (downstream
+          # workflows don't fire when triggered by the default GITHUB_TOKEN).
+          # OIDC handles the actual crates.io publish; the PAT only covers
+          # the git tag push and GitHub Release creation.
+          GITHUB_TOKEN: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
 
       # release-plz doesn't expose the produced .crate paths, so re-package locally.
       # The crate tarballs are reproducible from the same commit, so the attestations
