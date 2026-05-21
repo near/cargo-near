@@ -210,31 +210,57 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
 
-    // Resolve effective RUSTFLAGS: user-provided via `args.env` (last entry wins, per env-var
-    // convention) takes precedence over the default `-C link-arg=-s`. Then force-append
-    // `--cfg near` so a power user overriding RUSTFLAGS via `--env` can't accidentally drop it
-    // — `--cfg near` is semantically required to select the on-chain host-function path in
-    // near-sdk >= 5.27.
+    // Resolve effective wasm-build rustflags as a token list, in priority order:
+    //   1. default tokens: ["-C", "link-arg=-s"]
+    //   2. user-provided RUSTFLAGS via args.env, parsed as whitespace-split tokens
+    //   3. user-provided CARGO_ENCODED_RUSTFLAGS via args.env, parsed as 0x1f-split tokens
+    //      (ENCODED wins over RUSTFLAGS, matching cargo's own precedence)
+    // Then ["--cfg", "near"] is force-appended so it can't be dropped by user overrides —
+    // it's semantically required to select the on-chain host-function path in near-sdk >= 5.27.
     //
-    // (Switching the canonical carrier to `CARGO_ENCODED_RUSTFLAGS` for robustness against
-    // args-with-spaces is a separate, larger refactor and is deferred — see issue #416.)
-    let default_rustflags = "-C link-arg=-s";
-    let base_rustflags = args
+    // We carry the result as CARGO_ENCODED_RUSTFLAGS (0x1f-separated) for robustness against
+    // args containing spaces (e.g. paths in `-L`). Cargo prefers ENCODED over RUSTFLAGS when
+    // both are set, so we forward neither RUSTFLAGS nor CARGO_ENCODED_RUSTFLAGS from args.env
+    // afterward to avoid double-setting.
+    let user_encoded =
+        args.env.iter().rev().find_map(|(k, v)| {
+            (k.as_str() == env_keys::CARGO_ENCODED_RUSTFLAGS).then_some(v.as_str())
+        });
+    let user_rustflags = args
         .env
         .iter()
         .rev()
-        .find_map(|(k, v)| (k.as_str() == env_keys::RUSTFLAGS).then_some(v.as_str()))
-        .unwrap_or(default_rustflags);
-    let final_rustflags = format!("{base_rustflags} --cfg near");
+        .find_map(|(k, v)| (k.as_str() == env_keys::RUSTFLAGS).then_some(v.as_str()));
+
+    let mut rustflag_tokens: Vec<String> = if let Some(encoded) = user_encoded {
+        encoded
+            .split('\x1f')
+            .filter(|s| !s.is_empty())
+            .map(String::from)
+            .collect()
+    } else if let Some(rustflags) = user_rustflags {
+        rustflags.split_whitespace().map(String::from).collect()
+    } else {
+        vec!["-C".into(), "link-arg=-s".into()]
+    };
+    rustflag_tokens.push("--cfg".into());
+    rustflag_tokens.push("near".into());
+    let encoded_rustflags = rustflag_tokens.join("\x1f");
 
     let build_env = {
-        let mut build_env = vec![(env_keys::RUSTFLAGS, final_rustflags.as_str())];
-        // Forward all other args.env entries, but skip RUSTFLAGS (already folded into
-        // `final_rustflags` above).
+        let mut build_env: Vec<(&str, &str)> = vec![(
+            env_keys::CARGO_ENCODED_RUSTFLAGS,
+            encoded_rustflags.as_str(),
+        )];
+        // Forward all other args.env entries, but skip the rustflags carriers — they've already
+        // been folded into `encoded_rustflags` above.
         build_env.extend(
             args.env
                 .iter()
-                .filter(|(k, _)| k.as_str() != env_keys::RUSTFLAGS)
+                .filter(|(k, _)| {
+                    k.as_str() != env_keys::RUSTFLAGS
+                        && k.as_str() != env_keys::CARGO_ENCODED_RUSTFLAGS
+                })
                 .map(|(key, value)| (key.as_str(), value.as_str())),
         );
 

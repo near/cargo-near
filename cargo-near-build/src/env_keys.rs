@@ -6,12 +6,16 @@ pub const BUILD_RS_ABI_STEP_HINT: &str = "CARGO_NEAR_ABI_GENERATION";
 /// <https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags>
 ///
 /// this behaviour that
-/// 1. default value for RUSTFLAGS for wasm build is "-C link-arg=-s"
-/// 2. it can be overridden with values from --env arguments
-/// 3. `--cfg near` is force-appended to the effective RUSTFLAGS (after any override) so
-///    `near-sdk` selects the on-chain host-function path
-/// 4. default RUSTFLAGS for abi gen are "-Awarnings"
-/// 5. RUSTFLAGS aren't concatenated (implicitly) with values from environment
+/// 1. for the wasm build stage, the canonical carrier is [`CARGO_ENCODED_RUSTFLAGS`]
+///    (more robust than RUSTFLAGS against args containing spaces). RUSTFLAGS supplied via
+///    `--env` is still honored — it gets translated into the encoded form, and
+///    CARGO_ENCODED_RUSTFLAGS-via-`--env` wins over RUSTFLAGS-via-`--env` (matching cargo's
+///    own precedence)
+/// 2. the default token list is `-C link-arg=-s`
+/// 3. `--cfg near` is force-appended to the effective tokens (after any override) so
+///    `near-sdk` selects the on-chain host-function path; it cannot be dropped by user override
+/// 4. for the abi gen stage, RUSTFLAGS is still used with `-Awarnings`
+/// 5. ambient RUSTFLAGS / CARGO_ENCODED_RUSTFLAGS from the user's shell are NOT inherited
 ///
 /// is documented in RUSTFLAGS section of README.md
 pub const RUSTFLAGS: &str = "RUSTFLAGS";
@@ -21,10 +25,9 @@ pub const RUSTUP_TOOLCHAIN: &str = "RUSTUP_TOOLCHAIN";
 
 /// <https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags>
 ///
-/// this behaviour that
-/// 1. CARGO_ENCODED_RUSTFLAGS gets unset by default
-///
-/// is documented in CARGO_ENCODED_RUSTFLAGS section of README.md
+/// See the doc on [`RUSTFLAGS`] for the full behaviour. Summary: this is the canonical carrier
+/// for wasm-build rustflags (set explicitly by cargo-near, 0x1f-separated), ambient values from
+/// the user's shell are stripped, and `--cfg near` is force-appended.
 pub const CARGO_ENCODED_RUSTFLAGS: &str = "CARGO_ENCODED_RUSTFLAGS";
 
 /// see `PROFILE` in <https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-build-scripts>
