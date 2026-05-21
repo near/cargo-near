@@ -211,7 +211,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
 
     let build_env = {
-        let mut build_env = vec![(env_keys::RUSTFLAGS, "-C link-arg=-s")];
+        let mut build_env = vec![(env_keys::RUSTFLAGS, "-C link-arg=-s --cfg near")];
         build_env.extend(
             args.env
                 .iter()

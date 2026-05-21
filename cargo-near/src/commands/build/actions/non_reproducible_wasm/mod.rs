@@ -114,7 +114,7 @@ pub struct BuildOpts {
     /// This makes sense to be used to specify custom `RUSTFLAGS` for wasm build:
     /// ```bash
     /// cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose'
-    /// RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s'
+    /// RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s --cfg near'
     /// ```
     /// This is also used with `passed_env` config in Cargo.toml manifest during reproducible builds,
     /// as an internal detail, allowing to persist info about environment in contract's metadata.
