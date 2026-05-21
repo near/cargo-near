@@ -266,17 +266,25 @@ RUSTFLAGS="your_custom_value" cargo near build non-reproducible-wasm
 ```
 won't result in `"your_custom_value"` affecting the build.
 
-`RUSTFLAGS="-Awarnings"` is always used for abi build stage, and `RUSTFLAGS="-C link-arg=-s --cfg near"` for wasm build stage. The `--cfg near` flag is read by `near-sdk` (5.27+) to select the on-chain host-function path; see [near/near-sdk-rs#1534](https://github.com/near/near-sdk-rs/pull/1534).
+`RUSTFLAGS="-Awarnings"` is always used for abi build stage. For the wasm build stage the
+default is `RUSTFLAGS="-C link-arg=-s"`, plus `--cfg near` is **force-appended** to whatever
+RUSTFLAGS ends up being (the default, or a user override via `--env`). The `--cfg near` flag is
+read by `near-sdk` (5.27+) to select the on-chain host-function path; see
+[near/near-sdk-rs#1534](https://github.com/near/near-sdk-rs/pull/1534). It cannot be dropped by
+overriding RUSTFLAGS, which prevents contracts from accidentally being built without the
+host-function path.
 
-Logic for concatenating default values of this variable with values from env was removed in `cargo-near-0.13.3`/`cargo-near-build-0.4.3`, as it was seen as
-an unnecessary complication.
+Logic for concatenating default values of this variable with values from env was removed in
+`cargo-near-0.13.3`/`cargo-near-build-0.4.3`, as it was seen as an unnecessary complication.
 
 There's still a way to override this parameter for wasm build stage, e.g.:
 
 ```lang
 cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose'
-RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s --cfg near'
+RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s'
 ```
+
+In both cases `--cfg near` is appended automatically to the resulting RUSTFLAGS.
 
 ### `CARGO_ENCODED_RUSTFLAGS`
 

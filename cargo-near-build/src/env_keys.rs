@@ -6,10 +6,12 @@ pub const BUILD_RS_ABI_STEP_HINT: &str = "CARGO_NEAR_ABI_GENERATION";
 /// <https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags>
 ///
 /// this behaviour that
-/// 1. default value for RUSTFLAGS for wasm build is "-C link-arg=-s --cfg near"
+/// 1. default value for RUSTFLAGS for wasm build is "-C link-arg=-s"
 /// 2. it can be overridden with values from --env arguments
-/// 3. default RUSTFLAGS for abi gen are "-Awarnings"
-/// 4. RUSTFLAGS aren't concatenated (implicitly) with values from environment
+/// 3. `--cfg near` is force-appended to the effective RUSTFLAGS (after any override) so
+///    `near-sdk` selects the on-chain host-function path
+/// 4. default RUSTFLAGS for abi gen are "-Awarnings"
+/// 5. RUSTFLAGS aren't concatenated (implicitly) with values from environment
 ///
 /// is documented in RUSTFLAGS section of README.md
 pub const RUSTFLAGS: &str = "RUSTFLAGS";

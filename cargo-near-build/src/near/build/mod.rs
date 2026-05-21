@@ -210,12 +210,32 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
 
+    // Resolve effective RUSTFLAGS: user-provided via `args.env` (last entry wins, per env-var
+    // convention) takes precedence over the default `-C link-arg=-s`. Then force-append
+    // `--cfg near` so a power user overriding RUSTFLAGS via `--env` can't accidentally drop it
+    // — `--cfg near` is semantically required to select the on-chain host-function path in
+    // near-sdk >= 5.27.
+    //
+    // (Switching the canonical carrier to `CARGO_ENCODED_RUSTFLAGS` for robustness against
+    // args-with-spaces is a separate, larger refactor and is deferred — see issue #416.)
+    let default_rustflags = "-C link-arg=-s";
+    let base_rustflags = args
+        .env
+        .iter()
+        .rev()
+        .find_map(|(k, v)| (k.as_str() == env_keys::RUSTFLAGS).then_some(v.as_str()))
+        .unwrap_or(default_rustflags);
+    let final_rustflags = format!("{base_rustflags} --cfg near");
+
     let build_env = {
-        let mut build_env = vec![(env_keys::RUSTFLAGS, "-C link-arg=-s --cfg near")];
+        let mut build_env = vec![(env_keys::RUSTFLAGS, final_rustflags.as_str())];
+        // Forward all other args.env entries, but skip RUSTFLAGS (already folded into
+        // `final_rustflags` above).
         build_env.extend(
             args.env
                 .iter()
-                .map(|(key, value)| (key.as_ref(), value.as_ref())),
+                .filter(|(k, _)| k.as_str() != env_keys::RUSTFLAGS)
+                .map(|(key, value)| (key.as_str(), value.as_str())),
         );
 
         abi_path_env.append_borrowed_to(&mut build_env);
