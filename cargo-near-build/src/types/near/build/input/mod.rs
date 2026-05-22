@@ -364,11 +364,11 @@ mod tests {
             ..Default::default()
         };
 
-        let cmd = opts.get_cli_command_for_lib_context();
+        let cmd = opts.to_argv();
         assert!(cmd.contains(&"--skip-rust-version-check".to_string()));
 
         let opts_unset = super::Opts::default();
-        let cmd_unset = opts_unset.get_cli_command_for_lib_context();
+        let cmd_unset = opts_unset.to_argv();
         assert!(!cmd_unset.contains(&"--skip-rust-version-check".to_string()));
     }
 
@@ -415,6 +415,7 @@ mod tests {
             color: Some(super::ColorPreference::Always),
             env: vec![("K".into(), "V".into())],
             override_toolchain: Some("nightly".into()),
+            skip_rust_version_check: true,
             // `profile` is intentionally None — it is mutually exclusive with
             // `no_release` and is covered by `test_opts_get_cli_build_command_for_custom_profile`
             ..Default::default()
@@ -434,5 +435,6 @@ mod tests {
         assert!(has_flag_with_value(&cmd, "--color", "always"));
         assert!(has_flag_with_value(&cmd, "--env", "K=V"));
         assert!(has_flag_with_value(&cmd, "--override-toolchain", "nightly"));
+        assert!(cmd.contains(&"--skip-rust-version-check".to_string()));
     }
 }
