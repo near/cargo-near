@@ -5,11 +5,18 @@ use crate::types::{cargo::manifest_path::ManifestPath, near::build::input::Opts}
 /// Spawns `cargo near build` as a subprocess and returns the path to the wasm
 /// artifact it produced.
 ///
-/// The subprocess is invoked via [`std::process::Command`]; its argv is built
-/// from [`Opts::to_argv`], which is the *only* path by which [`Opts`] fields
-/// reach the subprocess. If a field's value needs to influence the build, it
-/// must be emitted by [`Opts::to_argv`] — otherwise it is silently dropped at
-/// the process boundary.
+/// The subprocess is invoked via [`std::process::Command`]. [`Opts`] fields reach
+/// the subprocess via two channels:
+///
+/// - **argv** — most fields are serialized to CLI flags by [`Opts::to_argv`] and
+///   passed as subprocess arguments.
+/// - **process environment** — `manifest_path` becomes the subprocess's working
+///   directory, and `override_cargo_target_dir`, `override_nep330_*`, and
+///   `override_toolchain` are set as env vars below.
+///
+/// New [`Opts`] fields should typically be wired into [`Opts::to_argv`] — if a
+/// field is neither emitted there nor handled explicitly here, it is silently
+/// dropped at the process boundary.
 pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
     let command = {
         let mut cmd = std::process::Command::new("cargo");

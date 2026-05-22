@@ -21,11 +21,19 @@ pub enum BuildContext {
 ///
 /// # Adding a new field
 ///
-/// When [`build_with_cli`](crate::build_with_cli) is used, [`Opts`] is serialized to argv
-/// for the spawned `cargo near` subprocess via [`Opts::to_argv`]. Any new field whose value
-/// should reach that subprocess must be wired into [`Opts::to_argv`] explicitly — there is
-/// no env var or other propagation path, so a missing emit means the field is silently
-/// dropped at the process boundary.
+/// When [`build_with_cli`](crate::build_with_cli) is used, [`Opts`] fields reach the
+/// spawned `cargo near` subprocess through one of two channels:
+///
+/// 1. **argv** — most fields are serialized to CLI flags by [`Opts::to_argv`] and passed
+///    as subprocess arguments. This is the default path.
+/// 2. **process environment** — a small fixed set of fields are propagated instead (or
+///    additionally) via the subprocess's working directory (`manifest_path`) and env vars
+///    (`override_cargo_target_dir`, `override_nep330_*`, `override_toolchain`) in
+///    `build_external::run`.
+///
+/// New fields should default to the argv path — wire them into [`Opts::to_argv`]. If a
+/// field is neither emitted there nor explicitly handled by `build_external::run`, it is
+/// silently dropped at the process boundary.
 #[derive(Debug, Default, Clone, bon::Builder)]
 pub struct Opts {
     /// disable implicit `--locked` flag for all `cargo` commands, enabled by default
@@ -130,12 +138,14 @@ impl Opts {
     /// Serializes [`Opts`] → argv for the `cargo near` subprocess spawned by
     /// [`build_with_cli`](crate::build_with_cli).
     ///
-    /// This is a 1-to-1 mapping of each field of [`Opts`] to a CLI flag, in field-declaration
-    /// order. `Opts::default()` round-trips to a plain `cargo near build` command with no args.
+    /// 1-to-1 mapping of each field of [`Opts`] to a CLI flag, in field-declaration order.
+    /// `Opts::default()` round-trips to a plain `cargo near build` command with no args.
     ///
-    /// This is the **only** path by which [`Opts`] fields reach the spawned subprocess —
-    /// fields that aren't emitted here are silently dropped at the process boundary. When
-    /// adding a new field to [`Opts`], add the corresponding emit here too.
+    /// This is the primary propagation channel from [`Opts`] to the spawned subprocess. A
+    /// small set of fields (`manifest_path`, `override_*`) are propagated separately via
+    /// cwd/env in `build_external::run` and don't appear in the argv — see the docs on
+    /// [`Opts`] for details. For all other fields: if it isn't emitted here, it is silently
+    /// dropped at the process boundary, so add the emit when adding the field.
     pub fn to_argv(&self) -> Vec<String> {
         let cargo_args = self.cli_description.cli_command_prefix.clone();
         let mut cargo_args: Vec<&str> = cargo_args.iter().map(|ele| ele.as_str()).collect();
@@ -398,7 +408,7 @@ mod tests {
             no_embed_abi: true,
             no_doc: true,
             no_wasmopt: true,
-            out_dir: Some("/tmp/out".into()),
+            out_dir: Some("target/out".into()),
             features: Some("feat".into()),
             abi_features: Some("abi-feat".into()),
             no_default_features: true,
@@ -417,7 +427,7 @@ mod tests {
         assert!(cmd.contains(&"--no-embed-abi".to_string()));
         assert!(cmd.contains(&"--no-doc".to_string()));
         assert!(cmd.contains(&"--no-wasmopt".to_string()));
-        assert!(has_flag_with_value(&cmd, "--out-dir", "/tmp/out"));
+        assert!(has_flag_with_value(&cmd, "--out-dir", "target/out"));
         assert!(has_flag_with_value(&cmd, "--features", "feat"));
         assert!(has_flag_with_value(&cmd, "--abi-features", "abi-feat"));
         assert!(cmd.contains(&"--no-default-features".to_string()));
