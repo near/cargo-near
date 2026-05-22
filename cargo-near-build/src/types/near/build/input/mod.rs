@@ -181,6 +181,9 @@ impl Opts {
         if let Some(ref toolchain) = self.override_toolchain {
             cargo_args.extend(&["--override-toolchain", toolchain]);
         }
+        if self.skip_rust_version_check {
+            cargo_args.push("--skip-rust-version-check");
+        }
 
         cargo_args
             .into_iter()
@@ -323,6 +326,21 @@ mod tests {
         assert!(cmd.contains(&"--profile".to_string()));
         assert!(cmd.contains(&"test-release".to_string()));
         assert!(!cmd.contains(&"--no-release".to_string()));
+    }
+
+    #[test]
+    fn test_opts_get_cli_build_command_forwards_skip_rust_version_check() {
+        let opts = super::Opts {
+            skip_rust_version_check: true,
+            ..Default::default()
+        };
+
+        let cmd = opts.get_cli_command_for_lib_context();
+        assert!(cmd.contains(&"--skip-rust-version-check".to_string()));
+
+        let opts_unset = super::Opts::default();
+        let cmd_unset = opts_unset.get_cli_command_for_lib_context();
+        assert!(!cmd_unset.contains(&"--skip-rust-version-check".to_string()));
     }
 
     #[test]
