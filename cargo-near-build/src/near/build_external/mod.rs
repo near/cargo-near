@@ -2,7 +2,14 @@ use eyre::{Context, ContextCompat};
 
 use crate::types::{cargo::manifest_path::ManifestPath, near::build::input::Opts};
 
-/// Return value: [`Result::Ok`] is path to the wasm artifact obtained.
+/// Spawns `cargo near build` as a subprocess and returns the path to the wasm
+/// artifact it produced.
+///
+/// The subprocess is invoked via [`std::process::Command`]; its argv is built
+/// from [`Opts::to_argv`], which is the *only* path by which [`Opts`] fields
+/// reach the subprocess. If a field's value needs to influence the build, it
+/// must be emitted by [`Opts::to_argv`] — otherwise it is silently dropped at
+/// the process boundary.
 pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
     let command = {
         let mut cmd = std::process::Command::new("cargo");
@@ -10,7 +17,7 @@ pub fn run(opts: Opts) -> eyre::Result<camino::Utf8PathBuf> {
         let workdir = ManifestPath::get_manifest_workdir(opts.manifest_path.clone())?;
 
         cmd.current_dir(workdir);
-        cmd.args(opts.get_cli_command_for_lib_context().into_iter().skip(1));
+        cmd.args(opts.to_argv().into_iter().skip(1));
 
         if let Some(override_cargo_target_dir) = opts.override_cargo_target_dir {
             cmd.env(
