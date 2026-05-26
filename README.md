@@ -264,12 +264,20 @@ running e.g.
 ```bash
 RUSTFLAGS="your_custom_value" cargo near build non-reproducible-wasm
 ```
-won't result in `"your_custom_value"` affecting the build.
+won't result in `"your_custom_value"` affecting the build — the ambient RUSTFLAGS is stripped
+to keep builds reproducible.
 
-`RUSTFLAGS="-Awarnings"` is always used for abi build stage, and `RUSTFLAGS="-C link-arg=-s"` for wasm build stage.
+`RUSTFLAGS="-Awarnings"` is always used for the abi build stage. For the wasm build stage the
+canonical carrier is `CARGO_ENCODED_RUSTFLAGS` (see below); the default token list is
+`-C link-arg=-s`, and `--cfg near` is **force-appended** to whatever rustflags end up being
+applied (the default, or a user override via `--env`). The `--cfg near` flag is read by
+`near-sdk` (5.27+) to select the on-chain host-function path; see
+[near/near-sdk-rs#1534](https://github.com/near/near-sdk-rs/pull/1534). It cannot be dropped by
+overriding rustflags, which prevents contracts from accidentally being built without the
+host-function path.
 
-Logic for concatenating default values of this variable with values from env was removed in `cargo-near-0.13.3`/`cargo-near-build-0.4.3`, as it was seen as
-an unnecessary complication.
+Logic for concatenating default values of this variable with values from env was removed in
+`cargo-near-0.13.3`/`cargo-near-build-0.4.3`, as it was seen as an unnecessary complication.
 
 There's still a way to override this parameter for wasm build stage, e.g.:
 
@@ -278,16 +286,25 @@ cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose'
 RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s'
 ```
 
+In both cases `--cfg near` is appended automatically to the resulting rustflags.
+
 ### `CARGO_ENCODED_RUSTFLAGS`
 
-This variable is always unset during build, so
+The ambient `CARGO_ENCODED_RUSTFLAGS` from your shell is always stripped before invoking cargo,
+so
 
 ```bash
 CARGO_ENCODED_RUSTFLAGS="your_custom_value" cargo near build non-reproducible-wasm
 ```
-won't result in `"your_custom_value"` affecting the build.
+won't result in `"your_custom_value"` affecting the build (avoids issues like
+[#287](https://github.com/near/cargo-near/issues/287) when composing multiple builds via build
+scripts).
 
-This is so to avoid weird issues like [#287](https://github.com/near/cargo-near/issues/287) when composing multiple builds via build scripts.
+`cargo-near` then sets this variable explicitly with the resolved wasm rustflags
+(0x1f-separated tokens — see `--env` examples above). If you pass
+`--env 'CARGO_ENCODED_RUSTFLAGS=...'` it is honored and takes precedence over a
+`--env 'RUSTFLAGS=...'` override, matching cargo's own behavior. `--cfg near` is always
+appended.
 
 
 

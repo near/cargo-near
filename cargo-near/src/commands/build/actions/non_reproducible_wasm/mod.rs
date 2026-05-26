@@ -116,6 +116,11 @@ pub struct BuildOpts {
     /// cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose'
     /// RUST_LOG=info cargo near build non-reproducible-wasm --env 'RUSTFLAGS=--verbose -C link-arg=-s'
     /// ```
+    /// In both cases `--cfg near` is force-appended to the resulting RUSTFLAGS by cargo-near, so
+    /// `near-sdk` selects the on-chain host-function path. You cannot override RUSTFLAGS in a way
+    /// that drops `--cfg near` — pass it via `--cfg near` in your RUSTFLAGS only if you want it
+    /// duplicated.
+    ///
     /// This is also used with `passed_env` config in Cargo.toml manifest during reproducible builds,
     /// as an internal detail, allowing to persist info about environment in contract's metadata.
     #[interactive_clap(verbatim_doc_comment)]
