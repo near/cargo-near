@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.2](https://github.com/near/cargo-near/compare/cargo-near-v0.20.1...cargo-near-v0.20.2) - 2026-05-26
+
+### Added
+
+- inject `--cfg near` into wasm build by default ([#417](https://github.com/near/cargo-near/pull/417))
+
+### Fixed
+
+- honor skip-rust-version-check for cargo-near-build ([#420](https://github.com/near/cargo-near/pull/420))
+
 ## [0.20.1](https://github.com/near/cargo-near/compare/cargo-near-v0.20.0...cargo-near-v0.20.1) - 2026-04-08
 
 ### Other
