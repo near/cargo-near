@@ -417,7 +417,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.20.1"
+version = "0.20.2"
 dependencies = [
  "base64 0.22.1",
  "cargo-near-build",
@@ -451,7 +451,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near-build"
-version = "0.11.1"
+version = "0.11.2"
 dependencies = [
  "bon",
  "bs58 0.5.1",
