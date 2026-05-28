@@ -584,6 +584,76 @@ mod tests {
     }
 
     #[test]
+    fn test_max_allowed_rustc_back_compat_default() {
+        // No metadata declared / older SDKs => historical 1.86 floor.
+        assert_eq!(
+            max_allowed_rustc(None),
+            rustc_version::Version::new(1, 86, 0)
+        );
+        // Below the PV-84 threshold => same floor.
+        assert_eq!(
+            max_allowed_rustc(Some(83)),
+            rustc_version::Version::new(1, 86, 0)
+        );
+        assert_eq!(
+            max_allowed_rustc(Some(0)),
+            rustc_version::Version::new(1, 86, 0)
+        );
+    }
+
+    #[test]
+    fn test_max_allowed_rustc_pv84_bumps_to_193() {
+        assert_eq!(
+            max_allowed_rustc(Some(84)),
+            rustc_version::Version::new(1, 93, 0)
+        );
+        // Future PVs >= 84 still resolve to the latest table entry until a higher
+        // entry is added — fine, the table is intentionally inclusive at the top.
+        assert_eq!(
+            max_allowed_rustc(Some(99)),
+            rustc_version::Version::new(1, 93, 0)
+        );
+    }
+
+    #[test]
+    fn test_checking_unsupported_toolchain_accepts_pinned_186() {
+        // Pre-PV-84 SDK + rustc 1.86 => OK.
+        let v186 = rustc_version::Version::new(1, 86, 0);
+        assert!(checking_unsupported_toolchain(&v186, None).is_ok());
+        assert!(checking_unsupported_toolchain(&v186, Some(83)).is_ok());
+    }
+
+    #[test]
+    fn test_checking_unsupported_toolchain_rejects_193_without_metadata() {
+        // 1.93 with no PV declared (i.e. back-compat default) must still fail
+        // with the dynamic error — preserves the historical behavior for the
+        // long tail of contracts using SDKs without the metadata block.
+        let v193 = rustc_version::Version::new(1, 93, 0);
+        let err = checking_unsupported_toolchain(&v193, None).unwrap_err();
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("exceeds the max allowed"),
+            "unexpected error message: {msg}"
+        );
+    }
+
+    #[test]
+    fn test_checking_unsupported_toolchain_accepts_193_with_pv84_metadata() {
+        // 1.93 with PV >= 84 declared => OK (the whole point of this PR).
+        let v193 = rustc_version::Version::new(1, 93, 0);
+        assert!(checking_unsupported_toolchain(&v193, Some(84)).is_ok());
+    }
+
+    #[test]
+    fn test_checking_unsupported_toolchain_rejects_above_max() {
+        // Hypothetical future rustc beyond the table's top entry => still fails
+        // until a new PV/rustc row is added.
+        let v_future = rustc_version::Version::new(1, 99, 0);
+        let err = checking_unsupported_toolchain(&v_future, Some(84)).unwrap_err();
+        assert!(format!("{err}").contains("exceeds the max allowed"));
+    }
+
+    #[test]
     fn test_detect_active_toolchain_respects_directory() {
         // This test verifies that detect_active_toolchain can detect toolchain
         // from a specific directory. We use the cargo-near workspace root which

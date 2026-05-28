@@ -42,6 +42,15 @@ pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
         .join("_abi-integration-tests")
 }
 
+/// rustc pin used by integration tests that exercise the historical (back-compat)
+/// max-rustc default — i.e. contracts whose resolved `near-sdk` doesn't declare
+/// `[package.metadata.near] min_protocol_version`.
+///
+/// For PV-84+ flow tests (which would need a 1.93 rustc + a PV-84-ready near-sdk),
+/// see the unit tests in `cargo-near-build::near::build::tests` and the
+/// metadata-driven integration tests in `tests/build/dynamic_max_rustc.rs` —
+/// neither of which actually drives a wasm build, since no published `near-sdk`
+/// release declares the metadata block yet.
 const MAX_RUST_VERSION: &str = "1.86.0";
 
 pub fn invoke_cargo_near(
