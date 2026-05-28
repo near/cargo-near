@@ -19,14 +19,12 @@ use crate::{
 use super::abi;
 
 fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyre::Result<()> {
-    if *rustc_version >= MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT {
+    if *rustc_version >= MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES {
         println!(
             "{}: {} {} {}",
             "WARNING".red(),
             "wasm, compiled with".yellow(),
-            MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT
-                .to_string()
-                .cyan(),
+            MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES.to_string().cyan(),
             "or newer rust toolchain is currently not compatible with nearcore VM".yellow()
         );
         let info_str = format!(
@@ -46,7 +44,7 @@ fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyr
         );
 
         eyre::bail!(
-            "wasm, compiled with {MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT} or newer rust toolchain is currently not compatible with nearcore VM"
+            "wasm, compiled with {MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES} or newer rust toolchain is currently not compatible with nearcore VM"
         );
     }
     Ok(())
@@ -361,7 +359,15 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
 }
 
 const MAX_VERSION_NO_BULK_MEMORY: rustc_version::Version = rustc_version::Version::new(1, 86, 0);
-const MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT: rustc_version::Version =
+/// Threshold at which rustc starts emitting wasm with bulk-memory + nontrapping-float-to-int
+/// opcodes. When the contract is being compiled with a rustc this version or newer,
+/// `wasm-opt` must be told to enable those features so it doesn't reject the input.
+///
+/// Historically this used to be dead code because the rustc version check above would
+/// fail-fast at 1.87. With the upcoming dynamic max-rustc table, this becomes live for
+/// PV-84+ builds. The value (1.87) is unchanged; only the name was misleading
+/// ("MIN_VERSION_WITH_..." sounded like a fail threshold).
+const MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES: rustc_version::Version =
     rustc_version::Version::new(1, 87, 0);
 fn maybe_wasm_opt_step(
     input_path: &Utf8PathBuf,
@@ -376,7 +382,7 @@ fn maybe_wasm_opt_step(
         println!();
         let additional_features = {
             let mut features = vec![];
-            if *rustc_version >= MIN_VERSION_WITH_BULK_MEMORY_NTRAPPING_FLOAT_TO_INT {
+            if *rustc_version >= MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES {
                 features.push((
                     wasm_opt::Feature::TruncSat,
                     "--enable-nontrapping-float-to-int",
