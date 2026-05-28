@@ -172,22 +172,73 @@ impl CrateMetadata {
         Ok(result)
     }
 
-    /// Walks the full resolved dependency graph (not just direct deps) and returns
-    /// the first matching `Package` by name, or `None` if the package isn't present.
+    /// Resolves a package by name among the dependencies actually **reachable** from
+    /// the build's root package, following the resolved dependency graph. Returns the
+    /// matching `Package`, or `None` if no reachable package has that name.
     ///
     /// `name` is matched against `Package::name` — i.e. the original crate name as
     /// declared in `Cargo.toml` (hyphens preserved, e.g. `"near-sdk"`). This differs
     /// from [`Self::find_direct_dependency`], which matches on the dep node's library
     /// name (where cargo normalizes hyphens to underscores).
     ///
+    /// Crucially this does NOT do a flat name scan over `raw_metadata.packages`: in a
+    /// workspace, a *sibling* member named `near-sdk` that the contract does not depend
+    /// on would otherwise false-positive. Instead we walk the resolve graph from
+    /// `resolve.root` and only consider nodes the root can actually reach.
+    ///
+    /// We traverse only **normal + build** dependency edges, deliberately excluding
+    /// dev-only edges (`DependencyKind::Development`): a `near-sdk` pulled in solely by
+    /// the contract's dev-deps must not influence the build's protocol-version decision.
+    /// Graph traversal mirrors the conventions of [`Self::find_direct_dependency`].
+    ///
     /// Used to look up a transitive dependency's `[package.metadata]` block — e.g.
     /// when `near-sdk` is pulled in via `near-contract-standards` rather than
     /// declared directly.
     pub fn find_package_in_graph(&self, name: &str) -> Option<&cargo_metadata::Package> {
+        let dependency_graph = self.raw_metadata.resolve.as_ref()?;
+        let root_package_id = dependency_graph.root.as_ref()?;
+
+        // Index resolve nodes by package id for O(1) edge lookups during traversal.
+        let nodes_by_id: std::collections::HashMap<_, _> = dependency_graph
+            .nodes
+            .iter()
+            .map(|node| (&node.id, node))
+            .collect();
+
+        // BFS over the resolved graph, following only normal+build dep edges.
+        let mut reachable: std::collections::HashSet<&cargo_metadata::PackageId> =
+            std::collections::HashSet::new();
+        let mut queue = std::collections::VecDeque::new();
+        queue.push_back(root_package_id);
+        reachable.insert(root_package_id);
+
+        while let Some(current_id) = queue.pop_front() {
+            let Some(node) = nodes_by_id.get(current_id) else {
+                continue;
+            };
+            for dep in &node.deps {
+                // Skip dev-only edges: a dep reachable *only* via dev-dependencies
+                // shouldn't count toward the build's dependency closure. An edge with
+                // an empty `dep_kinds` (older cargo metadata format) is treated as a
+                // normal edge so we don't accidentally drop real deps.
+                let is_dev_only = !dep.dep_kinds.is_empty()
+                    && dep
+                        .dep_kinds
+                        .iter()
+                        .all(|dk| dk.kind == cargo_metadata::DependencyKind::Development);
+                if is_dev_only {
+                    continue;
+                }
+                if reachable.insert(&dep.pkg) {
+                    queue.push_back(&dep.pkg);
+                }
+            }
+        }
+
         self.raw_metadata
             .packages
             .iter()
-            .find(|pkg| pkg.name.as_str() == name)
+            .find(|pkg| pkg.name.as_str() == name && reachable.contains(&pkg.id))
     }
 
     /// Looks up `[package.metadata.near] min_protocol_version` declared on the resolved
@@ -203,7 +254,7 @@ impl CrateMetadata {
             .get("near")?
             .get("min_protocol_version")?
             .as_u64()
-            .map(|x| x as u32)
+            .and_then(|x| u32::try_from(x).ok())
     }
 }
 

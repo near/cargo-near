@@ -90,10 +90,11 @@ fn test_find_package_in_graph_finds_stub_dep() -> testresult::TestResult {
 /// When the dep declares `[package.metadata.near] min_protocol_version = 84`
 /// under the conventional `near-sdk` name, the helper should surface it.
 ///
-/// To test this we have to make the stub crate actually be named `near-sdk` (since
-/// `near_sdk_min_protocol_version` hardcodes that lookup). We do this by spinning
-/// up a private fixture that uses package-renaming via `package = "..."` in the
-/// dependency table.
+/// To test this we make the stub crate actually be named `near-sdk` (since
+/// `near_sdk_min_protocol_version` hardcodes that lookup). The contract depends on
+/// the stub directly as a plain path dependency — `near-sdk = { path = "..." }`
+/// with no `package = "..."` rename — so the package name in the resolved graph is
+/// already `near-sdk`.
 #[test]
 fn test_near_sdk_min_protocol_version_reads_metadata_when_declared() -> testresult::TestResult {
     let tmp = tempfile::tempdir()?;
@@ -282,5 +283,78 @@ members = []
 
     assert!(meta.find_package_in_graph("near-sdk").is_some());
     assert_eq!(meta.near_sdk_min_protocol_version(), Some(84));
+    Ok(())
+}
+
+/// Reachability guard (FIX 3): a workspace where a SIBLING member is named
+/// `near-sdk` (declaring `min_protocol_version = 84`) but the contract does NOT
+/// depend on it. A flat name scan over all packages would false-positive and
+/// wrongly allow rustc 1.87+ output; resolving via the dependency graph from the
+/// build root must instead return `None` (the sibling is unreachable).
+#[test]
+fn test_near_sdk_min_protocol_version_ignores_unrelated_sibling() -> testresult::TestResult {
+    let tmp = tempfile::tempdir()?;
+    let dir = tmp.path();
+
+    // Sibling workspace member named `near-sdk`, declaring PV 84, but nothing
+    // depends on it.
+    let sibling_dir = dir.join("near-sdk");
+    fs::create_dir_all(sibling_dir.join("src"))?;
+    fs::write(
+        sibling_dir.join("Cargo.toml"),
+        r#"[package]
+name = "near-sdk"
+version = "0.0.1"
+edition = "2021"
+
+[package.metadata.near]
+min_protocol_version = 84
+
+[lib]
+path = "src/lib.rs"
+"#,
+    )?;
+    fs::write(sibling_dir.join("src").join("lib.rs"), "")?;
+
+    // The contract crate — does NOT depend on the sibling `near-sdk`.
+    let contract_dir = dir.join("contract");
+    fs::create_dir_all(contract_dir.join("src"))?;
+    fs::write(
+        contract_dir.join("Cargo.toml"),
+        r#"[package]
+name = "fixture-contract"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+"#,
+    )?;
+    fs::write(
+        contract_dir.join("src").join("lib.rs"),
+        "#[unsafe(no_mangle)] pub extern \"C\" fn entry() {}\n",
+    )?;
+
+    // Virtual workspace tying the two members together as siblings.
+    fs::write(
+        dir.join("Cargo.toml"),
+        r#"[workspace]
+resolver = "2"
+members = ["near-sdk", "contract"]
+"#,
+    )?;
+
+    let manifest = camino::Utf8PathBuf::from_path_buf(contract_dir.join("Cargo.toml")).unwrap();
+    let meta = CrateMetadata::collect(manifest.try_into()?, true, &CargoTargetDir::NoOp, None)?;
+
+    // The sibling `near-sdk` exists in the workspace's package list but is NOT
+    // reachable from the contract — so the graph-aware lookup must ignore it.
+    assert!(
+        meta.find_package_in_graph("near-sdk").is_none(),
+        "unrelated sibling near-sdk must not be found via the reachable graph"
+    );
+    assert_eq!(meta.near_sdk_min_protocol_version(), None);
     Ok(())
 }
