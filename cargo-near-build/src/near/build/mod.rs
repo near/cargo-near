@@ -18,33 +18,81 @@ use crate::{
 
 use super::abi;
 
-fn checking_unsupported_toolchain(rustc_version: &rustc_version::Version) -> eyre::Result<()> {
-    if *rustc_version >= MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES {
+/// Resolves the max rustc version allowed for compiling a contract whose `near-sdk`
+/// dependency declares `[package.metadata.near] min_protocol_version = <pv>`.
+///
+/// Strategy: hardcoded table of `(min_pv, max_rustc)` entries, first match wins
+/// (search descending by `min_pv`). When the contract's resolved `near-sdk` doesn't
+/// declare a `min_protocol_version`, `None` is passed and we fall through to the
+/// historical floor (1.86) — this preserves back-compat for the long tail of
+/// already-published contracts and SDK versions.
+///
+/// Why dynamic? nearcore-2.12 (mainnet at PV 84, ~early June 2026) ships VM support
+/// for bulk-memory + nontrapping-float-to-int wasm opcodes — so rustc 1.87+ output
+/// stops being incompatible at that protocol version. The `near-sdk` crate signals
+/// readiness for that protocol via its own `package.metadata.near.min_protocol_version`
+/// (see near-sdk-rs PR #1536); cargo-near reads it via `cargo metadata` and bumps
+/// the threshold accordingly. No source coupling between the two crates.
+fn max_allowed_rustc(min_pv: Option<u32>) -> rustc_version::Version {
+    let pv = min_pv.unwrap_or(0);
+    // Entries sorted descending by min PV; first match wins, last is the floor.
+    if pv >= 84 {
+        rustc_version::Version::new(1, 93, 0)
+    } else {
+        rustc_version::Version::new(1, 86, 0)
+    }
+}
+
+fn checking_unsupported_toolchain(
+    rustc_version: &rustc_version::Version,
+    near_sdk_min_pv: Option<u32>,
+) -> eyre::Result<()> {
+    let max_allowed = max_allowed_rustc(near_sdk_min_pv);
+    if *rustc_version > max_allowed {
+        let pv_explanation = match near_sdk_min_pv {
+            Some(pv) => format!("your contract's near-sdk targets protocol version {pv}"),
+            None => "your contract's near-sdk targets protocol < 84 (no \
+                `package.metadata.near.min_protocol_version` declared)"
+                .to_string(),
+        };
+        println!(
+            "{}: {} {} ({})",
+            "WARNING".red(),
+            "max rustc allowed:".yellow(),
+            max_allowed.to_string().cyan(),
+            pv_explanation.yellow(),
+        );
         println!(
             "{}: {} {} {}",
             "WARNING".red(),
             "wasm, compiled with".yellow(),
-            MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES.to_string().cyan(),
-            "or newer rust toolchain is currently not compatible with nearcore VM".yellow()
+            rustc_version.to_string().cyan(),
+            "is not compatible with the nearcore VM at the protocol version your contract targets"
+                .yellow(),
+        );
+        let downgrade_step = format!(
+            "cd /path/to/your/contract/project\nrustup override set {}.{}",
+            max_allowed.major, max_allowed.minor
         );
         let info_str = format!(
             "Step 1 - Set the Specific Rust Version for Your Project:\n{}\nStep 2 - Install the wasm32-unknown-unknown Target:\n{}",
-            pretty_print::indent_payload(
-                "cd /path/to/your/contract/project\nrustup override set 1.86"
-            ),
+            pretty_print::indent_payload(&downgrade_step),
             pretty_print::indent_payload("rustup target add wasm32-unknown-unknown")
         );
         println!(
-            "{}: {} {} {}\n{}",
+            "{}: {} {} {}\n{}\n{} {}",
             "WARNING".red(),
             "please downgrade to".yellow(),
-            MAX_VERSION_NO_BULK_MEMORY.to_string().cyan(),
+            max_allowed.to_string().cyan(),
             "toolchain for compiling contracts:".yellow(),
-            pretty_print::indent_payload(&info_str)
+            pretty_print::indent_payload(&info_str),
+            "OR".yellow(),
+            "upgrade near-sdk to a release declaring `min_protocol_version = 84` (e.g. the nearcore-2.12 release)"
+                .yellow(),
         );
 
         eyre::bail!(
-            "wasm, compiled with {MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES} or newer rust toolchain is currently not compatible with nearcore VM"
+            "wasm, compiled with rustc {rustc_version} exceeds the max allowed {max_allowed} for this contract"
         );
     }
     Ok(())
@@ -66,25 +114,31 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let rustc_version = version_meta_with_override(effective_toolchain.clone())?.semver;
 
-    if !args.skip_rust_version_check {
-        checking_unsupported_toolchain(&rustc_version)?;
-    }
-
     let override_cargo_target_path_env =
         common_buildtime_env::CargoTargetDir::new(args.override_cargo_target_dir.clone());
 
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
+    // We collect cargo metadata BEFORE the rustc version check so we can read
+    // `[package.metadata.near] min_protocol_version` from the resolved `near-sdk`
+    // and use it to pick the correct max-rustc threshold. The metadata collection
+    // itself shells out to `cargo metadata` against the contract's manifest, which
+    // works on any toolchain — so there's no chicken-and-egg with the rustc check.
+    let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
+        CrateMetadata::get_with_build_opts(&args, &override_cargo_target_path_env)
+    })?;
+
+    if !args.skip_rust_version_check {
+        let near_sdk_min_pv = crate_metadata.near_sdk_min_protocol_version();
+        checking_unsupported_toolchain(&rustc_version, near_sdk_min_pv)?;
+    }
+
     pretty_print::handle_step("Checking the host environment...", || {
         if !cargo_native::target::wasm32_exists(effective_toolchain.clone()) {
             eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
-    })?;
-
-    let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
-        CrateMetadata::get_with_build_opts(&args, &override_cargo_target_path_env)
     })?;
 
     // addition of this check wasn't a change in logic, as previously output path was
@@ -358,15 +412,14 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
     prev_time > next_time
 }
 
-const MAX_VERSION_NO_BULK_MEMORY: rustc_version::Version = rustc_version::Version::new(1, 86, 0);
 /// Threshold at which rustc starts emitting wasm with bulk-memory + nontrapping-float-to-int
 /// opcodes. When the contract is being compiled with a rustc this version or newer,
 /// `wasm-opt` must be told to enable those features so it doesn't reject the input.
 ///
 /// Historically this used to be dead code because the rustc version check above would
-/// fail-fast at 1.87. With the upcoming dynamic max-rustc table, this becomes live for
-/// PV-84+ builds. The value (1.87) is unchanged; only the name was misleading
-/// ("MIN_VERSION_WITH_..." sounded like a fail threshold).
+/// fail-fast at 1.87. With the dynamic max-rustc table (see [`max_allowed_rustc`]), this
+/// became live for PV-84+ builds. The value (1.87) is unchanged; only the name was
+/// misleading ("MIN_VERSION_WITH_..." sounded like a fail threshold).
 const MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES: rustc_version::Version =
     rustc_version::Version::new(1, 87, 0);
 fn maybe_wasm_opt_step(
