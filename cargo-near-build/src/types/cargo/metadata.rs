@@ -1,12 +1,10 @@
 use std::{thread, time::Duration};
 
 use camino::Utf8PathBuf;
-#[cfg(any(feature = "test_code", feature = "docker"))]
 use cargo_metadata::DepKindInfo;
 
 use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
-#[cfg(any(feature = "test_code", feature = "docker"))]
 use eyre::OptionExt;
 use eyre::{ContextCompat, WrapErr};
 
@@ -120,7 +118,6 @@ impl CrateMetadata {
         OutputPaths::new(self, cli_override)
     }
 
-    #[cfg(any(feature = "test_code", feature = "docker"))]
     pub fn find_direct_dependency(
         &self,
         dependency_name: &str,
@@ -173,6 +170,40 @@ impl CrateMetadata {
             result.push((dependency_package, dependency_node.dep_kinds.clone()));
         }
         Ok(result)
+    }
+
+    /// Walks the full resolved dependency graph (not just direct deps) and returns
+    /// the first matching `Package` by name, or `None` if the package isn't present.
+    ///
+    /// `name` is matched against `Package::name` — i.e. the original crate name as
+    /// declared in `Cargo.toml` (hyphens preserved, e.g. `"near-sdk"`). This differs
+    /// from [`Self::find_direct_dependency`], which matches on the dep node's library
+    /// name (where cargo normalizes hyphens to underscores).
+    ///
+    /// Used to look up a transitive dependency's `[package.metadata]` block — e.g.
+    /// when `near-sdk` is pulled in via `near-contract-standards` rather than
+    /// declared directly.
+    pub fn find_package_in_graph(&self, name: &str) -> Option<&cargo_metadata::Package> {
+        self.raw_metadata
+            .packages
+            .iter()
+            .find(|pkg| pkg.name.as_str() == name)
+    }
+
+    /// Looks up `[package.metadata.near] min_protocol_version` declared on the resolved
+    /// `near-sdk` crate, if present.
+    ///
+    /// Returns `None` if `near-sdk` isn't in the resolved graph, doesn't declare a
+    /// `[package.metadata.near]` block, or the `min_protocol_version` field is missing
+    /// or not a non-negative integer. `cargo-near` interprets `None` as "back-compat
+    /// default" (pre-PV-84 max-rustc threshold).
+    pub fn near_sdk_min_protocol_version(&self) -> Option<u32> {
+        let pkg = self.find_package_in_graph("near-sdk")?;
+        pkg.metadata
+            .get("near")?
+            .get("min_protocol_version")?
+            .as_u64()
+            .map(|x| x as u32)
     }
 }
 
