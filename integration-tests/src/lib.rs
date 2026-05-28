@@ -42,6 +42,10 @@ pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
         .join("_abi-integration-tests")
 }
 
+/// rustc pin for integration tests exercising the back-compat max-rustc default
+/// (contracts whose `near-sdk` doesn't declare `min_protocol_version`). PV-84+ flow is
+/// covered by unit tests in `cargo-near-build::near::build::tests` and metadata-driven
+/// tests in `tests/build/dynamic_max_rustc.rs`.
 const MAX_RUST_VERSION: &str = "1.86.0";
 
 pub fn invoke_cargo_near(

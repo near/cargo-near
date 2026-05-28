@@ -1,12 +1,10 @@
 use std::{thread, time::Duration};
 
 use camino::Utf8PathBuf;
-#[cfg(any(feature = "test_code", feature = "docker"))]
 use cargo_metadata::DepKindInfo;
 
 use cargo_metadata::{MetadataCommand, Package};
 use colored::Colorize;
-#[cfg(any(feature = "test_code", feature = "docker"))]
 use eyre::OptionExt;
 use eyre::{ContextCompat, WrapErr};
 
@@ -120,7 +118,6 @@ impl CrateMetadata {
         OutputPaths::new(self, cli_override)
     }
 
-    #[cfg(any(feature = "test_code", feature = "docker"))]
     pub fn find_direct_dependency(
         &self,
         dependency_name: &str,
@@ -173,6 +170,72 @@ impl CrateMetadata {
             result.push((dependency_package, dependency_node.dep_kinds.clone()));
         }
         Ok(result)
+    }
+
+    /// Resolves a package by name among the dependencies **reachable** from the build's
+    /// root package, following the resolved dependency graph. Returns the matching
+    /// `Package`, or `None` if no reachable package has that name.
+    ///
+    /// `name` is matched against `Package::name` (hyphens preserved, e.g. `"near-sdk"`),
+    /// unlike [`Self::find_direct_dependency`], which matches the normalized library name.
+    ///
+    /// Walking the resolve graph rather than a flat scan over `raw_metadata.packages`
+    /// avoids false-positives on a workspace sibling named `near-sdk` that the contract
+    /// does not depend on.
+    pub fn find_package_in_graph(&self, name: &str) -> Option<&cargo_metadata::Package> {
+        let dependency_graph = self.raw_metadata.resolve.as_ref()?;
+        let root_package_id = dependency_graph.root.as_ref()?;
+
+        let nodes_by_id: std::collections::HashMap<_, _> = dependency_graph
+            .nodes
+            .iter()
+            .map(|node| (&node.id, node))
+            .collect();
+
+        let mut reachable: std::collections::HashSet<&cargo_metadata::PackageId> =
+            std::collections::HashSet::new();
+        let mut queue = std::collections::VecDeque::new();
+        queue.push_back(root_package_id);
+        reachable.insert(root_package_id);
+
+        while let Some(current_id) = queue.pop_front() {
+            let Some(node) = nodes_by_id.get(current_id) else {
+                continue;
+            };
+            for dep in &node.deps {
+                // Skip dev-only edges: a `near-sdk` pulled in solely via dev-deps must
+                // not influence the build's protocol-version decision. Empty `dep_kinds`
+                // (older cargo metadata format) is treated as a normal edge.
+                let is_dev_only = !dep.dep_kinds.is_empty()
+                    && dep
+                        .dep_kinds
+                        .iter()
+                        .all(|dk| dk.kind == cargo_metadata::DependencyKind::Development);
+                if is_dev_only {
+                    continue;
+                }
+                if reachable.insert(&dep.pkg) {
+                    queue.push_back(&dep.pkg);
+                }
+            }
+        }
+
+        self.raw_metadata
+            .packages
+            .iter()
+            .find(|pkg| pkg.name.as_str() == name && reachable.contains(&pkg.id))
+    }
+
+    /// Looks up `[package.metadata.near] min_protocol_version` on the resolved `near-sdk`
+    /// crate. `None` (sdk absent, block absent, or field missing/non-integer) is
+    /// interpreted as the back-compat default (pre-PV-84 max-rustc threshold).
+    pub fn near_sdk_min_protocol_version(&self) -> Option<u32> {
+        let pkg = self.find_package_in_graph("near-sdk")?;
+        pkg.metadata
+            .get("near")?
+            .get("min_protocol_version")?
+            .as_u64()
+            .and_then(|x| u32::try_from(x).ok())
     }
 }
 

@@ -2,6 +2,7 @@ use crate::util;
 use cargo_near_integration_tests::build_fn;
 use function_name::named;
 
+mod dynamic_max_rustc;
 mod opts;
 mod toolchain;
 
