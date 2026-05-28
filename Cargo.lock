@@ -477,6 +477,7 @@ dependencies = [
  "symbolic-debuginfo",
  "tempfile",
  "tracing",
+ "tracing-subscriber",
  "unix_path",
  "url",
  "wasm-opt",
