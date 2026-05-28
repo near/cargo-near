@@ -110,10 +110,8 @@ fn checking_unsupported_toolchain(
             "is not compatible with the nearcore VM at the protocol version your contract targets"
                 .yellow(),
         );
-        let downgrade_step = format!(
-            "cd /path/to/your/contract/project\nrustup override set {}.{}",
-            max_allowed.major, max_allowed.minor
-        );
+        let downgrade_step =
+            format!("cd /path/to/your/contract/project\nrustup override set {max_allowed}");
         let info_str = format!(
             "Step 1 - Set the Specific Rust Version for Your Project:\n{}\nStep 2 - Install the wasm32-unknown-unknown Target:\n{}",
             pretty_print::indent_payload(&downgrade_step),
