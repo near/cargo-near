@@ -1,13 +1,9 @@
 //! Integration tests for the dynamic max-rustc threshold driven by
 //! `[package.metadata.near] min_protocol_version` on the resolved `near-sdk`.
 //!
-//! These tests don't actually invoke the wasm build path — they only exercise
-//! the metadata-reading helpers added to `CrateMetadata`. Driving a full build
-//! with rustc 1.93 would require a real PV-84-ready `near-sdk` published to
-//! crates.io, which doesn't exist yet at the time of writing. The behavior-end
-//! verification ("a contract with the metadata block builds on 1.93 successfully")
-//! happens in unit tests in `cargo-near-build` and will be exercised end-to-end
-//! once the matching near-sdk-rs PR (#1536) lands.
+//! These tests exercise the metadata-reading helpers on `CrateMetadata` rather than the
+//! wasm build path: a full build on rustc 1.93 would need a PV-84-ready `near-sdk`
+//! published to crates.io, which doesn't exist yet.
 
 use cargo_near_build::{CargoTargetDir, CrateMetadata};
 use std::fs;
@@ -69,8 +65,7 @@ fn test_find_package_in_graph_finds_stub_dep() -> testresult::TestResult {
     let tmp = tempfile::tempdir()?;
     let manifest = build_fixture(tmp.path(), Some(84))?;
 
-    // `no_locked = true` since the fixture has no Cargo.lock — we want cargo metadata
-    // to generate one as needed rather than insist on a pre-existing lock file.
+    // `no_locked = true`: the fixture has no Cargo.lock for cargo metadata to require.
     let meta = CrateMetadata::collect(manifest.try_into()?, true, &CargoTargetDir::NoOp, None)?;
 
     let pkg = meta
@@ -78,7 +73,7 @@ fn test_find_package_in_graph_finds_stub_dep() -> testresult::TestResult {
         .expect("stub-near-sdk should be present in the resolved graph");
     assert_eq!(pkg.name.as_str(), "stub-near-sdk");
 
-    // Sanity: walks the *full* graph, so a non-existent name returns None.
+    // A non-existent name returns None.
     assert!(
         meta.find_package_in_graph("totally-not-a-real-crate")
             .is_none()
@@ -87,14 +82,9 @@ fn test_find_package_in_graph_finds_stub_dep() -> testresult::TestResult {
     Ok(())
 }
 
-/// When the dep declares `[package.metadata.near] min_protocol_version = 84`
-/// under the conventional `near-sdk` name, the helper should surface it.
-///
-/// To test this we make the stub crate actually be named `near-sdk` (since
-/// `near_sdk_min_protocol_version` hardcodes that lookup). The contract depends on
-/// the stub directly as a plain path dependency — `near-sdk = { path = "..." }`
-/// with no `package = "..."` rename — so the package name in the resolved graph is
-/// already `near-sdk`.
+/// The helper surfaces `min_protocol_version = 84` declared on a dep named `near-sdk`
+/// (the name `near_sdk_min_protocol_version` hardcodes). The stub is a plain path dep
+/// with no `package = "..."` rename, so its graph name is already `near-sdk`.
 #[test]
 fn test_near_sdk_min_protocol_version_reads_metadata_when_declared() -> testresult::TestResult {
     let tmp = tempfile::tempdir()?;
@@ -143,8 +133,7 @@ members = []
     )?;
 
     let manifest = camino::Utf8PathBuf::from_path_buf(contract_dir.join("Cargo.toml")).unwrap();
-    // `no_locked = true` since the fixture has no Cargo.lock — we want cargo metadata
-    // to generate one as needed rather than insist on a pre-existing lock file.
+    // `no_locked = true`: the fixture has no Cargo.lock for cargo metadata to require.
     let meta = CrateMetadata::collect(manifest.try_into()?, true, &CargoTargetDir::NoOp, None)?;
 
     assert_eq!(meta.near_sdk_min_protocol_version(), Some(84));
@@ -199,8 +188,7 @@ members = []
     )?;
 
     let manifest = camino::Utf8PathBuf::from_path_buf(contract_dir.join("Cargo.toml")).unwrap();
-    // `no_locked = true` since the fixture has no Cargo.lock — we want cargo metadata
-    // to generate one as needed rather than insist on a pre-existing lock file.
+    // `no_locked = true`: the fixture has no Cargo.lock for cargo metadata to require.
     let meta = CrateMetadata::collect(manifest.try_into()?, true, &CargoTargetDir::NoOp, None)?;
 
     assert_eq!(meta.near_sdk_min_protocol_version(), None);
@@ -277,8 +265,7 @@ members = []
     )?;
 
     let manifest = camino::Utf8PathBuf::from_path_buf(contract_dir.join("Cargo.toml")).unwrap();
-    // `no_locked = true` since the fixture has no Cargo.lock — we want cargo metadata
-    // to generate one as needed rather than insist on a pre-existing lock file.
+    // `no_locked = true`: the fixture has no Cargo.lock for cargo metadata to require.
     let meta = CrateMetadata::collect(manifest.try_into()?, true, &CargoTargetDir::NoOp, None)?;
 
     assert!(meta.find_package_in_graph("near-sdk").is_some());
@@ -286,18 +273,14 @@ members = []
     Ok(())
 }
 
-/// Reachability guard (FIX 3): a workspace where a SIBLING member is named
-/// `near-sdk` (declaring `min_protocol_version = 84`) but the contract does NOT
-/// depend on it. A flat name scan over all packages would false-positive and
-/// wrongly allow rustc 1.87+ output; resolving via the dependency graph from the
-/// build root must instead return `None` (the sibling is unreachable).
+/// Reachability guard: a workspace sibling named `near-sdk` (declaring
+/// `min_protocol_version = 84`) that the contract does NOT depend on must be ignored.
+/// A flat name scan would false-positive; the graph-based lookup returns `None`.
 #[test]
 fn test_near_sdk_min_protocol_version_ignores_unrelated_sibling() -> testresult::TestResult {
     let tmp = tempfile::tempdir()?;
     let dir = tmp.path();
 
-    // Sibling workspace member named `near-sdk`, declaring PV 84, but nothing
-    // depends on it.
     let sibling_dir = dir.join("near-sdk");
     fs::create_dir_all(sibling_dir.join("src"))?;
     fs::write(
@@ -316,7 +299,7 @@ path = "src/lib.rs"
     )?;
     fs::write(sibling_dir.join("src").join("lib.rs"), "")?;
 
-    // The contract crate — does NOT depend on the sibling `near-sdk`.
+    // Contract does NOT depend on the sibling `near-sdk`.
     let contract_dir = dir.join("contract");
     fs::create_dir_all(contract_dir.join("src"))?;
     fs::write(
@@ -349,8 +332,6 @@ members = ["near-sdk", "contract"]
     let manifest = camino::Utf8PathBuf::from_path_buf(contract_dir.join("Cargo.toml")).unwrap();
     let meta = CrateMetadata::collect(manifest.try_into()?, true, &CargoTargetDir::NoOp, None)?;
 
-    // The sibling `near-sdk` exists in the workspace's package list but is NOT
-    // reachable from the contract — so the graph-aware lookup must ignore it.
     assert!(
         meta.find_package_in_graph("near-sdk").is_none(),
         "unrelated sibling near-sdk must not be found via the reachable graph"

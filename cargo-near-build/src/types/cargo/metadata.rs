@@ -172,40 +172,26 @@ impl CrateMetadata {
         Ok(result)
     }
 
-    /// Resolves a package by name among the dependencies actually **reachable** from
-    /// the build's root package, following the resolved dependency graph. Returns the
-    /// matching `Package`, or `None` if no reachable package has that name.
+    /// Resolves a package by name among the dependencies **reachable** from the build's
+    /// root package, following the resolved dependency graph. Returns the matching
+    /// `Package`, or `None` if no reachable package has that name.
     ///
-    /// `name` is matched against `Package::name` — i.e. the original crate name as
-    /// declared in `Cargo.toml` (hyphens preserved, e.g. `"near-sdk"`). This differs
-    /// from [`Self::find_direct_dependency`], which matches on the dep node's library
-    /// name (where cargo normalizes hyphens to underscores).
+    /// `name` is matched against `Package::name` (hyphens preserved, e.g. `"near-sdk"`),
+    /// unlike [`Self::find_direct_dependency`], which matches the normalized library name.
     ///
-    /// Crucially this does NOT do a flat name scan over `raw_metadata.packages`: in a
-    /// workspace, a *sibling* member named `near-sdk` that the contract does not depend
-    /// on would otherwise false-positive. Instead we walk the resolve graph from
-    /// `resolve.root` and only consider nodes the root can actually reach.
-    ///
-    /// We traverse only **normal + build** dependency edges, deliberately excluding
-    /// dev-only edges (`DependencyKind::Development`): a `near-sdk` pulled in solely by
-    /// the contract's dev-deps must not influence the build's protocol-version decision.
-    /// Graph traversal mirrors the conventions of [`Self::find_direct_dependency`].
-    ///
-    /// Used to look up a transitive dependency's `[package.metadata]` block — e.g.
-    /// when `near-sdk` is pulled in via `near-contract-standards` rather than
-    /// declared directly.
+    /// Walking the resolve graph rather than a flat scan over `raw_metadata.packages`
+    /// avoids false-positives on a workspace sibling named `near-sdk` that the contract
+    /// does not depend on.
     pub fn find_package_in_graph(&self, name: &str) -> Option<&cargo_metadata::Package> {
         let dependency_graph = self.raw_metadata.resolve.as_ref()?;
         let root_package_id = dependency_graph.root.as_ref()?;
 
-        // Index resolve nodes by package id for O(1) edge lookups during traversal.
         let nodes_by_id: std::collections::HashMap<_, _> = dependency_graph
             .nodes
             .iter()
             .map(|node| (&node.id, node))
             .collect();
 
-        // BFS over the resolved graph, following only normal+build dep edges.
         let mut reachable: std::collections::HashSet<&cargo_metadata::PackageId> =
             std::collections::HashSet::new();
         let mut queue = std::collections::VecDeque::new();
@@ -217,10 +203,9 @@ impl CrateMetadata {
                 continue;
             };
             for dep in &node.deps {
-                // Skip dev-only edges: a dep reachable *only* via dev-dependencies
-                // shouldn't count toward the build's dependency closure. An edge with
-                // an empty `dep_kinds` (older cargo metadata format) is treated as a
-                // normal edge so we don't accidentally drop real deps.
+                // Skip dev-only edges: a `near-sdk` pulled in solely via dev-deps must
+                // not influence the build's protocol-version decision. Empty `dep_kinds`
+                // (older cargo metadata format) is treated as a normal edge.
                 let is_dev_only = !dep.dep_kinds.is_empty()
                     && dep
                         .dep_kinds
@@ -241,13 +226,9 @@ impl CrateMetadata {
             .find(|pkg| pkg.name.as_str() == name && reachable.contains(&pkg.id))
     }
 
-    /// Looks up `[package.metadata.near] min_protocol_version` declared on the resolved
-    /// `near-sdk` crate, if present.
-    ///
-    /// Returns `None` if `near-sdk` isn't in the resolved graph, doesn't declare a
-    /// `[package.metadata.near]` block, or the `min_protocol_version` field is missing
-    /// or not a non-negative integer. `cargo-near` interprets `None` as "back-compat
-    /// default" (pre-PV-84 max-rustc threshold).
+    /// Looks up `[package.metadata.near] min_protocol_version` on the resolved `near-sdk`
+    /// crate. `None` (sdk absent, block absent, or field missing/non-integer) is
+    /// interpreted as the back-compat default (pre-PV-84 max-rustc threshold).
     pub fn near_sdk_min_protocol_version(&self) -> Option<u32> {
         let pkg = self.find_package_in_graph("near-sdk")?;
         pkg.metadata

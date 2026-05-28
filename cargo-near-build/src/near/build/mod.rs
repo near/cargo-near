@@ -18,38 +18,19 @@ use crate::{
 
 use super::abi;
 
-/// Protocol version at which the nearcore VM gains support for the bulk-memory +
-/// nontrapping-float-to-int wasm opcodes that rustc >= 1.87 emits. Contracts whose
-/// resolved `near-sdk` declares a `min_protocol_version` at or above this floor can be
-/// compiled with any rustc — there is no known upper bound once those opcodes are
-/// accepted on-chain.
+/// Protocol version at which the nearcore VM accepts the bulk-memory +
+/// nontrapping-float-to-int wasm opcodes that rustc >= 1.87 emits.
 const BULK_MEMORY_PROTOCOL_VERSION: u32 = 84;
 
-/// Resolves the max rustc version allowed for compiling a contract whose `near-sdk`
-/// dependency declares `[package.metadata.near] min_protocol_version = <pv>`.
-///
-/// Returns `None` when there is **no** ceiling — i.e. the contract targets PV-84+
-/// (nearcore 2.12), where the VM accepts the bulk-memory / nontrapping-float-to-int
-/// opcodes that rustc >= 1.87 emits. In that regime any rustc is acceptable.
-///
-/// Returns `Some(1.86.0)` when the contract's resolved `near-sdk` doesn't declare a
-/// `min_protocol_version` (`None` passed) or declares one below PV-84 — this preserves
-/// back-compat for the long tail of already-published contracts and SDK versions,
-/// where rustc >= 1.87 output is rejected by the pre-2.12 VM.
-///
-/// Why dynamic? nearcore-2.12 (mainnet at PV 84, ~early June 2026) ships VM support
-/// for bulk-memory + nontrapping-float-to-int wasm opcodes — so rustc 1.87+ output
-/// stops being incompatible at that protocol version. The `near-sdk` crate signals
-/// readiness for that protocol via its own `package.metadata.near.min_protocol_version`
-/// (see near-sdk-rs PR #1536); cargo-near reads it via `cargo metadata` and lifts
-/// the ceiling accordingly. No source coupling between the two crates.
+/// Max rustc version allowed for a contract whose `near-sdk` declares
+/// `[package.metadata.near] min_protocol_version`. `None` means no ceiling (PV-84+, the
+/// nearcore 2.12 VM accepts rustc 1.87+ opcodes); otherwise the historical 1.86 ceiling
+/// applies, since rustc 1.87+ output is rejected by the pre-2.12 VM.
 fn max_allowed_rustc(min_pv: Option<u32>) -> Option<rustc_version::Version> {
     let pv = min_pv.unwrap_or(0);
     if pv >= BULK_MEMORY_PROTOCOL_VERSION {
-        // No ceiling: the VM accepts the opcodes any modern rustc emits.
         None
     } else {
-        // Historical floor: rustc >= 1.87 output is rejected by the pre-2.12 VM.
         Some(rustc_version::Version::new(1, 86, 0))
     }
 }
@@ -59,17 +40,11 @@ fn checking_unsupported_toolchain(
     near_sdk_min_pv: Option<u32>,
 ) -> eyre::Result<()> {
     let Some(max_allowed) = max_allowed_rustc(near_sdk_min_pv) else {
-        // No ceiling: the contract's resolved near-sdk declares PV-84+, so the
-        // nearcore 2.12 VM accepts the bulk-memory / nontrapping-float-to-int
-        // opcodes that rustc >= 1.87 emits. Any rustc is allowed here.
-        //
-        // Only surface a note when the PV metadata actually mattered to the
-        // decision — i.e. when this rustc WOULD have been rejected under the
-        // historical 1.86 ceiling. For rustc <= 1.86 the check never would have
-        // fired anyway, so stay quiet.
+        // No ceiling (PV-84+). Only note it when this rustc would have been rejected
+        // under the historical 1.86 ceiling; otherwise stay quiet.
         if *rustc_version >= MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES {
-            // `near_sdk_min_pv` is necessarily `Some(pv)` with `pv >= 84` here:
-            // that's the only input for which `max_allowed_rustc` returns `None`.
+            // `near_sdk_min_pv` is necessarily `Some(pv >= 84)` here: the only input
+            // for which `max_allowed_rustc` returns `None`.
             let pv = near_sdk_min_pv.unwrap_or(BULK_MEMORY_PROTOCOL_VERSION);
             println!(
                 "{}: {}",
@@ -83,11 +58,8 @@ fn checking_unsupported_toolchain(
         }
         return Ok(());
     };
-    // Reaching here means `max_allowed_rustc` returned `Some` — which only happens
-    // for PV < 84 or absent metadata. So the "upgrade near-sdk to declare
-    // min_protocol_version = 84" remediation below is always correct in this branch:
-    // the contract genuinely targets the pre-2.12 VM, and the honest fixes are either
-    // downgrade rustc OR move to a near-sdk release that targets the new VM.
+    // Reaching here means a ceiling applies (PV < 84 or absent metadata), so the
+    // "upgrade near-sdk to declare min_protocol_version = 84" remediation below is valid.
     if *rustc_version > max_allowed {
         let pv_explanation = match near_sdk_min_pv {
             Some(pv) => format!("your contract's near-sdk targets protocol version {pv}"),
@@ -158,11 +130,8 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     let color = args.color.unwrap_or(ColorPreference::Auto);
     color.apply();
 
-    // We collect cargo metadata BEFORE the rustc version check so we can read
-    // `[package.metadata.near] min_protocol_version` from the resolved `near-sdk`
-    // and use it to pick the correct max-rustc threshold. The metadata collection
-    // itself shells out to `cargo metadata` against the contract's manifest, which
-    // works on any toolchain — so there's no chicken-and-egg with the rustc check.
+    // Collected before the rustc version check so we can read `near-sdk`'s
+    // `min_protocol_version` and pick the correct max-rustc threshold.
     let crate_metadata = pretty_print::handle_step("Collecting cargo project metadata...", || {
         CrateMetadata::get_with_build_opts(&args, &override_cargo_target_path_env)
     })?;
@@ -451,13 +420,8 @@ fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
 }
 
 /// Threshold at which rustc starts emitting wasm with bulk-memory + nontrapping-float-to-int
-/// opcodes. When the contract is being compiled with a rustc this version or newer,
-/// `wasm-opt` must be told to enable those features so it doesn't reject the input.
-///
-/// Historically this used to be dead code because the rustc version check above would
-/// fail-fast at 1.87. With the dynamic max-rustc table (see [`max_allowed_rustc`]), this
-/// became live for PV-84+ builds. The value (1.87) is unchanged; only the name was
-/// misleading ("MIN_VERSION_WITH_..." sounded like a fail threshold).
+/// opcodes. At or above this version, `wasm-opt` must be told to enable those features so
+/// it doesn't reject the input.
 const MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES: rustc_version::Version =
     rustc_version::Version::new(1, 87, 0);
 fn maybe_wasm_opt_step(
@@ -641,10 +605,8 @@ mod tests {
 
     #[test]
     fn test_max_allowed_rustc_pv84_lifts_ceiling() {
-        // PV >= 84 => no ceiling at all (the whole point of FIX 1): the nearcore
-        // 2.12 VM accepts the opcodes any modern rustc emits.
+        // PV >= 84 => no ceiling at all.
         assert_eq!(max_allowed_rustc(Some(84)), None);
-        // Future PVs >= 84 likewise have no ceiling.
         assert_eq!(max_allowed_rustc(Some(99)), None);
     }
 
@@ -658,9 +620,7 @@ mod tests {
 
     #[test]
     fn test_checking_unsupported_toolchain_rejects_193_without_metadata() {
-        // 1.93 with no PV declared (i.e. back-compat default) must still fail
-        // with the dynamic error — preserves the historical behavior for the
-        // long tail of contracts using SDKs without the metadata block.
+        // 1.93 with no PV declared (back-compat default) must still fail.
         let v193 = rustc_version::Version::new(1, 93, 0);
         let err = checking_unsupported_toolchain(&v193, None).unwrap_err();
         let msg = format!("{err}");
@@ -672,20 +632,17 @@ mod tests {
 
     #[test]
     fn test_checking_unsupported_toolchain_accepts_193_with_pv84_metadata() {
-        // 1.93 with PV >= 84 declared => OK (the whole point of this PR).
+        // 1.93 with PV >= 84 declared => OK.
         let v193 = rustc_version::Version::new(1, 93, 0);
         assert!(checking_unsupported_toolchain(&v193, Some(84)).is_ok());
     }
 
     #[test]
     fn test_checking_unsupported_toolchain_pv84_has_no_ceiling() {
-        // FIX 1: once the contract targets PV-84+, there is NO upper bound on rustc.
-        // Real-world stable rustc is already past 1.93.0 (e.g. 1.93.1), and that
-        // must pass — pinning to exactly 1.93.0 falsely rejected it.
+        // Once the contract targets PV-84+, there is no upper bound on rustc.
         let v1931 = rustc_version::Version::new(1, 93, 1);
         assert!(checking_unsupported_toolchain(&v1931, Some(84)).is_ok());
 
-        // Something absurdly high must also pass when PV >= 84.
         let v199 = rustc_version::Version::new(1, 99, 0);
         assert!(checking_unsupported_toolchain(&v199, Some(84)).is_ok());
         assert!(checking_unsupported_toolchain(&v199, Some(100)).is_ok());
@@ -693,8 +650,8 @@ mod tests {
 
     #[test]
     fn test_checking_unsupported_toolchain_rejects_post_186_without_pv84() {
-        // FIX 1 preserves the historical ceiling for PV < 84 / absent metadata:
-        // rustc beyond 1.86 must still FAIL there.
+        // Historical ceiling preserved for PV < 84 / absent metadata: rustc beyond
+        // 1.86 must still fail.
         let v1931 = rustc_version::Version::new(1, 93, 1);
         assert!(checking_unsupported_toolchain(&v1931, None).is_err());
         assert!(checking_unsupported_toolchain(&v1931, Some(83)).is_err());
