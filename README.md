@@ -167,6 +167,19 @@ Additional flags for build configuration can be looked up if needed by:
 cargo near build reproducible-wasm -h      # replace `-h` with `--help` for more details
 ```
 
+#### Caching for faster builds
+
+To speed up subsequent builds, especially when building multiple contracts in the same workspace or rebuilding the same contract, you can mount local cache directories into the Docker container:
+
+```bash
+cargo near build reproducible-wasm --mount-target-cache --mount-cargo-cache
+```
+
+- `--mount-target-cache`: Mounts your local `./target` directory into the Docker container, reusing previously compiled dependencies and build artifacts
+- `--mount-cargo-cache`: Mounts your local `~/.cargo` directory into the Docker container, reusing downloaded crate registry and git dependencies
+
+**Note**: While these flags can significantly speed up builds (especially in CI/CD or when building workspace members sequentially), they may affect reproducibility guarantees in some edge cases. Use these flags primarily for development or when rebuilding the same codebase multiple times, and disable them for final production builds if strict reproducibility is required.
+
 #### Custom `reproducible-wasm` build using `--variant <name>` flag
 
 Beyond your `[package.metadata.near.reproducible_build]` configuration, you can
