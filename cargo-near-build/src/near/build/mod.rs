@@ -137,8 +137,16 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     })?;
 
     if !args.skip_rust_version_check {
-        let near_sdk_min_pv = crate_metadata.near_sdk_min_protocol_version();
-        checking_unsupported_toolchain(&rustc_version, near_sdk_min_pv)?;
+        pretty_print::handle_step("Checking rustc version...", || {
+            let near_sdk_min_pv = crate_metadata.near_sdk_min_protocol_version();
+            checking_unsupported_toolchain(&rustc_version, near_sdk_min_pv)
+        })?;
+    } else {
+        pretty_print::step(
+            &"WARN: Skipping rustc version check...\n"
+                .yellow()
+                .to_string(),
+        );
     }
 
     pretty_print::handle_step("Checking the host environment...", || {
