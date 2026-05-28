@@ -1,4 +1,10 @@
 #![allow(clippy::needless_lifetimes)]
+// Pre-existing nested `if let Some(...) { if ... { ... } }` patterns throughout the crate
+// trip the `collapsible_if` lint once the MSRV bump activates the let-chain form. The
+// existing nesting is readable and bumping rust-version to 1.88 shouldn't force a
+// stylistic rewrite of unrelated code — silence the lint here, leave the fixes for a
+// dedicated cleanup PR if/when one is wanted.
+#![allow(clippy::collapsible_if)]
 //! ## Crate features
 //!
 //! * **build_external** -
