@@ -1,7 +1,4 @@
 #![allow(clippy::needless_lifetimes)]
-// The 1.88 MSRV bump activates let-chains, tripping `collapsible_if` on pre-existing,
-// readable nested `if let Some(...) { if ... }` patterns; leave them as-is.
-#![allow(clippy::collapsible_if)]
 //! ## Crate features
 //!
 //! * **build_external** -
