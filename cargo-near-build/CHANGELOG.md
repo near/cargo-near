@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.3](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.2...cargo-near-build-v0.11.3) - 2026-05-29
+
+### Added
+
+- dynamic max-rustc from near-sdk's package.metadata.near.min_protocol_version ([#425](https://github.com/near/cargo-near/pull/425))
+
 ## [0.11.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.1...cargo-near-build-v0.11.2) - 2026-05-26
 
 ### Added
