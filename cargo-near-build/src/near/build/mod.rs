@@ -351,14 +351,14 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
-        let target_path = output_paths.get_wasm_file().clone();
+        let target_path = output_paths.get_wasm_file();
 
         // target file does not yet exist `!target_path.is_file()` condition is implied by
         // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
-        if !target_path.is_file() || is_newer_than(&prev_artifact_path, &target_path) {
+        if !target_path.is_file() || is_newer_than(&prev_artifact_path, target_path) {
             let (from_path, _maybe_tmpfile) =
                 maybe_wasm_opt_step(&prev_artifact_path, args.no_wasmopt, &rustc_version)?;
-            crate::fs::copy_to_file(&from_path, &target_path)?;
+            crate::fs::copy_to_file(&from_path, target_path)?;
         } else {
             println!();
             pretty_print::step(
