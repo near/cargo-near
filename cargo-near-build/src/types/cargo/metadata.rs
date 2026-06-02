@@ -84,10 +84,10 @@ impl CrateMetadata {
 
     pub(in crate::types) fn resolve_output_dir(
         &self,
-        cli_override: Option<Utf8PathBuf>,
+        cli_override: Option<&camino::Utf8Path>,
     ) -> eyre::Result<Utf8PathBuf> {
         let result = if let Some(cli_override) = cli_override {
-            crate::fs::force_canonicalize_dir(&cli_override)?
+            crate::fs::force_canonicalize_dir(cli_override)?
         } else {
             self.target_directory.clone()
         };
@@ -113,7 +113,7 @@ impl CrateMetadata {
     /// and implementation of initial docker build also assumes the same destination
     pub fn get_legacy_cargo_near_output_path(
         &self,
-        cli_override: Option<Utf8PathBuf>,
+        cli_override: Option<&camino::Utf8Path>,
     ) -> eyre::Result<OutputPaths> {
         OutputPaths::new(self, cli_override)
     }

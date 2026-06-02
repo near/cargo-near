@@ -114,7 +114,7 @@ impl ClonedRepo {
         };
 
         let destination_dir = destination_crate_metadata
-            .get_legacy_cargo_near_output_path(cli_override)?
+            .get_legacy_cargo_near_output_path(cli_override.as_deref())?
             .out_dir;
 
         copy(in_wasm_path, destination_dir)

@@ -23,7 +23,7 @@ pub struct OutputPaths {
 impl OutputPaths {
     pub fn new(
         crate_metadata: &CrateMetadata,
-        cli_override: Option<Utf8PathBuf>,
+        cli_override: Option<&camino::Utf8Path>,
     ) -> eyre::Result<Self> {
         let out_dir = crate_metadata.resolve_output_dir(cli_override)?;
 

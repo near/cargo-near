@@ -166,7 +166,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     }
     // NOTE important!: the way the output path for wasm is resolved now cannot change,
     // see more detail on [CrateMetadata::get_legacy_cargo_near_output_path]
-    let output_paths = crate_metadata.get_legacy_cargo_near_output_path(args.out_dir.clone())?;
+    let output_paths = crate_metadata.get_legacy_cargo_near_output_path(args.out_dir.as_deref())?;
 
     let mut cargo_args = vec!["--target", COMPILATION_TARGET];
 

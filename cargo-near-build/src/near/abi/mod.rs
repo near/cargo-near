@@ -29,7 +29,7 @@ pub fn build(args: abi_types::Opts) -> eyre::Result<camino::Utf8PathBuf> {
     })?;
 
     let out_dir = crate_metadata
-        .get_legacy_cargo_near_output_path(args.out_dir)?
+        .get_legacy_cargo_near_output_path(args.out_dir.as_deref())?
         .get_out_dir()
         .clone();
 
