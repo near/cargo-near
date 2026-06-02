@@ -287,6 +287,12 @@ jobs:
       - plan
       - host
     runs-on: "ubuntu-22.04"
+    # Publish to npm via OIDC trusted publishing instead of a long-lived NPM_TOKEN.
+    # `id-token: write` lets the job mint a short-lived OIDC token that npm exchanges
+    # for publish rights based on the trusted publisher configured on npmjs.com.
+    permissions:
+      contents: read
+      id-token: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLAN: ${{ needs.plan.outputs.val }}
@@ -300,15 +306,17 @@ jobs:
           merge-multiple: true
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
+      # Trusted publishing requires npm >= 11.5.1; the version bundled with Node
+      # may be older, so upgrade explicitly.
+      - name: Upgrade npm for trusted publishing support
+        run: npm install -g npm@latest
       - run: |
           for release in $(echo "$PLAN" | jq --compact-output '.releases[] | select([.artifacts[] | endswith("-npm-package.tar.gz")] | any)'); do
             pkg=$(echo "$release" | jq '.artifacts[] | select(endswith("-npm-package.tar.gz"))' --raw-output)
             npm publish --access public "./npm/${pkg}"
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   announce:
     needs:
