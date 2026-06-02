@@ -6,8 +6,8 @@ use crate::{env_keys::RUSTUP_TOOLCHAIN, pretty_print};
 
 pub const COMPILATION_TARGET: &str = "wasm32-unknown-unknown";
 
-pub fn wasm32_exists(override_toolchain: Option<String>) -> bool {
-    let result = get_rustc_wasm32_unknown_unknown_target_libdir(override_toolchain.clone());
+pub fn wasm32_exists(override_toolchain: Option<&str>) -> bool {
+    let result = get_rustc_wasm32_unknown_unknown_target_libdir(override_toolchain);
 
     match result {
         Ok(wasm32_target_libdir_path) => {
@@ -44,7 +44,7 @@ pub fn wasm32_exists(override_toolchain: Option<String>) -> bool {
 }
 
 fn get_rustc_wasm32_unknown_unknown_target_libdir(
-    override_toolchain: Option<String>,
+    override_toolchain: Option<&str>,
 ) -> eyre::Result<PathBuf> {
     let mut command = Command::new("rustc");
 
@@ -72,7 +72,7 @@ fn get_rustc_wasm32_unknown_unknown_target_libdir(
     }
 }
 
-fn invoke_rustup<I, S>(args: I, override_toolchain: Option<String>) -> eyre::Result<Vec<u8>>
+fn invoke_rustup<I, S>(args: I, override_toolchain: Option<&str>) -> eyre::Result<Vec<u8>>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,

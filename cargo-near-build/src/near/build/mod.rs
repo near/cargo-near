@@ -150,7 +150,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     }
 
     pretty_print::handle_step("Checking the host environment...", || {
-        if !cargo_native::target::wasm32_exists(effective_toolchain.clone()) {
+        if !cargo_native::target::wasm32_exists(effective_toolchain.as_deref()) {
             eyre::bail!("rust target `{}` is not installed", COMPILATION_TARGET);
         }
         Ok(())
