@@ -287,9 +287,7 @@ jobs:
       - plan
       - host
     runs-on: "ubuntu-22.04"
-    # Publish to npm via OIDC trusted publishing instead of a long-lived NPM_TOKEN.
-    # `id-token: write` lets the job mint a short-lived OIDC token that npm exchanges
-    # for publish rights based on the trusted publisher configured on npmjs.com.
+    # OIDC trusted publishing (replaces NPM_TOKEN); id-token mints the short-lived token.
     permissions:
       contents: read
       id-token: write
@@ -308,8 +306,7 @@ jobs:
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-      # Trusted publishing requires npm >= 11.5.1; the version bundled with Node
-      # may be older, so upgrade explicitly.
+      # Trusted publishing needs npm >= 11.5.1.
       - name: Upgrade npm for trusted publishing support
         run: npm install -g npm@latest
       - run: |

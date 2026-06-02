@@ -41,8 +41,7 @@ windows-archive = ".tar.gz"
 unix-archive = ".tar.gz"
 # Which actions to run on pull requests
 pr-run-mode = "upload"
-# The publish-npm job in the generated release workflow is hand-edited to use
-# OIDC trusted publishing; allow-dirty keeps `dist` from reverting that on regen.
+# publish-npm is hand-edited for OIDC trusted publishing; don't let dist revert it.
 allow-dirty = ["ci"]
 # Path that installers should place binaries in
 install-path = "CARGO_HOME"
