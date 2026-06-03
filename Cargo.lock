@@ -98,7 +98,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -109,7 +109,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -715,7 +715,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1290,7 +1290,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users 0.5.2",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1457,7 +1457,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2355,7 +2355,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
 dependencies = [
  "hermit-abi",
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2775,7 +2775,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "536bfad37a309d62069485248eeaba1e8d9853aaf951caaeaed0585a95346f08"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2968,8 +2968,9 @@ dependencies = [
 
 [[package]]
 name = "near-cli-rs"
-version = "0.26.2"
-source = "git+https://github.com/near/near-cli-rs?branch=bump%2Fnearcore-2.12#d56d86aa03becd16f6b0f28d0c89b3e7db54317c"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40cfd499c512b5989a8ac8ab7b7dba2e326d49da330c7d52a44b6f8c9cdbcaca"
 dependencies = [
  "bip39",
  "borsh",
@@ -2993,7 +2994,7 @@ dependencies = [
  "near-abi",
  "near-crypto 0.36.0",
  "near-gas",
- "near-jsonrpc-client 0.21.0",
+ "near-jsonrpc-client 0.21.1",
  "near-jsonrpc-primitives 0.36.0",
  "near-ledger",
  "near-parameters 0.36.0",
@@ -3153,8 +3154,9 @@ dependencies = [
 
 [[package]]
 name = "near-jsonrpc-client"
-version = "0.21.0"
-source = "git+https://github.com/near/near-jsonrpc-client-rs?branch=bump%2Fnearcore-2.12#edbbd31c2ff1f1dcec85c94c51534c5ee462ceeb"
+version = "0.21.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "614359c17b9cbf5faf2d82ecfe10d7a79b588c51f5f04517f75eff09f1751cdb"
 dependencies = [
  "borsh",
  "lazy_static",
@@ -3505,12 +3507,13 @@ dependencies = [
 
 [[package]]
 name = "near-socialdb-client"
-version = "0.15.0"
-source = "git+https://github.com/near/near-socialdb-client-rs?branch=bump%2Fnearcore-2.12#6b60b485480cb94661df0c987afae2b7eaa65a05"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a7cd480aad6faff2ba872e3368cd17b96db3b4244621e59bb8b95df984607a8"
 dependencies = [
  "eyre",
  "near-crypto 0.36.0",
- "near-jsonrpc-client 0.21.0",
+ "near-jsonrpc-client 0.21.1",
  "near-jsonrpc-primitives 0.36.0",
  "near-primitives 0.36.0",
  "near-token",
@@ -3705,7 +3708,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4557,7 +4560,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5174,7 +5177,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52d1cfed4120b4d927bf7c0f86d2087a4a7d6027c906d9f9d525a80573b9be51"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5419,7 +5422,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -6388,7 +6391,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]

@@ -58,14 +58,3 @@ libudev-dev = { version = "*", targets = [
     "aarch64-unknown-linux-gnu",
 ] }
 
-
-# [patch.'https://github.com/dj8yfo/near-verify-rs.git']
-# near-verify-rs = { version = "0.1.0", path = "../../../../near-verify-rs-worktrees/near-verify-rs/" }
-
-# nearcore 2.12 (0.36.0) line. near-cli-rs's branch carries its own
-# `[patch]` entries, but `[patch]` does NOT inherit through a git-branch dependency,
-# so we must replicate every patch near-cli-rs#599 needs here at cargo-near's own root.
-[patch.crates-io]
-near-cli-rs = { git = "https://github.com/near/near-cli-rs", branch = "bump/nearcore-2.12" }
-near-jsonrpc-client = { git = "https://github.com/near/near-jsonrpc-client-rs", branch = "bump/nearcore-2.12" }
-near-socialdb-client = { git = "https://github.com/near/near-socialdb-client-rs", branch = "bump/nearcore-2.12" }
