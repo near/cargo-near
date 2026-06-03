@@ -81,10 +81,13 @@ jobs:
           rustup toolchain install stable --profile minimal
           rustup override set stable
 
-      - name: Install pinned 1.86.0 Rust toolchain for compiling contracts
+      - name: Install pinned 1.93.0 Rust toolchain for compiling contracts
+        # must match `channel` in the `cargo near new` template's rust-toolchain.toml
+        # (cargo-near/src/commands/new/new-project-template/rust-toolchain.toml), which the
+        # generated-project tests build against; the template now targets the 1.93 reproducible image
         run: |
-          rustup toolchain install 1.86.0 --profile minimal
-          rustup target add wasm32-unknown-unknown --toolchain 1.86.0
+          rustup toolchain install 1.93.0 --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain 1.93.0
 
       - uses: Swatinem/rust-cache@v2
         with:
