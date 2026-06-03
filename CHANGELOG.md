@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0](https://github.com/near/cargo-near/compare/cargo-near-v0.20.3...cargo-near-v0.21.0) - 2026-06-03
+
+### Other
+
+- bump nearcore to 0.36 (2.12 / protocol 84) ([#427](https://github.com/near/cargo-near/pull/427))
+
 ## [0.20.3](https://github.com/near/cargo-near/compare/cargo-near-v0.20.2...cargo-near-v0.20.3) - 2026-05-29
 
 ### Added

@@ -1,9 +1,9 @@
 [package]
 name = "cargo-near"
-version = "0.20.3"
+version = "0.21.0"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition.workspace = true
-rust-version = "1.88"
+rust-version = "1.93"
 description = "Cargo extension for building Rust smart contracts on NEAR"
 readme = "README.md"
 repository = "https://github.com/near/cargo-near"
@@ -39,8 +39,8 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "2"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-near-cli-rs = { version = "0.25", default-features = false }
-near-primitives = { version = "0.35", default-features = false }
+near-cli-rs = { version = "0.27", default-features = false }
+near-primitives = { version = "0.36.0", default-features = false }
 reqwest = "0.12.5"
 indenter = "0.3"
 tracing-core = "0.1.32"
