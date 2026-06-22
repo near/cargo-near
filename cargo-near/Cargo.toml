@@ -39,8 +39,13 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "2"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-near-cli-rs = { version = "0.27", default-features = false }
-near-primitives = { version = "0.36.0", default-features = false }
+# DRAFT(post-quantum): nearcore 2.13 crates are not on crates.io yet, so pin to
+# the same rev the sibling DevEx PRs use (nearcore 2.13-release 46483c8d /
+# near-cli-rs #605 178be1a9) so near-primitives resolves to one version. A bare
+# branch pin can't unify with the siblings' rev pins, hence exact revs here.
+# Swap both back to published crates.io versions once nearcore 2.13 ships.
+near-cli-rs = { git = "https://github.com/near/near-cli-rs", rev = "178be1a97e19e354d5ca0e7b6a1531d9577f29fc", default-features = false }
+near-primitives = { git = "https://github.com/near/nearcore", rev = "46483c8d45579dd89faa3bd47317d4c563bcde10", default-features = false }
 reqwest = "0.12.5"
 indenter = "0.3"
 tracing-core = "0.1.32"
