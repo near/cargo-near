@@ -111,14 +111,26 @@ impl From<Command> for CheckOpts {
 }
 
 fn get_key_vals(input: Vec<String>) -> Vec<(String, String)> {
-    input
-        .iter()
-        .flat_map(|pair_string| {
-            pair_string
-                .split_once('=')
-                .map(|(env_key, value)| (env_key.to_string(), value.to_string()))
-        })
-        .collect()
+    use std::collections::HashMap;
+
+    let iterator = input.iter().flat_map(|pair_string| {
+        pair_string
+            .split_once('=')
+            .map(|(env_key, value)| (env_key.to_string(), value.to_string()))
+    });
+
+    // Deduplicate repeated `KEY=VALUE` pairs (last value wins), matching `cargo near build`'s
+    // `env_pairs::get_key_vals` so a repeated `--env KEY=...` behaves identically across commands.
+    let dedup_map: HashMap<String, String> = HashMap::from_iter(iterator);
+
+    let result = dedup_map.into_iter().collect();
+    tracing::info!(
+        target: "near_teach_me",
+        parent: &tracing::Span::none(),
+        "Passed additional environment pairs:\n{}",
+        near_cli_rs::common::indent_payload(&format!("{result:#?}"))
+    );
+    result
 }
 
 #[derive(Debug, Clone)]
