@@ -80,6 +80,35 @@ where
         ),
     }
 }
+/// Runs a non-artifact-producing cargo subcommand (`check` or `clippy`) with the manifest
+/// located at `manifest_path`.
+///
+/// Unlike [`run`], this does not look up or require any output artifact — `cargo check` and
+/// `cargo clippy` are type-checking passes that don't emit a contract wasm. Diagnostics are
+/// streamed through (same as [`run`]) and the cargo exit status is propagated: an `Err` is
+/// returned if cargo exits non-zero.
+pub fn run_check(
+    command: &str,
+    manifest_path: &ManifestPath,
+    args: &[&str],
+    env: Vec<(&str, &str)>,
+    color: ColorPreference,
+) -> eyre::Result<()> {
+    let final_env: BTreeMap<_, _> = env.into_iter().collect();
+    let removed_env = [crate::env_keys::CARGO_ENCODED_RUSTFLAGS];
+
+    invoke_cargo(
+        command,
+        [&["--message-format=json-render-diagnostics"], args].concat(),
+        manifest_path.directory().ok(),
+        final_env.iter(),
+        &removed_env,
+        color,
+    )?;
+
+    Ok(())
+}
+
 /// Invokes `cargo` with the subcommand `command`, the supplied `args` and set `env` variables.
 ///
 /// If `working_dir` is set, cargo process will be spawned in the specified directory.

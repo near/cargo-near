@@ -277,42 +277,12 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
 
-    // Resolve effective wasm-build rustflags as a token list, in priority order:
-    //   1. default tokens: ["-C", "link-arg=-s"]
-    //   2. user-provided RUSTFLAGS via args.env, parsed as whitespace-split tokens
-    //   3. user-provided CARGO_ENCODED_RUSTFLAGS via args.env, parsed as 0x1f-split tokens
-    //      (ENCODED wins over RUSTFLAGS, matching cargo's own precedence)
-    // Then ["--cfg", "near"] is force-appended so it can't be dropped by user overrides —
-    // it's semantically required to select the on-chain host-function path in near-sdk >= 5.27.
-    //
-    // We carry the result as CARGO_ENCODED_RUSTFLAGS (0x1f-separated) for robustness against
-    // args containing spaces (e.g. paths in `-L`). Cargo prefers ENCODED over RUSTFLAGS when
-    // both are set, so we forward neither RUSTFLAGS nor CARGO_ENCODED_RUSTFLAGS from args.env
-    // afterward to avoid double-setting.
-    let user_encoded =
-        args.env.iter().rev().find_map(|(k, v)| {
-            (k.as_str() == env_keys::CARGO_ENCODED_RUSTFLAGS).then_some(v.as_str())
-        });
-    let user_rustflags = args
-        .env
-        .iter()
-        .rev()
-        .find_map(|(k, v)| (k.as_str() == env_keys::RUSTFLAGS).then_some(v.as_str()));
-
-    let mut rustflag_tokens: Vec<String> = if let Some(encoded) = user_encoded {
-        encoded
-            .split('\x1f')
-            .filter(|s| !s.is_empty())
-            .map(String::from)
-            .collect()
-    } else if let Some(rustflags) = user_rustflags {
-        rustflags.split_whitespace().map(String::from).collect()
-    } else {
-        vec!["-C".into(), "link-arg=-s".into()]
-    };
-    rustflag_tokens.push("--cfg".into());
-    rustflag_tokens.push("near".into());
-    let encoded_rustflags = rustflag_tokens.join("\x1f");
+    // Resolve effective wasm-build rustflags (with `--cfg near` force-appended) as a
+    // CARGO_ENCODED_RUSTFLAGS string. See [`encoded_rustflags_with_cfg_near`] for the full
+    // resolution order and rationale. Because the result is carried as ENCODED, neither
+    // RUSTFLAGS nor CARGO_ENCODED_RUSTFLAGS are forwarded from args.env afterward (see the
+    // filter below) to avoid double-setting.
+    let encoded_rustflags = encoded_rustflags_with_cfg_near(&args.env);
 
     let build_env = {
         let mut build_env: Vec<(&str, &str)> = vec![(
@@ -504,7 +474,7 @@ fn maybe_wasm_opt_step(
 /// This function intentionally returns None rather than an error when rustup is unavailable,
 /// allowing cargo-near to work in environments without rustup by falling back to the default
 /// rustc behavior.
-fn detect_active_toolchain(project_dir: Option<&camino::Utf8Path>) -> Option<String> {
+pub(crate) fn detect_active_toolchain(project_dir: Option<&camino::Utf8Path>) -> Option<String> {
     let mut cmd = std::process::Command::new("rustup");
     cmd.args(["show", "active-toolchain"]);
 
@@ -531,7 +501,9 @@ fn detect_active_toolchain(project_dir: Option<&camino::Utf8Path>) -> Option<Str
 /// Gets the project directory from the manifest path option.
 /// If manifest_path is provided, returns its parent directory.
 /// Otherwise returns None (will use current directory).
-fn get_project_dir(manifest_path: Option<&camino::Utf8PathBuf>) -> Option<&camino::Utf8Path> {
+pub(crate) fn get_project_dir(
+    manifest_path: Option<&camino::Utf8PathBuf>,
+) -> Option<&camino::Utf8Path> {
     manifest_path.and_then(|p| p.parent())
 }
 
@@ -573,9 +545,91 @@ pub fn version_meta_with_override(
     rustc_version::version_meta_for(std::str::from_utf8(&out.stdout)?)
 }
 
+/// Resolves the effective wasm-build rustflags from `env` as a `CARGO_ENCODED_RUSTFLAGS`
+/// (0x1f-separated) string, with `["--cfg", "near"]` force-appended.
+///
+/// Resolution order, in priority:
+///   1. default tokens: `["-C", "link-arg=-s"]`
+///   2. user-provided `RUSTFLAGS` via `env`, parsed as whitespace-split tokens
+///   3. user-provided `CARGO_ENCODED_RUSTFLAGS` via `env`, parsed as 0x1f-split tokens
+///      (ENCODED wins over RUSTFLAGS, matching cargo's own precedence)
+///
+/// `["--cfg", "near"]` is then force-appended so it can't be dropped by user overrides — it's
+/// semantically required to select the on-chain host-function path in near-sdk >= 5.27.
+///
+/// The result is carried as `CARGO_ENCODED_RUSTFLAGS` (0x1f-separated) for robustness against
+/// args containing spaces (e.g. paths in `-L`). Cargo prefers ENCODED over RUSTFLAGS when both
+/// are set, so callers must forward neither `RUSTFLAGS` nor `CARGO_ENCODED_RUSTFLAGS` from
+/// `env` afterward to avoid double-setting.
+///
+/// Shared by [`run`] (wasm build) and the `check`/`clippy` path so the type-check observes the
+/// exact same `--cfg near` configuration the build does.
+pub(crate) fn encoded_rustflags_with_cfg_near(env: &[(String, String)]) -> String {
+    let user_encoded = env
+        .iter()
+        .rev()
+        .find_map(|(k, v)| (k.as_str() == env_keys::CARGO_ENCODED_RUSTFLAGS).then_some(v.as_str()));
+    let user_rustflags = env
+        .iter()
+        .rev()
+        .find_map(|(k, v)| (k.as_str() == env_keys::RUSTFLAGS).then_some(v.as_str()));
+
+    let mut rustflag_tokens: Vec<String> = if let Some(encoded) = user_encoded {
+        encoded
+            .split('\x1f')
+            .filter(|s| !s.is_empty())
+            .map(String::from)
+            .collect()
+    } else if let Some(rustflags) = user_rustflags {
+        rustflags.split_whitespace().map(String::from).collect()
+    } else {
+        vec!["-C".into(), "link-arg=-s".into()]
+    };
+    rustflag_tokens.push("--cfg".into());
+    rustflag_tokens.push("near".into());
+    rustflag_tokens.join("\x1f")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_encoded_rustflags_appends_cfg_near() {
+        const SEP: char = '\x1f';
+
+        // No RUSTFLAGS / CARGO_ENCODED_RUSTFLAGS provided => default tokens + `--cfg near`.
+        let encoded = encoded_rustflags_with_cfg_near(&[]);
+        assert_eq!(
+            encoded.split(SEP).collect::<Vec<_>>(),
+            ["-C", "link-arg=-s", "--cfg", "near"]
+        );
+
+        // RUSTFLAGS provided => whitespace-split tokens + `--cfg near`.
+        let env = vec![(
+            "RUSTFLAGS".to_string(),
+            "-C link-arg=-s --verbose".to_string(),
+        )];
+        let encoded = encoded_rustflags_with_cfg_near(&env);
+        assert_eq!(
+            encoded.split(SEP).collect::<Vec<_>>(),
+            ["-C", "link-arg=-s", "--verbose", "--cfg", "near"]
+        );
+
+        // CARGO_ENCODED_RUSTFLAGS wins over RUSTFLAGS (matching cargo precedence).
+        let env = vec![
+            ("RUSTFLAGS".to_string(), "-C opt-level=3".to_string()),
+            (
+                "CARGO_ENCODED_RUSTFLAGS".to_string(),
+                format!("-C{SEP}link-arg=-s"),
+            ),
+        ];
+        let encoded = encoded_rustflags_with_cfg_near(&env);
+        assert_eq!(
+            encoded.split(SEP).collect::<Vec<_>>(),
+            ["-C", "link-arg=-s", "--cfg", "near"]
+        );
+    }
 
     #[test]
     fn test_get_project_dir() {

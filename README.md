@@ -219,6 +219,24 @@ Once contract is deployed, this will allow you to call a view function `__contra
 ---
 
 ```console
+cargo near check
+```
+
+Type-checks the contract under the **same environment** `cargo near build` uses, without producing a wasm artifact (while in the directory containing contract's Cargo.toml).
+
+This is the fast half of `cargo near build`: it sets `--cfg near` (so `near-sdk >= 5.27` selects the on-chain host-function path), targets `wasm32-unknown-unknown`, and applies the same `--features` / `--no-default-features` / `--profile` (`--release` by default, opt out with `--no-release`) / `--locked` resolution and active/overridden toolchain. It skips ABI generation/embedding, `wasm-opt`, output copying, and the rustc/protocol-version ceiling check — none of which matter when no wasm is emitted.
+
+It runs `cargo check` by default; pass `--clippy` to run `cargo clippy` instead:
+
+```console
+cargo near check --clippy
+```
+
+This is useful as a faster local dev loop than a full build, and for CI lint jobs that previously had to reconstruct the build environment by hand to lint contracts.
+
+---
+
+```console
 cargo near create-dev-account
 ```
 
