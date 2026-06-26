@@ -10,6 +10,9 @@ impl<'a> ArtifactMessages<'a> {
     pub fn push_binary(&mut self, artifact: &CompilationArtifact) -> eyre::Result<()> {
         self.messages
             .push(("Binary", artifact.path.to_string().bright_yellow().bold()));
+        let size_bytes = std::fs::metadata(&artifact.path)?.len();
+        self.messages
+            .push(("Size", format_size(size_bytes).cyan().dimmed()));
         let checksum = artifact.compute_hash()?;
         self.messages.push((
             "SHA-256 checksum hex ",
@@ -30,5 +33,36 @@ impl<'a> ArtifactMessages<'a> {
         for (header, message) in self.messages {
             eprintln!("     - {header:>max_width$}: {message}");
         }
+    }
+}
+
+/// Formats a byte count as a human-readable size plus the exact byte count,
+/// e.g. `112.8 KB (112824 bytes)`.
+fn format_size(bytes: u64) -> String {
+    format!("{} ({bytes} bytes)", bytesize::ByteSize::b(bytes))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_size;
+
+    #[test]
+    fn format_size_keeps_exact_bytes_and_human_units() {
+        let formatted = format_size(112_824);
+        // exact byte count is always preserved for precision
+        assert!(
+            formatted.ends_with("(112824 bytes)"),
+            "missing raw byte count: {formatted}"
+        );
+        // and a human-readable unit is shown alongside it
+        assert!(
+            formatted.contains('B') && formatted.contains("112824 bytes"),
+            "unexpected format: {formatted}"
+        );
+    }
+
+    #[test]
+    fn format_size_handles_small_values() {
+        assert_eq!(format_size(0), "0 B (0 bytes)");
     }
 }
