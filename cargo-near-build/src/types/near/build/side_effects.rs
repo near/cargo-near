@@ -39,7 +39,8 @@ impl<'a> ArtifactMessages<'a> {
 /// Formats a byte count as a human-readable size plus the exact byte count,
 /// e.g. `112.8 KB (112824 bytes)`.
 fn format_size(bytes: u64) -> String {
-    format!("{} ({bytes} bytes)", bytesize::ByteSize::b(bytes))
+    let unit = if bytes == 1 { "byte" } else { "bytes" };
+    format!("{} ({bytes} {unit})", bytesize::ByteSize::b(bytes))
 }
 
 #[cfg(test)]
@@ -64,5 +65,8 @@ mod tests {
     #[test]
     fn format_size_handles_small_values() {
         assert_eq!(format_size(0), "0 B (0 bytes)");
+        // singular `byte` for a 1-byte artifact, not `1 bytes`
+        assert_eq!(format_size(1), "1 B (1 byte)");
+        assert_eq!(format_size(2), "2 B (2 bytes)");
     }
 }
