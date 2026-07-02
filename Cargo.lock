@@ -440,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-near"
-version = "0.21.2"
+version = "0.22.0-rc.1"
 dependencies = [
  "base64 0.22.1",
  "cargo-near-build",
