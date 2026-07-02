@@ -39,11 +39,11 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "2"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-# DRAFT(post-quantum): nearcore 2.13 published 2.13 RC 0.37.0-rc.2; bump to
-# 0.37.0 (drop pre-release) once 2.13 ships stable. near-cli-rs stays on its
-# matching 2.13 draft rev until it cuts a crates.io release.
-near-cli-rs = { git = "https://github.com/near/near-cli-rs", rev = "e170e55345c05f57eab0f3527f4c6bcb73a492b9", default-features = false }
-near-primitives = { version = "0.37.0-rc.2", default-features = false }
+# DRAFT(post-quantum): nearcore 2.13 RC crates. Pinned to the published 2.13
+# RCs on crates.io (near-cli-rs 0.28.0-rc.1 pins near-primitives =0.37.0-rc.2).
+# Drop the `-rc` pins for the stable versions once 2.13 ships.
+near-cli-rs = { version = "=0.28.0-rc.1", default-features = false }
+near-primitives = { version = "=0.37.0-rc.2", default-features = false }
 reqwest = "0.12.5"
 indenter = "0.3"
 tracing-core = "0.1.32"
