@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.2](https://github.com/near/cargo-near/compare/cargo-near-v0.21.1...cargo-near-v0.21.2) - 2026-07-02
+
+### Added
+
+- support nearcore 2.13 / post-quantum ML-DSA-65 ([#436](https://github.com/near/cargo-near/pull/436))
+
+### Other
+
+- update template to include `cfg(near)` as valid cfg ([#438](https://github.com/near/cargo-near/pull/438))
+- update `cargo near new` template `image` and `image_digest` ([#434](https://github.com/near/cargo-near/pull/434))
+- rename Opts::get_cli_command_for_lib_context to to_argv ([#422](https://github.com/near/cargo-near/pull/422))
+
 ## [0.21.1](https://github.com/near/cargo-near/compare/cargo-near-v0.21.0...cargo-near-v0.21.1) - 2026-06-03
 
 ### Other
