@@ -69,20 +69,28 @@ pub fn procedure(
 
     pretty_print::step("Generating ABI");
 
-    let compile_env = {
-        let compile_env = vec![
+    let (compile_env, hide_warnings_for_compile) = {
+        let mut compile_env = vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
             ("CARGO_PROFILE_DEV_DEBUG", "0"),
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ];
-        [&compile_env, env].concat()
+        compile_env.extend_from_slice(env);
+
+        let mut hide_warnings_for_compile = hide_warnings;
+        if let Some(rustflags) = abi_generation_rustflags(hide_warnings) {
+            compile_env.push((env_keys::RUSTFLAGS, rustflags));
+            hide_warnings_for_compile = false;
+        }
+
+        (compile_env, hide_warnings_for_compile)
     };
     let dylib_artifact = cargo_native::compile::run::<Dylib>(
         &crate_metadata.manifest_path,
         cargo_args.as_slice(),
         compile_env,
-        hide_warnings,
+        hide_warnings_for_compile,
         color,
     )?;
 
@@ -124,4 +132,18 @@ fn strip_docs(abi_root: &mut near_abi::AbiRoot) {
             metadata.description = None;
         }
     }
+}
+
+#[cfg(target_os = "macos")]
+fn abi_generation_rustflags(hide_warnings: bool) -> Option<&'static str> {
+    if hide_warnings {
+        Some("-Awarnings -C link-arg=-undefined -C link-arg=dynamic_lookup")
+    } else {
+        Some("-C link-arg=-undefined -C link-arg=dynamic_lookup")
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn abi_generation_rustflags(_hide_warnings: bool) -> Option<&'static str> {
+    None
 }
