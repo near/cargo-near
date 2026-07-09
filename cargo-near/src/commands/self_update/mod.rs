@@ -43,7 +43,7 @@ impl SelfUpdateCommandContext {
             .bin_name(BIN_NAME)
             .show_download_progress(true)
             .current_version(self_update::cargo_crate_version!())
-            .target_version_tag(&format!("cargo-near-v{latest_version}"))
+            .release_tag(format!("cargo-near-v{latest_version}"))
             .build()
             .map_err(|err| color_eyre::eyre::eyre!("Failed to build self_update: {err}"))?
             .update()
@@ -54,7 +54,7 @@ impl SelfUpdateCommandContext {
 }
 
 pub fn get_latest_version() -> color_eyre::eyre::Result<String> {
-    let release = self_update::backends::github::Update::configure()
+    let releases = self_update::backends::github::Update::configure()
         .repo_owner("near")
         .repo_name("cargo-near")
         .bin_name(BIN_NAME)
@@ -64,9 +64,13 @@ pub fn get_latest_version() -> color_eyre::eyre::Result<String> {
         .get_latest_release()
         .map_err(|err| color_eyre::eyre::eyre!("Failed to get latest release: {err}"))?;
 
-    Ok(release
-        .version
+    let release = releases
+        .latest()
+        .ok_or_else(|| color_eyre::eyre::eyre!("No releases found for cargo-near"))?;
+    let version = release.version();
+
+    Ok(version
         .strip_prefix("cargo-near-v")
-        .unwrap_or(&release.version)
+        .unwrap_or(version)
         .to_string())
 }
