@@ -69,6 +69,21 @@ pub fn procedure(
 
     pretty_print::step("Generating ABI");
 
+    // The ABI dylib is compiled with its own feature set (`near-sdk/__abi-generate`) and
+    // forced `dev`-profile overrides below, distinct from both the subsequent wasm pass
+    // (different features, `--cfg near` rustflags) and any of the user's own native builds
+    // (`cargo test`, rust-analyzer's `cargo check`) of the same crate graph. Sharing a target
+    // directory with either of those means the alternating profiles/features on the same
+    // dependency units (near-sdk, near-sdk-macros, ...) invalidate each other's fingerprints
+    // back and forth on every switch. Building into a dedicated subdirectory of the resolved
+    // target directory keeps this pass' cache from ever being disturbed by, or disturbing,
+    // anyone else's.
+    let abi_target_dir = crate_metadata
+        .raw_metadata
+        .target_directory
+        .join("cargo-near-abi");
+    let abi_target_dir = abi_target_dir.as_str();
+
     let compile_env = {
         let compile_env = vec![
             ("CARGO_PROFILE_DEV_OPT_LEVEL", "0"),
@@ -76,7 +91,14 @@ pub fn procedure(
             ("CARGO_PROFILE_DEV_LTO", "off"),
             (env_keys::BUILD_RS_ABI_STEP_HINT, "true"),
         ];
-        [&compile_env, env].concat()
+        // appended last, so it wins over any `CARGO_TARGET_DIR` the caller may have
+        // already folded into `env` (e.g. a user-supplied `--target-dir` override)
+        [
+            &compile_env,
+            env,
+            &[(env_keys::CARGO_TARGET_DIR, abi_target_dir)],
+        ]
+        .concat()
     };
     let dylib_artifact = cargo_native::compile::run::<Dylib>(
         &crate_metadata.manifest_path,
