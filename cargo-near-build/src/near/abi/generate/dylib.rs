@@ -33,7 +33,7 @@ pub fn extract_abi_entries(
         target: "near_teach_me",
         parent: &tracing::Span::none(),
         "Detected NEAR ABI symbols:\n{}",
-        pretty_print::indent_payload(&format!("{:#?}", &near_abi_symbols))
+        pretty_print::indent_payload(&format!("{:#?}", near_abi_symbols))
     );
 
     let mut entries = vec![];
