@@ -14,11 +14,10 @@ pub fn setup_tracing() {
     let _ = cargo_near::setup_tracing(true, false);
 }
 
-/// nearcore version the suite spins its sandbox node on. Pinned to the 2.13 RC
+/// nearcore version the suite spins its sandbox node on. Pinned to 2.13
 /// (protocol v85) so tests exercise cargo-near against 2.13 rather than the
-/// `near-sandbox` crate's 2.12 default (`DEFAULT_NEAR_SANDBOX_VERSION`). Bump to
-/// the stable 2.13 tag once it ships.
-pub const NEAR_SANDBOX_VERSION: &str = "2.13.0-rc.2";
+/// `near-sandbox` crate's 2.12 default (`DEFAULT_NEAR_SANDBOX_VERSION`).
+pub const NEAR_SANDBOX_VERSION: &str = "2.13.0";
 
 /// NOTE: this version is version of near-sdk in arbitrary revision from N.x.x development cycle
 pub mod from_git {

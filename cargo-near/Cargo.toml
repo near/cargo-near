@@ -1,6 +1,6 @@
 [package]
 name = "cargo-near"
-version = "0.22.0-rc.1"
+version = "0.22.0"
 authors = ["Near Inc <hello@nearprotocol.com>"]
 edition.workspace = true
 rust-version = "1.93"
@@ -39,11 +39,9 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "2"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-# DRAFT(post-quantum): nearcore 2.13 RC crates. Pinned to the published 2.13
-# RCs on crates.io (near-cli-rs 0.28.0-rc.1 pins near-primitives =0.37.0-rc.2).
-# Drop the `-rc` pins for the stable versions once 2.13 ships.
-near-cli-rs = { version = "=0.28.0-rc.1", default-features = false }
-near-primitives = { version = "=0.37.0-rc.2", default-features = false }
+# nearcore 2.13 (post-quantum) crates on crates.io.
+near-cli-rs = { version = "0.28.0", default-features = false }
+near-primitives = { version = "0.37.0", default-features = false }
 reqwest = "0.12.5"
 indenter = "0.3"
 tracing-core = "0.1.32"
