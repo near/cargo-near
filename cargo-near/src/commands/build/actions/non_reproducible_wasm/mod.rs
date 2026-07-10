@@ -136,8 +136,9 @@ pub struct BuildOpts {
     /// Build every contract in the workspace instead of a single crate
     ///
     /// Discovers all workspace members that have a `[package.metadata.near.reproducible_build]`
-    /// section and builds each one into the same out-dir. `--manifest-path` selects the workspace
-    /// (defaults to the current directory).
+    /// section and builds each one. With `--out-dir` all wasms land in that one directory; without
+    /// it each goes to its crate's default target directory. `--manifest-path` selects the
+    /// workspace (defaults to the current directory).
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
