@@ -19,6 +19,7 @@ pub mod context {
 }
 
 pub mod actions {
+    pub mod list;
     pub mod non_reproducible_wasm;
     pub mod reproducible_wasm;
 
@@ -39,6 +40,11 @@ pub mod actions {
         ))]
         /// Requires `[reproducible_build]` section in Cargo.toml, and all changes committed to git (recommended for the production release)
         ReproducibleWasm(self::reproducible_wasm::BuildOpts),
+        #[strum_discriminants(strum(
+            message = "list                   - List workspace contracts and their reproducible-build variants (supports --json for a CI build matrix)"
+        ))]
+        /// List workspace contracts and their reproducible-build variants (supports `--json` for a CI build matrix)
+        List(self::list::ListOpts),
     }
 }
 
