@@ -1,0 +1,22 @@
+name: build-matrix-selftest
+
+# Proof that reusable-build-contracts.yml fans out across a dynamic matrix. Builds the fixture
+# workspace under .github/fixtures/workspace, so the fan-out can be shown without a downstream
+# repo. Scoped to this feature branch on purpose (workflow_dispatch only works once the file is
+# on the default branch, so we trigger via push while proving it here).
+on:
+  push:
+    branches: [feat/build-matrix-workflow]
+    paths:
+      - ".github/workflows/reusable-build-contracts.yml"
+      - ".github/workflows/build-matrix-selftest.yml"
+      - ".github/fixtures/workspace/**"
+  workflow_dispatch:
+
+jobs:
+  selftest:
+    uses: ./.github/workflows/reusable-build-contracts.yml
+    with:
+      manifest-path: .github/fixtures/workspace/Cargo.toml
+      cargo-near-ref: ${{ github.sha }}
+      reproducible: false
