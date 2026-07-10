@@ -159,15 +159,20 @@ pub fn run(opts: ListOpts) -> color_eyre::eyre::Result<()> {
         print_human_readable(&workspace, opts.variants);
     }
 
-    // Report skipped members on stderr (both modes), so stdout/jq stays clean.
+    // Report skipped members on stderr (both modes), so stdout/jq stays clean. Cap the listed
+    // names so large workspaces (many library crates) don't dump a wall of text.
     if !workspace.skipped.is_empty() {
+        const MAX_LISTED: usize = 10;
+        let total = workspace.skipped.len();
+        let mut names = workspace.skipped[..total.min(MAX_LISTED)].join(", ");
+        if total > MAX_LISTED {
+            names.push_str(&format!(" (+{} more)", total - MAX_LISTED));
+        }
         eprintln!(
             "{}",
             format!(
-                "Skipped {} workspace member(s) without a \
-                 [package.metadata.near.reproducible_build] section: {}",
-                workspace.skipped.len(),
-                workspace.skipped.join(", ")
+                "Skipped {total} workspace member(s) without a \
+                 [package.metadata.near.reproducible_build] section: {names}"
             )
             .yellow()
         );
