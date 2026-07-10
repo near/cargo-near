@@ -55,20 +55,30 @@ jobs:
         id: list
         env:
           MANIFEST_PATH: ${{ inputs.manifest-path }}
+          REPRODUCIBLE: ${{ inputs.reproducible }}
         run: |
           set -euo pipefail
           export PATH="$RUNNER_TEMP/cargo-near/bin:$PATH"
-          # `build list` reports manifest paths relative to the workspace root. Rebase them onto
-          # the repo root so the build jobs (checked out fresh) can use them directly.
-          ws_root="$(cargo metadata --no-deps --format-version 1 --manifest-path "$MANIFEST_PATH" | jq -r .workspace_root)"
-          ws_dir="$(realpath --relative-to="$PWD" "$ws_root")"
-          raw="$(cargo near build list --manifest-path "$MANIFEST_PATH" --json)"
-          rebased="$(echo "$raw" | jq --arg wd "$ws_dir" '[ .[] | .manifest_path |= "\($wd)/\(.)" ]')"
-          echo "count=$(echo "$rebased" | jq 'length')" >> "$GITHUB_OUTPUT"
-          echo "matrix=$(echo "$rebased" | jq -c '{include: .}')" >> "$GITHUB_OUTPUT"
+          # `list` defaults to one job per contract (the default variant). Only reproducible
+          # builds honor `--variant`, so only they ask for the full (contract, variant) fan-out
+          # via `--variants`; non-reproducible builds stay default-only.
+          variants_flag=""
+          if [ "$REPRODUCIBLE" = "true" ]; then
+            variants_flag="--variants"
+          fi
+          # `--json` prints a versioned envelope: { version, workspace_root, jobs: [...] }. Job
+          # manifest paths are relative to workspace_root; rebase them onto the repo root so the
+          # build jobs (checked out fresh) can use them directly.
+          raw="$(cargo near build list --manifest-path "$MANIFEST_PATH" --json $variants_flag)"
+          ws_root="$(echo "$raw" | jq -r .workspace_root)"
+          ws_dir="$(realpath --relative-to="$GITHUB_WORKSPACE" "$ws_root")"
+          count="$(echo "$raw" | jq '.jobs | length')"
+          matrix="$(echo "$raw" | jq -c --arg wd "$ws_dir" '{include: [ .jobs[] | .manifest_path |= "\($wd)/\(.)" ]}')"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           {
-            echo "## Build matrix ($(echo "$rebased" | jq 'length') jobs) in \`$ws_dir\`"
-            echo "$rebased" | jq -r '.[] | "- `\(.package)` \(.variant // "(default)") -> `\(.output)`"'
+            echo "## Build matrix ($count jobs) in \`$ws_dir\`"
+            echo "$raw" | jq -r '.jobs[] | "- `\(.package)` \(.variant // "(default)") -> `\(.output)`"'
           } >> "$GITHUB_STEP_SUMMARY"
 
   build:
@@ -111,9 +121,7 @@ jobs:
               cargo near build reproducible-wasm --manifest-path "$MANIFEST" --out-dir out
             fi
           else
-            if [ -n "$VARIANT" ]; then
-              echo "::notice::--variant applies to reproducible-wasm only; building the default config for '$VARIANT' in non-reproducible mode"
-            fi
+            # Non-reproducible mode is enumerated default-only (no `--variants`), so no variant rows.
             cargo near build non-reproducible-wasm --manifest-path "$MANIFEST" --out-dir out
           fi
           test -f "out/$OUTPUT"
