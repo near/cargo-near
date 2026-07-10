@@ -146,10 +146,11 @@ where
     cmd.arg(command);
     cmd.args(args);
 
-    match color {
-        ColorPreference::Auto => cmd.args(["--color", "auto"]),
+    // `resolved()` maps `Auto` to always/never via our own stderr, since cargo can't detect
+    // the terminal through the stdout/stderr pipes we capture below.
+    match color.resolved() {
         ColorPreference::Always => cmd.args(["--color", "always"]),
-        ColorPreference::Never => cmd.args(["--color", "never"]),
+        _ => cmd.args(["--color", "never"]),
     };
 
     tracing::info!(
