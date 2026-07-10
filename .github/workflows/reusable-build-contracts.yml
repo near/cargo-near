@@ -23,6 +23,10 @@ on:
         type: boolean
         default: true
 
+# Only repository read access is needed (checkout); artifact up/download use the runtime token.
+permissions:
+  contents: read
+
 jobs:
   # Build cargo-near once and enumerate the build matrix from the workspace.
   setup:
@@ -32,6 +36,8 @@ jobs:
       count: ${{ steps.list.outputs.count }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build cargo-near (with `build list`) from ${{ inputs.cargo-near-ref }}
@@ -75,9 +81,12 @@ jobs:
     name: build ${{ matrix.package }}${{ matrix.variant && format(' [{0}]', matrix.variant) || '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
       - name: Download cargo-near binary
         uses: actions/download-artifact@v4
         with:
