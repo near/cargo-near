@@ -73,7 +73,8 @@ pub struct BuildJob {
     /// Wasm filename `cargo near build` writes to the out-dir, e.g. `defuse_poa_token.wasm`.
     /// Variant-independent, so a package's variants share this name.
     pub output: String,
-    /// Path to the contract crate's `Cargo.toml`, relative to the workspace root.
+    /// Path to the contract crate's `Cargo.toml`, relative to `workspace_root` (absolute only in
+    /// the rare case a relative path can't be computed, e.g. a different filesystem root).
     pub manifest_path: String,
 }
 
@@ -96,7 +97,8 @@ impl From<cargo_near_build::list::BuildUnit> for BuildJob {
 struct ListOutput {
     /// Envelope schema version. Bumped only on a breaking change to this shape.
     version: u32,
-    /// Absolute path to the workspace root; each job's `manifest_path` is relative to it.
+    /// Absolute path to the workspace root; each job's `manifest_path` is relative to it (absolute
+    /// only in the rare case a relative path can't be computed).
     workspace_root: String,
     /// The build jobs, one per emitted (contract, variant) pair.
     jobs: Vec<BuildJob>,

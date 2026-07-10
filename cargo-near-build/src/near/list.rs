@@ -16,7 +16,8 @@ pub struct WorkspaceContract {
     pub name: String,
     /// Path to the crate's `Cargo.toml`, relative to the workspace root ([`Workspace::root`]),
     /// e.g. `contracts/defuse/Cargo.toml`. Relative so it is portable across machines and CI
-    /// runners; join it onto [`Workspace::root`] for an absolute path.
+    /// runners; join it onto [`Workspace::root`] for an absolute path. In the rare case a relative
+    /// path can't be computed (a member on a different filesystem root), it is left absolute.
     pub manifest_path: Utf8PathBuf,
     /// Build variants, default first.
     ///
@@ -95,8 +96,10 @@ pub struct Workspace {
 /// [`Workspace::contracts`] and recorded in [`Workspace::skipped`] instead. Results are sorted by
 /// package name, and each contract's variants are sorted, so the output is deterministic.
 ///
-/// Each [`WorkspaceContract::manifest_path`] is returned relative to [`Workspace::root`], which is
-/// itself absolute, so the paths are portable while staying resolvable via `root.join(...)`.
+/// Each [`WorkspaceContract::manifest_path`] is returned relative to [`Workspace::root`] (which is
+/// itself absolute), so the paths are portable while staying resolvable via `root.join(...)`. If a
+/// relative path can't be computed (a member on a different filesystem root), that member's
+/// `manifest_path` is left absolute.
 ///
 /// Runs `cargo metadata --no-deps`: the dependency graph is not resolved, which keeps this fast
 /// and avoids requiring an up-to-date `Cargo.lock`. Presence of the `reproducible_build` section
@@ -137,8 +140,9 @@ pub fn list_contracts(manifest_path: Option<&Utf8Path>) -> eyre::Result<Workspac
             variants.extend(names.into_iter().map(Some));
         }
 
-        // Relative to the workspace root; fall back to the absolute path on the rare chance a
-        // member lives outside the root (e.g. a `../` path member) and can't be made relative.
+        // Relative to the workspace root. `diff_utf8_paths` can express `../` for members above the
+        // root, and only returns `None` when the two paths share no common base (e.g. different
+        // filesystem roots / Windows drive prefixes); fall back to the absolute path there.
         let manifest_path = pathdiff::diff_utf8_paths(&package.manifest_path, &root)
             .unwrap_or_else(|| package.manifest_path.clone());
 
