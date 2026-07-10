@@ -109,19 +109,21 @@ fn list_contracts_discovers_variants_and_filters_non_contracts() -> testresult::
         vec![None, Some("alpha".to_string()), Some("zebra".to_string())]
     );
 
-    // Enumeration flattens to one build unit per (contract, variant), with collision-free names.
-    let outputs: Vec<String> = contracts
+    // Enumeration flattens to one build unit per (contract, variant).
+    let units: Vec<_> = contracts.iter().flat_map(|c| c.build_units()).collect();
+    let rows: Vec<(&str, Option<&str>, &str)> = units
         .iter()
-        .flat_map(|c| c.build_units())
-        .map(|unit| unit.output)
+        .map(|u| (u.package.as_str(), u.variant.as_deref(), u.output.as_str()))
         .collect();
+    // Output filenames match cargo-near's artifact naming (hyphens become underscores) and do not
+    // depend on the variant, so contract-b's three units all write `contract_b.wasm`.
     assert_eq!(
-        outputs,
+        rows,
         [
-            "contract-a.wasm",
-            "contract-b.wasm",
-            "contract-b.alpha.wasm",
-            "contract-b.zebra.wasm",
+            ("contract-a", None, "contract_a.wasm"),
+            ("contract-b", None, "contract_b.wasm"),
+            ("contract-b", Some("alpha"), "contract_b.wasm"),
+            ("contract-b", Some("zebra"), "contract_b.wasm"),
         ]
     );
 

@@ -26,23 +26,29 @@ pub struct WorkspaceContract {
 }
 
 impl WorkspaceContract {
-    /// Collision-free wasm filename for one of this contract's variants.
+    /// The wasm filename `cargo near build` writes to its out-dir for this contract.
     ///
-    /// The default variant is `{name}.wasm`; a named variant is `{name}.{variant}.wasm`, so two
-    /// variants of the same crate don't clobber each other when collected into a single out-dir.
-    pub fn output_filename(&self, variant: Option<&str>) -> String {
-        match variant {
-            None => format!("{}.wasm", self.name),
-            Some(variant) => format!("{}.{variant}.wasm", self.name),
-        }
+    /// This matches the artifact-naming rule the build pipeline already uses
+    /// (`CrateMetadata::formatted_package_name`): the package name with `-` replaced by `_`, plus
+    /// a `.wasm` extension. It does **not** depend on the variant, since `--variant` changes the
+    /// build inputs but not the output path, so every variant of a package writes the same
+    /// filename. In a CI matrix that's harmless (each job has its own out-dir); collecting several
+    /// variants into one directory would require renaming per job.
+    pub fn wasm_filename(&self) -> String {
+        format!(
+            "{}.{}",
+            self.name.replace('-', "_"),
+            crate::types::near::EXPECTED_WASM_EXTENSION
+        )
     }
 
     /// One [`BuildUnit`] per variant, i.e. one per build that has to run.
     pub fn build_units(&self) -> impl Iterator<Item = BuildUnit> + '_ {
+        let output = self.wasm_filename();
         self.variants.iter().map(move |variant| BuildUnit {
             package: self.name.clone(),
             variant: variant.clone(),
-            output: self.output_filename(variant.as_deref()),
+            output: output.clone(),
             manifest_path: self.manifest_path.clone(),
         })
     }
@@ -56,7 +62,8 @@ pub struct BuildUnit {
     pub package: String,
     /// The named `reproducible_build` variant to build, or `None` for the default one.
     pub variant: Option<String>,
-    /// Collision-free output filename in the out-dir, e.g. `defuse.far.wasm`.
+    /// The wasm filename `cargo near build` writes to the out-dir, e.g. `defuse_poa_token.wasm`.
+    /// Variant-independent (see [`WorkspaceContract::wasm_filename`]).
     pub output: String,
     /// Absolute path to the contract crate's `Cargo.toml`.
     pub manifest_path: Utf8PathBuf,
@@ -127,16 +134,22 @@ mod tests {
     }
 
     #[test]
-    fn output_filename_default_and_named() {
-        let contract = contract("defuse", vec![None, Some("far".to_string())]);
-        assert_eq!(contract.output_filename(None), "defuse.wasm");
-        assert_eq!(contract.output_filename(Some("far")), "defuse.far.wasm");
+    fn wasm_filename_normalizes_hyphens_to_underscores() {
+        // Matches `CrateMetadata::formatted_package_name` / the actual cargo-near artifact name.
+        assert_eq!(
+            contract("defuse", vec![None]).wasm_filename(),
+            "defuse.wasm"
+        );
+        assert_eq!(
+            contract("defuse-poa-token", vec![None]).wasm_filename(),
+            "defuse_poa_token.wasm"
+        );
     }
 
     #[test]
-    fn build_units_cover_every_variant_default_first() {
+    fn build_units_cover_every_variant_default_first_sharing_one_output() {
         let contract = contract(
-            "wallet",
+            "defuse-wallet",
             vec![
                 None,
                 Some("no-auth".to_string()),
@@ -146,15 +159,15 @@ mod tests {
         let units: Vec<_> = contract.build_units().collect();
         assert_eq!(units.len(), 3);
 
-        assert_eq!(units[0].variant, None);
-        assert_eq!(units[0].output, "wallet.wasm");
-        assert_eq!(units[0].package, "wallet");
-        assert_eq!(units[0].manifest_path, contract.manifest_path);
+        // Default first, then the variants in the order given.
+        let variants: Vec<Option<&str>> = units.iter().map(|u| u.variant.as_deref()).collect();
+        assert_eq!(variants, [None, Some("no-auth"), Some("webauthn")]);
 
-        assert_eq!(units[1].variant.as_deref(), Some("no-auth"));
-        assert_eq!(units[1].output, "wallet.no-auth.wasm");
-
-        assert_eq!(units[2].variant.as_deref(), Some("webauthn"));
-        assert_eq!(units[2].output, "wallet.webauthn.wasm");
+        // `--variant` doesn't change the output path, so every unit writes the same file.
+        for unit in &units {
+            assert_eq!(unit.package, "defuse-wallet");
+            assert_eq!(unit.output, "defuse_wallet.wasm");
+            assert_eq!(unit.manifest_path, contract.manifest_path);
+        }
     }
 }

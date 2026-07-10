@@ -51,7 +51,7 @@ mod context {
 
 /// A single unit of work: build `package` (optionally with `variant`) and write it to `output`.
 ///
-/// This is the JSON row shape a CI matrix consumes — each job builds exactly one wasm. It mirrors
+/// This is the JSON row shape a CI matrix consumes; each job builds exactly one wasm. It mirrors
 /// [`cargo_near_build::list::BuildUnit`], with `manifest_path` stringified for the wire.
 #[derive(Debug, serde::Serialize)]
 pub struct BuildJob {
@@ -59,7 +59,8 @@ pub struct BuildJob {
     pub package: String,
     /// The named `reproducible_build` variant to build, or `null` for the default one.
     pub variant: Option<String>,
-    /// Intended, collision-free output filename in the out-dir, e.g. `defuse.far.wasm`.
+    /// Wasm filename `cargo near build` writes to the out-dir, e.g. `defuse_poa_token.wasm`.
+    /// Variant-independent, so a package's variants share this name.
     pub output: String,
     /// Absolute path to the contract crate's `Cargo.toml`.
     pub manifest_path: String,
@@ -79,21 +80,17 @@ impl From<cargo_near_build::list::BuildUnit> for BuildJob {
 fn print_human_readable(contracts: &[cargo_near_build::list::WorkspaceContract]) {
     for contract in contracts {
         println!(
-            "{} ({})",
+            "{} ({})  →  {}",
             contract.name.bold(),
-            contract.manifest_path.as_str().dimmed()
+            contract.manifest_path.as_str().dimmed(),
+            contract.wasm_filename()
         );
         for variant in &contract.variants {
             let label = match variant {
-                None => "<default>".to_string(),
-                Some(name) => name.clone(),
+                None => "<default>",
+                Some(name) => name,
             };
-            println!(
-                "  {} {}  →  {}",
-                "•".cyan(),
-                label,
-                contract.output_filename(variant.as_deref())
-            );
+            println!("  {} {}", "•".cyan(), label);
         }
     }
 }
