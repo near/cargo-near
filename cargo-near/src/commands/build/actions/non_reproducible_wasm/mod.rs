@@ -339,6 +339,7 @@ fn run_workspace(opts: BuildOpts) -> color_eyre::eyre::Result<()> {
              were found to build"
         ));
     }
+    super::warn_skipped_members(&workspace);
     super::assert_unique_workspace_outputs(&workspace)?;
 
     let total = workspace.contracts.len();
