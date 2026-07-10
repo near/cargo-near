@@ -14,7 +14,9 @@ use eyre::WrapErr;
 pub struct WorkspaceContract {
     /// Cargo package name, e.g. `defuse-poa-factory`.
     pub name: String,
-    /// Absolute path to the crate's `Cargo.toml`.
+    /// Path to the crate's `Cargo.toml`, relative to the workspace root ([`Workspace::root`]),
+    /// e.g. `contracts/defuse/Cargo.toml`. Relative so it is portable across machines and CI
+    /// runners; join it onto [`Workspace::root`] for an absolute path.
     pub manifest_path: Utf8PathBuf,
     /// Build variants, default first.
     ///
@@ -65,8 +67,19 @@ pub struct BuildUnit {
     /// The wasm filename `cargo near build` writes to the out-dir, e.g. `defuse_poa_token.wasm`.
     /// Variant-independent (see [`WorkspaceContract::wasm_filename`]).
     pub output: String,
-    /// Absolute path to the contract crate's `Cargo.toml`.
+    /// Path to the contract crate's `Cargo.toml`, relative to the workspace root
+    /// (see [`WorkspaceContract::manifest_path`]).
     pub manifest_path: Utf8PathBuf,
+}
+
+/// A Cargo workspace and the contracts in it that opt into reproducible builds.
+#[derive(Debug, Clone)]
+pub struct Workspace {
+    /// Absolute path to the workspace root (the directory containing the workspace `Cargo.toml`).
+    /// Each contract's [`WorkspaceContract::manifest_path`] is relative to this.
+    pub root: Utf8PathBuf,
+    /// Discovered contracts, sorted by package name.
+    pub contracts: Vec<WorkspaceContract>,
 }
 
 /// Discover every workspace member that opts into reproducible builds, with its variants.
@@ -76,11 +89,14 @@ pub struct BuildUnit {
 /// `[package.metadata.near.reproducible_build]` section are skipped. Results are sorted by package
 /// name, and each contract's variants are sorted, so the output is deterministic.
 ///
+/// Each [`WorkspaceContract::manifest_path`] is returned relative to [`Workspace::root`], which is
+/// itself absolute, so the paths are portable while staying resolvable via `root.join(...)`.
+///
 /// Runs `cargo metadata --no-deps`: the dependency graph is not resolved, which keeps this fast
 /// and avoids requiring an up-to-date `Cargo.lock`. Presence of the `reproducible_build` section
 /// is the only requirement; its contents (image, digest, ...) are not validated here, so a
 /// half-filled section still shows up rather than being silently dropped.
-pub fn list_contracts(manifest_path: Option<&Utf8Path>) -> eyre::Result<Vec<WorkspaceContract>> {
+pub fn list_contracts(manifest_path: Option<&Utf8Path>) -> eyre::Result<Workspace> {
     let mut command = cargo_metadata::MetadataCommand::new();
     command.no_deps();
     if let Some(manifest_path) = manifest_path {
@@ -89,6 +105,7 @@ pub fn list_contracts(manifest_path: Option<&Utf8Path>) -> eyre::Result<Vec<Work
     let metadata = command
         .exec()
         .wrap_err("Failed to run `cargo metadata` to enumerate workspace contracts")?;
+    let root = metadata.workspace_root.clone();
 
     let mut contracts: Vec<WorkspaceContract> = metadata
         .workspace_packages()
@@ -109,16 +126,21 @@ pub fn list_contracts(manifest_path: Option<&Utf8Path>) -> eyre::Result<Vec<Work
                 variants.extend(names.into_iter().map(Some));
             }
 
+            // Relative to the workspace root; fall back to the absolute path on the rare chance a
+            // member lives outside the root (e.g. a `../` path member) and can't be made relative.
+            let manifest_path = pathdiff::diff_utf8_paths(&package.manifest_path, &root)
+                .unwrap_or_else(|| package.manifest_path.clone());
+
             Some(WorkspaceContract {
                 name: package.name.as_str().to_string(),
-                manifest_path: package.manifest_path.clone(),
+                manifest_path,
                 variants,
             })
         })
         .collect();
 
     contracts.sort_by(|a, b| a.name.cmp(&b.name));
-    Ok(contracts)
+    Ok(Workspace { root, contracts })
 }
 
 #[cfg(test)]
@@ -128,7 +150,7 @@ mod tests {
     fn contract(name: &str, variants: Vec<Option<String>>) -> WorkspaceContract {
         WorkspaceContract {
             name: name.to_string(),
-            manifest_path: Utf8PathBuf::from(format!("/ws/{name}/Cargo.toml")),
+            manifest_path: Utf8PathBuf::from(format!("{name}/Cargo.toml")),
             variants,
         }
     }

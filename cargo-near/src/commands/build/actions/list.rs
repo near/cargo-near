@@ -62,7 +62,7 @@ pub struct BuildJob {
     /// Wasm filename `cargo near build` writes to the out-dir, e.g. `defuse_poa_token.wasm`.
     /// Variant-independent, so a package's variants share this name.
     pub output: String,
-    /// Absolute path to the contract crate's `Cargo.toml`.
+    /// Path to the contract crate's `Cargo.toml`, relative to the workspace root.
     pub manifest_path: String,
 }
 
@@ -77,8 +77,13 @@ impl From<cargo_near_build::list::BuildUnit> for BuildJob {
     }
 }
 
-fn print_human_readable(contracts: &[cargo_near_build::list::WorkspaceContract]) {
-    for contract in contracts {
+fn print_human_readable(workspace: &cargo_near_build::list::Workspace) {
+    println!(
+        "{} {}",
+        "workspace:".dimmed(),
+        workspace.root.as_str().dimmed()
+    );
+    for contract in &workspace.contracts {
         println!(
             "{} ({})  →  {}",
             contract.name.bold(),
@@ -96,17 +101,18 @@ fn print_human_readable(contracts: &[cargo_near_build::list::WorkspaceContract])
 }
 
 pub fn run(opts: ListOpts) -> color_eyre::eyre::Result<()> {
-    let contracts =
+    let workspace =
         cargo_near_build::list::list_contracts(opts.manifest_path.as_ref().map(|p| p.as_path()))?;
 
     if opts.json {
-        let jobs: Vec<BuildJob> = contracts
+        let jobs: Vec<BuildJob> = workspace
+            .contracts
             .iter()
             .flat_map(|contract| contract.build_units())
             .map(BuildJob::from)
             .collect();
         println!("{}", serde_json::to_string_pretty(&jobs)?);
-    } else if contracts.is_empty() {
+    } else if workspace.contracts.is_empty() {
         eprintln!(
             "{}",
             "No contracts with `[package.metadata.near.reproducible_build]` \
@@ -114,7 +120,7 @@ pub fn run(opts: ListOpts) -> color_eyre::eyre::Result<()> {
                 .yellow()
         );
     } else {
-        print_human_readable(&contracts);
+        print_human_readable(&workspace);
     }
 
     Ok(())

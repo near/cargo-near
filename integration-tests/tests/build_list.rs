@@ -94,11 +94,17 @@ fn list_contracts_discovers_variants_and_filters_non_contracts() -> testresult::
     let manifest = Utf8PathBuf::from_path_buf(tmp.path().join("Cargo.toml"))
         .expect("temp path is valid UTF-8");
 
-    let contracts = cargo_near_build::list::list_contracts(Some(manifest.as_path()))?;
+    let workspace = cargo_near_build::list::list_contracts(Some(manifest.as_path()))?;
+    let contracts = &workspace.contracts;
 
     // plain-lib is excluded; the two contracts come back sorted by package name.
     let names: Vec<&str> = contracts.iter().map(|c| c.name.as_str()).collect();
     assert_eq!(names, ["contract-a", "contract-b"]);
+
+    // Manifest paths are relative to the workspace root, and resolve back to real files.
+    assert_eq!(contracts[0].manifest_path, "contract-a/Cargo.toml");
+    assert_eq!(contracts[1].manifest_path, "contract-b/Cargo.toml");
+    assert!(workspace.root.join(&contracts[0].manifest_path).is_file());
 
     // contract-a: default variant only.
     assert_eq!(contracts[0].variants, vec![None]);
