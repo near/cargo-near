@@ -101,6 +101,9 @@ fn list_contracts_discovers_variants_and_filters_non_contracts() -> testresult::
     let names: Vec<&str> = contracts.iter().map(|c| c.name.as_str()).collect();
     assert_eq!(names, ["contract-a", "contract-b"]);
 
+    // plain-lib opts out of reproducible builds, so it lands in `skipped` rather than `contracts`.
+    assert_eq!(workspace.skipped, ["plain-lib"]);
+
     // Manifest paths are relative to the workspace root, and resolve back to real files.
     assert_eq!(contracts[0].manifest_path, "contract-a/Cargo.toml");
     assert_eq!(contracts[1].manifest_path, "contract-b/Cargo.toml");

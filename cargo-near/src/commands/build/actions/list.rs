@@ -12,13 +12,22 @@ pub struct ListOpts {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub manifest_path: Option<crate::types::utf8_path_buf::Utf8PathBuf>,
-    /// Emit a machine-readable JSON array of build jobs (suitable for a CI build matrix)
+    /// Emit a machine-readable JSON object of build jobs (suitable for a CI build matrix)
     ///
-    /// One entry is emitted per (contract, variant) pair, so the array can be fed
-    /// straight into a GitHub Actions `matrix` via `fromJSON(...)`.
+    /// The `jobs` array can be fed straight into a GitHub Actions `matrix` via
+    /// `fromJSON(...)`.
     #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub json: bool,
+    /// Include every reproducible-build variant, not just each contract's default one
+    ///
+    /// Without this flag, one job per contract is emitted (the default variant). With it,
+    /// one job per (contract, variant) pair is emitted.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub variants: bool,
 }
 
 impl From<CliListOpts> for ListOpts {
@@ -26,6 +35,7 @@ impl From<CliListOpts> for ListOpts {
         Self {
             manifest_path: value.manifest_path,
             json: value.json,
+            variants: value.variants,
         }
     }
 }
@@ -42,6 +52,7 @@ mod context {
             let opts = super::ListOpts {
                 manifest_path: scope.manifest_path.clone(),
                 json: scope.json,
+                variants: scope.variants,
             };
             super::run(opts)?;
             Ok(Self)
@@ -77,7 +88,21 @@ impl From<cargo_near_build::list::BuildUnit> for BuildJob {
     }
 }
 
-fn print_human_readable(workspace: &cargo_near_build::list::Workspace) {
+/// The `--json` output: a versioned envelope around the [`BuildJob`] rows.
+///
+/// Wrapping the jobs (rather than emitting a bare array) leaves room to add fields without a
+/// breaking change; consumers can gate on `version`.
+#[derive(Debug, serde::Serialize)]
+struct ListOutput {
+    /// Envelope schema version. Bumped only on a breaking change to this shape.
+    version: u32,
+    /// Absolute path to the workspace root; each job's `manifest_path` is relative to it.
+    workspace_root: String,
+    /// The build jobs, one per emitted (contract, variant) pair.
+    jobs: Vec<BuildJob>,
+}
+
+fn print_human_readable(workspace: &cargo_near_build::list::Workspace, variants: bool) {
     println!(
         "{} {}",
         "workspace:".dimmed(),
@@ -91,6 +116,10 @@ fn print_human_readable(workspace: &cargo_near_build::list::Workspace) {
             contract.wasm_filename()
         );
         for variant in &contract.variants {
+            // Without `--variants`, show only each contract's default variant.
+            if !variants && variant.is_some() {
+                continue;
+            }
             let label = match variant {
                 None => "<default>",
                 Some(name) => name,
@@ -105,13 +134,20 @@ pub fn run(opts: ListOpts) -> color_eyre::eyre::Result<()> {
         cargo_near_build::list::list_contracts(opts.manifest_path.as_ref().map(|p| p.as_path()))?;
 
     if opts.json {
+        // Without `--variants`, emit one job per contract (the default variant only).
         let jobs: Vec<BuildJob> = workspace
             .contracts
             .iter()
             .flat_map(|contract| contract.build_units())
+            .filter(|unit| opts.variants || unit.variant.is_none())
             .map(BuildJob::from)
             .collect();
-        println!("{}", serde_json::to_string_pretty(&jobs)?);
+        let output = ListOutput {
+            version: 1,
+            workspace_root: workspace.root.to_string(),
+            jobs,
+        };
+        println!("{}", serde_json::to_string_pretty(&output)?);
     } else if workspace.contracts.is_empty() {
         eprintln!(
             "{}",
@@ -120,7 +156,21 @@ pub fn run(opts: ListOpts) -> color_eyre::eyre::Result<()> {
                 .yellow()
         );
     } else {
-        print_human_readable(&workspace);
+        print_human_readable(&workspace, opts.variants);
+    }
+
+    // Report skipped members on stderr (both modes), so stdout/jq stays clean.
+    if !workspace.skipped.is_empty() {
+        eprintln!(
+            "{}",
+            format!(
+                "Skipped {} workspace member(s) without a \
+                 [package.metadata.near.reproducible_build] section: {}",
+                workspace.skipped.len(),
+                workspace.skipped.join(", ")
+            )
+            .yellow()
+        );
     }
 
     Ok(())

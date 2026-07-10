@@ -80,14 +80,20 @@ pub struct Workspace {
     pub root: Utf8PathBuf,
     /// Discovered contracts, sorted by package name.
     pub contracts: Vec<WorkspaceContract>,
+    /// Workspace members that do **not** opt into reproducible builds (no
+    /// `[package.metadata.near.reproducible_build]` section), by package name, sorted. These are
+    /// the members left out of [`contracts`](Self::contracts); surfaced so callers can report what
+    /// was skipped rather than silently dropping it.
+    pub skipped: Vec<String>,
 }
 
 /// Discover every workspace member that opts into reproducible builds, with its variants.
 ///
 /// `manifest_path` may point at the workspace root or at any member's `Cargo.toml`; `None` uses
 /// the `Cargo.toml` in the current directory to locate the enclosing workspace. Members without a
-/// `[package.metadata.near.reproducible_build]` section are skipped. Results are sorted by package
-/// name, and each contract's variants are sorted, so the output is deterministic.
+/// `[package.metadata.near.reproducible_build]` section are left out of
+/// [`Workspace::contracts`] and recorded in [`Workspace::skipped`] instead. Results are sorted by
+/// package name, and each contract's variants are sorted, so the output is deterministic.
 ///
 /// Each [`WorkspaceContract::manifest_path`] is returned relative to [`Workspace::root`], which is
 /// itself absolute, so the paths are portable while staying resolvable via `root.join(...)`.
@@ -107,40 +113,49 @@ pub fn list_contracts(manifest_path: Option<&Utf8Path>) -> eyre::Result<Workspac
         .wrap_err("Failed to run `cargo metadata` to enumerate workspace contracts")?;
     let root = metadata.workspace_root.clone();
 
-    let mut contracts: Vec<WorkspaceContract> = metadata
-        .workspace_packages()
-        .into_iter()
-        .filter_map(|package| {
-            let reproducible_build = package
-                .metadata
-                .get("near")
-                .and_then(|near| near.get("reproducible_build"))?;
+    // One pass over the members: each is either a contract (has a `reproducible_build` section) or
+    // is recorded as skipped, so nothing is silently dropped.
+    let mut contracts: Vec<WorkspaceContract> = Vec::new();
+    let mut skipped: Vec<String> = Vec::new();
+    for package in metadata.workspace_packages() {
+        let Some(reproducible_build) = package
+            .metadata
+            .get("near")
+            .and_then(|near| near.get("reproducible_build"))
+        else {
+            skipped.push(package.name.as_str().to_string());
+            continue;
+        };
 
-            let mut variants = vec![None];
-            if let Some(variant_table) = reproducible_build
-                .get("variant")
-                .and_then(|v| v.as_object())
-            {
-                let mut names: Vec<String> = variant_table.keys().cloned().collect();
-                names.sort();
-                variants.extend(names.into_iter().map(Some));
-            }
+        let mut variants = vec![None];
+        if let Some(variant_table) = reproducible_build
+            .get("variant")
+            .and_then(|v| v.as_object())
+        {
+            let mut names: Vec<String> = variant_table.keys().cloned().collect();
+            names.sort();
+            variants.extend(names.into_iter().map(Some));
+        }
 
-            // Relative to the workspace root; fall back to the absolute path on the rare chance a
-            // member lives outside the root (e.g. a `../` path member) and can't be made relative.
-            let manifest_path = pathdiff::diff_utf8_paths(&package.manifest_path, &root)
-                .unwrap_or_else(|| package.manifest_path.clone());
+        // Relative to the workspace root; fall back to the absolute path on the rare chance a
+        // member lives outside the root (e.g. a `../` path member) and can't be made relative.
+        let manifest_path = pathdiff::diff_utf8_paths(&package.manifest_path, &root)
+            .unwrap_or_else(|| package.manifest_path.clone());
 
-            Some(WorkspaceContract {
-                name: package.name.as_str().to_string(),
-                manifest_path,
-                variants,
-            })
-        })
-        .collect();
+        contracts.push(WorkspaceContract {
+            name: package.name.as_str().to_string(),
+            manifest_path,
+            variants,
+        });
+    }
 
     contracts.sort_by(|a, b| a.name.cmp(&b.name));
-    Ok(Workspace { root, contracts })
+    skipped.sort();
+    Ok(Workspace {
+        root,
+        contracts,
+        skipped,
+    })
 }
 
 #[cfg(test)]
