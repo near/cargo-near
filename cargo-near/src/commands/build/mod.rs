@@ -50,6 +50,26 @@ pub mod actions {
         );
     }
 
+    /// Errors if two contracts in the workspace would write the same wasm filename, which would
+    /// clobber each other in a shared out-dir. The wasm name normalizes `-` to `_`, so distinct
+    /// packages like `foo-bar` and `foo_bar` collide on `foo_bar.wasm`.
+    pub(crate) fn assert_unique_workspace_outputs(
+        workspace: &cargo_near_build::list::Workspace,
+    ) -> color_eyre::eyre::Result<()> {
+        let mut seen = std::collections::HashMap::<String, String>::new();
+        for contract in &workspace.contracts {
+            let output = contract.wasm_filename();
+            if let Some(previous) = seen.insert(output.clone(), contract.name.clone()) {
+                return Err(color_eyre::eyre::eyre!(
+                    "contracts `{previous}` and `{}` both build to `{output}`; \
+                     rename one so their workspace outputs don't collide",
+                    contract.name
+                ));
+            }
+        }
+        Ok(())
+    }
+
     #[derive(Debug, Clone, EnumDiscriminants, interactive_clap::InteractiveClap)]
     #[strum_discriminants(derive(EnumMessage, EnumIter))]
     #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
