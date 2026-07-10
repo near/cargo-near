@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.4](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.3...cargo-near-build-v0.11.4) - 2026-07-02
+
+### Other
+
+- rename Opts::get_cli_command_for_lib_context to to_argv ([#422](https://github.com/near/cargo-near/pull/422))
+
 ## [0.11.3](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.2...cargo-near-build-v0.11.3) - 2026-05-29
 
 ### Added
