@@ -25,6 +25,31 @@ pub mod actions {
 
     use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
+    /// Warn (on stderr) about workspace members that were skipped because they lack a
+    /// `[package.metadata.near.reproducible_build]` section, so a skipped member (e.g. a
+    /// contract that hasn't added the section yet) is visible rather than dropped silently.
+    /// Caps the listed names for large workspaces. Shared by `build list` and `--workspace`.
+    pub(crate) fn warn_skipped_members(workspace: &cargo_near_build::list::Workspace) {
+        use colored::Colorize;
+        if workspace.skipped.is_empty() {
+            return;
+        }
+        const MAX_LISTED: usize = 10;
+        let total = workspace.skipped.len();
+        let mut names = workspace.skipped[..total.min(MAX_LISTED)].join(", ");
+        if total > MAX_LISTED {
+            names.push_str(&format!(" (+{} more)", total - MAX_LISTED));
+        }
+        eprintln!(
+            "{}",
+            format!(
+                "Skipped {total} workspace member(s) without a \
+                 [package.metadata.near.reproducible_build] section: {names}"
+            )
+            .yellow()
+        );
+    }
+
     #[derive(Debug, Clone, EnumDiscriminants, interactive_clap::InteractiveClap)]
     #[strum_discriminants(derive(EnumMessage, EnumIter))]
     #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
