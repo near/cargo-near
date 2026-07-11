@@ -1,0 +1,151 @@
+name: reusable-build-contracts
+
+# Reusable workflow: enumerate the contracts in a Cargo workspace with
+# `cargo near build list --json`, then fan out one build job per (contract, variant) across the
+# CI matrix. Wall-clock becomes the slowest single contract instead of the sum of all of them.
+#
+# Until `build list` ships in a cargo-near release, cargo-near is built once from a git rev and
+# shared with the build jobs as an artifact. Post-release the setup job can install a prebuilt
+# binary instead, and each build job can install it directly.
+on:
+  workflow_call:
+    inputs:
+      manifest-path:
+        description: "Path (relative to the repo root) to the workspace Cargo.toml"
+        type: string
+        required: true
+      cargo-near-ref:
+        description: "git rev of near/cargo-near to build cargo-near from (needs `build list`)"
+        type: string
+        required: true
+      reproducible:
+        description: "Build reproducible (docker) wasm; false uses fast non-reproducible builds"
+        type: boolean
+        default: true
+
+# Only repository read access is needed (checkout); artifact up/download use the runtime token.
+permissions:
+  contents: read
+
+jobs:
+  # Build cargo-near once and enumerate the build matrix from the workspace.
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+      count: ${{ steps.list.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build cargo-near (with `build list`) from ${{ inputs.cargo-near-ref }}
+        run: |
+          cargo install --debug --no-default-features --locked \
+            --git https://github.com/near/cargo-near --rev "${{ inputs.cargo-near-ref }}" \
+            --root "$RUNNER_TEMP/cargo-near" cargo-near
+      - name: Upload cargo-near binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-near-bin
+          path: ${{ runner.temp }}/cargo-near/bin/cargo-near
+          if-no-files-found: error
+      - name: Enumerate build matrix
+        id: list
+        env:
+          MANIFEST_PATH: ${{ inputs.manifest-path }}
+          REPRODUCIBLE: ${{ inputs.reproducible }}
+        run: |
+          set -euo pipefail
+          export PATH="$RUNNER_TEMP/cargo-near/bin:$PATH"
+          # `list` defaults to one job per contract (the default variant). Only reproducible
+          # builds honor `--variant`, so only they ask for the full (contract, variant) fan-out
+          # via `--variants`; non-reproducible builds stay default-only.
+          variants_flag=""
+          if [ "$REPRODUCIBLE" = "true" ]; then
+            variants_flag="--variants"
+          fi
+          # `--json` prints a versioned envelope: { version, workspace_root, jobs: [...] }. Job
+          # manifest paths are relative to workspace_root; rebase them onto the repo root so the
+          # build jobs (checked out fresh) can use them directly.
+          raw="$(cargo near build list --manifest-path "$MANIFEST_PATH" --json $variants_flag)"
+          ws_root="$(echo "$raw" | jq -r .workspace_root)"
+          ws_dir="$(realpath --relative-to="$GITHUB_WORKSPACE" "$ws_root")"
+          count="$(echo "$raw" | jq '.jobs | length')"
+          matrix="$(echo "$raw" | jq -c --arg wd "$ws_dir" '{include: [ .jobs[] | .manifest_path |= "\($wd)/\(.)" ]}')"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Build matrix ($count jobs) in \`$ws_dir\`"
+            echo "$raw" | jq -r '.jobs[] | "- `\(.package)` \(.variant // "(default)") -> `\(.output)`"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: setup
+    if: needs.setup.outputs.count != '0'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    name: build ${{ matrix.package }}${{ matrix.variant && format(' [{0}]', matrix.variant) || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Download cargo-near binary
+        uses: actions/download-artifact@v4
+        with:
+          name: cargo-near-bin
+          path: ${{ runner.temp }}/cargo-near/bin
+      - name: Put cargo-near on PATH
+        run: |
+          chmod +x "$RUNNER_TEMP/cargo-near/bin/cargo-near"
+          echo "$RUNNER_TEMP/cargo-near/bin" >> "$GITHUB_PATH"
+      - name: Build
+        env:
+          MANIFEST: ${{ matrix.manifest_path }}
+          VARIANT: ${{ matrix.variant }}
+          OUTPUT: ${{ matrix.output }}
+          REPRODUCIBLE: ${{ inputs.reproducible }}
+        run: |
+          set -euxo pipefail
+          if [ "$REPRODUCIBLE" = "true" ]; then
+            if [ -n "$VARIANT" ]; then
+              cargo near build reproducible-wasm --manifest-path "$MANIFEST" --variant "$VARIANT" --out-dir out
+            else
+              cargo near build reproducible-wasm --manifest-path "$MANIFEST" --out-dir out
+            fi
+          else
+            # Non-reproducible mode is enumerated default-only (no `--variants`), so no variant rows.
+            cargo near build non-reproducible-wasm --manifest-path "$MANIFEST" --out-dir out
+          fi
+          test -f "out/$OUTPUT"
+      - name: Upload wasm
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-${{ matrix.package }}${{ matrix.variant && format('-{0}', matrix.variant) || '' }}
+          path: out/${{ matrix.output }}
+          if-no-files-found: error
+          compression-level: 0
+
+  # Pull every per-job artifact back together so the fan-out is visible in one place.
+  collect:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all wasm artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wasm-*
+          path: artifacts
+      - name: Summarize
+        run: |
+          {
+            echo "## Collected wasm artifacts"
+            find artifacts -name '*.wasm' -printf '- %p (%s bytes)\n' | sort
+          } >> "$GITHUB_STEP_SUMMARY"

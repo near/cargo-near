@@ -1,0 +1,8 @@
+# Fixture workspace for .github/workflows/build-matrix-selftest.yml. It proves the
+# `cargo near build list` -> dynamic GH Actions matrix -> per-contract build fan-out end to end.
+#
+# This is its own Cargo workspace (note the [workspace] table below), so it is invisible to the
+# root cargo-near workspace and is not built or linted by the normal CI jobs.
+[workspace]
+resolver = "2"
+members = ["alpha", "beta"]
