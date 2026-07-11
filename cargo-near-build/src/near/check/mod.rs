@@ -1,4 +1,4 @@
-use crate::types::near::build::buildtime_env::{Nep330BuildCommand, Nep330Link, Nep330Version};
+use crate::types::near::build::buildtime_env::Nep330CrateVars;
 use crate::types::near::build::common_buildtime_env;
 use crate::types::near::build::output::version_info::VersionInfo;
 use crate::types::near::check::Opts;
@@ -85,17 +85,16 @@ pub fn run(args: Opts) -> eyre::Result<()> {
     // so we must not also forward RUSTFLAGS/CARGO_ENCODED_RUSTFLAGS from args.env below.
     let encoded_rustflags = encoded_rustflags_with_cfg_near(&args.env);
 
-    // Reproduce the same NEP-330 build-time environment `cargo near build` exposes (via
-    // `CommonVariables`), so a contract whose source or `build.rs` reads these variables
-    // type-checks against the same configuration `build` would compile. The output-wasm-path
-    // variable is intentionally omitted — a `check` produces no artifact.
-    let nep330_version = Nep330Version::new(&crate_metadata);
-    let nep330_link = Nep330Link::new(&crate_metadata);
-    let nep330_build_cmd = Nep330BuildCommand::compute_with_fallback_argv(|| {
-        vec!["cargo".to_string(), "near".to_string(), "check".to_string()]
-    })?;
-    let builder_abi_versions =
-        VersionInfo::get_coerced_builder_version()?.compute_env_variables()?;
+    // Reproduce the same crate-identity NEP-330 build-time env `cargo near build` exposes (via
+    // `CommonVariables`, which shares this exact `Nep330CrateVars` group), so a contract whose
+    // source or `build.rs` reads these variables type-checks against the same configuration
+    // `build` would compile. The artifact/output-tied vars (output wasm path, contract-path and
+    // cargo-target-dir overrides) are intentionally omitted — a `check` produces no artifact.
+    let crate_vars = Nep330CrateVars::new(
+        &crate_metadata,
+        &VersionInfo::get_coerced_builder_version()?,
+        || vec!["cargo".to_string(), "near".to_string(), "check".to_string()],
+    )?;
 
     let check_env = {
         let mut check_env: Vec<(&str, &str)> = vec![(
@@ -112,10 +111,7 @@ pub fn run(args: Opts) -> eyre::Result<()> {
                 .map(|(key, value)| (key.as_str(), value.as_str())),
         );
 
-        nep330_version.append_borrowed_to(&mut check_env);
-        nep330_link.append_borrowed_to(&mut check_env);
-        nep330_build_cmd.append_borrowed_to(&mut check_env);
-        builder_abi_versions.append_borrowed_to(&mut check_env);
+        crate_vars.append_borrowed_to(&mut check_env);
 
         effective_toolchain.as_ref().inspect(|toolchain| {
             check_env.push((env_keys::RUSTUP_TOOLCHAIN, toolchain));

@@ -1,15 +1,10 @@
 use crate::env_keys;
-use crate::types::near::build::input::Opts;
 
 pub struct Nep330BuildCommand {
     value: String,
 }
 
 impl Nep330BuildCommand {
-    pub fn compute(args: &Opts) -> eyre::Result<Self> {
-        Self::compute_with_fallback_argv(|| args.to_argv())
-    }
-
     /// Computes the `NEP330_BUILD_INFO_BUILD_COMMAND` value.
     ///
     /// In cli context (invoked via the `cargo-near` binary) the command is reconstructed from
