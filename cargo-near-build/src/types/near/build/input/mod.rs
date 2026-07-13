@@ -271,6 +271,16 @@ impl ColorPreference {
             ColorPreference::Never => colored::control::set_override(false),
         }
     }
+
+    /// Resolves `Auto` to `Always`/`Never` against cargo-near's own stderr (respecting
+    /// `NO_COLOR`). Used when handing `--color` to a child `cargo` whose output we capture:
+    /// cargo's own `auto` would see the capture pipe and strip colors.
+    pub(crate) fn resolved(self) -> Self {
+        match self {
+            ColorPreference::Auto => default_mode(),
+            already_resolved => already_resolved,
+        }
+    }
 }
 
 #[cfg(test)]

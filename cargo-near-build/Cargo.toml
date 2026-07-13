@@ -18,6 +18,7 @@ dunce = "1"
 bon = "3"
 cargo_metadata = "0.21"
 colored = "3"
+bytesize = "1"
 tracing = "0.1.40"
 indenter = "0.3"
 pathdiff = { version = "0.2.1", features = ["camino"] }

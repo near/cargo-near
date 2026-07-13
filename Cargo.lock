@@ -478,6 +478,7 @@ version = "0.11.4"
 dependencies = [
  "bon",
  "bs58 0.5.1",
+ "bytesize",
  "camino",
  "cargo_metadata",
  "colored",

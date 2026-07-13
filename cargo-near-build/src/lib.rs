@@ -52,6 +52,15 @@ pub mod abi {
     pub use crate::types::near::abi::Opts as AbiOpts;
 }
 
+/// `cargo near check` entry point: type-check a contract under the same environment
+/// `cargo near build` uses (`--cfg near`, `wasm32-unknown-unknown` target, same
+/// feature/profile/locked resolution and toolchain), without producing a wasm artifact.
+#[cfg(feature = "build_internal")]
+pub mod check {
+    pub use crate::near::check::run as check;
+    pub use crate::types::near::check::{CheckKind, Opts as CheckOpts};
+}
+
 /// these are exports of types, used for both `internal` and `external` build methods
 mod build_exports {
 
