@@ -39,7 +39,6 @@ names = { version = "0.14.0", default-features = false }
 derive_more = "2"
 shell-words = "1.0.0"
 interactive-clap = "0.3.2"
-# nearcore 2.13 (post-quantum) crates on crates.io.
 near-cli-rs = { version = "0.28.0", default-features = false }
 near-primitives = { version = "0.37.0", default-features = false }
 reqwest = "0.12.5"
