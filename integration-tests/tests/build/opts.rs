@@ -1,5 +1,5 @@
 use crate::util;
-use cargo_near_integration_tests::{NEAR_SANDBOX_VERSION, build_fn_with, setup_tracing};
+use cargo_near_integration_tests::{build_fn_with, setup_tracing};
 use function_name::named;
 use std::fs;
 
@@ -30,7 +30,7 @@ async fn test_build_no_embed_abi() -> testresult::TestResult {
         }
     };
 
-    let worker = near_workspaces::sandbox_with_version(NEAR_SANDBOX_VERSION).await?;
+    let worker = near_workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("__contract_abi").view().await;
     outcome.unwrap_err();
@@ -155,7 +155,7 @@ async fn test_build_abi_features_separate_from_wasm_features() -> testresult::Te
     );
 
     // WASM should NOT have gated_only (features does not have "gated")
-    let worker = near_workspaces::sandbox_with_version(NEAR_SANDBOX_VERSION).await?;
+    let worker = near_workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("gated_only").view().await;
     assert!(
@@ -202,7 +202,7 @@ async fn test_build_both_features_and_abi_features_for_different_targets() -> te
     );
 
     // WASM should also have gated_only (--features gated)
-    let worker = near_workspaces::sandbox_with_version(NEAR_SANDBOX_VERSION).await?;
+    let worker = near_workspaces::sandbox().await?;
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("gated_only").view().await?;
     assert!(outcome.json::<bool>()?);
