@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0](https://github.com/near/cargo-near/compare/cargo-near-v0.22.0-rc.1...cargo-near-v0.22.0) - 2026-07-13
+
+### Added
+
+- add `cargo near check` subcommand ([#442](https://github.com/near/cargo-near/pull/442))
+- print built contract size in `cargo near build` output ([#441](https://github.com/near/cargo-near/pull/441))
+
+### Fixed
+
+- isolate ABI generation pass into its own CARGO_TARGET_DIR ([#447](https://github.com/near/cargo-near/pull/447))
+- clear cargo-audit failures from new RustSec advisories ([#448](https://github.com/near/cargo-near/pull/448))
+
 ## [0.22.0-rc.1](https://github.com/near/cargo-near/compare/cargo-near-v0.21.1...cargo-near-v0.22.0-rc.1) - 2026-07-02
 
 ### Added
