@@ -53,10 +53,10 @@ const MAX_RUST_VERSION: &str = "1.86.0";
 /// recompile the fixture (defeating freshness assertions like
 /// `test_build_twice_different_out_dirs_stays_fresh`).
 fn write_if_changed(path: &std::path::Path, content: &[u8]) -> std::io::Result<()> {
-    if let Ok(existing) = std::fs::read(path) {
-        if existing == content {
-            return Ok(());
-        }
+    if let Ok(existing) = std::fs::read(path)
+        && existing == content
+    {
+        return Ok(());
     }
     std::fs::write(path, content)
 }
