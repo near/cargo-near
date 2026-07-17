@@ -3,10 +3,9 @@ use eyre::WrapErr;
 
 /// Copy a file to a destination.
 ///
-/// Does nothing if the destination is the same as the source to avoid truncating the file,
-/// or if the destination already has identical contents — rewriting an unchanged file would
-/// bump its mtime, which spuriously dirties any compilation unit that `include_bytes!`-es it
-/// (e.g. the embedded ABI on platforms where `std::fs::copy` doesn't preserve mtime).
+/// Does nothing if the destination is the same as the source or already has identical
+/// contents — rewriting would bump the mtime and spuriously dirty anything that
+/// `include_bytes!`-es the file.
 #[cfg(feature = "build_internal")]
 pub fn copy(from: &Utf8Path, out_dir: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
     if !out_dir.is_dir() {

@@ -210,11 +210,9 @@ async fn test_build_both_features_and_abi_features_for_different_targets() -> te
     Ok(())
 }
 
-/// Two builds of the same unchanged contract with different `--out-dir` values must not
-/// recompile anything: nothing about the out-dir may leak into compile-time fingerprints.
-/// Guards against the `CARGO_NEAR_ABI_PATH`-pointing-into-`--out-dir` regression, where
-/// callers passing a fresh temp out-dir per invocation (e.g. near/intents' Makefile) got
-/// the whole dependency graph rebuilt on every run.
+/// Builds differing only in `--out-dir` must stay fully fresh: nothing about the out-dir
+/// may leak into compile-time fingerprints (regression test for `CARGO_NEAR_ABI_PATH`
+/// pointing into `--out-dir`).
 #[test]
 #[named]
 fn test_build_twice_different_out_dirs_stays_fresh() -> testresult::TestResult {
@@ -229,8 +227,7 @@ fn test_build_twice_different_out_dirs_stays_fresh() -> testresult::TestResult {
         }
     };
 
-    // the wasm produced by cargo (before wasm-opt / out-dir copies); any dirtied unit in
-    // the dependency graph re-links this cdylib, so a stable mtime means full freshness
+    // any dirtied unit in the graph re-links this cdylib, so a stable mtime proves freshness
     let cargo_produced_wasm = cargo_near_integration_tests::common_root_for_test_projects_build()
         .join(function_name!())
         .join("target/wasm32-unknown-unknown/release")

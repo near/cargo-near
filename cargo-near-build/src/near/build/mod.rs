@@ -277,13 +277,10 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
     }
 
-    // `CARGO_NEAR_ABI_PATH` becomes a compile-time fingerprint of `near-sdk-macros`
-    // (`env!("CARGO_NEAR_ABI_PATH")`) and, through `include_bytes!`, of the contract crate.
-    // It must point at the intermediate file under the resolved target directory — a path
-    // that is identical from run to run — and not at the copy inside `--out-dir`: callers
-    // like near/intents pass a fresh `mktemp -d` out-dir on every invocation, and routing
-    // that path into the env var used to invalidate near-sdk-macros and rebuild the whole
-    // dependency graph on every run.
+    // `CARGO_NEAR_ABI_PATH` is a compile-time fingerprint of near-sdk-macros (`env!`) and of
+    // the contract crate (`include_bytes!`), so it must be the run-to-run-stable intermediate
+    // path — pointing it at the `--out-dir` copy rebuilds the whole graph whenever the
+    // out-dir changes (e.g. a fresh `mktemp -d` per invocation).
     let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &intermediate_min_abi_path);
 
     // Resolve effective wasm-build rustflags (with `--cfg near` force-appended) as a

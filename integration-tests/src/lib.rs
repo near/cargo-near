@@ -48,10 +48,8 @@ pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
 /// tests in `tests/build/dynamic_max_rustc.rs`.
 const MAX_RUST_VERSION: &str = "1.86.0";
 
-/// Skip the write when the file already has this content: repeated invocations for the same
-/// test project must not bump source mtimes, or every build after the first would spuriously
-/// recompile the fixture (defeating freshness assertions like
-/// `test_build_twice_different_out_dirs_stays_fresh`).
+/// Skip the write when content is unchanged, so repeated invocations for the same test
+/// project don't bump source mtimes and spuriously recompile the fixture.
 fn write_if_changed(path: &std::path::Path, content: &[u8]) -> std::io::Result<()> {
     if let Ok(existing) = std::fs::read(path)
         && existing == content
