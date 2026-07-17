@@ -209,6 +209,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
 
     let mut abi = None;
     let mut min_abi_path = None;
+    let mut intermediate_min_abi_path = None;
     let builder_version_info = VersionInfo::get_coerced_builder_version()?;
 
     let common_vars_env = buildtime_env::CommonVariables::new(
@@ -265,6 +266,7 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
                 Ok(path)
             })?;
             min_abi_path.replace(crate::fs::copy(&path, output_paths.get_out_dir())?);
+            intermediate_min_abi_path.replace(path);
         }
         abi = Some(contract_abi);
     }
@@ -275,7 +277,14 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
         cargo_args.extend(&["--features", "near-sdk/__abi-embed"]);
     }
 
-    let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &min_abi_path);
+    // `CARGO_NEAR_ABI_PATH` becomes a compile-time fingerprint of `near-sdk-macros`
+    // (`env!("CARGO_NEAR_ABI_PATH")`) and, through `include_bytes!`, of the contract crate.
+    // It must point at the intermediate file under the resolved target directory — a path
+    // that is identical from run to run — and not at the copy inside `--out-dir`: callers
+    // like near/intents pass a fresh `mktemp -d` out-dir on every invocation, and routing
+    // that path into the env var used to invalidate near-sdk-macros and rebuild the whole
+    // dependency graph on every run.
+    let abi_path_env = buildtime_env::AbiPath::new(args.no_embed_abi, &intermediate_min_abi_path);
 
     // Resolve effective wasm-build rustflags (with `--cfg near` force-appended) as a
     // CARGO_ENCODED_RUSTFLAGS string. See [`encoded_rustflags_with_cfg_near`] for the full
