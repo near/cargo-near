@@ -341,7 +341,7 @@ fn run_workspace(opts: BuildOpts) -> color_eyre::eyre::Result<()> {
         ));
     }
     super::warn_skipped_members(&workspace);
-    super::assert_unique_workspace_outputs(&workspace)?;
+    super::assert_unique_workspace_outputs(&workspace, opts.out_dir.is_some())?;
 
     let total = workspace.contracts.len();
     for (index, contract) in workspace.contracts.iter().enumerate() {
