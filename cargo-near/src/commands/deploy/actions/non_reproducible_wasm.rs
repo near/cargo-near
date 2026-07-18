@@ -36,6 +36,12 @@ mod context {
             previous_context: near_cli_rs::GlobalContext,
             scope: &<super::DeployOpts as interactive_clap::ToInteractiveClapContextScope>::InteractiveClapContextScope,
         ) -> color_eyre::eyre::Result<Self> {
+            if scope.build_command_opts.workspace {
+                return Err(color_eyre::eyre::eyre!(
+                    "`--workspace` is not supported when deploying: deploy builds and deploys \
+                     a single contract"
+                ));
+            }
             let artifact = build_command::actions::non_reproducible_wasm::run(
                 scope.build_command_opts.clone(),
             )?;

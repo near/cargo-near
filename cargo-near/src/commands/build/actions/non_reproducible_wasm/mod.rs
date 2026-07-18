@@ -133,6 +133,16 @@ pub struct BuildOpts {
     /// Skip Rust version check
     #[interactive_clap(long)]
     pub skip_rust_version_check: bool,
+    /// Build every contract in the workspace instead of a single crate
+    ///
+    /// Discovers all workspace members that have a `[package.metadata.near.reproducible_build]`
+    /// section and builds each one. With `--out-dir` all wasms land in that one directory; without
+    /// it each goes to its crate's default target directory. `--manifest-path` selects the
+    /// workspace (defaults to the current directory).
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub workspace: bool,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -154,6 +164,7 @@ impl From<CliBuildOpts> for BuildOpts {
             env: value.env,
             override_toolchain: value.override_toolchain,
             skip_rust_version_check: value.skip_rust_version_check,
+            workspace: value.workspace,
         }
     }
 }
@@ -185,8 +196,13 @@ pub mod context {
                 color: scope.color.clone(),
                 override_toolchain: scope.override_toolchain.clone(),
                 skip_rust_version_check: scope.skip_rust_version_check,
+                workspace: scope.workspace,
             };
-            super::run(opts)?;
+            if opts.workspace {
+                super::run_workspace(opts)?;
+            } else {
+                super::run(opts)?;
+            }
             Ok(Self)
         }
     }
@@ -308,4 +324,36 @@ pub fn run(opts: BuildOpts) -> color_eyre::eyre::Result<BuildArtifact> {
     rule::assert_locked(&opts);
     opts.validate_env_opt()?;
     cargo_near_build::build(opts.into())
+}
+
+/// Build every contract in the workspace, one after another.
+///
+/// Discovers workspace members with a `[package.metadata.near.reproducible_build]` section (the
+/// standard NEAR-contract marker) and builds each with [`run`], reusing the single-crate path.
+fn run_workspace(opts: BuildOpts) -> color_eyre::eyre::Result<()> {
+    let workspace = cargo_near_build::list::list_contracts(
+        opts.manifest_path.as_ref().map(|path| path.as_path()),
+    )?;
+    if workspace.contracts.is_empty() {
+        return Err(color_eyre::eyre::eyre!(
+            "no workspace members with `[package.metadata.near.reproducible_build]` \
+             were found to build"
+        ));
+    }
+    super::warn_skipped_members(&workspace);
+    super::assert_unique_workspace_outputs(&workspace, opts.out_dir.is_some())?;
+
+    let total = workspace.contracts.len();
+    for (index, contract) in workspace.contracts.iter().enumerate() {
+        eprintln!("[{}/{}] building `{}`", index + 1, total, contract.name);
+        let manifest_path: crate::types::utf8_path_buf::Utf8PathBuf =
+            workspace.root.join(&contract.manifest_path).into();
+        let contract_opts = BuildOpts {
+            manifest_path: Some(manifest_path),
+            workspace: false,
+            ..opts.clone()
+        };
+        run(contract_opts)?;
+    }
+    Ok(())
 }

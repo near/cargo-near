@@ -91,6 +91,17 @@ pub struct BuildOpts {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub variant: Option<String>,
+    /// Build every contract in the workspace instead of a single crate
+    ///
+    /// Discovers all workspace members that have a `[package.metadata.near.reproducible_build]`
+    /// section and builds each one's default variant. With `--out-dir` all wasms land in that one
+    /// directory; without it each goes to its crate's default target directory. `--manifest-path`
+    /// selects the workspace (defaults to the current directory). Cannot be combined with
+    /// `--variant`.
+    #[interactive_clap(long)]
+    #[interactive_clap(skip_interactive_input)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub workspace: bool,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -102,6 +113,7 @@ impl From<CliBuildOpts> for BuildOpts {
             color: value.color,
             variant: value.variant,
             profile: value.profile,
+            workspace: value.workspace,
         }
     }
 }
@@ -122,8 +134,13 @@ mod context {
                 color: scope.color.clone(),
                 variant: scope.variant.clone(),
                 profile: scope.profile.clone(),
+                workspace: scope.workspace,
             };
-            super::run(opts, previous_context)?;
+            if opts.workspace {
+                super::run_workspace(opts, previous_context)?;
+            } else {
+                super::run(opts, previous_context)?;
+            }
             Ok(Self)
         }
     }
@@ -146,4 +163,46 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
 pub fn run(opts: BuildOpts, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
     let docker_opts = docker_opts_from((opts, context));
     cargo_near_build::docker::build(docker_opts, false)
+}
+
+/// Build every contract in the workspace (default variants only), one after another.
+///
+/// Reuses [`run`] per contract, so each build is exactly what `reproducible-wasm` does for a
+/// single crate, just applied to each workspace member with a `reproducible_build` section.
+/// Parallelism is intentionally out of scope: run these across a CI matrix (see
+/// `cargo near build list`) when wall-clock matters.
+fn run_workspace(opts: BuildOpts, context: BuildContext) -> color_eyre::eyre::Result<()> {
+    if opts.variant.is_some() {
+        return Err(color_eyre::eyre::eyre!(
+            "`--variant` cannot be combined with `--workspace`: `--workspace` builds the \
+             default variant of every contract"
+        ));
+    }
+
+    let workspace = cargo_near_build::list::list_contracts(
+        opts.manifest_path.as_ref().map(|path| path.as_path()),
+    )?;
+    if workspace.contracts.is_empty() {
+        return Err(color_eyre::eyre::eyre!(
+            "no workspace members with `[package.metadata.near.reproducible_build]` \
+             were found to build"
+        ));
+    }
+    super::warn_skipped_members(&workspace);
+    super::assert_unique_workspace_outputs(&workspace, opts.out_dir.is_some())?;
+
+    let total = workspace.contracts.len();
+    for (index, contract) in workspace.contracts.iter().enumerate() {
+        eprintln!("[{}/{}] building `{}`", index + 1, total, contract.name);
+        let manifest_path: crate::types::utf8_path_buf::Utf8PathBuf =
+            workspace.root.join(&contract.manifest_path).into();
+        let contract_opts = BuildOpts {
+            manifest_path: Some(manifest_path),
+            variant: None,
+            workspace: false,
+            ..opts.clone()
+        };
+        run(contract_opts, context)?;
+    }
+    Ok(())
 }

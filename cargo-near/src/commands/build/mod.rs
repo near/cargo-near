@@ -50,6 +50,76 @@ pub mod actions {
         );
     }
 
+    /// Errors if two contracts in the workspace would write the same wasm filename to a shared
+    /// `--out-dir`. Without `--out-dir`, each non-root workspace member writes to its own default
+    /// subdirectory, so matching filenames do not necessarily collide.
+    pub(crate) fn assert_unique_workspace_outputs(
+        workspace: &cargo_near_build::list::Workspace,
+        has_shared_out_dir: bool,
+    ) -> color_eyre::eyre::Result<()> {
+        if !has_shared_out_dir {
+            return Ok(());
+        }
+
+        let mut seen = std::collections::HashMap::<String, String>::new();
+        for contract in &workspace.contracts {
+            let output = contract.wasm_filename();
+            if let Some(previous) = seen.insert(output.clone(), contract.name.clone()) {
+                return Err(color_eyre::eyre::eyre!(
+                    "contracts `{previous}` and `{}` both build to `{output}`; \
+                     rename one so their workspace outputs don't collide",
+                    contract.name
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use cargo_near_build::camino::Utf8PathBuf;
+        use cargo_near_build::list::{Workspace, WorkspaceContract};
+
+        use super::assert_unique_workspace_outputs;
+
+        fn workspace_with_normalized_name_collision() -> Workspace {
+            Workspace {
+                root: Utf8PathBuf::from("/workspace"),
+                contracts: vec![
+                    WorkspaceContract {
+                        name: "foo-bar".to_string(),
+                        manifest_path: Utf8PathBuf::from("Cargo.toml"),
+                        variants: vec![None],
+                    },
+                    WorkspaceContract {
+                        name: "foo_bar".to_string(),
+                        manifest_path: Utf8PathBuf::from("member/Cargo.toml"),
+                        variants: vec![None],
+                    },
+                ],
+                skipped: vec![],
+            }
+        }
+
+        #[test]
+        fn matching_filenames_are_allowed_without_shared_out_dir() {
+            let workspace = workspace_with_normalized_name_collision();
+
+            assert!(assert_unique_workspace_outputs(&workspace, false).is_ok());
+        }
+
+        #[test]
+        fn matching_filenames_are_rejected_with_shared_out_dir() {
+            let workspace = workspace_with_normalized_name_collision();
+
+            let error = assert_unique_workspace_outputs(&workspace, true).unwrap_err();
+            let message = error.to_string();
+            assert!(message.contains("foo-bar"));
+            assert!(message.contains("foo_bar"));
+            assert!(message.contains("foo_bar.wasm"));
+        }
+    }
+
     #[derive(Debug, Clone, EnumDiscriminants, interactive_clap::InteractiveClap)]
     #[strum_discriminants(derive(EnumMessage, EnumIter))]
     #[interactive_clap(input_context = near_cli_rs::GlobalContext)]
