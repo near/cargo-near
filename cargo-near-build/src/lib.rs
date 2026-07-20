@@ -71,6 +71,15 @@ mod build_exports {
 
 pub use build_exports::*;
 
+/// Enumerate the contracts in a Cargo workspace and their reproducible-build variants.
+///
+/// The discovery primitive behind `cargo near build list`. Available regardless of enabled
+/// features, so build scripts and test harnesses (e.g. `near-workspaces`) can reuse it to drive
+/// multi-contract builds, such as one CI matrix job per (contract, variant) pair.
+pub mod list {
+    pub use crate::near::list::{BuildUnit, Workspace, WorkspaceContract, list_contracts};
+}
+
 #[cfg(feature = "build_internal")]
 pub use crate::near::build::run as build;
 
