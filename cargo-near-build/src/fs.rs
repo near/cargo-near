@@ -3,18 +3,16 @@ use eyre::WrapErr;
 
 /// Copy a file to a destination.
 ///
-/// Does nothing if the destination is the same as the source to avoid truncating the file.
+/// Does nothing if the destination is the same as the source or already has identical
+/// contents — rewriting would bump the mtime and spuriously dirty anything that
+/// `include_bytes!`-es the file.
 #[cfg(feature = "build_internal")]
 pub fn copy(from: &Utf8Path, out_dir: &Utf8Path) -> eyre::Result<Utf8PathBuf> {
     if !out_dir.is_dir() {
         return Err(eyre::eyre!("`{}` should be a directory", out_dir));
     }
     let out_path = out_dir.join(from.file_name().unwrap());
-    tracing::debug!("Copying file `{}` -> `{}`", from, out_path,);
-    if from != out_path {
-        std::fs::copy(from, &out_path)
-            .wrap_err_with(|| format!("failed to copy `{from}` to `{out_path}`"))?;
-    }
+    copy_to_file(from, &out_path)?;
     Ok(out_path)
 }
 
