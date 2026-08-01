@@ -3,7 +3,10 @@
 /integration-tests/docker-build-template/target
 # Code Editor related files
 .idea
-.vscode
 
 # OS X
 .DS_Store
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
