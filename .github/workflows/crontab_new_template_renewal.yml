@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Check out the main branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
           token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
