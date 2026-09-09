@@ -35,8 +35,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
 
   release-plz-release:
-    env:
-      CARGO_TARGET_DIR: ${{ github.workspace }}/target
     name: Release-plz release
     runs-on: ubuntu-latest
     permissions:
