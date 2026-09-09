@@ -27,8 +27,6 @@ jobs:
         uses: near/shared-workflows/release-plz@main
         with:
           command: release-pr
-          crate-toolchain-version: stable
-          crate-build-target-arch: x86_64-unknown-linux-gnu
         env:
           # Uses a PAT (not the default GITHUB_TOKEN) so the release PR
           # triggers required status checks on push/PR events.
@@ -59,8 +57,6 @@ jobs:
         uses: near/shared-workflows/release-plz@main
         with:
           command: release
-          crate-toolchain-version: stable
-          crate-build-target-arch: x86_64-unknown-linux-gnu
         env:
           # Uses a PAT so that tags pushed by release-plz trigger the
           # cargo-near-v-release.yml binary release workflow (downstream
