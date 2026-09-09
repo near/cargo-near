@@ -191,9 +191,8 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         }
     })();
     let retry = format!(
-        "Project files were created at '{}'. To retry the initial commit, run:\n  git -C {} commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'",
+        "Project files were created at '{}'. From that directory, retry the initial commit with:\n  git commit -m init --author=\"nearprotocol-ci <nearprotocol-ci@near.org>\"",
         project_dir.display(),
-        shell_words::quote(&project_dir.to_string_lossy()),
     );
     let status = status
         .wrap_err("Failed to execute the initial Git commit")
