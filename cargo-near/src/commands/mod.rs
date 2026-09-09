@@ -2,6 +2,7 @@ use strum::{EnumDiscriminants, EnumIter, EnumMessage};
 
 pub mod abi;
 pub mod build;
+pub mod check;
 pub mod create_dev_account;
 pub mod deploy;
 pub mod new;
@@ -29,6 +30,11 @@ pub enum NearCommand {
     ))]
     /// Generates ABI for the contract
     Abi(self::abi::Command),
+    #[strum_discriminants(strum(
+        message = "check               -  Type-check a NEAR contract (cargo check/clippy) without building wasm"
+    ))]
+    /// Type-check a NEAR contract (runs `cargo check`, or `cargo clippy` with `--clippy`) under the same environment as `cargo near build`, without producing a wasm artifact
+    Check(self::check::Command),
     #[strum_discriminants(strum(
         message = "create-dev-account  -  Create a development account using a faucet service sponsor and receive some NEAR tokens (testnet only).
 │                            To create an account on mainnet, use NEAR CLI [https://near.cli.rs]"

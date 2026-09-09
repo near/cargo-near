@@ -2,7 +2,7 @@
 name = "cargo-near-build"
 edition.workspace = true
 rust-version = "1.86"
-version = "0.11.1"
+version = "0.11.5"
 description = "Library for building Rust smart contracts on NEAR, basis of `cargo-near` crate/CLI"
 repository = "https://github.com/near/cargo-near"
 license = "MIT OR Apache-2.0"
@@ -18,6 +18,7 @@ dunce = "1"
 bon = "3"
 cargo_metadata = "0.21"
 colored = "3"
+bytesize = "1"
 tracing = "0.1.40"
 indenter = "0.3"
 pathdiff = { version = "0.2.1", features = ["camino"] }

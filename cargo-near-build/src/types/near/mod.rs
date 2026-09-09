@@ -5,6 +5,8 @@ use crate::types::cargo::metadata::CrateMetadata;
 #[cfg(feature = "build_internal")]
 pub mod abi;
 pub mod build;
+#[cfg(feature = "build_internal")]
+pub mod check;
 
 #[cfg(feature = "build_external")]
 pub mod build_extended;

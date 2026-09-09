@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.5](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.4...cargo-near-build-v0.11.5) - 2026-07-13
+
+### Added
+
+- add `cargo near check` subcommand ([#442](https://github.com/near/cargo-near/pull/442))
+- print built contract size in `cargo near build` output ([#441](https://github.com/near/cargo-near/pull/441))
+
+### Fixed
+
+- isolate ABI generation pass into its own CARGO_TARGET_DIR ([#447](https://github.com/near/cargo-near/pull/447))
+- clear cargo-audit failures from new RustSec advisories ([#448](https://github.com/near/cargo-near/pull/448))
+
+## [0.11.4](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.3...cargo-near-build-v0.11.4) - 2026-07-02
+
+### Other
+
+- rename Opts::get_cli_command_for_lib_context to to_argv ([#422](https://github.com/near/cargo-near/pull/422))
+
+## [0.11.3](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.2...cargo-near-build-v0.11.3) - 2026-05-29
+
+### Added
+
+- dynamic max-rustc from near-sdk's package.metadata.near.min_protocol_version ([#425](https://github.com/near/cargo-near/pull/425))
+
+## [0.11.2](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.1...cargo-near-build-v0.11.2) - 2026-05-26
+
+### Added
+
+- inject `--cfg near` into wasm build by default ([#417](https://github.com/near/cargo-near/pull/417))
+
+### Fixed
+
+- honor skip-rust-version-check for cargo-near-build ([#420](https://github.com/near/cargo-near/pull/420))
+
 ## [0.11.1](https://github.com/near/cargo-near/compare/cargo-near-build-v0.11.0...cargo-near-build-v0.11.1) - 2026-02-03
 
 ### Fixed

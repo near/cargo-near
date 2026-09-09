@@ -19,7 +19,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -35,6 +35,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
 
   release-plz-release:
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
     name: Release-plz release
     runs-on: ubuntu-latest
     permissions:
@@ -48,7 +50,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -69,13 +71,7 @@ jobs:
           # the git tag push and GitHub Release creation.
           GITHUB_TOKEN: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
 
-      # release-plz doesn't expose the produced .crate paths, so re-package locally.
-      # The crate tarballs are reproducible from the same commit, so the attestations
-      # still bind the published artifacts to this run. Packages publishable members
-      # explicitly (excludes integration-tests which is publish = false).
-      - name: Re-package crates for attestation
-        if: steps.release-plz.outputs.releases_created == 'true'
-        run: cargo package --no-verify -p cargo-near -p cargo-near-build
+      # Attest the archives produced by cargo publish.
       - name: Attest build provenance
         if: steps.release-plz.outputs.releases_created == 'true'
         uses: actions/attest-build-provenance@v1

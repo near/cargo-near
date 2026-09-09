@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Check out the main branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
-          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
 
       - uses: hustcer/setup-nu@v3
         with:
@@ -52,4 +52,4 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           title: update `cargo near new` template `image` and `image_digest` 
-          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}

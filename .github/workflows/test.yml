@@ -17,7 +17,7 @@ jobs:
     outputs:
       version: ${{ steps.rust_msrv.outputs.version }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Get MSRV
       id: rust_msrv
       run: |
@@ -34,7 +34,7 @@ jobs:
         platform: [warp-ubuntu-latest-x64-4x, warp-macos-latest-arm64-6x]
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -72,7 +72,7 @@ jobs:
         platform: [warp-ubuntu-latest-x64-4x, warp-macos-latest-arm64-6x]
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -81,8 +81,16 @@ jobs:
           rustup toolchain install stable --profile minimal
           rustup override set stable
 
-      - name: Install pinned 1.86.0 Rust toolchain for compiling contracts
+      - name: Install pinned Rust toolchains for compiling contracts
+        # 1.93.0 must match `channel` in the `cargo near new` template's rust-toolchain.toml
+        # (cargo-near/src/commands/new/new-project-template/rust-toolchain.toml), which the
+        # generated-project tests build against; the template now targets the 1.93 reproducible image.
+        # 1.86.0 is still required by back-compat fixtures whose `near-sdk` declares no
+        # `[package.metadata.near] min_protocol_version`, so the max-rustc gate caps them at 1.86
+        # (see `MAX_RUST_VERSION` in integration-tests/src/lib.rs).
         run: |
+          rustup toolchain install 1.93.0 --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain 1.93.0
           rustup toolchain install 1.86.0 --profile minimal
           rustup target add wasm32-unknown-unknown --toolchain 1.86.0
 
@@ -123,7 +131,7 @@ jobs:
     runs-on: warp-ubuntu-latest-x64-4x
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -145,7 +153,7 @@ jobs:
   cargo-doc:
     runs-on: warp-ubuntu-latest-x64-4x
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - uses: Swatinem/rust-cache@v2
       with:
@@ -166,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: Check spelling of the repo
       uses: crate-ci/typos@v1.29.5
 
@@ -174,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
