@@ -84,29 +84,27 @@ impl NewContext {
 
         execute_git_commands(project_dir)?;
 
-        println!("New project is created at '{}'.\n", project_dir.display());
-        println!("Now you can build, test, and deploy your project using cargo-near:");
-        println!(" * `cargo near build`");
-        println!(" * `cargo test`");
-        println!(" * `cargo near deploy`");
-        println!(
-            "Your new project has preconfigured automations for CI and CD, just configure \
+        tracing_indicatif::suspend_tracing_indicatif(|| {
+            println!("New project is created at '{}'.\n", project_dir.display());
+            println!("Now you can build, test, and deploy your project using cargo-near:");
+            println!(" * `cargo near build`");
+            println!(" * `cargo test`");
+            println!(" * `cargo near deploy`");
+            println!(
+                "Your new project has preconfigured automations for CI and CD, just configure \
             `NEAR_CONTRACT_STAGING_*` and `NEAR_CONTRACT_PRODUCTION_*` variables and secrets \
             on GitHub to enable automatic deployment to staging and production. See more \
             details in `.github/workflow/*` files.\n"
-        );
+            );
+        });
 
         Ok(Self)
     }
 }
 
-#[tracing::instrument(
-    target = "tracing_instrument",
-    name = "The process of executing",
-    skip_all
-)]
+#[tracing::instrument(target = "tracing_instrument", name = "Preparing project:", skip_all)]
 fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult {
-    tracing::Span::current().pb_set_message("`git` commands ...");
+    tracing::Span::current().pb_set_message("Initializing Git repository ...");
     tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `git init`");
     let child_result = std::process::Command::new("git")
         .arg("init")
@@ -133,6 +131,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
+    tracing::Span::current().pb_set_message("Resolving dependencies (`cargo update`) ...");
     tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `cargo update`");
     let child = std::process::Command::new("cargo")
         .arg("update")
@@ -148,6 +147,7 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
         ));
     }
 
+    tracing::Span::current().pb_set_message("Staging project files ...");
     tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `git add -A`");
     let status = std::process::Command::new("git")
         .arg("add")
@@ -163,21 +163,45 @@ fn execute_git_commands(project_dir: &std::path::Path) -> near_cli_rs::CliResult
     }
 
     tracing::info!(target: "near_teach_me", parent: &tracing::Span::none(), "Command execution: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`");
-    let child = std::process::Command::new("git")
-        .arg("commit")
-        .arg("-m")
-        .arg("init")
-        .arg("--author=nearprotocol-ci <nearprotocol-ci@near.org>")
-        .current_dir(project_dir)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let output = child.wait_with_output()?;
-    if !output.status.success() {
-        println!("{}", String::from_utf8_lossy(&output.stderr));
+    tracing::Span::current().pb_set_message("Creating initial git commit ...");
+    let status = (|| -> std::io::Result<std::process::ExitStatus> {
+        let mut child = std::process::Command::new("git")
+            .arg("commit")
+            .arg("-m")
+            .arg("init")
+            .arg("--author=nearprotocol-ci <nearprotocol-ci@near.org>")
+            .current_dir(project_dir)
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::null())
+            .stderr(Stdio::inherit())
+            .spawn()?;
+        let started = std::time::Instant::now();
+        let mut hint_shown = false;
+        loop {
+            if let Some(status) = child.try_wait()? {
+                return Ok(status);
+            }
+            if !hint_shown && started.elapsed() >= std::time::Duration::from_secs(10) {
+                tracing::Span::current().pb_set_message(
+                    "Waiting for git commit — check your signing prompt or security key",
+                );
+                hint_shown = true;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+    })();
+    let retry = format!(
+        "Project files were created at '{}'. From that directory, retry the initial commit with:\n  git commit -m init --author=\"nearprotocol-ci <nearprotocol-ci@near.org>\"",
+        project_dir.display(),
+    );
+    let status = status
+        .wrap_err("Failed to execute the initial Git commit")
+        .note(retry.clone())?;
+    if !status.success() {
         return Err(color_eyre::eyre::eyre!(
-            "Failed to execute process: `git commit -m init --author='nearprotocol-ci <nearprotocol-ci@near.org>'`"
-        ));
+            "Failed to create the initial Git commit ({status})"
+        ))
+        .note(retry);
     }
 
     Ok(())
