@@ -3620,8 +3620,7 @@ dependencies = [
 [[package]]
 name = "near-verify-rs"
 version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e22c1c85889ab6f4edcd6d776388cecbe872c6821c634f3348401d9f1b7ce77e"
+source = "git+https://github.com/near/near-verify-rs?rev=c7f9b0b30ea31ac0354bd2b96858686a93d7b7bf#c7f9b0b30ea31ac0354bd2b96858686a93d7b7bf"
 dependencies = [
  "bs58 0.5.1",
  "camino",
@@ -3637,6 +3636,7 @@ dependencies = [
  "serde",
  "sha2 0.10.9",
  "shell-words",
+ "tempfile",
  "tracing",
  "unix_path",
  "unix_str",
