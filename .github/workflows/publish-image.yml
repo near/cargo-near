@@ -1,0 +1,103 @@
+name: Publish image
+
+# Publishes ghcr.io/<owner>/cargo-near:<cargo-near>-rust-<rust> and attests it.
+# After a release: the last four Rust stables. Daily: the latest Rust stable,
+# if missing. On demand: the last four for a given cargo-near version.
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        description: dist plan of the release that triggered this run
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      cargo_near_version:
+        description: "cargo-near version, e.g. 0.22.0 (default: latest release)"
+        required: false
+  schedule:
+    - cron: "0 3 * * *"
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # How many Rust minor versions behind the latest stable to build.
+        offset: ${{ fromJson(github.event_name == 'schedule' && '[0]' || '[0, 1, 2, 3]') }}
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/cargo-near
+    steps:
+      - id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAN: ${{ inputs.plan }}
+          CARGO_NEAR_VERSION: ${{ inputs.cargo_near_version }}
+          OFFSET: ${{ matrix.offset }}
+        run: |
+          set -euo pipefail
+          rustc_version() {
+            curl -fsSL "https://static.rust-lang.org/dist/channel-rust-$1.toml" \
+              | sed -n '/^\[pkg.rustc\]/{n;s/^version = "\([0-9.]*\).*/\1/p}' | grep .
+          }
+          if [ -n "$PLAN" ]; then
+            cargo_near=$(jq -r .announcement_tag <<<"$PLAN")
+          elif [ -n "$CARGO_NEAR_VERSION" ]; then
+            cargo_near=$CARGO_NEAR_VERSION
+          else
+            cargo_near=$(gh release list -R near/cargo-near --exclude-pre-releases --limit 50 --json tagName \
+              --jq '[.[] | select(.tagName | startswith("cargo-near-v"))][0].tagName')
+          fi
+          cargo_near=${cargo_near#cargo-near-v}
+          [[ $cargo_near =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]
+          minor=$(rustc_version stable | cut -d. -f2)
+          rust=$(rustc_version "1.$((minor - OFFSET))")
+          echo "cargo_near=$cargo_near" >> "$GITHUB_OUTPUT"
+          echo "rust=$rust" >> "$GITHUB_OUTPUT"
+          echo "tag=$cargo_near-rust-$rust" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - id: exists
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if docker buildx imagetools inspect "$IMAGE:$TAG" >/dev/null 2>&1; then
+            echo "$IMAGE:$TAG already exists"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.exists.outputs.exists != 'true'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - if: steps.exists.outputs.exists != 'true'
+        uses: docker/setup-buildx-action@v4
+      - if: steps.exists.outputs.exists != 'true'
+        id: build
+        env:
+          CARGO_NEAR: ${{ steps.version.outputs.cargo_near }}
+          RUST: ${{ steps.version.outputs.rust }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          docker/build.sh "$CARGO_NEAR" "$RUST" \
+            --tag "$IMAGE:$TAG" \
+            --output type=image,push=true,oci-mediatypes=true,rewrite-timestamp=true \
+            --metadata-file metadata.json
+          echo "digest=$(jq -r '."containerimage.digest"' metadata.json)" >> "$GITHUB_OUTPUT"
+      - if: steps.exists.outputs.exists != 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
