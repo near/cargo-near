@@ -54,7 +54,7 @@ jobs:
           elif [ -n "$CARGO_NEAR_VERSION" ]; then
             cargo_near=$CARGO_NEAR_VERSION
           else
-            cargo_near=$(gh release list -R near/cargo-near --exclude-pre-releases --limit 50 --json tagName \
+            cargo_near=$(gh release list -R near/cargo-near --exclude-drafts --exclude-pre-releases --limit 50 --json tagName \
               --jq '[.[] | select(.tagName | startswith("cargo-near-v"))][0].tagName')
           fi
           cargo_near=${cargo_near#cargo-near-v}
@@ -69,12 +69,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
+      # An image counts as published once it is attested. If a previous run
+      # pushed it but failed to attest, it is rebuilt to the same digest and
+      # attested now.
       - id: exists
         env:
+          GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          if docker buildx imagetools inspect "$IMAGE:$TAG" >/dev/null 2>&1; then
-            echo "$IMAGE:$TAG already exists"
+          if gh attestation verify "oci://$IMAGE:$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "$IMAGE:$TAG is already published and attested"
             echo "exists=true" >> "$GITHUB_OUTPUT"
           fi
       - if: steps.exists.outputs.exists != 'true'
