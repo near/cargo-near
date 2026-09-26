@@ -8,9 +8,10 @@
 #   docker/build.sh 0.22.0 1.97.1 --tag ghcr.io/near/cargo-near:0.22.0-rust-1.97.1 \
 #     --output type=image,push=true,rewrite-timestamp=true --metadata-file meta.json
 #
-# The same inputs always produce the same image digest: SOURCE_DATE_EPOCH is
-# derived from the Debian snapshot pinned in the Dockerfile, and the cargo-near
-# tarball is checked against the sha256 published with its GitHub release.
+# With `rewrite-timestamp=true` in the output, as above, the same inputs always
+# produce the same image digest: SOURCE_DATE_EPOCH is derived from the Debian
+# snapshot pinned in the Dockerfile, and the cargo-near tarball is checked
+# against the sha256 published with its GitHub release.
 set -euo pipefail
 
 cargo_near_version=${1:?cargo-near version}
