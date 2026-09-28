@@ -320,6 +320,20 @@ jobs:
             npm publish --access public "./npm/${pkg}"
           done
 
+  custom-publish-image:
+    needs:
+      - plan
+      - host
+    if: ${{ !fromJson(needs.plan.outputs.val).announcement_is_prerelease || fromJson(needs.plan.outputs.val).publish_prereleases }}
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
   announce:
     needs:
       - plan
