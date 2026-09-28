@@ -91,6 +91,11 @@ pub struct BuildOpts {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub variant: Option<String>,
+    /// Build without network access, after fetching dependencies in a separate container run
+    ///
+    /// Only the workspace's `Cargo.lock` is fetched, so build scripts building from a separate one fail
+    #[interactive_clap(long)]
+    pub offline_build: bool,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -102,6 +107,7 @@ impl From<CliBuildOpts> for BuildOpts {
             color: value.color,
             variant: value.variant,
             profile: value.profile,
+            offline_build: value.offline_build,
         }
     }
 }
@@ -122,6 +128,7 @@ mod context {
                 color: scope.color.clone(),
                 variant: scope.variant.clone(),
                 profile: scope.profile.clone(),
+                offline_build: scope.offline_build,
             };
             super::run(opts, previous_context)?;
             Ok(Self)
@@ -139,6 +146,7 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
         manifest_path: value.0.manifest_path.map(Into::into),
         color: value.0.color.map(Into::into),
         variant: value.0.variant,
+        offline_build: value.0.offline_build,
         context: value.1,
     }
 }
