@@ -26,6 +26,12 @@ pub struct Opts {
     pub variant: Option<String>,
     #[builder(default)]
     pub context: BuildContext,
+    /// Mount local `./target` directory as a Docker volume to cache build artifacts
+    #[builder(default)]
+    pub mount_target_cache: bool,
+    /// Mount local `~/.cargo` directory as a Docker volume to cache Cargo registry
+    #[builder(default)]
+    pub mount_cargo_cache: bool,
 }
 
 pub const WARN_BECOMES_ERR: &str =
