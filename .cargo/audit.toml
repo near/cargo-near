@@ -10,4 +10,6 @@ ignore = [
     # in self_update 1.0 pre-releases so far; keep until a stable release lands.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
+    # rustls < 0.23.45 via reqwest. The fix needs aws-lc-rs ^1.18, but near-crypto 0.37 pins =1.16.2.
+    "RUSTSEC-2026-0285",
 ]
