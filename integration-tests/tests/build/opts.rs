@@ -265,6 +265,16 @@ async fn test_build_wasmopt_oz() -> testresult::TestResult {
     assert_eq!(fs::metadata(&cargo_wasm)?.modified()?, cargo_modified);
     assert_eq!(fs::read(&cargo_wasm)?, unoptimized_wasm);
 
+    // Reproduce the end state of overlapping builds: a default-mode record with
+    // another mode's output. Its timestamp is newer, but its bytes must not be reused.
+    let output_wasm = project_dir
+        .join("target/near")
+        .join(format!("{}.wasm", function_name!()));
+    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
+    fs::write(&output_wasm, &oz_build.wasm)?;
+    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
+    assert_eq!(fs::metadata(&cargo_wasm)?.modified()?, cargo_modified);
+
     // Each destination must reflect the current options, regardless of the last
     // mode used for another --out-dir.
     let other_dir = project_dir.join("other-output");
@@ -279,6 +289,21 @@ async fn test_build_wasmopt_oz() -> testresult::TestResult {
     );
     assert_eq!(rebuild(false, true, Some(other_dir))?.0, oz_build.wasm);
     assert_eq!(rebuild(false, false, None)?.0, default_wasm);
+    // A newer output timestamp cannot make changed Cargo input reusable.
+    let source_path = project_dir.join("src/lib.rs");
+    let original_source = fs::read_to_string(&source_path)?;
+    fs::File::options()
+        .write(true)
+        .open(&output_wasm)?
+        .set_times(
+            fs::FileTimes::new()
+                .set_modified(std::time::SystemTime::now() + std::time::Duration::from_secs(60)),
+        )?;
+    fs::write(&source_path, original_source.replace("a + b", "a + b + 1"))?;
+    assert_ne!(rebuild(false, false, None)?.0, default_wasm);
+    fs::write(&source_path, original_source)?;
+    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
+
     util::test_add(&default_wasm).await?;
     util::test_add(&oz_build.wasm).await?;
 
