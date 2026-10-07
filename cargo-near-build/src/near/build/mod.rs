@@ -322,41 +322,16 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
         let target_path = output_paths.get_wasm_file().clone();
-        // shared by every `--out-dir` of the crate, hence it also records the target path
-        let wasm_opt_record_path = crate_metadata.target_directory.join(format!(
-            ".{}_wasm_opt.txt",
-            crate_metadata.formatted_package_name()
-        ));
-        let wasm_opt_record = format!(
-            "{target_path} no_wasmopt={} wasmopt_oz={}",
-            args.no_wasmopt, args.wasmopt_oz
-        );
-        let same_wasm_opt_record = std::fs::read_to_string(&wasm_opt_record_path)
-            .is_ok_and(|prev_record| prev_record == wasm_opt_record);
-
-        // target file does not yet exist `!target_path.is_file()` condition is implied by
-        // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
-        if !target_path.is_file()
-            || is_newer_than(&prev_artifact_path, &target_path)
-            || !same_wasm_opt_record
-        {
-            let (from_path, _maybe_tmpfile) = maybe_wasm_opt_step(
-                &prev_artifact_path,
-                args.no_wasmopt,
-                args.wasmopt_oz,
-                &rustc_version,
-            )?;
-            // an interrupted copy must not leave behind a record of the previous target
-            let _ = std::fs::remove_file(&wasm_opt_record_path);
-            crate::fs::copy_to_file(&from_path, &target_path)?;
-            std::fs::write(&wasm_opt_record_path, wasm_opt_record)?;
-        } else {
-            println!();
-            pretty_print::step(
-                "Skipped running wasm-opt as final target exists and is newer than wasm produced by cargo",
-            );
-            println!();
-        }
+        // Always derive the final Wasm from Cargo's original artifact. Optimizer options
+        // can change even when Cargo reports a fresh build; an output timestamp cannot
+        // tell us which options produced it. Identical output is not copied again.
+        let (from_path, _maybe_tmpfile) = maybe_wasm_opt_step(
+            &prev_artifact_path,
+            args.no_wasmopt,
+            args.wasmopt_oz,
+            &rustc_version,
+        )?;
+        crate::fs::copy_to_file(&from_path, &target_path)?;
         target_path
     };
 
@@ -389,33 +364,6 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     messages.pretty_print();
     pretty_print::duration(start, "cargo near build");
     Ok(wasm_artifact)
-}
-
-fn is_newer_than(prev: &Utf8PathBuf, next: &Utf8PathBuf) -> bool {
-    // (1) if `next` does not yet exist, `metadata_of_prev.modified()` will be greater than
-    // `std::time::SystemTime::UNIX_EPOCH`;
-    // (2) if `m.modified()` isn't available on current platform, the predicate will always
-    // return true
-    // (3) non-monotonic nature of `std::time::SystemTime` won't be a problem:
-    // if the next_time and prev_time are too close in time so that next_time registers
-    // before prev_time, it will only affect that skipping build won't occur, but doesn't
-    // affect correctness, as the build will run next time due to prev_time > next_time
-    let prev_time = std::fs::metadata(prev)
-        .and_then(|m| m.modified())
-        .unwrap_or_else(|_| std::time::SystemTime::now());
-    let next_time = std::fs::metadata(next)
-        .and_then(|m| m.modified())
-        .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
-    let debug_msg = format!(
-        "{prev:?} = {prev_time:?}\n\
-        {next:?} = {next_time:?}"
-    );
-    println!();
-    println!(
-        "Modification timestamps of:\n{}",
-        pretty_print::indent_payload(&debug_msg)
-    );
-    prev_time > next_time
 }
 
 /// Threshold at which rustc starts emitting wasm with bulk-memory + nontrapping-float-to-int
