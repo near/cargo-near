@@ -4,7 +4,6 @@ use crate::types::near::build::{buildtime_env, common_buildtime_env};
 use camino::Utf8PathBuf;
 use colored::Colorize;
 use near_abi::BuildInfo;
-use sha2::Digest;
 use tempfile::NamedTempFile;
 
 use crate::types::near::build::input::Opts;
@@ -323,54 +322,16 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
         let target_path = output_paths.get_wasm_file().clone();
-        // Bind cached output to its input, optimizer settings and actual bytes. Checking
-        // both hashes also rejects a record left out of sync by overlapping builds or
-        // an interrupted output copy, without coordinating separate file writes.
-        let input = std::fs::read(&prev_artifact_path)?;
-        let input_hash = hex::encode(sha2::Sha256::digest(&input));
-        let record_path = crate_metadata.target_directory.join(format!(
-            ".{}_wasm_opt.txt",
-            crate_metadata.formatted_package_name()
-        ));
-        let record_for_output = |path: &Utf8PathBuf| -> eyre::Result<String> {
-            Ok(serde_json::to_string(&(
-                target_path.as_str(),
-                args.no_wasmopt,
-                args.wasmopt_oz,
-                &input_hash,
-                rustc_version.to_string(),
-                env!("CARGO_PKG_VERSION"),
-                crate::SHA256Checksum::new(path)?.to_hex_string(),
-            ))?)
-        };
-        let same_record = std::fs::read_to_string(&record_path).is_ok_and(|record| {
-            record_for_output(&target_path).is_ok_and(|expected| record == expected)
-        });
-
-        if !same_record {
-            // Hash and optimize the same snapshot even if another Cargo build changes
-            // the original artifact while wasm-opt is running.
-            let input_snapshot = NamedTempFile::new()?;
-            std::fs::write(input_snapshot.path(), input)?;
-            std::fs::set_permissions(
-                input_snapshot.path(),
-                std::fs::metadata(&prev_artifact_path)?.permissions(),
-            )?;
-            let input_path = Utf8PathBuf::try_from(input_snapshot.path().to_path_buf())?;
-            let (from_path, _maybe_tmpfile) = maybe_wasm_opt_step(
-                &input_path,
-                args.no_wasmopt,
-                args.wasmopt_oz,
-                &rustc_version,
-            )?;
-            let record = record_for_output(&from_path)?;
-            crate::fs::copy_to_file(&from_path, &target_path)?;
-            std::fs::write(&record_path, record)?;
-        } else {
-            pretty_print::step(
-                "Skipped running wasm-opt as cached input, options and output match",
-            );
-        }
+        // Always derive the final Wasm from Cargo's original artifact. Optimizer options
+        // can change even when Cargo reports a fresh build; an output timestamp cannot
+        // tell us which options produced it. Identical output is not copied again.
+        let (from_path, _maybe_tmpfile) = maybe_wasm_opt_step(
+            &prev_artifact_path,
+            args.no_wasmopt,
+            args.wasmopt_oz,
+            &rustc_version,
+        )?;
+        crate::fs::copy_to_file(&from_path, &target_path)?;
         target_path
     };
 

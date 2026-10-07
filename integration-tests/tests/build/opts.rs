@@ -224,85 +224,45 @@ async fn test_build_wasmopt_oz() -> testresult::TestResult {
         }
     };
 
-    // Leave the sources untouched so Cargo cannot hide a broken optimizer toggle
-    // behind a rebuild. Both modes must always start from the same original Wasm.
+    // Change only post-step options; Cargo must keep reusing its original Wasm.
     let project_dir = common_root_for_test_projects_build().join(function_name!());
-    let manifest_path = project_dir.join("Cargo.toml");
     let cargo_wasm = project_dir
         .join("target/wasm32-unknown-unknown/release")
         .join(format!("{}.wasm", function_name!()));
     let cargo_modified = fs::metadata(&cargo_wasm)?.modified()?;
     let unoptimized_wasm = fs::read(&cargo_wasm)?;
-    let rebuild = |no_wasmopt, wasmopt_oz, out_dir| -> testresult::TestResult<_> {
-        let opts = cargo_near_build::BuildOpts::builder()
-            .manifest_path(manifest_path.clone())
-            .override_toolchain(MAX_RUST_VERSION)
-            .no_wasmopt(no_wasmopt)
-            .wasmopt_oz(wasmopt_oz)
-            .maybe_out_dir(out_dir)
-            .build();
-        let artifact = cargo_near_build::build(opts)?;
-        Ok((
-            fs::read(&artifact.path)?,
-            fs::metadata(artifact.path)?.modified()?,
-        ))
+    let rebuild = |no_wasmopt, wasmopt_oz| {
+        cargo_near_build::build(
+            cargo_near_build::BuildOpts::builder()
+                .manifest_path(project_dir.join("Cargo.toml"))
+                .override_toolchain(MAX_RUST_VERSION)
+                .no_wasmopt(no_wasmopt)
+                .wasmopt_oz(wasmopt_oz)
+                .build(),
+        )
     };
-    let (default_wasm, _) = rebuild(false, false, None)?;
+    let default_wasm = fs::read(rebuild(false, false)?.path)?;
     assert_ne!(oz_build.wasm, default_wasm);
     assert_ne!(unoptimized_wasm, default_wasm);
-    assert_eq!(rebuild(false, true, None)?.0, oz_build.wasm);
-    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
-    assert_eq!(rebuild(true, false, None)?.0, unoptimized_wasm);
-    assert_eq!(rebuild(true, true, None)?.0, unoptimized_wasm);
-    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
+    for (no_wasmopt, wasmopt_oz, expected) in [
+        (false, true, &oz_build.wasm),
+        (false, false, &default_wasm),
+        (true, false, &unoptimized_wasm),
+        (true, true, &unoptimized_wasm),
+        (false, false, &default_wasm),
+    ] {
+        assert_eq!(&fs::read(rebuild(no_wasmopt, wasmopt_oz)?.path)?, expected);
+    }
 
     // Repeated post-processing must leave identical output untouched.
-    let default_modified = rebuild(false, false, None)?.1;
-    assert_eq!(rebuild(false, false, None)?.1, default_modified);
-    let oz_modified = rebuild(false, true, None)?.1;
-    assert_eq!(rebuild(false, true, None)?.1, oz_modified);
-
+    for wasmopt_oz in [false, true] {
+        let output = rebuild(false, wasmopt_oz)?.path;
+        let modified = fs::metadata(&output)?.modified()?;
+        rebuild(false, wasmopt_oz)?;
+        assert_eq!(fs::metadata(output)?.modified()?, modified);
+    }
     assert_eq!(fs::metadata(&cargo_wasm)?.modified()?, cargo_modified);
-    assert_eq!(fs::read(&cargo_wasm)?, unoptimized_wasm);
-
-    // Reproduce the end state of overlapping builds: a default-mode record with
-    // another mode's output. Its timestamp is newer, but its bytes must not be reused.
-    let output_wasm = project_dir
-        .join("target/near")
-        .join(format!("{}.wasm", function_name!()));
-    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
-    fs::write(&output_wasm, &oz_build.wasm)?;
-    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
-    assert_eq!(fs::metadata(&cargo_wasm)?.modified()?, cargo_modified);
-
-    // Each destination must reflect the current options, regardless of the last
-    // mode used for another --out-dir.
-    let other_dir = project_dir.join("other-output");
-    assert_eq!(
-        rebuild(false, false, Some(other_dir.clone()))?.0,
-        default_wasm
-    );
-    assert_eq!(rebuild(false, true, None)?.0, oz_build.wasm);
-    assert_eq!(
-        rebuild(true, false, Some(other_dir.clone()))?.0,
-        unoptimized_wasm
-    );
-    assert_eq!(rebuild(false, true, Some(other_dir))?.0, oz_build.wasm);
-    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
-    // A newer output timestamp cannot make changed Cargo input reusable.
-    let source_path = project_dir.join("src/lib.rs");
-    let original_source = fs::read_to_string(&source_path)?;
-    fs::File::options()
-        .write(true)
-        .open(&output_wasm)?
-        .set_times(
-            fs::FileTimes::new()
-                .set_modified(std::time::SystemTime::now() + std::time::Duration::from_secs(60)),
-        )?;
-    fs::write(&source_path, original_source.replace("a + b", "a + b + 1"))?;
-    assert_ne!(rebuild(false, false, None)?.0, default_wasm);
-    fs::write(&source_path, original_source)?;
-    assert_eq!(rebuild(false, false, None)?.0, default_wasm);
+    assert_eq!(fs::read(cargo_wasm)?, unoptimized_wasm);
 
     util::test_add(&default_wasm).await?;
     util::test_add(&oz_build.wasm).await?;
