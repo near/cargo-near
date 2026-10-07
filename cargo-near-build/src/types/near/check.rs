@@ -25,9 +25,9 @@ impl CheckKind {
 /// Argument of [`check`](crate::check).
 ///
 /// Mirrors the subset of [`BuildOpts`](crate::BuildOpts) that affects which configuration is
-/// type-checked. Build-only fields (`no_abi`/`no_embed_abi`/`no_doc`/`no_wasmopt`/`out_dir`/
-/// the NEP330 `override_*` outputs/`skip_rust_version_check`) are intentionally absent — a
-/// type-check emits no wasm, so ABI generation, `wasm-opt`, output copying and the
+/// type-checked. Build-only fields (`no_abi`/`no_embed_abi`/`no_doc`/`no_wasmopt`/`wasmopt_oz`/
+/// `out_dir`/the NEP330 `override_*` outputs/`skip_rust_version_check`) are intentionally absent —
+/// a type-check emits no wasm, so ABI generation, `wasm-opt`, output copying and the
 /// rustc/protocol-version ceiling check don't apply.
 ///
 /// [`std::default::Default`] yields a `cargo check` (not clippy) of the current directory's
