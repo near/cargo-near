@@ -1,5 +1,7 @@
 use crate::util;
-use cargo_near_integration_tests::{build_fn_with, setup_tracing};
+use cargo_near_integration_tests::{
+    MAX_RUST_VERSION, build_fn_with, common_root_for_test_projects_build, setup_tracing,
+};
 use function_name::named;
 use std::fs;
 
@@ -206,6 +208,64 @@ async fn test_build_both_features_and_abi_features_for_different_targets() -> te
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("gated_only").view().await?;
     assert!(outcome.json::<bool>()?);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[named]
+async fn test_build_wasmopt_oz() -> testresult::TestResult {
+    setup_tracing();
+    let oz_build = build_fn_with! {
+        Opts: "--wasmopt-oz";
+        Code:
+        pub fn add(&self, a: u32, b: u32) -> u32 {
+            a + b
+        }
+    };
+
+    // Change only post-step options; Cargo must keep reusing its original Wasm.
+    let project_dir = common_root_for_test_projects_build().join(function_name!());
+    let cargo_wasm = project_dir
+        .join("target/wasm32-unknown-unknown/release")
+        .join(format!("{}.wasm", function_name!()));
+    let cargo_modified = fs::metadata(&cargo_wasm)?.modified()?;
+    let unoptimized_wasm = fs::read(&cargo_wasm)?;
+    let rebuild = |no_wasmopt, wasmopt_oz| {
+        cargo_near_build::build(
+            cargo_near_build::BuildOpts::builder()
+                .manifest_path(project_dir.join("Cargo.toml"))
+                .override_toolchain(MAX_RUST_VERSION)
+                .no_wasmopt(no_wasmopt)
+                .wasmopt_oz(wasmopt_oz)
+                .build(),
+        )
+    };
+    let default_wasm = fs::read(rebuild(false, false)?.path)?;
+    assert_ne!(oz_build.wasm, default_wasm);
+    assert_ne!(unoptimized_wasm, default_wasm);
+    for (no_wasmopt, wasmopt_oz, expected) in [
+        (false, true, &oz_build.wasm),
+        (false, false, &default_wasm),
+        (true, false, &unoptimized_wasm),
+        (true, true, &unoptimized_wasm),
+        (false, false, &default_wasm),
+    ] {
+        assert_eq!(&fs::read(rebuild(no_wasmopt, wasmopt_oz)?.path)?, expected);
+    }
+
+    // Repeated post-processing must leave identical output untouched.
+    for wasmopt_oz in [false, true] {
+        let output = rebuild(false, wasmopt_oz)?.path;
+        let modified = fs::metadata(&output)?.modified()?;
+        rebuild(false, wasmopt_oz)?;
+        assert_eq!(fs::metadata(output)?.modified()?, modified);
+    }
+    assert_eq!(fs::metadata(&cargo_wasm)?.modified()?, cargo_modified);
+    assert_eq!(fs::read(cargo_wasm)?, unoptimized_wasm);
+
+    util::test_add(&default_wasm).await?;
+    util::test_add(&oz_build.wasm).await?;
 
     Ok(())
 }
