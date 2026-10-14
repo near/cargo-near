@@ -4,14 +4,12 @@
 #   docker/build.sh <cargo-near-version> <rust-version> [buildx output args...]
 #
 # Examples:
-#   docker/build.sh 0.22.0 1.97.1 --output type=oci,dest=img.tar,rewrite-timestamp=true
+#   docker/build.sh 0.22.0 1.97.1 --output type=oci,dest=img.tar,oci-mediatypes=true,rewrite-timestamp=true
 #   docker/build.sh 0.22.0 1.97.1 --tag ghcr.io/near/cargo-near:0.22.0-rust-1.97.1 \
-#     --output type=image,push=true,rewrite-timestamp=true --metadata-file meta.json
+#     --output type=image,push=true,oci-mediatypes=true,rewrite-timestamp=true --metadata-file meta.json
 #
-# With `rewrite-timestamp=true` in the output, as above, the same inputs always
-# produce the same image digest: SOURCE_DATE_EPOCH is derived from the Debian
-# snapshot pinned in the Dockerfile, and the cargo-near tarball is checked
-# against the sha256 published with its GitHub release.
+# BuildKit is pinned below. Use matching export settings, as above, to compare
+# local and published digests. Compression uses this pinned BuildKit's defaults.
 set -euo pipefail
 
 cargo_near_version=${1:?cargo-near version}
@@ -28,7 +26,12 @@ source_date_epoch=$(date -u -d "$snapshot_date" +%s 2>/dev/null \
 
 cargo_near_sha256=$(curl -fsSL "https://github.com/near/cargo-near/releases/download/cargo-near-v${cargo_near_version}/cargo-near-x86_64-unknown-linux-gnu.tar.gz.sha256" | cut -d' ' -f1)
 
-exec docker buildx build \
+builder=$(docker buildx create --driver docker-container \
+  --driver-opt image=moby/buildkit:v0.30.0@sha256:0168606be2315b7c807a03b3d8aa79beefdb31c98740cebdffdfeebf31190c9f)
+trap 'docker buildx rm "$builder" >/dev/null' EXIT
+
+docker buildx build \
+  --builder "$builder" \
   --platform linux/amd64 \
   --provenance=false \
   --sbom=false \

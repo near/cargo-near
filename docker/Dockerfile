@@ -1,11 +1,11 @@
-# syntax=docker/dockerfile:1.10
+# syntax=docker/dockerfile:1.10@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 #
 # Reproducible build image for `cargo near build reproducible-wasm`.
 # Published as `ghcr.io/near/cargo-near:<cargo-near>-rust-<rust>`.
 #
 # Every input is pinned (base image digest, apt snapshot, rustup-init and
-# cargo-near checksums), so building this file twice with the same args and
-# SOURCE_DATE_EPOCH yields the same image digest.
+# cargo-near checksums). Use build.sh for the pinned builder and export settings
+# needed to reproduce the image digest.
 
 ARG DEBIAN_IMAGE=debian:trixie-20260918-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
 
