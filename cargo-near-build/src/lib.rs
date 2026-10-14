@@ -11,6 +11,9 @@
 //!   building in docker with WASM reproducibility.
 //! * **test_code** -
 //!   Adds exports needed for integration tests.
+//! * **tracing_debug** -
+//!   Exports [`crate::init_tracing_debug`] function which initializes tracing with a configuration
+//!   that enables all `--teach-me` messages and detailed logging output.
 //!
 //! ### Default features
 //!
@@ -45,6 +48,11 @@ pub(crate) mod fs;
 pub(crate) mod near;
 pub(crate) mod pretty_print;
 pub(crate) mod types;
+
+#[cfg(feature = "tracing_debug")]
+mod tracing_debug;
+#[cfg(feature = "tracing_debug")]
+pub use tracing_debug::init_tracing_debug;
 
 #[cfg(feature = "build_internal")]
 pub mod abi {
