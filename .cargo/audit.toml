@@ -10,6 +10,15 @@ ignore = [
     # in self_update 1.0 pre-releases so far; keep until a stable release lands.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
-    # rustls < 0.23.45 via reqwest. The fix needs aws-lc-rs ^1.18, but near-crypto 0.37 pins =1.16.2.
+    # rustls via reqwest: patched releases need aws-lc-rs ^1.18, but
+    # near-crypto 0.37.0 and 0.38.0-rc.2 pin =1.16.2. Remove these rustls
+    # exceptions once both NEAR dependency trees allow rustls >=0.23.46.
     "RUSTSEC-2026-0285",
+    # Session-value Debug output: we do not implement a custom ClientSessionStore.
+    "RUSTSEC-2026-0346",
+    # Certificate decompression: rustls's non-default brotli feature is disabled.
+    "RUSTSEC-2026-0348",
+    # Key-share prediction: default TLS clients do not prefer post-quantum
+    # groups (rustls's prefer-post-quantum feature is disabled).
+    "RUSTSEC-2026-0349",
 ]
