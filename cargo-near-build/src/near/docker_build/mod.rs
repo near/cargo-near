@@ -1,5 +1,5 @@
 use colored::Colorize;
-use near_verify_rs::logic::docker_checks;
+use near_verify_rs::logic::{docker_checks, nep330_build};
 
 use crate::docker::DockerBuildOpts;
 use crate::pretty_print;
@@ -115,7 +115,12 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
     let out_dir_arg = opts.out_dir.clone();
 
     contract_source_metadata.validate(None)?;
-    let docker_build_out_wasm = near_verify_rs::logic::nep330_build::run(
+    let run = if opts.offline_build {
+        nep330_build::run_offline
+    } else {
+        nep330_build::run
+    };
+    let docker_build_out_wasm = run(
         contract_source_metadata,
         cloned_repo.contract_source_workdir()?,
         additional_docker_args(),

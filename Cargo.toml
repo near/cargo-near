@@ -54,6 +54,9 @@ x86_64-unknown-linux-gnu = "ubuntu-22.04"
 x86_64-pc-windows-msvc = "windows-2022"
 aarch64-pc-windows-msvc = "windows-2025"
 
+[patch.crates-io]
+near-verify-rs = { git = "https://github.com/near/near-verify-rs", rev = "a4f26090c5572411ab370872399df6e52f8a2643" }
+
 [workspace.metadata.dist.dependencies.apt]
 libudev-dev = { version = "*", targets = [
     "x86_64-unknown-linux-gnu",
