@@ -2,7 +2,8 @@ name: Publish image
 
 # Publishes ghcr.io/<owner>/cargo-near:<cargo-near>-rust-<rust> and attests it.
 # After a release: the last four Rust stables. Daily: the latest Rust stable,
-# if missing. On demand: the last four for a given cargo-near version.
+# if missing, and an uncached rebuild verifies the published digest. On demand:
+# the last four for a given cargo-near version.
 
 on:
   workflow_call:
@@ -61,9 +62,11 @@ jobs:
           [[ $cargo_near =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]
           minor=$(rustc_version stable | cut -d. -f2)
           rust=$(rustc_version "1.$((minor - OFFSET))")
-          echo "cargo_near=$cargo_near" >> "$GITHUB_OUTPUT"
-          echo "rust=$rust" >> "$GITHUB_OUTPUT"
-          echo "tag=$cargo_near-rust-$rust" >> "$GITHUB_OUTPUT"
+          {
+            echo "cargo_near=$cargo_near"
+            echo "rust=$rust"
+            echo "tag=$cargo_near-rust-$rust"
+          } >> "$GITHUB_OUTPUT"
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -86,8 +89,6 @@ jobs:
         with:
           persist-credentials: false
       - if: steps.exists.outputs.exists != 'true'
-        uses: docker/setup-buildx-action@v4
-      - if: steps.exists.outputs.exists != 'true'
         id: build
         env:
           CARGO_NEAR: ${{ steps.version.outputs.cargo_near }}
@@ -105,3 +106,49 @@ jobs:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
+      # Reproduce the recipe that actually published this image, even if the
+      # Dockerfile or builder pins have changed since. Never repush on mismatch.
+      - if: github.event_name == 'schedule'
+        id: reproduce
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          digest=$(docker buildx imagetools inspect "$IMAGE:$TAG" --format '{{.Manifest.Digest}}')
+          [[ $digest =~ ^sha256:[0-9a-f]{64}$ ]]
+          gh attestation verify "oci://$IMAGE@$digest" -R "$GITHUB_REPOSITORY" --format json > attestation.json
+          revision=$(jq -er --arg source "git+https://github.com/$GITHUB_REPOSITORY@" '
+            [.[].verificationResult.statement.predicate.buildDefinition.resolvedDependencies[]
+             | select(.uri | startswith($source)) | .digest.gitCommit] | unique
+            | if length == 1 then .[0] else error("Expected one attested source revision") end
+          ' attestation.json)
+          [[ $revision =~ ^[0-9a-f]{40}$ ]]
+          {
+            echo "digest=$digest"
+            echo "revision=$revision"
+          } >> "$GITHUB_OUTPUT"
+      - if: github.event_name == 'schedule'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.reproduce.outputs.revision }}
+          path: reproduce
+          persist-credentials: false
+      - if: github.event_name == 'schedule'
+        name: Verify published image reproducibility
+        env:
+          CARGO_NEAR: ${{ steps.version.outputs.cargo_near }}
+          RUST: ${{ steps.version.outputs.rust }}
+          TAG: ${{ steps.version.outputs.tag }}
+          EXPECTED_DIGEST: ${{ steps.reproduce.outputs.digest }}
+        run: |
+          set -euo pipefail
+          reproduce/docker/build.sh "$CARGO_NEAR" "$RUST" --no-cache \
+            --tag "$IMAGE:$TAG" \
+            --output type=oci,dest=reproduced-image.tar,oci-mediatypes=true,rewrite-timestamp=true
+          digest=$(tar -xOf reproduced-image.tar index.json | jq -er '
+            .manifests | if length == 1 then .[0].digest else error("Expected one image manifest") end
+          ')
+          echo "Published: $EXPECTED_DIGEST"
+          echo "Rebuilt:   $digest"
+          test "$digest" = "$EXPECTED_DIGEST"
