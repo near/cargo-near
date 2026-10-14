@@ -21,7 +21,10 @@ shift 2
 dir=$(cd "$(dirname "$0")" && pwd)
 
 snapshot=$(sed -n 's/^ARG DEBIAN_SNAPSHOT=//p' "$dir/Dockerfile")
-source_date_epoch=$(date -u -d "${snapshot:0:8} ${snapshot:9:2}:${snapshot:11:2}:${snapshot:13:2}" +%s)
+snapshot_date="${snapshot:0:8} ${snapshot:9:2}:${snapshot:11:2}:${snapshot:13:2}"
+# Try GNU date, then BSD date (macOS).
+source_date_epoch=$(date -u -d "$snapshot_date" +%s 2>/dev/null \
+  || date -u -j -f '%Y%m%d %H:%M:%S' "$snapshot_date" +%s)
 
 cargo_near_sha256=$(curl -fsSL "https://github.com/near/cargo-near/releases/download/cargo-near-v${cargo_near_version}/cargo-near-x86_64-unknown-linux-gnu.tar.gz.sha256" | cut -d' ' -f1)
 
