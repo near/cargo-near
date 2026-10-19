@@ -11,7 +11,7 @@ ignore = [
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
     # rustls via reqwest: patched releases need aws-lc-rs ^1.18, but
-    # near-crypto 0.37.0 and 0.38.0-rc.2 pin =1.16.2. Remove these rustls
+    # near-crypto 0.37.0 and 0.38.0-rc.4 pin =1.16.2. Remove these rustls
     # exceptions once both NEAR dependency trees allow rustls >=0.23.46.
     "RUSTSEC-2026-0285",
     # Session-value Debug output: we do not implement a custom ClientSessionStore.
@@ -21,4 +21,9 @@ ignore = [
     # Key-share prediction: default TLS clients do not prefer post-quantum
     # groups (rustls's prefer-post-quantum feature is disabled).
     "RUSTSEC-2026-0349",
+    # zip < 9 via symbolic-debuginfo 12 (its latest stable release needs zip ^7).
+    # ABI generation only parses the dylib it just built; nothing extracts archives.
+    "RUSTSEC-2026-0367",
+    "RUSTSEC-2026-0368",
+    "RUSTSEC-2026-0369",
 ]
