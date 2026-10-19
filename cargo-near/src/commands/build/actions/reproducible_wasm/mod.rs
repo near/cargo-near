@@ -96,6 +96,7 @@ pub struct BuildOpts {
     /// Requires a committed Cargo.lock and the standard /home/near/.cargo image layout.
     /// Repository Cargo configuration and separate lockfiles used by nested builds are not
     /// prefetched. Missing dependencies fail the build without an online fallback.
+    /// Host metadata inspection ignores repository Cargo configuration and skips dependency-version recommendations.
     #[interactive_clap(long)]
     pub offline_build: bool,
 }

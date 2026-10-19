@@ -30,6 +30,7 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
                 crate_in_repo.clone(),
                 opts.no_locked,
                 opts.context,
+                opts.offline_build,
             )
         },
     )?;
@@ -64,13 +65,17 @@ pub fn run(opts: DockerBuildOpts, quiet: bool) -> eyre::Result<CompilationArtifa
         )?
     };
 
-    let near_sdk_support =
-        warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
-    warn_versions_upgrades::suggest_cargo_near_build_checks(
-        cloned_repo.crate_metadata(),
-        &applied_build_meta,
-        near_sdk_support,
-    );
+    // Offline preflight deliberately has no host dependency graph. Version
+    // recommendations must not resolve dependencies or execute compiler probes.
+    if !opts.offline_build {
+        let near_sdk_support =
+            warn_versions_upgrades::suggest_near_sdk_checks(cloned_repo.crate_metadata());
+        warn_versions_upgrades::suggest_cargo_near_build_checks(
+            cloned_repo.crate_metadata(),
+            &applied_build_meta,
+            near_sdk_support,
+        );
+    }
     let contract_source_metadata = {
         let local_crate_info = BuildInfoMixed::new(&opts, &applied_build_meta, &cloned_repo)?;
         near_verify_rs::types::contract_source_metadata::ContractSourceMetadata::from(
