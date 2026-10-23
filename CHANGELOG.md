@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.0-rc.3](https://github.com/near/cargo-near/compare/cargo-near-v0.23.0-rc.2...cargo-near-v0.23.0-rc.3) - 2026-10-23
+
+### Other
+
+- update Cargo.lock dependencies
+
 ## [0.23.0-rc.2](https://github.com/near/cargo-near/compare/cargo-near-v0.23.0-rc.1...cargo-near-v0.23.0-rc.2) - 2026-10-19
 
 ### Other
