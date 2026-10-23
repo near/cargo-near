@@ -24,6 +24,9 @@ pub struct Opts {
     pub color: Option<ColorPreference>,
     /// Variant of the reproducible-wasm build
     pub variant: Option<String>,
+    /// Build without network access, after fetching dependencies in a separate container run
+    #[builder(default)]
+    pub offline_build: bool,
     #[builder(default)]
     pub context: BuildContext,
 }
