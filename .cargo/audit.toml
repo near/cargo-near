@@ -21,6 +21,9 @@ ignore = [
     # Key-share prediction: default TLS clients do not prefer post-quantum
     # groups (rustls's prefer-post-quantum feature is disabled).
     "RUSTSEC-2026-0349",
+    # rustls-webpki distrusted intermediates: the fix (0.103.16) also needs
+    # aws-lc-rs ^1.18, blocked by the same near-crypto pin as above.
+    "RUSTSEC-2026-0382",
     # zip < 9 via symbolic-debuginfo 12 (its latest stable release needs zip ^7).
     # ABI generation only parses the dylib it just built; nothing extracts archives.
     "RUSTSEC-2026-0367",
