@@ -1,9 +1,9 @@
 name: Publish image
 
 # Publishes ghcr.io/<owner>/cargo-near:<cargo-near>-rust-<rust> and attests it.
-# After a release: the last four Rust stables. Daily: the latest Rust stable,
-# if missing, and an uncached rebuild verifies the published digest. On demand:
-# the last four for a given cargo-near version.
+# After a release: the last four Rust stables and the release's MSRV. Daily: the
+# latest Rust stable, if missing, and an uncached rebuild verifies the published
+# digest. On demand: the last four and the MSRV for a given cargo-near version.
 
 on:
   workflow_call:
@@ -23,27 +23,20 @@ on:
 permissions: {}
 
 jobs:
-  publish:
+  versions:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
-      id-token: write
-      attestations: write
-    strategy:
-      fail-fast: false
-      matrix:
-        # How many Rust minor versions behind the latest stable to build.
-        offset: ${{ fromJson(github.event_name == 'schedule' && '[0]' || '[0, 1, 2, 3]') }}
-    env:
-      IMAGE: ghcr.io/${{ github.repository_owner }}/cargo-near
+    outputs:
+      cargo_near: ${{ steps.versions.outputs.cargo_near }}
+      rust: ${{ steps.versions.outputs.rust }}
     steps:
-      - id: version
+      - id: versions
         env:
           GH_TOKEN: ${{ github.token }}
           PLAN: ${{ inputs.plan }}
           CARGO_NEAR_VERSION: ${{ inputs.cargo_near_version }}
-          OFFSET: ${{ matrix.offset }}
+          SCHEDULE: ${{ github.event_name == 'schedule' }}
         run: |
           set -euo pipefail
           rustc_version() {
@@ -61,12 +54,43 @@ jobs:
           cargo_near=${cargo_near#cargo-near-v}
           [[ $cargo_near =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]
           minor=$(rustc_version stable | cut -d. -f2)
-          rust=$(rustc_version "1.$((minor - OFFSET))")
+          if [ "$SCHEDULE" = true ]; then
+            channels=("1.$minor")
+          else
+            msrv=$(gh api -H "Accept: application/vnd.github.raw" \
+              "repos/near/cargo-near/contents/cargo-near/Cargo.toml?ref=cargo-near-v$cargo_near" \
+              | sed -n 's/^rust-version = "\([0-9]*\.[0-9]*\).*/\1/p' | grep .)
+            channels=("1.$minor" "1.$((minor - 1))" "1.$((minor - 2))" "1.$((minor - 3))" "$msrv")
+          fi
+          versions=()
+          for channel in "${channels[@]}"; do
+            versions+=("$(rustc_version "$channel")")
+          done
+          # The MSRV may be one of the last four stables, so dedupe.
+          rust=$(printf '%s\n' "${versions[@]}" | jq -Rnc '[inputs] | unique')
           {
             echo "cargo_near=$cargo_near"
             echo "rust=$rust"
-            echo "tag=$cargo_near-rust-$rust"
           } >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: ${{ fromJson(needs.versions.outputs.rust) }}
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/cargo-near
+      CARGO_NEAR: ${{ needs.versions.outputs.cargo_near }}
+      RUST: ${{ matrix.rust }}
+      TAG: ${{ needs.versions.outputs.cargo_near }}-rust-${{ matrix.rust }}
+    steps:
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -78,7 +102,6 @@ jobs:
       - id: exists
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.version.outputs.tag }}
         run: |
           if gh attestation verify "oci://$IMAGE:$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "$IMAGE:$TAG is already published and attested"
@@ -90,10 +113,6 @@ jobs:
           persist-credentials: false
       - if: steps.exists.outputs.exists != 'true'
         id: build
-        env:
-          CARGO_NEAR: ${{ steps.version.outputs.cargo_near }}
-          RUST: ${{ steps.version.outputs.rust }}
-          TAG: ${{ steps.version.outputs.tag }}
         run: |
           docker/build.sh "$CARGO_NEAR" "$RUST" \
             --tag "$IMAGE:$TAG" \
@@ -112,7 +131,6 @@ jobs:
         id: reproduce
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.version.outputs.tag }}
         run: |
           set -euo pipefail
           digest=$(docker buildx imagetools inspect "$IMAGE:$TAG" --format '{{.Manifest.Digest}}')
@@ -137,9 +155,6 @@ jobs:
       - if: github.event_name == 'schedule'
         name: Verify published image reproducibility
         env:
-          CARGO_NEAR: ${{ steps.version.outputs.cargo_near }}
-          RUST: ${{ steps.version.outputs.rust }}
-          TAG: ${{ steps.version.outputs.tag }}
           EXPECTED_DIGEST: ${{ steps.reproduce.outputs.digest }}
         run: |
           set -euo pipefail
