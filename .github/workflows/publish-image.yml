@@ -1,9 +1,9 @@
 name: Publish image
 
 # Publishes ghcr.io/<owner>/cargo-near:<cargo-near>-rust-<rust> and attests it.
-# After a release: the last four Rust stables and the release's MSRV. Daily: the
-# latest Rust stable, if missing, and an uncached rebuild verifies the published
-# digest. On demand: the last four and the MSRV for a given cargo-near version.
+# After a release: every Rust stable from the release's MSRV to the latest.
+# Daily: the latest Rust stable, if missing, and an uncached rebuild verifies the
+# published digest. On demand: MSRV to latest for a given cargo-near version.
 
 on:
   workflow_call:
@@ -60,14 +60,16 @@ jobs:
             msrv=$(gh api -H "Accept: application/vnd.github.raw" \
               "repos/near/cargo-near/contents/cargo-near/Cargo.toml?ref=cargo-near-v$cargo_near" \
               | sed -n 's/^rust-version = "\([0-9]*\.[0-9]*\).*/\1/p' | grep .)
-            channels=("1.$minor" "1.$((minor - 1))" "1.$((minor - 2))" "1.$((minor - 3))" "$msrv")
+            channels=()
+            for ((m = ${msrv#1.}; m <= minor; m++)); do
+              channels+=("1.$m")
+            done
           fi
           versions=()
           for channel in "${channels[@]}"; do
             versions+=("$(rustc_version "$channel")")
           done
-          # The MSRV may be one of the last four stables, so dedupe.
-          rust=$(printf '%s\n' "${versions[@]}" | jq -Rnc '[inputs] | unique')
+          rust=$(printf '%s\n' "${versions[@]}" | jq -Rnc '[inputs]')
           {
             echo "cargo_near=$cargo_near"
             echo "rust=$rust"
