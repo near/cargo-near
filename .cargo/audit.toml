@@ -29,4 +29,11 @@ ignore = [
     "RUSTSEC-2026-0367",
     "RUSTSEC-2026-0368",
     "RUSTSEC-2026-0369",
+    # zstd 0.13 / zstd-safe 7 via near-primitives 0.38 (requires zstd ^0.13); fixed only
+    # in zstd 0.14 / zstd-safe 8. They affect reused streaming contexts, legacy-frame
+    # streaming decompression and `Seekable`; cargo-near itself only one-shot compresses
+    # the ABI it generated.
+    "RUSTSEC-2026-0391",
+    "RUSTSEC-2026-0398",
+    "RUSTSEC-2026-0403",
 ]
