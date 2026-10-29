@@ -91,6 +91,14 @@ pub struct BuildOpts {
     #[interactive_clap(skip_interactive_input)]
     #[interactive_clap(verbatim_doc_comment)]
     pub variant: Option<String>,
+    /// Fetch dependencies online, then build in a separate container without network access
+    ///
+    /// Requires a committed Cargo.lock and the standard /home/near/.cargo image layout.
+    /// Repository Cargo configuration and separate lockfiles used by nested builds are not
+    /// prefetched. Missing dependencies fail the build without an online fallback.
+    /// Host metadata inspection ignores repository Cargo configuration and skips dependency-version recommendations.
+    #[interactive_clap(long)]
+    pub offline_build: bool,
 }
 
 impl From<CliBuildOpts> for BuildOpts {
@@ -102,6 +110,7 @@ impl From<CliBuildOpts> for BuildOpts {
             color: value.color,
             variant: value.variant,
             profile: value.profile,
+            offline_build: value.offline_build,
         }
     }
 }
@@ -122,6 +131,7 @@ mod context {
                 color: scope.color.clone(),
                 variant: scope.variant.clone(),
                 profile: scope.profile.clone(),
+                offline_build: scope.offline_build,
             };
             super::run(opts, previous_context)?;
             Ok(Self)
@@ -139,6 +149,7 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
         manifest_path: value.0.manifest_path.map(Into::into),
         color: value.0.color.map(Into::into),
         variant: value.0.variant,
+        offline_build: value.0.offline_build,
         context: value.1,
     }
 }
@@ -146,4 +157,20 @@ fn docker_opts_from(value: (BuildOpts, BuildContext)) -> docker::DockerBuildOpts
 pub fn run(opts: BuildOpts, context: BuildContext) -> color_eyre::eyre::Result<BuildArtifact> {
     let docker_opts = docker_opts_from((opts, context));
     cargo_near_build::docker::build(docker_opts, false)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn offline_build_flag_reaches_docker_options() {
+        let cli = BuildOpts::try_parse_from(["reproducible-wasm", "--offline-build"]).unwrap();
+        let opts = docker_opts_from((cli.into(), BuildContext::Build));
+        assert!(opts.offline_build);
+
+        let cli = BuildOpts::try_parse_from(["reproducible-wasm"]).unwrap();
+        let opts = docker_opts_from((cli.into(), BuildContext::Build));
+        assert!(!opts.offline_build);
+    }
 }

@@ -45,18 +45,57 @@ impl CrateMetadata {
         cargo_target_dir: &common_buildtime_env::CargoTargetDir,
         override_toolchain: Option<String>,
     ) -> eyre::Result<Self> {
-        let (metadata, root_package) = {
-            let (mut metadata, root_package) = get_cargo_metadata(
-                &manifest_path,
-                no_locked,
-                cargo_target_dir,
-                override_toolchain,
-            )?;
-            metadata.target_directory =
-                crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
-            metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
-            (metadata, root_package)
-        };
+        let (metadata, root_package) = get_cargo_metadata(
+            &manifest_path,
+            no_locked,
+            cargo_target_dir,
+            override_toolchain,
+        )?;
+        Self::from_metadata(manifest_path, metadata, root_package)
+    }
+
+    /// Inspect Docker build inputs without resolving dependencies or loading
+    /// repository Cargo configuration on the host. Dependencies are fetched in Docker.
+    #[cfg(feature = "docker")]
+    pub(crate) fn collect_for_offline_docker(
+        manifest_path: ManifestPath,
+        no_locked: bool,
+    ) -> eyre::Result<Self> {
+        let workdir = tempfile::tempdir()?;
+        let mut command = MetadataCommand::new();
+        command
+            .manifest_path(&manifest_path.path)
+            .current_dir(workdir.path())
+            .no_deps();
+        let mut options = vec!["--offline".to_string()];
+        if !no_locked {
+            options.push("--locked".to_string());
+        }
+        command.other_options(options);
+        let metadata = command
+            .exec()
+            .wrap_err("Error inspecting the contract manifest for an offline Docker build")?;
+        let root_package = metadata
+            .packages
+            .iter()
+            .find(|package| {
+                package
+                    .manifest_path
+                    .canonicalize_utf8()
+                    .is_ok_and(|path| path == manifest_path.path)
+            })
+            .wrap_err("Cargo metadata did not contain the requested contract manifest")?
+            .clone();
+        Self::from_metadata(manifest_path, metadata, root_package)
+    }
+
+    fn from_metadata(
+        manifest_path: ManifestPath,
+        mut metadata: cargo_metadata::Metadata,
+        root_package: Package,
+    ) -> eyre::Result<Self> {
+        metadata.target_directory = crate::fs::force_canonicalize_dir(&metadata.target_directory)?;
+        metadata.workspace_root = metadata.workspace_root.canonicalize_utf8()?;
 
         let mut target_directory =
             crate::fs::force_canonicalize_dir(&metadata.target_directory.join("near"))?;

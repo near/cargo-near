@@ -21,6 +21,7 @@ pub struct ClonedRepo {
     #[allow(unused)]
     pub tmp_repo_dir: tempfile::TempDir,
     no_locked: bool,
+    offline_build: bool,
     tmp_crate_metadata: CrateMetadata,
 }
 
@@ -29,6 +30,7 @@ impl ClonedRepo {
         crate_in_repo: crate_in_repo::Crate,
         no_locked: bool,
         context: BuildContext,
+        offline_build: bool,
     ) -> eyre::Result<Self> {
         match (no_locked, context) {
             (false, _) => {}
@@ -46,10 +48,14 @@ impl ClonedRepo {
                 return Err(eyre::eyre!(ERR_NO_LOCKED_DEPLOY));
             }
         }
-        Self::git_clone(crate_in_repo, no_locked)
+        Self::git_clone(crate_in_repo, no_locked, offline_build)
     }
 
-    fn git_clone(crate_in_repo: crate_in_repo::Crate, no_locked: bool) -> eyre::Result<Self> {
+    fn git_clone(
+        crate_in_repo: crate_in_repo::Crate,
+        no_locked: bool,
+        offline_build: bool,
+    ) -> eyre::Result<Self> {
         let tmp_repo_dir = tempfile::tempdir()?;
         let tmp_repo_path = tmp_repo_dir.path().to_path_buf();
         let tmp_repo =
@@ -69,7 +75,7 @@ impl ClonedRepo {
                 path
             };
             let manifest_path = ManifestPath::try_from(cargo_toml_path)?;
-            CrateMetadata::collect(manifest_path, no_locked, &CargoTargetDir::NoOp, None).inspect_err(|err| {
+            collect_crate_metadata(manifest_path, no_locked, offline_build).inspect_err(|err| {
             if !no_locked && err.to_string().contains("Cargo.lock is absent") {
                 no_locked_warn_pause(false);
                 println!();
@@ -86,6 +92,7 @@ impl ClonedRepo {
         Ok(ClonedRepo {
             tmp_repo_dir,
             no_locked,
+            offline_build,
             initial_crate_in_repo: crate_in_repo,
             tmp_crate_metadata,
         })
@@ -110,7 +117,7 @@ impl ClonedRepo {
                 path
             };
             let manifest_path = ManifestPath::try_from(cargo_toml_path)?;
-            CrateMetadata::collect(manifest_path, self.no_locked, &CargoTargetDir::NoOp, None)?
+            collect_crate_metadata(manifest_path, self.no_locked, self.offline_build)?
         };
 
         let destination_dir = destination_crate_metadata
@@ -118,6 +125,18 @@ impl ClonedRepo {
             .out_dir;
 
         copy(in_wasm_path, destination_dir)
+    }
+}
+
+fn collect_crate_metadata(
+    manifest_path: ManifestPath,
+    no_locked: bool,
+    offline_build: bool,
+) -> eyre::Result<CrateMetadata> {
+    if offline_build {
+        CrateMetadata::collect_for_offline_docker(manifest_path, no_locked)
+    } else {
+        CrateMetadata::collect(manifest_path, no_locked, &CargoTargetDir::NoOp, None)
     }
 }
 
@@ -165,4 +184,77 @@ fn no_locked_warn_pause(warning_red: bool) {
     );
     println!("{}", "  - such builds are not reproducible due to potential update of dependencies and compiled `wasm` mismatch as the result.".yellow());
     std::thread::sleep(Duration::new(12, 0));
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+    use std::{fs, os::unix::fs::PermissionsExt, process::Command};
+
+    #[test]
+    fn offline_metadata_does_not_execute_repository_wrapper() -> eyre::Result<()> {
+        const CHILD: &str = "CARGO_NEAR_OFFLINE_METADATA_TEST_CHILD";
+        if std::env::var_os(CHILD).is_some() {
+            let root = camino::Utf8PathBuf::from_path_buf(std::env::current_dir()?).unwrap();
+            let manifest = ManifestPath::try_from(root.join("Cargo.toml"))?;
+            let marker = root.join("wrapper-ran");
+
+            // Positive control: normal metadata executes the repository wrapper
+            // for compiler probes. The fixture wrapper records this and exits.
+            assert!(collect_crate_metadata(manifest.clone(), true, false).is_err());
+            assert!(
+                marker.exists(),
+                "online control did not execute the wrapper"
+            );
+            fs::remove_file(&marker)?;
+
+            let metadata = collect_crate_metadata(manifest, false, true)?;
+            assert_eq!(metadata.root_package.name.as_str(), "offline-metadata");
+            assert!(metadata.raw_metadata.resolve.is_none());
+            assert!(
+                !marker.exists(),
+                "offline host metadata executed the wrapper"
+            );
+            assert!(!root.join("Cargo.lock").exists());
+            return Ok(());
+        }
+
+        let directory = tempfile::tempdir()?;
+        let root = directory.path();
+        fs::create_dir(root.join("src"))?;
+        fs::create_dir(root.join(".cargo"))?;
+        fs::write(
+            root.join("Cargo.toml"),
+            "[package]\nname = \"offline-metadata\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        )?;
+        fs::write(root.join("src/lib.rs"), "pub fn answer() -> u32 { 42 }\n")?;
+        let wrapper = root.join("wrapper.sh");
+        fs::write(
+            &wrapper,
+            "#!/bin/sh\ntouch \"$(dirname \"$0\")/wrapper-ran\"\nexit 97\n",
+        )?;
+        fs::set_permissions(&wrapper, fs::Permissions::from_mode(0o755))?;
+        fs::write(
+            root.join(".cargo/config.toml"),
+            format!("[build]\nrustc-wrapper = {:?}\n", wrapper),
+        )?;
+
+        // Use a child test process so Cargo really starts inside the untrusted
+        // repository, without mutating the parent's CWD or environment.
+        let output = Command::new(std::env::current_exe()?)
+            .arg("offline_metadata_does_not_execute_repository_wrapper")
+            .arg("--nocapture")
+            .current_dir(root)
+            .env(CHILD, "1")
+            .env_remove("RUSTC_WRAPPER")
+            .env_remove("RUSTC_WORKSPACE_WRAPPER")
+            .output()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            output.status.success() && stdout.contains("1 passed"),
+            "child metadata test failed:\n{stdout}\n{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
+    }
 }
