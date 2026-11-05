@@ -46,10 +46,25 @@ jobs:
 
           $mod_content | save -f cargo-near/src/commands/new/new-project-template/Cargo.template.toml
 
+          # Keep the template toolchain equal to the image's Rust version, which overrides it in
+          # reproducible builds anyway.
+          let rust = ($record.name | parse "{cargo_near}-rust-{rust}" | get rust.0);
+          let toolchain_content = (
+            open cargo-near/src/commands/new/new-project-template/rust-toolchain.toml --raw | lines
+            | each {
+              |line| if ($line | str starts-with "channel = ") {
+                $'channel = "($rust)"'
+              } else { $line }
+            }
+            | to text
+          );
+
+          $toolchain_content | save -f cargo-near/src/commands/new/new-project-template/rust-toolchain.toml
+
           git diff
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          title: update `cargo near new` template `image` and `image_digest` 
+          title: update `cargo near new` template `image`, `image_digest` and toolchain
           token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
