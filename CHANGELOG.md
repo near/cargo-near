@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.23.0-rc.3](https://github.com/near/cargo-near/compare/cargo-near-v0.23.0-rc.2...cargo-near-v0.23.0-rc.3) - 2026-11-05
+## [0.23.0](https://github.com/near/cargo-near/compare/cargo-near-v0.22.0...cargo-near-v0.23.0) - 2026-11-05
+
+### Added
+
+- support nearcore 2.14 ([#469](https://github.com/near/cargo-near/pull/469))
+
+### Fixed
+
+- clarify git commit progress in cargo near new ([#456](https://github.com/near/cargo-near/pull/456))
 
 ### Other
 
