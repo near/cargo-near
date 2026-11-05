@@ -64,6 +64,12 @@ pub struct BuildOpts {
     #[interactive_clap(long)]
     #[interactive_clap(verbatim_doc_comment)]
     pub no_wasmopt: bool,
+    /// Run equivalent of `wasm-opt -Oz` instead of `wasm-opt -O` as a post-step
+    ///
+    /// Has no effect if `--no-wasmopt` is specified.
+    #[interactive_clap(long)]
+    #[interactive_clap(verbatim_doc_comment)]
+    pub wasmopt_oz: bool,
     /// Copy final artifacts (`contract.wasm`, `ABI.json`, `ABI.zst`) to this directory
     #[interactive_clap(long)]
     #[interactive_clap(skip_interactive_input)]
@@ -145,6 +151,7 @@ impl From<CliBuildOpts> for BuildOpts {
             no_embed_abi: value.no_embed_abi,
             no_doc: value.no_doc,
             no_wasmopt: value.no_wasmopt,
+            wasmopt_oz: value.wasmopt_oz,
             out_dir: value.out_dir,
             manifest_path: value.manifest_path,
             features: value.features,
@@ -176,6 +183,7 @@ pub mod context {
                 no_embed_abi: scope.no_embed_abi,
                 no_doc: scope.no_doc,
                 no_wasmopt: scope.no_wasmopt,
+                wasmopt_oz: scope.wasmopt_oz,
                 features: scope.features.clone(),
                 abi_features: scope.abi_features.clone(),
                 no_default_features: scope.no_default_features,
@@ -202,6 +210,7 @@ impl From<BuildOpts> for cargo_near_build::BuildOpts {
             no_embed_abi: value.no_embed_abi,
             no_doc: value.no_doc,
             no_wasmopt: value.no_wasmopt,
+            wasmopt_oz: value.wasmopt_oz,
             features: value.features,
             abi_features: value.abi_features,
             no_default_features: value.no_default_features,

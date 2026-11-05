@@ -1,5 +1,7 @@
 use crate::util;
-use cargo_near_integration_tests::{build_fn_with, setup_tracing};
+use cargo_near_integration_tests::{
+    MAX_RUST_VERSION, build_fn_with, common_root_for_test_projects_build, setup_tracing,
+};
 use function_name::named;
 use std::fs;
 
@@ -206,6 +208,39 @@ async fn test_build_both_features_and_abi_features_for_different_targets() -> te
     let contract = worker.dev_deploy(&build_result.wasm).await?;
     let outcome = contract.call("gated_only").view().await?;
     assert!(outcome.json::<bool>()?);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[named]
+async fn test_build_wasmopt_oz() -> testresult::TestResult {
+    setup_tracing();
+    let oz_build = build_fn_with! {
+        Opts: "--wasmopt-oz";
+        Code:
+        pub fn add(&self, a: u32, b: u32) -> u32 {
+            a + b
+        }
+    };
+
+    // unlike `build_fn_with!`, leaves the sources untouched, so cargo's artifact stays fresh
+    // and only the wasm-opt settings differ between builds
+    let manifest_path = common_root_for_test_projects_build()
+        .join(function_name!())
+        .join("Cargo.toml");
+    let rebuild = |wasmopt_oz| -> testresult::TestResult<Vec<u8>> {
+        let opts = cargo_near_build::BuildOpts::builder()
+            .manifest_path(manifest_path.clone())
+            .override_toolchain(MAX_RUST_VERSION)
+            .wasmopt_oz(wasmopt_oz)
+            .build();
+        Ok(fs::read(cargo_near_build::build(opts)?.path)?)
+    };
+    let default_wasm = rebuild(false)?;
+    assert!(oz_build.wasm.len() < default_wasm.len());
+    assert!(rebuild(true)? == oz_build.wasm);
+    util::test_add(&oz_build.wasm).await?;
 
     Ok(())
 }
