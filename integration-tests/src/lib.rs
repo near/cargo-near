@@ -48,6 +48,17 @@ pub fn common_root_for_test_projects_build() -> camino::Utf8PathBuf {
 /// tests in `tests/build/dynamic_max_rustc.rs`.
 const MAX_RUST_VERSION: &str = "1.86.0";
 
+/// Skip the write when content is unchanged, so repeated invocations for the same test
+/// project don't bump source mtimes and spuriously recompile the fixture.
+fn write_if_changed(path: &std::path::Path, content: &[u8]) -> std::io::Result<()> {
+    if let Ok(existing) = std::fs::read(path)
+        && existing == content
+    {
+        return Ok(());
+    }
+    std::fs::write(path, content)
+}
+
 pub fn invoke_cargo_near(
     function_name: &str,
     cargo_path: Option<&str>,
@@ -97,11 +108,11 @@ pub fn invoke_cargo_near(
         cargo_toml = cargo_toml.replace(&format!("::{k}::"), &v);
     }
     let cargo_path = crate_dir.join("Cargo.toml");
-    std::fs::write(&cargo_path, cargo_toml)?;
+    write_if_changed(cargo_path.as_std_path(), cargo_toml.as_bytes())?;
 
     let lib_rs = prettyplease::unparse(&lib_rs_file);
     let lib_rs_path = src_dir.join("lib.rs");
-    std::fs::write(lib_rs_path, lib_rs)?;
+    write_if_changed(lib_rs_path.as_std_path(), lib_rs.as_bytes())?;
 
     let cargo_near::CliOpts::Near(cli_args) =
         cargo_near::Opts::try_parse_from(cli_opts.split(" "))?;
