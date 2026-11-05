@@ -56,6 +56,10 @@ pub struct Opts {
     /// do not run `wasm-opt -O` on the generated output as a post-step
     #[builder(default)]
     pub no_wasmopt: bool,
+    /// run `wasm-opt -Oz` instead of `wasm-opt -O` as the post-step;
+    /// has no effect if [`no_wasmopt`](Self::no_wasmopt) is set
+    #[builder(default)]
+    pub wasmopt_oz: bool,
     /// Copy final artifacts to this directory
     #[builder(into)]
     pub out_dir: Option<camino::Utf8PathBuf>,
@@ -174,6 +178,9 @@ impl Opts {
         }
         if self.no_wasmopt {
             cargo_args.push("--no-wasmopt");
+        }
+        if self.wasmopt_oz {
+            cargo_args.push("--wasmopt-oz");
         }
         if let Some(ref out_dir) = self.out_dir {
             cargo_args.extend_from_slice(&["--out-dir", out_dir.as_str()]);
@@ -418,6 +425,7 @@ mod tests {
             no_embed_abi: true,
             no_doc: true,
             no_wasmopt: true,
+            wasmopt_oz: true,
             out_dir: Some("target/out".into()),
             features: Some("feat".into()),
             abi_features: Some("abi-feat".into()),
@@ -438,6 +446,7 @@ mod tests {
         assert!(cmd.contains(&"--no-embed-abi".to_string()));
         assert!(cmd.contains(&"--no-doc".to_string()));
         assert!(cmd.contains(&"--no-wasmopt".to_string()));
+        assert!(cmd.contains(&"--wasmopt-oz".to_string()));
         assert!(has_flag_with_value(&cmd, "--out-dir", "target/out"));
         assert!(has_flag_with_value(&cmd, "--features", "feat"));
         assert!(has_flag_with_value(&cmd, "--abi-features", "abi-feat"));
