@@ -170,7 +170,7 @@ async fn create_subaccount(
 ) -> testresult::TestResult<near_api::Account> {
     let account_id: AccountId = name.parse().unwrap();
     sandbox
-        .create_account(account_id.clone())
+        .create_account(account_id.clone().as_str().parse()?)
         .initial_balance(NearToken::from_near(10))
         .send()
         .await?;

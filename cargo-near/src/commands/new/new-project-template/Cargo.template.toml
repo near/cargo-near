@@ -4,7 +4,7 @@ description = "cargo-near-new-project-description"
 version = "0.1.0"
 edition = "2024"
 resolver = "3"
-rust-version = "1.93"
+rust-version = "1.95"
 # TODO: Fill out the repository field to help NEAR ecosystem tools to discover your project.
 # NEP-0330 is automatically implemented for all contracts built with https://github.com/near/cargo-near.
 # Link to the repository will be available via `contract_source_metadata` view-function.
@@ -38,11 +38,11 @@ container_build_command = [
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-near-sdk = "5.29"
+near-sdk = "5.30.1"
 
 [dev-dependencies]
-near-sdk = { version = "5.29", features = ["unit-testing"] }
-near-sandbox = "0.3.12"
+near-sdk = { version = "5.30", features = ["unit-testing"] }
+near-sandbox = "0.4.0"
 near-api = "0.8"
 cargo-near-build = "0.11.0"
 tokio = { version = "1.12.0", features = ["full"] }
