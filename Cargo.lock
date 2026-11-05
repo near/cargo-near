@@ -2983,10 +2983,11 @@ dependencies = [
 
 [[package]]
 name = "near-cli-rs"
-version = "0.31.0"
+version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b493f0c33e361cdf94f603c19e600e3878e8f963d1988f29115175b212771cc8"
+checksum = "84aca1e0f64f3a739baca56b989d01b3be094b09bc7eba4b7c169950034452e3"
 dependencies = [
+ "aws-lc-rs",
  "bip39",
  "borsh",
  "bs58 0.5.1",
