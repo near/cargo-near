@@ -24,7 +24,7 @@ impl<'a> ArtifactMessages<'a> {
         ));
         Ok(())
     }
-    #[cfg(feature = "build_internal")]
+    #[cfg(any(feature = "build_internal", feature = "docker"))]
     pub fn push_free(&mut self, msg: (&'a str, ColoredString)) {
         self.messages.push(msg);
     }

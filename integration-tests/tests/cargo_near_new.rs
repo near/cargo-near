@@ -22,6 +22,15 @@ async fn test_docker_build() -> testresult::TestResult<()> {
 
     let artifact = cargo_near_build::docker::build(opts, false)?;
 
+    let abi_path = artifact.path.with_file_name(format!(
+        "{}_abi.json",
+        artifact.path.file_stem().expect("WASM filename")
+    ));
+    let abi: serde_json::Value = serde_json::from_slice(&std::fs::read(abi_path)?)?;
+    assert_eq!(
+        abi["metadata"]["wasm_hash"].as_str(),
+        Some(artifact.compute_hash()?.to_base58_string().as_str())
+    );
     let contract_wasm = std::fs::read(artifact.path)?;
 
     test_basics_on(contract_wasm).await?;
