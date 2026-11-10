@@ -237,23 +237,27 @@ pub fn suggest_cargo_near_build_checks(
     }
 }
 
-const PROD_IMAGE: &str = "sourcescan/cargo-near";
+const PROD_IMAGES: [&str; 2] = ["ghcr.io/near/cargo-near", "sourcescan/cargo-near"];
 const DEV_IMAGE: &str = "dj8yfo/sourcescan";
 
 fn find_cargo_near_in_docker_img_tag(
     reproducible_build: &AppliedReproducibleBuild,
 ) -> Option<cargo_metadata::semver::Version> {
+    cargo_near_version_in_image(&reproducible_build.image)
+}
+
+fn cargo_near_version_in_image(image: &str) -> Option<cargo_metadata::semver::Version> {
     let regex = regex::Regex::new(DOCKER_IMAGE_REGEX_PATTERN).expect("no error");
     let image_match = regex
-        .captures(&reproducible_build.image)
+        .captures(image)
         .and_then(|captures| captures.name("image"))?;
 
-    if image_match.as_str() != PROD_IMAGE && image_match.as_str() != DEV_IMAGE {
+    if !PROD_IMAGES.contains(&image_match.as_str()) && image_match.as_str() != DEV_IMAGE {
         return None;
     }
 
     let tag_match = regex
-        .captures(&reproducible_build.image)
+        .captures(image)
         .and_then(|captures| captures.name("tag"))?;
 
     let regex2 = regex::Regex::new(SOURCE_SCAN_TAG_PATTERN).expect("no error");
@@ -289,6 +293,38 @@ fn find_cargo_near_build_build_dep(
             );
             println!("{err}");
             None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::cargo_near_version_in_image;
+
+    #[test]
+    fn reads_cargo_near_version_from_known_images() {
+        let version = cargo_metadata::semver::Version::new(0, 23, 0);
+        for image in [
+            "ghcr.io/near/cargo-near:0.23.0-rust-1.95.0",
+            "sourcescan/cargo-near:0.23.0-rust-1.99.1",
+            "dj8yfo/sourcescan:0.23.0-rust-1.95.0",
+        ] {
+            assert_eq!(
+                cargo_near_version_in_image(image),
+                Some(version.clone()),
+                "{image}"
+            );
+        }
+    }
+
+    #[test]
+    fn ignores_other_images() {
+        for image in [
+            "ghcr.io/someone/cargo-near:0.23.0-rust-1.95.0",
+            "ghcr.io/near/cargo-near",
+            "ghcr.io/near/cargo-near:latest",
+        ] {
+            assert_eq!(cargo_near_version_in_image(image), None, "{image}");
         }
     }
 }
