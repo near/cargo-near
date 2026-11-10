@@ -25,7 +25,7 @@ image_digest = "sha256:c9655eaf7436b90c87ea8b25739f91063032c5c30ba24cfeafe72c142
 # supported by `sourcescan/cargo-near:0.10.1-rust-1.82.0` image or later images
 passed_env = []
 # build command inside of docker container
-# if docker image from default gallery is used https://hub.docker.com/r/sourcescan/cargo-near/tags,
+# if docker image from default gallery is used https://github.com/near/cargo-near/pkgs/container/cargo-near,
 # the command may be any combination of flags of `cargo-near`,
 # supported by respective version of binary inside the container besides `--no-locked` flag
 container_build_command = [
