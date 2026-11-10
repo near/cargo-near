@@ -32,6 +32,8 @@ jobs:
       attestations: write
     strategy:
       fail-fast: false
+      # Parallel builds get rate limited by snapshot.debian.org (503).
+      max-parallel: 1
       matrix:
         # How many Rust minor versions behind the latest stable to build.
         offset: ${{ fromJson(github.event_name == 'schedule' && '[0]' || '[0, 1, 2, 3]') }}

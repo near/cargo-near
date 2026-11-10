@@ -58,9 +58,13 @@ ENV HOME=/home/near \
 
 # `near-verify-rs` runs the container as the host uid, so the home directory
 # stays world-writable, as in `sourcescan/cargo-near`.
+# rustup lists components in the order they finished installing, which varies
+# between builds, so the list is sorted to keep the image digest stable.
 RUN --mount=type=bind,from=fetch,source=/fetch,target=/fetch \
     /fetch/rustup-init -y --no-modify-path --profile minimal \
        --default-toolchain ${RUST_VERSION} --target wasm32-unknown-unknown \
+    && components=${RUSTUP_HOME}/toolchains/${RUST_VERSION}-x86_64-unknown-linux-gnu/lib/rustlib/components \
+    && LC_ALL=C sort -o "$components" "$components" \
     && install -m 755 /fetch/cargo-near ${CARGO_HOME}/bin/cargo-near \
     && rm -rf ${RUSTUP_HOME}/tmp/* ${RUSTUP_HOME}/downloads/* \
     && chmod -R a+rwx ${HOME}
