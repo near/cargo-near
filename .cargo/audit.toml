@@ -1,11 +1,5 @@
 [advisories]
 ignore = [
-    "RUSTSEC-2021-0145",
-    # used in near-primitives. prase is not used for user input for now
-    "RUSTSEC-2026-0009",
-    # git2: potential undefined behavior when dereferencing Buf struct.
-    # Transitive dep, waiting on upstream fix.
-    "RUSTSEC-2026-0008",
     # quick-xml via self_update 0.42 (S3 backend path we do not enable). Fixed only
     # in self_update 1.0 pre-releases so far; keep until a stable release lands.
     "RUSTSEC-2026-0194",
