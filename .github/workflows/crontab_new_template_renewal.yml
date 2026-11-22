@@ -1,5 +1,12 @@
 name: renew docker image tag and digest periodically and on-demand
 
+# Pins the `cargo near new` template to the ghcr.io image for the latest
+# cargo-near release and the template's own Rust version, so new projects build
+# with the same compiler locally and reproducibly. The template's `rust-version`
+# is the source of truth: this sets the toolchain `channel` to its latest patch
+# and pins the image built for that patch. If the image isn't published yet, it
+# starts publish-image.yml for it, and the next run pins it.
+
 on:
   schedule:
     - cron: '0 1 * * *'  # Runs daily at 1 hour after midnight
@@ -8,10 +15,16 @@ on:
 permissions:
   pull-requests: write
   contents: write
+  actions: write
+  attestations: read
+  packages: read
 
 jobs:
   check_latest_docker_image:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/cargo-near
+      TEMPLATE: cargo-near/src/commands/new/new-project-template
 
     steps:
       - name: Check out the main branch
@@ -20,36 +33,51 @@ jobs:
           ref: main
           token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
 
-      - uses: hustcer/setup-nu@v3
-        with:
-          version: "*"
-
-      - name: Run update script
-        shell: nu {0}
+      - id: pin
+        name: Pin the template to its image
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          let record = http get "https://hub.docker.com/v2/namespaces/sourcescan/repositories/cargo-near/tags" | get results | first;
-
-          let mod_content = (
-            open cargo-near/src/commands/new/new-project-template/Cargo.template.toml --raw | lines
-            | each { 
-              |line| if ($line | str starts-with "image = ") { 
-                $'image = "sourcescan/cargo-near:($record.name)"' 
-              } else { $line } 
-            } 
-            | each { 
-              |line| if ($line | str starts-with "image_digest = ") { 
-                $'image_digest = "($record.digest)"' 
-              } else { $line } 
-            } 
-            | to text
-          );
-
-          $mod_content | save -f cargo-near/src/commands/new/new-project-template/Cargo.template.toml
-
+          set -euo pipefail
+          rustc_version() {
+            curl -fsSL "https://static.rust-lang.org/dist/channel-rust-$1.toml" \
+              | sed -n '/^\[pkg.rustc\]/{n;s/^version = "\([0-9.]*\).*/\1/p}' | grep .
+          }
+          # Sets `key = "value"`, failing unless exactly one line sets the key.
+          set_key() {
+            test "$(grep -c "^$2 = " "$1")" -eq 1
+            sed -i "s|^$2 = .*|$2 = \"$3\"|" "$1"
+          }
+          release=$(gh release list -R "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 50 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("cargo-near-v"))][0].tagName')
+          [[ $release =~ ^cargo-near-v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          rust_version=$(python3 -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["package"]["rust-version"])' \
+            "$TEMPLATE/Cargo.template.toml")
+          [[ $rust_version =~ ^1\.[0-9]+(\.[0-9]+)?$ ]]
+          rust=$(rustc_version "$(cut -d. -f1,2 <<<"$rust_version")")
+          cargo_near=${release#cargo-near-v}
+          image="$IMAGE:$cargo_near-rust-$rust"
+          # As in publish-image.yml, an image counts as published once it is attested.
+          if ! digest=$(docker buildx imagetools inspect "$image" --format '{{.Manifest.Digest}}') \
+            || ! gh attestation verify "oci://$IMAGE@$digest" -R "$GITHUB_REPOSITORY" >/dev/null; then
+            gh workflow run publish-image.yml -R "$GITHUB_REPOSITORY" \
+              -f cargo_near_version="$cargo_near" -f rust_version="$rust"
+            echo "::notice::$image isn't published yet. Started publish-image.yml for it, the next run pins it."
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [[ $digest =~ ^sha256:[0-9a-f]{64}$ ]]
+          set_key "$TEMPLATE/Cargo.template.toml" image "$image"
+          set_key "$TEMPLATE/Cargo.template.toml" image_digest "$digest"
+          set_key "$TEMPLATE/rust-toolchain.toml" channel "$rust"
           git diff
 
       - name: Create Pull Request
+        if: steps.pin.outputs.pending != 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          title: update `cargo near new` template `image` and `image_digest` 
+          title: update `cargo near new` template image and toolchain
+          add-paths: |
+            ${{ env.TEMPLATE }}/Cargo.template.toml
+            ${{ env.TEMPLATE }}/rust-toolchain.toml
           token: ${{ secrets.NEARPROTOCOL_CI_PR_ACCESS }}
