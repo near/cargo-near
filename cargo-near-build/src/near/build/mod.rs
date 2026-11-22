@@ -322,13 +322,34 @@ pub fn run(args: Opts) -> eyre::Result<CompilationArtifact> {
     wasm_artifact.path = {
         let prev_artifact_path = wasm_artifact.path;
         let target_path = output_paths.get_wasm_file().clone();
+        // shared by every `--out-dir` of the crate, hence it also records the target path
+        let wasm_opt_record_path = crate_metadata.target_directory.join(format!(
+            ".{}_wasm_opt.txt",
+            crate_metadata.formatted_package_name()
+        ));
+        let wasm_opt_record = format!(
+            "{target_path} no_wasmopt={} wasmopt_oz={}",
+            args.no_wasmopt, args.wasmopt_oz
+        );
+        let same_wasm_opt_record = std::fs::read_to_string(&wasm_opt_record_path)
+            .is_ok_and(|prev_record| prev_record == wasm_opt_record);
 
         // target file does not yet exist `!target_path.is_file()` condition is implied by
         // `is_newer_than(...)` predicate, but it's redundantly added here for readability 🙏
-        if !target_path.is_file() || is_newer_than(&prev_artifact_path, &target_path) {
-            let (from_path, _maybe_tmpfile) =
-                maybe_wasm_opt_step(&prev_artifact_path, args.no_wasmopt, &rustc_version)?;
+        if !target_path.is_file()
+            || is_newer_than(&prev_artifact_path, &target_path)
+            || !same_wasm_opt_record
+        {
+            let (from_path, _maybe_tmpfile) = maybe_wasm_opt_step(
+                &prev_artifact_path,
+                args.no_wasmopt,
+                args.wasmopt_oz,
+                &rustc_version,
+            )?;
+            // an interrupted copy must not leave behind a record of the previous target
+            let _ = std::fs::remove_file(&wasm_opt_record_path);
             crate::fs::copy_to_file(&from_path, &target_path)?;
+            std::fs::write(&wasm_opt_record_path, wasm_opt_record)?;
         } else {
             println!();
             pretty_print::step(
@@ -405,6 +426,7 @@ const MIN_RUSTC_EMITTING_BULK_MEMORY_OPCODES: rustc_version::Version =
 fn maybe_wasm_opt_step(
     input_path: &Utf8PathBuf,
     no_wasmopt: bool,
+    wasmopt_oz: bool,
     rustc_version: &rustc_version::Version,
 ) -> eyre::Result<(Utf8PathBuf, Option<NamedTempFile>)> {
     let result = if !no_wasmopt {
@@ -441,7 +463,11 @@ fn maybe_wasm_opt_step(
                     format!("{}", opt_destination.path().to_string_lossy()).cyan()
                 );
                 let optimization_opts = {
-                    let mut opts = wasm_opt::OptimizationOptions::new_optimize_for_size();
+                    let mut opts = if wasmopt_oz {
+                        wasm_opt::OptimizationOptions::new_optimize_for_size_aggressively()
+                    } else {
+                        wasm_opt::OptimizationOptions::new_optimize_for_size()
+                    };
                     for feature in additional_features {
                         opts.enable_feature(feature.0);
                     }
@@ -449,7 +475,8 @@ fn maybe_wasm_opt_step(
                     opts
                 };
                 optimization_opts.run(input_path, opt_destination.path())?;
-                pretty_print::duration_millis(start, "wasm-opt -O");
+                let opt_level = if wasmopt_oz { "-Oz" } else { "-O" };
+                pretty_print::duration_millis(start, &format!("wasm-opt {opt_level}"));
                 Ok(())
             },
         )?;
